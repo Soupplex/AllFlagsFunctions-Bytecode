@@ -1,0 +1,946 @@
+FFlag     : DFIntRemoteFunctionMaxQueueMemBytes
+RVA .data : 0x8116d80
+XREFs     : 2 total (2 em runtime)
+Insn RVA  : 0x343d1be
+Operação  : 0x343d1be: mov/math reg, [flag] ; fn=0x343d150..0x343d3c9
+
+[Disassembly .text]
+  === [Resumo do Efeito da FFlag no Engine (RBX::EnforceLua)] ===
+    Classe  : RBX::EnforceLua (RTTI Resolvido)
+    Padrão  : DFIntRemoteFunctionMaxQueueMemBytes = 0 (default) [int, mode=2]
+    Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
+    Fórmula : RemoteFunctionMaxQueueMemBytes != 0 && ((this->field_0x13c + this->field_0x13c * 4) << 4) + this->field_0x140 > RemoteFunctionMaxQueueMemBytes
+    Altera  : this->field_0x13c, this->field_0x140
+    [Child @0x3366ea0] Papel   : Parâmetro de configuração lido diretamente pela rotina
+    [Child @0x3439b80] Papel   : Parâmetro de configuração lido diretamente pela rotina
+  
+  === [Decompilacao C++ da Funcao 0x343d150..0x343d3c9] ===
+    struct RBX::EnforceLua {
+      /* +0xb0 */ void*   field_0xb0;
+      /* +0xd0 */ void*   field_0xd0;
+      /* +0x118 */ void*   field_0x118;
+      /* +0x120 */ void*   field_0x120;
+      /* +0x13c */ int32_t field_0x13c;
+      /* +0x140 */ int32_t field_0x140;
+      /* +0x164 */ uint8_t field_0x164;
+      /* +0x165 */ uint8_t field_0x165;
+      /* +0x166 */ uint8_t field_0x166;
+    };
+    
+    // Flag defaults: EnforceLuaAppsRemoteAllowList = false, RemoteFunctionSingleInvocationSizeLimit = 0, RemoteFunctionMaxQueueMemBytes = 0, RemoteFunctionDelayedQueueLimit = 256, MaxVariantCountRRS = 100000
+    auto RBX::EnforceLua::func_0x343d150(RBX::EnforceLua* this, int64_t param_2, void* param_3) {
+      if (param_2 == &sym_0x854f950) {
+        if (RemoteFunctionSingleInvocationSizeLimit > 0 && ((param_3->field_0x0 + param_3->field_0x0 * 4) << 4) + param_3->field_0x4 > RemoteFunctionSingleInvocationSizeLimit) {
+          call_0x3366ea0(&this->field_0x118, "single invocation memory size exceeded", "onServerInvoke", this);
+          return 1;
+        }
+        if ((this->field_0xb0 & 0xfffffff8) == 0) {
+          if (RemoteFunctionMaxQueueMemBytes != 0 && ((this->field_0x13c + this->field_0x13c * 4) << 4) + this->field_0x140 > RemoteFunctionMaxQueueMemBytes) {
+            call_0x3366ea0(&this->field_0x118, "queue memory usage exceeded", "onServerInvoke", this);
+            return 1;
+          }
+          if (RemoteFunctionDelayedQueueLimit > 0 && (this->field_0x120 - this->field_0x118) >> 5 >= RemoteFunctionDelayedQueueLimit) {
+            call_0x3366ea0(&this->field_0x118, "queue exhausted", "onServerInvoke", this);
+            return 1;
+          }
+          this->field_0x13c = this->field_0x13c + param_3->field_0x0;
+          this->field_0x140 = this->field_0x140 + param_3->field_0x4;
+          if (this->field_0x164 != 0 && param_3->field_0x0 > MaxVariantCountRRS) {
+            return 1;
+          }
+          if (this->field_0x166 != 0 && EnforceLuaAppsRemoteAllowList) {
+            call_0x3366ea0(&this->field_0x118, "dropped because remote is not in allow list", "onServerInvoke", this);
+            return 1;
+          }
+          return 0;
+        }
+      } else if (param_2 == &sym_0x854f7f0) {
+        if ((this->field_0xd0 & 0xfffffff8) == 0) {
+          if (RemoteFunctionMaxQueueMemBytes != 0 && ((this->field_0x13c + this->field_0x13c * 4) << 4) + this->field_0x140 > RemoteFunctionMaxQueueMemBytes) {
+            call_0x3366ea0(&this->field_0x118, "queue memory usage exceeded", "onClientInvoke", this);
+            return 1;
+          }
+          if (RemoteFunctionDelayedQueueLimit > 0 && (this->field_0x120 - this->field_0x118) >> 5 >= RemoteFunctionDelayedQueueLimit) {
+            call_0x3366ea0(&this->field_0x118, "queue exhausted", "onClientInvoke", this);
+            return 1;
+          }
+          this->field_0x13c = this->field_0x13c + param_3->field_0x0;
+          this->field_0x140 = this->field_0x140 + param_3->field_0x4;
+        }
+        return 0;
+      }
+    }
+  
+  === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
+    0x343d150 | 48 83 ec 28              | sub rsp, 0x28
+    0x343d154 | 48 8d 05 f5 27 11 05     | lea rax, [rip + 0x51127f5]
+    0x343d15b | 4c 8b c9                 | mov r9, rcx
+    0x343d15e | 48 3b d0                 | cmp rdx, rax
+    0x343d161 | 0f 85 6f 01 00 00        | jne 0x343d2d6
+    0x343d167 | 48 63 0d ca 9b cd 04     | movsxd rcx, dword ptr [rip + 0x4cd9bca] ; DFIntRemoteFunctionSingleInvocationSizeLimit
+    0x343d16e | 85 c9                    | test ecx, ecx
+    0x343d170 | 7e 3b                    | jle 0x343d1ad
+    0x343d172 | 41 8b 00                 | mov eax, dword ptr [r8]
+    0x343d175 | 48 8d 14 80              | lea rdx, [rax + rax*4]
+    0x343d179 | 41 8b 40 04              | mov eax, dword ptr [r8 + 0x4]
+    0x343d17d | 48 c1 e2 04              | shl rdx, 0x4
+    0x343d181 | 48 03 d0                 | add rdx, rax
+    0x343d184 | 48 3b d1                 | cmp rdx, rcx
+    0x343d187 | 76 24                    | jbe 0x343d1ad
+    0x343d189 | 4c 8d 05 10 c7 f6 03     | lea r8, [rip + 0x3f6c710] ; "onServerInvoke"
+    L_0x343d190:
+    0x343d190 | 49 8d 89 18 01 00 00     | lea rcx, [r9 + 0x118]
+    0x343d197 | 48 8d 15 b2 fa f5 03     | lea rdx, [rip + 0x3f5fab2] ; "single invocation memory size exceeded"
+    0x343d19e | e8 fd 9c f2 ff           | call 0x3366ea0
+    0x343d1a3 | b8 01 00 00 00           | mov eax, 0x1
+    0x343d1a8 | 48 83 c4 28              | add rsp, 0x28
+    0x343d1ac | c3                       | ret
+    L_0x343d1ad:
+    0x343d1ad | 49 f7 81 b0 00 00 00 f8.. | test qword ptr [r9 + 0xb0], 0xfffffff8
+    0x343d1b8 | 0f 85 9d 00 00 00        | jne 0x343d25b
+    0x343d1be | 44 8b 15 bb 9b cd 04     | mov r10d, dword ptr [rip + 0x4cd9bbb] ; DFIntRemoteFunctionMaxQueueMemBytes
+    0x343d1c5 | 45 85 d2                 | test r10d, r10d
+    0x343d1c8 | 74 3d                    | je 0x343d207
+    0x343d1ca | 41 8b 81 3c 01 00 00     | mov eax, dword ptr [r9 + 0x13c]
+    0x343d1d1 | 49 8d 89 18 01 00 00     | lea rcx, [r9 + 0x118]
+    0x343d1d8 | 8d 14 80                 | lea edx, [rax + rax*4]
+    0x343d1db | c1 e2 04                 | shl edx, 0x4
+    0x343d1de | 41 03 91 40 01 00 00     | add edx, dword ptr [r9 + 0x140]
+    0x343d1e5 | 41 3b d2                 | cmp edx, r10d
+    0x343d1e8 | 7e 1d                    | jle 0x343d207
+    0x343d1ea | 4c 8d 05 af c6 f6 03     | lea r8, [rip + 0x3f6c6af] ; "onServerInvoke"
+    0x343d1f1 | 48 8d 15 d8 f7 f5 03     | lea rdx, [rip + 0x3f5f7d8] ; "queue memory usage exceeded"
+    0x343d1f8 | e8 a3 9c f2 ff           | call 0x3366ea0
+    0x343d1fd | b8 01 00 00 00           | mov eax, 0x1
+    0x343d202 | 48 83 c4 28              | add rsp, 0x28
+    0x343d206 | c3                       | ret
+    L_0x343d207:
+    0x343d207 | 48 63 05 5a 9b cd 04     | movsxd rax, dword ptr [rip + 0x4cd9b5a] ; DFIntRemoteFunctionDelayedQueueLimit
+    0x343d20e | 85 c0                    | test eax, eax
+    0x343d210 | 7e 34                    | jle 0x343d246
+    0x343d212 | 49 8d 89 18 01 00 00     | lea rcx, [r9 + 0x118]
+    0x343d219 | 48 8b 51 08              | mov rdx, qword ptr [rcx + 0x8]
+    0x343d21d | 48 2b 11                 | sub rdx, qword ptr [rcx]
+    0x343d220 | 48 c1 fa 05              | sar rdx, 0x5
+    0x343d224 | 48 3b d0                 | cmp rdx, rax
+    0x343d227 | 72 1d                    | jb 0x343d246
+    0x343d229 | 4c 8d 05 70 c6 f6 03     | lea r8, [rip + 0x3f6c670] ; "onServerInvoke"
+    0x343d230 | 48 8d 15 89 f7 f5 03     | lea rdx, [rip + 0x3f5f789] ; "queue exhausted"
+    0x343d237 | e8 64 9c f2 ff           | call 0x3366ea0
+    0x343d23c | b8 01 00 00 00           | mov eax, 0x1
+    0x343d241 | 48 83 c4 28              | add rsp, 0x28
+    0x343d245 | c3                       | ret
+    L_0x343d246:
+    0x343d246 | 41 8b 00                 | mov eax, dword ptr [r8]
+    0x343d249 | 41 01 81 3c 01 00 00     | add dword ptr [r9 + 0x13c], eax
+    0x343d250 | 41 8b 40 04              | mov eax, dword ptr [r8 + 0x4]
+    0x343d254 | 41 01 81 40 01 00 00     | add dword ptr [r9 + 0x140], eax
+    L_0x343d25b:
+    0x343d25b | 41 80 b9 64 01 00 00 00  | cmp byte ptr [r9 + 0x164], 0x0
+    0x343d263 | 74 32                    | je 0x343d297
+    0x343d265 | 8b 05 b5 8e cd 04        | mov eax, dword ptr [rip + 0x4cd8eb5] ; DFIntMaxVariantCountRRS
+    0x343d26b | 41 39 00                 | cmp dword ptr [r8], eax
+    0x343d26e | 76 27                    | jbe 0x343d297
+    0x343d270 | 41 80 b9 65 01 00 00 00  | cmp byte ptr [r9 + 0x165], 0x0
+    0x343d278 | 75 13                    | jne 0x343d28d
+    0x343d27a | 41 c6 81 65 01 00 00 01  | mov byte ptr [r9 + 0x165], 0x1
+    0x343d282 | 49 8b c9                 | mov rcx, r9
+    0x343d285 | 41 8b 10                 | mov edx, dword ptr [r8]
+    0x343d288 | e8 f3 c8 ff ff           | call 0x3439b80
+    L_0x343d28d:
+    0x343d28d | b8 01 00 00 00           | mov eax, 0x1
+    0x343d292 | 48 83 c4 28              | add rsp, 0x28
+    0x343d296 | c3                       | ret
+    L_0x343d297:
+    0x343d297 | 41 80 b9 66 01 00 00 00  | cmp byte ptr [r9 + 0x166], 0x0
+    0x343d29f | 0f 84 1d 01 00 00        | je 0x343d3c2
+    0x343d2a5 | 80 3d c4 01 d0 04 00     | cmp byte ptr [rip + 0x4d001c4], 0x0 ; DFFlagEnforceLuaAppsRemoteAllowList
+    0x343d2ac | 0f 84 10 01 00 00        | je 0x343d3c2
+    0x343d2b2 | 49 8d 89 18 01 00 00     | lea rcx, [r9 + 0x118]
+    0x343d2b9 | 4c 8d 05 e0 c5 f6 03     | lea r8, [rip + 0x3f6c5e0] ; "onServerInvoke"
+    0x343d2c0 | 48 8d 15 c9 f6 f5 03     | lea rdx, [rip + 0x3f5f6c9] ; "dropped because remote is not in allow list"
+    0x343d2c7 | e8 d4 9b f2 ff           | call 0x3366ea0
+    0x343d2cc | b8 01 00 00 00           | mov eax, 0x1
+    0x343d2d1 | 48 83 c4 28              | add rsp, 0x28
+    0x343d2d5 | c3                       | ret
+    L_0x343d2d6:
+    0x343d2d6 | 48 8d 05 13 25 11 05     | lea rax, [rip + 0x5112513]
+    0x343d2dd | 48 3b d0                 | cmp rdx, rax
+    0x343d2e0 | 0f 85 dc 00 00 00        | jne 0x343d3c2
+    0x343d2e6 | 48 63 15 4b 9a cd 04     | movsxd rdx, dword ptr [rip + 0x4cd9a4b] ; DFIntRemoteFunctionSingleInvocationSizeLimit
+    0x343d2ed | 85 d2                    | test edx, edx
+    0x343d2ef | 7e 23                    | jle 0x343d314
+    0x343d2f1 | 41 8b 00                 | mov eax, dword ptr [r8]
+    0x343d2f4 | 48 8d 0c 80              | lea rcx, [rax + rax*4]
+    0x343d2f8 | 41 8b 40 04              | mov eax, dword ptr [r8 + 0x4]
+    0x343d2fc | 48 c1 e1 04              | shl rcx, 0x4
+    0x343d300 | 48 03 c8                 | add rcx, rax
+    0x343d303 | 48 3b ca                 | cmp rcx, rdx
+    0x343d306 | 76 0c                    | jbe 0x343d314
+    0x343d308 | 4c 8d 05 a1 c5 f6 03     | lea r8, [rip + 0x3f6c5a1] ; "onClientInvoke"
+    0x343d30f | e9 7c fe ff ff           | jmp 0x343d190
+    L_0x343d314:
+    0x343d314 | 49 f7 81 d0 00 00 00 f8.. | test qword ptr [r9 + 0xd0], 0xfffffff8
+    0x343d31f | 0f 85 9d 00 00 00        | jne 0x343d3c2
+    0x343d325 | 44 8b 15 54 9a cd 04     | mov r10d, dword ptr [rip + 0x4cd9a54] ; DFIntRemoteFunctionMaxQueueMemBytes
+    0x343d32c | 45 85 d2                 | test r10d, r10d
+    0x343d32f | 74 3d                    | je 0x343d36e
+    0x343d331 | 41 8b 81 3c 01 00 00     | mov eax, dword ptr [r9 + 0x13c]
+    0x343d338 | 49 8d 89 18 01 00 00     | lea rcx, [r9 + 0x118]
+    0x343d33f | 8d 14 80                 | lea edx, [rax + rax*4]
+    0x343d342 | c1 e2 04                 | shl edx, 0x4
+    0x343d345 | 41 03 91 40 01 00 00     | add edx, dword ptr [r9 + 0x140]
+    0x343d34c | 41 3b d2                 | cmp edx, r10d
+    0x343d34f | 7e 1d                    | jle 0x343d36e
+    0x343d351 | 4c 8d 05 58 c5 f6 03     | lea r8, [rip + 0x3f6c558] ; "onClientInvoke"
+    0x343d358 | 48 8d 15 71 f6 f5 03     | lea rdx, [rip + 0x3f5f671] ; "queue memory usage exceeded"
+    0x343d35f | e8 3c 9b f2 ff           | call 0x3366ea0
+    0x343d364 | b8 01 00 00 00           | mov eax, 0x1
+    0x343d369 | 48 83 c4 28              | add rsp, 0x28
+    0x343d36d | c3                       | ret
+    L_0x343d36e:
+    0x343d36e | 48 63 05 f3 99 cd 04     | movsxd rax, dword ptr [rip + 0x4cd99f3] ; DFIntRemoteFunctionDelayedQueueLimit
+    0x343d375 | 85 c0                    | test eax, eax
+    0x343d377 | 7e 34                    | jle 0x343d3ad
+    0x343d379 | 49 8d 89 18 01 00 00     | lea rcx, [r9 + 0x118]
+    0x343d380 | 48 8b 51 08              | mov rdx, qword ptr [rcx + 0x8]
+    0x343d384 | 48 2b 11                 | sub rdx, qword ptr [rcx]
+    0x343d387 | 48 c1 fa 05              | sar rdx, 0x5
+    0x343d38b | 48 3b d0                 | cmp rdx, rax
+    0x343d38e | 72 1d                    | jb 0x343d3ad
+    0x343d390 | 4c 8d 05 19 c5 f6 03     | lea r8, [rip + 0x3f6c519] ; "onClientInvoke"
+    0x343d397 | 48 8d 15 22 f6 f5 03     | lea rdx, [rip + 0x3f5f622] ; "queue exhausted"
+    0x343d39e | e8 fd 9a f2 ff           | call 0x3366ea0
+    0x343d3a3 | b8 01 00 00 00           | mov eax, 0x1
+    0x343d3a8 | 48 83 c4 28              | add rsp, 0x28
+    0x343d3ac | c3                       | ret
+    L_0x343d3ad:
+    0x343d3ad | 41 8b 00                 | mov eax, dword ptr [r8]
+    0x343d3b0 | 41 01 81 3c 01 00 00     | add dword ptr [r9 + 0x13c], eax
+    0x343d3b7 | 41 8b 40 04              | mov eax, dword ptr [r8 + 0x4]
+    0x343d3bb | 41 01 81 40 01 00 00     | add dword ptr [r9 + 0x140], eax
+    L_0x343d3c2:
+    0x343d3c2 | 33 c0                    | xor eax, eax
+    0x343d3c4 | 48 83 c4 28              | add rsp, 0x28
+    0x343d3c8 | c3                       | ret
+  
+  === [Sub-Rotina Chamada: 0x3366ea0..0x336710c via call @0x343d19e (rcx = this (Direct Engine Sub-Call))] ===
+    struct RBX::RemoteFunction {
+      /* +0x20 */ int32_t field_0x20;
+    };
+    
+    // Flag defaults: RemoteFunctionMaxQueueMemBytes = 0
+    void RBX::RemoteFunction::func_0x3366ea0(RBX::RemoteFunction* this, int64_t param_2, void* param_3, void* param_4) {
+      this->field_0x20 = this->field_0x20 + 1;
+      if (param_4 != 0) {
+        void* v_rdi_2 = param_4->field_0x60;
+        if (param_4->field_0x60 != 0) {
+          if (param_4->field_0x60->field_0x60 != 0) {
+            v_rdi_2 = call_0x7571b0(param_4->field_0x60->field_0x60);
+          }
+        } else {
+          v_rdi_2 = param_4;
+        }
+        if (v_rdi_2 != 0) {
+          call_0x27c5150();
+          void* sel_rcx_1 = v_rdi_2->field_0x18->field_0x1c0 - rax->field_0x1c0 <= rax->field_0x1c2 ? v_rdi_2 : 0;
+          if (sel_rcx_1 != 0) {
+            auto ret_0xcbc790_3 = call_0xcbc790(sel_rcx_1);
+            void* sel_rax_2 = ret_0xcbc790_3->field_0x0 == 0 ? 0 : ret_0xcbc790_3->field_0x0->field_0x528;
+            if (sel_rax_2 != 0) {
+              sel_rax_2->field_0x120 = sel_rax_2->field_0x120 + 1;
+            }
+          }
+        }
+      }
+      if ((this->field_0x20 & this->field_0x20 - 1) == 0) {
+        void* v_rax_3;
+        int32_t v_rbx_4;
+        if (param_4 != 0) {
+          auto vret_5 = param_4->vfunc_0xb0(param_4, &local_0x78) // -> FMOD::ChannelStream::fn_0x28bf410;
+          v_rax_3 = vret_5;
+          v_rbx_4 = 1;
+        } else {
+          auto ret_0x6fd950_4 = call_0x6fd950(32);
+          ret_0x6fd950_4->field_0x0 = "unknown instance";
+          v_rax_3 = &local_0x58;
+          v_rbx_4 = 2;
+        }
+        v_rax_3->field_0x10 = 0;
+        v_rax_3->field_0x18 = 15;
+        v_rax_3->field_0x0 = 0;
+        int32_t v_rbx_6 = v_rbx_4;
+        std::string::_Tidy_deallocate(v_rcx_5);
+        v_rbx_6 = v_rbx_4 & 0xfffffffd;
+        if ((v_rbx_6 & 0x1) != 0) {
+          if (local_0x90 >= 16) {
+            void* v_rcx_8 = local_0x78;
+            call_0x4955ac0(v_rcx_8);
+          }
+        }
+        call_0x1bf4f90(3, "Remote function invocation %s for %s; did you forget to implement %s ? (%u events dropped)", param_2, param_3);
+        std::string::_Tidy_deallocate(v_rcx_11);
+        return;
+      }
+    }
+  
+  === [Instrucoes x86-64 da Sub-Rotina Chamada (0x3366ea0..0x336710c)] ===
+    0x3366ea0 | 40 55                    | push rbp
+    0x3366ea2 | 53                       | push rbx
+    0x3366ea3 | 56                       | push rsi
+    0x3366ea4 | 57                       | push rdi
+    0x3366ea5 | 41 54                    | push r12
+    0x3366ea7 | 41 55                    | push r13
+    0x3366ea9 | 41 56                    | push r14
+    0x3366eab | 41 57                    | push r15
+    0x3366ead | 48 8d 6c 24 e1           | lea rbp, [rsp - 0x1f]
+    0x3366eb2 | 48 81 ec a8 00 00 00     | sub rsp, 0xa8
+    0x3366eb9 | 48 8b 05 20 18 d7 04     | mov rax, qword ptr [rip + 0x4d71820]
+    0x3366ec0 | 48 33 c4                 | xor rax, rsp
+    0x3366ec3 | 48 89 45 0f              | mov qword ptr [rbp + 0xf], rax
+    0x3366ec7 | 49 8b f1                 | mov rsi, r9
+    0x3366eca | 4d 8b e0                 | mov r12, r8
+    0x3366ecd | 4c 8b fa                 | mov r15, rdx
+    0x3366ed0 | 4c 8b f1                 | mov r14, rcx
+    0x3366ed3 | 45 33 ed                 | xor r13d, r13d
+    0x3366ed6 | 44 89 6d a7              | mov dword ptr [rbp - 0x59], r13d
+    0x3366eda | ff 41 20                 | inc dword ptr [rcx + 0x20]
+    0x3366edd | 4d 85 c9                 | test r9, r9
+    0x3366ee0 | 74 73                    | je 0x3366f55
+    0x3366ee2 | 49 8b 79 60              | mov rdi, qword ptr [r9 + 0x60]
+    0x3366ee6 | 48 85 ff                 | test rdi, rdi
+    0x3366ee9 | 74 13                    | je 0x3366efe
+    0x3366eeb | 48 8b 4f 60              | mov rcx, qword ptr [rdi + 0x60]
+    0x3366eef | 48 85 c9                 | test rcx, rcx
+    0x3366ef2 | 74 0d                    | je 0x3366f01
+    0x3366ef4 | e8 b7 02 3f fd           | call 0x7571b0
+    0x3366ef9 | 48 8b f8                 | mov rdi, rax
+    0x3366efc | eb 03                    | jmp 0x3366f01
+    L_0x3366efe:
+    0x3366efe | 48 8b fe                 | mov rdi, rsi
+    L_0x3366f01:
+    0x3366f01 | 48 85 ff                 | test rdi, rdi
+    0x3366f04 | 74 4f                    | je 0x3366f55
+    0x3366f06 | 48 8b 5f 18              | mov rbx, qword ptr [rdi + 0x18]
+    0x3366f0a | e8 41 e2 45 ff           | call 0x27c5150
+    0x3366f0f | 0f b7 93 c0 01 00 00     | movzx edx, word ptr [rbx + 0x1c0]
+    0x3366f16 | 0f b7 88 c0 01 00 00     | movzx ecx, word ptr [rax + 0x1c0]
+    0x3366f1d | 2b d1                    | sub edx, ecx
+    0x3366f1f | 0f b7 80 c2 01 00 00     | movzx eax, word ptr [rax + 0x1c2]
+    0x3366f26 | 49 8b cd                 | mov rcx, r13
+    0x3366f29 | 3b d0                    | cmp edx, eax
+    0x3366f2b | 48 0f 46 cf              | cmovbe rcx, rdi
+    0x3366f2f | 48 85 c9                 | test rcx, rcx
+    0x3366f32 | 74 21                    | je 0x3366f55
+    0x3366f34 | e8 57 58 95 fd           | call 0xcbc790
+    0x3366f39 | 48 8b 08                 | mov rcx, qword ptr [rax]
+    0x3366f3c | 48 8d 81 28 05 00 00     | lea rax, [rcx + 0x528]
+    0x3366f43 | 48 85 c9                 | test rcx, rcx
+    0x3366f46 | 49 0f 44 c5              | cmovz rax, r13
+    0x3366f4a | 48 85 c0                 | test rax, rax
+    0x3366f4d | 74 06                    | je 0x3366f55
+    0x3366f4f | ff 80 20 01 00 00        | inc dword ptr [rax + 0x120]
+    L_0x3366f55:
+    0x3366f55 | 41 8b 56 20              | mov edx, dword ptr [r14 + 0x20]
+    0x3366f59 | 8d 42 ff                 | lea eax, [rdx - 0x1]
+    0x3366f5c | 85 c2                    | test edx, eax
+    0x3366f5e | 0f 85 77 01 00 00        | jne 0x33670db
+    0x3366f64 | 48 85 f6                 | test rsi, rsi
+    0x3366f67 | 74 1f                    | je 0x3366f88
+    0x3366f69 | 48 8b 06                 | mov rax, qword ptr [rsi]
+    0x3366f6c | 48 8d 55 ef              | lea rdx, [rbp - 0x11]
+    0x3366f70 | 48 8b ce                 | mov rcx, rsi
+    0x3366f73 | 48 8b 80 b0 00 00 00     | mov rax, qword ptr [rax + 0xb0]
+    0x3366f7a | ff 15 c0 2d 0d 03        | call qword ptr [rip + 0x30d2dc0] ; __guard_dispatch_icall_fptr (0x6439d40)
+    0x3366f80 | 90                       | nop
+    0x3366f81 | bb 01 00 00 00           | mov ebx, 0x1
+    0x3366f86 | eb 35                    | jmp 0x3366fbd
+    L_0x3366f88:
+    0x3366f88 | b9 20 00 00 00           | mov ecx, 0x20
+    0x3366f8d | e8 be 69 39 fd           | call 0x6fd950
+    0x3366f92 | 48 c7 45 df 10 00 00 00  | mov qword ptr [rbp - 0x21], 0x10
+    0x3366f9a | 48 c7 45 e7 1f 00 00 00  | mov qword ptr [rbp - 0x19], 0x1f
+    0x3366fa2 | 0f 10 05 cf 59 03 04     | movups xmm0, xmmword ptr [rip + 0x40359cf]
+    0x3366fa9 | 0f 11 00                 | movups xmmword ptr [rax], xmm0
+    0x3366fac | 44 88 68 10              | mov byte ptr [rax + 0x10], r13b
+    0x3366fb0 | 48 89 45 cf              | mov qword ptr [rbp - 0x31], rax
+    0x3366fb4 | 48 8d 45 cf              | lea rax, [rbp - 0x31]
+    0x3366fb8 | bb 02 00 00 00           | mov ebx, 0x2
+    L_0x3366fbd:
+    0x3366fbd | 4c 89 6d af              | mov qword ptr [rbp - 0x51], r13
+    0x3366fc1 | 4c 89 6d bf              | mov qword ptr [rbp - 0x41], r13
+    0x3366fc5 | 4c 89 6d c7              | mov qword ptr [rbp - 0x39], r13
+    0x3366fc9 | 0f 10 00                 | movups xmm0, xmmword ptr [rax]
+    0x3366fcc | 0f 11 45 af              | movups xmmword ptr [rbp - 0x51], xmm0
+    0x3366fd0 | 0f 10 48 10              | movups xmm1, xmmword ptr [rax + 0x10]
+    0x3366fd4 | 0f 11 4d bf              | movups xmmword ptr [rbp - 0x41], xmm1
+    0x3366fd8 | 4c 89 68 10              | mov qword ptr [rax + 0x10], r13
+    0x3366fdc | 48 c7 40 18 0f 00 00 00  | mov qword ptr [rax + 0x18], 0xf
+    0x3366fe4 | c6 00 00                 | mov byte ptr [rax], 0x0
+    0x3366fe7 | f6 c3 02                 | test bl, 0x2
+    0x3366fea | 74 3d                    | je 0x3367029
+    0x3366fec | 83 e3 fd                 | and ebx, -0x3
+    0x3366fef | 89 5d a7                 | mov dword ptr [rbp - 0x59], ebx
+    0x3366ff2 | 48 8b 45 e7              | mov rax, qword ptr [rbp - 0x19]
+    0x3366ff6 | 48 83 f8 10              | cmp rax, 0x10
+    0x3366ffa | 72 2d                    | jb 0x3367029
+    0x3366ffc | 48 ff c0                 | inc rax
+    0x3366fff | 48 8b 4d cf              | mov rcx, qword ptr [rbp - 0x31]
+    0x3367003 | 48 8b d1                 | mov rdx, rcx
+    0x3367006 | 48 3d 00 10 00 00        | cmp rax, 0x1000
+    0x336700c | 72 15                    | jb 0x3367023
+    0x336700e | 48 8b 49 f8              | mov rcx, qword ptr [rcx - 0x8]
+    0x3367012 | 48 2b d1                 | sub rdx, rcx
+    0x3367015 | 48 8d 42 f8              | lea rax, [rdx - 0x8]
+    0x3367019 | 48 83 f8 1f              | cmp rax, 0x1f
+    0x336701d | 0f 87 de 00 00 00        | ja 0x3367101
+    L_0x3367023:
+    0x3367023 | e8 98 ea 5e 01           | call 0x4955ac0
+    0x3367028 | 90                       | nop
+    L_0x3367029:
+    0x3367029 | f6 c3 01                 | test bl, 0x1
+    0x336702c | 74 47                    | je 0x3367075
+    0x336702e | 48 8b 45 07              | mov rax, qword ptr [rbp + 0x7]
+    0x3367032 | 48 83 f8 10              | cmp rax, 0x10
+    0x3367036 | 72 2d                    | jb 0x3367065
+    0x3367038 | 48 ff c0                 | inc rax
+    0x336703b | 48 8b 4d ef              | mov rcx, qword ptr [rbp - 0x11]
+    0x336703f | 48 8b d1                 | mov rdx, rcx
+    0x3367042 | 48 3d 00 10 00 00        | cmp rax, 0x1000
+    0x3367048 | 72 15                    | jb 0x336705f
+    0x336704a | 48 8b 49 f8              | mov rcx, qword ptr [rcx - 0x8]
+    0x336704e | 48 2b d1                 | sub rdx, rcx
+    0x3367051 | 48 8d 42 f8              | lea rax, [rdx - 0x8]
+    0x3367055 | 48 83 f8 1f              | cmp rax, 0x1f
+    0x3367059 | 0f 87 a8 00 00 00        | ja 0x3367107
+    L_0x336705f:
+    0x336705f | e8 5c ea 5e 01           | call 0x4955ac0
+    0x3367064 | 90                       | nop
+    L_0x3367065:
+    0x3367065 | 4c 89 6d ff              | mov qword ptr [rbp - 0x1], r13
+    0x3367069 | 48 c7 45 07 0f 00 00 00  | mov qword ptr [rbp + 0x7], 0xf
+    0x3367071 | c6 45 ef 00              | mov byte ptr [rbp - 0x11], 0x0
+    L_0x3367075:
+    0x3367075 | 41 8b 46 20              | mov eax, dword ptr [r14 + 0x20]
+    0x3367079 | 48 8d 4d af              | lea rcx, [rbp - 0x51]
+    0x336707d | 48 83 7d c7 10           | cmp qword ptr [rbp - 0x39], 0x10
+    0x3367082 | 48 0f 43 4d af           | cmovae rcx, qword ptr [rbp - 0x51]
+    0x3367087 | 89 44 24 28              | mov dword ptr [rsp + 0x28], eax
+    0x336708b | 48 89 4c 24 20           | mov qword ptr [rsp + 0x20], rcx
+    0x3367090 | 4d 8b cc                 | mov r9, r12
+    0x3367093 | 4d 8b c7                 | mov r8, r15
+    0x3367096 | 48 8d 15 23 5f 03 04     | lea rdx, [rip + 0x4035f23] ; "Remote function invocation %s for %s; did you forget to implement %s ? (%u events dropped)"
+    0x336709d | b9 03 00 00 00           | mov ecx, 0x3
+    0x33670a2 | e8 e9 de 88 fe           | call 0x1bf4f90
+    0x33670a7 | 90                       | nop
+    0x33670a8 | 48 8b 45 c7              | mov rax, qword ptr [rbp - 0x39]
+    0x33670ac | 48 83 f8 10              | cmp rax, 0x10
+    0x33670b0 | 72 29                    | jb 0x33670db
+    0x33670b2 | 48 ff c0                 | inc rax
+    0x33670b5 | 48 8b 4d af              | mov rcx, qword ptr [rbp - 0x51]
+    0x33670b9 | 48 8b d1                 | mov rdx, rcx
+    0x33670bc | 48 3d 00 10 00 00        | cmp rax, 0x1000
+    0x33670c2 | 72 11                    | jb 0x33670d5
+    0x33670c4 | 48 8b 49 f8              | mov rcx, qword ptr [rcx - 0x8]
+    0x33670c8 | 48 2b d1                 | sub rdx, rcx
+    0x33670cb | 48 8d 42 f8              | lea rax, [rdx - 0x8]
+    0x33670cf | 48 83 f8 1f              | cmp rax, 0x1f
+    0x33670d3 | 77 26                    | ja 0x33670fb
+    L_0x33670d5:
+    0x33670d5 | e8 e6 e9 5e 01           | call 0x4955ac0
+    0x33670da | 90                       | nop
+    L_0x33670db:
+    0x33670db | 48 8b 4d 0f              | mov rcx, qword ptr [rbp + 0xf]
+    0x33670df | 48 33 cc                 | xor rcx, rsp
+    0x33670e2 | e8 b9 d7 a7 02           | call 0x5de48a0
+    0x33670e7 | 48 81 c4 a8 00 00 00     | add rsp, 0xa8
+    0x33670ee | 41 5f                    | pop r15
+    0x33670f0 | 41 5e                    | pop r14
+    0x33670f2 | 41 5d                    | pop r13
+    0x33670f4 | 41 5c                    | pop r12
+    0x33670f6 | 5f                       | pop rdi
+    0x33670f7 | 5e                       | pop rsi
+    0x33670f8 | 5b                       | pop rbx
+    0x33670f9 | 5d                       | pop rbp
+    0x33670fa | c3                       | ret
+    L_0x33670fb:
+    0x33670fb | e8 80 d4 aa 02           | call 0x5e14580
+    0x3367100 | 90                       | nop
+    L_0x3367101:
+    0x3367101 | e8 7a d4 aa 02           | call 0x5e14580
+    0x3367106 | 90                       | nop
+    L_0x3367107:
+    0x3367107 | e8 74 d4 aa 02           | call 0x5e14580
+  
+  === [Sub-Rotina Chamada: 0x3439b80..0x3439f63 via call @0x343d288 (rcx = this (Direct Engine Sub-Call))] ===
+    struct RBX::RemoteFunction {
+      /* +0x68 */ void*   field_0x68;
+    };
+    
+    // Flag defaults: RemoteFunctionMaxQueueMemBytes = 0, MaxVariantCountRRSPerMyriad = 5000
+    void RBX::RemoteFunction::func_0x3439b80(RBX::RemoteFunction* this, int64_t param_2) {
+      int32_t v_r8_2 = global_0x81a88d4;
+      if (global_0x81a88d4 == -1) {
+        auto ret_0x4975550_1 = call_0x4975550(this);
+        global_0x81a88d4 = ret_0x4975550_1 - (rdx >> 13) * 10000;
+        v_r8_2 = ret_0x4975550_1 - (rdx >> 13) * 10000;
+      }
+      if (v_r8_2 < MaxVariantCountRRSPerMyriad) {
+        call_0x2964930(&local_0x50);
+        if ((global_0x88b9080 & 0xfffffffc & 0xfffffff8) != 0) {
+          void* sel_rdx_1 = (global_0x88b9080 >> 1 & 0x1) == 0 ? global_0x88b9068 : sym_0x88b9068;
+          &local_0x2a8->vfunc(&local_0x2a8, sel_rdx_1);
+        }
+        auto ret_0x2963eb0_4 = call_0x2963eb0(&local_0x50, "VariantCount", 0);
+        if (ret_0x2963eb0_4 != 0) {
+          call_0x295eda0(ret_0x2963eb0_4, param_2);
+          if (local_0x2a8 != 0) {
+            local_0x2a8->vfunc_0x20(local_0x2a8, &local_0x30, param_2, 1) // -> RBX::ModelInstance::BackpackItem::fn_0x3343db0;
+          }
+        }
+        auto* f_68 = this->field_0x68;
+        void* v_rbx_3 = f_68;
+        if (f_68->field_0x18 >= 16) {
+          v_rbx_3 = f_68->field_0x0;
+        }
+        auto ret_0x2963eb0_7 = call_0x2963eb0(&local_0x50, "RemoteName", 0);
+        if (ret_0x2963eb0_7 != 0) {
+          void* sel_rdx_2 = v_rbx_3 != 0 ? v_rbx_3 : sym_0x6647145;
+          call_0x295e9a0(ret_0x2963eb0_7, sel_rdx_2, min(r8 + 1, 61440));
+          if (local_0x2a8 != 0) {
+            local_0x2a8->vfunc_0x8(local_0x2a8, &local_0x30, v_rbx_3, 1) // -> boost::program_options::invalid_option_value::fn_0x35074e0;
+          }
+        }
+        auto ret_0x6fd950_10 = call_0x6fd950(32);
+        ret_0x6fd950_10->field_0x0 = "RobloxRemoteVariantCountLimit";
+        ret_0x6fd950_10->field_0x10 = "antCountLimit";
+        ret_0x6fd950_10->field_0x18 = "Limit";
+        ret_0x6fd950_10->field_0x1c = global_0x739cb5c;
+        auto local_0x30 = ret_0x6fd950_10;
+        call_0x2963230(&local_0x50, &local_0x30, MaxVariantCountRRSPerMyriad, 1);
+        std::string::_Tidy_deallocate(v_rcx_5);
+        if (local_0x2b0 != 0) {
+          call_0x6daf40(local_0x2b0);
+        }
+        if (global_0x75ac990 >= 16) {
+          void* v_rcx_6 = 0;
+          if (global_0x75ac990 + 1 >= 0x1000 && -0->field_m0x8 < 8 || -0->field_m0x8 > 39) {
+            call_0x5e14580();
+          }
+          call_0x4955ac0(v_rcx_6);
+        }
+        if (global_0x75ac990 >= 16) {
+          void* v_rcx_8 = 0;
+          if (global_0x75ac990 + 1 >= 0x1000 && -0->field_m0x8 < 8 || -0->field_m0x8 > 39) {
+            call_0x5e14580();
+          }
+          call_0x4955ac0(v_rcx_8);
+        }
+        call_0x732520(&local_0x50);
+        if ((local_0x50 & 0x1) == 0) {
+          call_0x4955ac0(local_0x58);
+        }
+      }
+    }
+  
+  === [Instrucoes x86-64 da Sub-Rotina Chamada (0x3439b80..0x3439f63)] ===
+    0x3439b80 | 48 89 5c 24 18           | mov qword ptr [rsp + 0x18], rbx
+    0x3439b85 | 48 89 74 24 20           | mov qword ptr [rsp + 0x20], rsi
+    0x3439b8a | 55                       | push rbp
+    0x3439b8b | 57                       | push rdi
+    0x3439b8c | 41 56                    | push r14
+    0x3439b8e | 48 8d ac 24 40 fe ff ff  | lea rbp, [rsp - 0x1c0]
+    0x3439b96 | 48 81 ec c0 02 00 00     | sub rsp, 0x2c0
+    0x3439b9d | 48 8b 05 3c eb c9 04     | mov rax, qword ptr [rip + 0x4c9eb3c]
+    0x3439ba4 | 48 33 c4                 | xor rax, rsp
+    0x3439ba7 | 48 89 85 b8 01 00 00     | mov qword ptr [rbp + 0x1b8], rax
+    0x3439bae | 8b fa                    | mov edi, edx
+    0x3439bb0 | 48 8b f1                 | mov rsi, rcx
+    0x3439bb3 | 8b 1d 7f c5 cd 04        | mov ebx, dword ptr [rip + 0x4cdc57f] ; DFIntMaxVariantCountRRSPerMyriad
+    0x3439bb9 | 44 8b 05 14 ed d6 04     | mov r8d, dword ptr [rip + 0x4d6ed14]
+    0x3439bc0 | 41 83 f8 ff              | cmp r8d, -0x1
+    0x3439bc4 | 75 23                    | jne 0x3439be9
+    0x3439bc6 | e8 85 b9 53 01           | call 0x4975550
+    0x3439bcb | 44 8b c0                 | mov r8d, eax
+    0x3439bce | b8 59 17 b7 d1           | mov eax, 0xd1b71759
+    0x3439bd3 | 41 f7 e0                 | mul r8d
+    0x3439bd6 | c1 ea 0d                 | shr edx, 0xd
+    0x3439bd9 | 69 ca 10 27 00 00        | imul ecx, edx, 0x2710
+    0x3439bdf | 44 2b c1                 | sub r8d, ecx
+    0x3439be2 | 44 89 05 eb ec d6 04     | mov dword ptr [rip + 0x4d6eceb], r8d
+    L_0x3439be9:
+    0x3439be9 | 44 3b c3                 | cmp r8d, ebx
+    0x3439bec | 0f 8d 3e 03 00 00        | jge 0x3439f30
+    0x3439bf2 | 83 4c 24 50 01           | or dword ptr [rsp + 0x50], 0x1
+    0x3439bf7 | 48 8d 4c 24 50           | lea rcx, [rsp + 0x50]
+    0x3439bfc | e8 2f ad 52 ff           | call 0x2964930
+    0x3439c01 | 90                       | nop
+    0x3439c02 | 45 33 f6                 | xor r14d, r14d
+    0x3439c05 | 4c 89 b5 58 01 00 00     | mov qword ptr [rbp + 0x158], r14
+    0x3439c0c | 66 0f 6f 05 7c 2d 17 04  | movdqa xmm0, xmmword ptr [rip + 0x4172d7c]
+    0x3439c14 | f3 0f 7f 85 68 01 00 00  | movdqu xmmword ptr [rbp + 0x168], xmm0
+    0x3439c1c | 44 88 b5 58 01 00 00     | mov byte ptr [rbp + 0x158], r14b
+    0x3439c23 | 44 89 b5 78 01 00 00     | mov dword ptr [rbp + 0x178], r14d
+    0x3439c2a | c6 85 7c 01 00 00 01     | mov byte ptr [rbp + 0x17c], 0x1
+    0x3439c31 | 4c 89 b5 80 01 00 00     | mov qword ptr [rbp + 0x180], r14
+    0x3439c38 | f3 0f 7f 85 90 01 00 00  | movdqu xmmword ptr [rbp + 0x190], xmm0
+    0x3439c40 | 44 88 b5 80 01 00 00     | mov byte ptr [rbp + 0x180], r14b
+    0x3439c47 | 44 89 b5 a4 01 00 00     | mov dword ptr [rbp + 0x1a4], r14d
+    0x3439c4e | 48 8b 0d 2b f4 47 05     | mov rcx, qword ptr [rip + 0x547f42b]
+    0x3439c55 | 48 8b c1                 | mov rax, rcx
+    0x3439c58 | 48 83 e0 fc              | and rax, -0x4
+    0x3439c5c | 48 a9 f8 ff ff ff        | test rax, 0xfffffff8
+    0x3439c62 | 74 2c                    | je 0x3439c90
+    0x3439c64 | 0f b6 c1                 | movzx eax, cl
+    0x3439c67 | d0 f8                    | sar al, 0x1
+    0x3439c69 | a8 01                    | test al, 0x1
+    0x3439c6b | 48 8d 15 f6 f3 47 05     | lea rdx, [rip + 0x547f3f6]
+    0x3439c72 | 48 0f 44 15 ee f3 47 05  | cmovz rdx, qword ptr [rip + 0x547f3ee]
+    0x3439c7a | 48 83 e1 f8              | and rcx, -0x8
+    0x3439c7e | 48 8b 01                 | mov rax, qword ptr [rcx]
+    0x3439c81 | 48 8d 8d a8 01 00 00     | lea rcx, [rbp + 0x1a8]
+    0x3439c88 | ff 15 b2 00 00 03        | call qword ptr [rip + 0x30000b2] ; __guard_dispatch_icall_fptr (0x6439d40)
+    0x3439c8e | eb 0b                    | jmp 0x3439c9b
+    L_0x3439c90:
+    0x3439c90 | 0f 57 c0                 | xorps xmm0, xmm0
+    0x3439c93 | f3 0f 7f 85 a8 01 00 00  | movdqu xmmword ptr [rbp + 0x1a8], xmm0
+    L_0x3439c9b:
+    0x3439c9b | 45 33 c0                 | xor r8d, r8d
+    0x3439c9e | 48 8d 1d 73 e2 d6 03     | lea rbx, [rip + 0x3d6e273] ; "VariantCount"
+    0x3439ca5 | 48 8b d3                 | mov rdx, rbx
+    0x3439ca8 | 48 8d 4c 24 50           | lea rcx, [rsp + 0x50]
+    0x3439cad | e8 fe a1 52 ff           | call 0x2963eb0
+    0x3439cb2 | 48 85 c0                 | test rax, rax
+    0x3439cb5 | 74 4a                    | je 0x3439d01
+    0x3439cb7 | 8b d7                    | mov edx, edi
+    0x3439cb9 | 48 8b c8                 | mov rcx, rax
+    0x3439cbc | e8 df 50 52 ff           | call 0x295eda0
+    0x3439cc1 | 48 8b 8d a8 01 00 00     | mov rcx, qword ptr [rbp + 0x1a8]
+    0x3439cc8 | 48 85 c9                 | test rcx, rcx
+    0x3439ccb | 74 34                    | je 0x3439d01
+    0x3439ccd | 48 8b 01                 | mov rax, qword ptr [rcx]
+    0x3439cd0 | 48 89 5c 24 30           | mov qword ptr [rsp + 0x30], rbx
+    0x3439cd5 | 48 c7 44 24 38 0c 00 00.. | mov qword ptr [rsp + 0x38], 0xc
+    0x3439cde | 0f 28 44 24 30           | movaps xmm0, xmmword ptr [rsp + 0x30]
+    0x3439ce3 | 66 0f 7f 44 24 30        | movdqa xmmword ptr [rsp + 0x30], xmm0
+    0x3439ce9 | 4c 8b c7                 | mov r8, rdi
+    0x3439cec | 41 b9 01 00 00 00        | mov r9d, 0x1
+    0x3439cf2 | 48 8d 54 24 30           | lea rdx, [rsp + 0x30]
+    0x3439cf7 | 48 8b 40 20              | mov rax, qword ptr [rax + 0x20]
+    0x3439cfb | ff 15 3f 00 00 03        | call qword ptr [rip + 0x300003f] ; __guard_dispatch_icall_fptr (0x6439d40)
+    L_0x3439d01:
+    0x3439d01 | 48 8b 5e 68              | mov rbx, qword ptr [rsi + 0x68]
+    0x3439d05 | 48 83 7b 18 10           | cmp qword ptr [rbx + 0x18], 0x10
+    0x3439d0a | 72 03                    | jb 0x3439d0f
+    0x3439d0c | 48 8b 1b                 | mov rbx, qword ptr [rbx]
+    L_0x3439d0f:
+    0x3439d0f | 45 33 c0                 | xor r8d, r8d
+    0x3439d12 | 48 8d 3d 27 30 f6 03     | lea rdi, [rip + 0x3f63027] ; "RemoteName"
+    0x3439d19 | 48 8b d7                 | mov rdx, rdi
+    0x3439d1c | 48 8d 4c 24 50           | lea rcx, [rsp + 0x50]
+    0x3439d21 | e8 8a a1 52 ff           | call 0x2963eb0
+    0x3439d26 | 48 85 c0                 | test rax, rax
+    0x3439d29 | 74 73                    | je 0x3439d9e
+    0x3439d2b | 48 8d 15 13 d4 20 03     | lea rdx, [rip + 0x320d413]
+    0x3439d32 | 48 85 db                 | test rbx, rbx
+    0x3439d35 | 48 0f 45 d3              | cmovnz rdx, rbx
+    0x3439d39 | 49 c7 c0 ff ff ff ff     | mov r8, 0xffffffff
+    L_0x3439d40:
+    0x3439d40 | 49 ff c0                 | inc r8
+    0x3439d43 | 42 80 3c 02 00           | cmp byte ptr [rdx + r8], 0x0
+    0x3439d48 | 75 f6                    | jne 0x3439d40
+    0x3439d4a | b9 00 f0 00 00           | mov ecx, 0xf000
+    0x3439d4f | 4c 3b c1                 | cmp r8, rcx
+    0x3439d52 | 4c 0f 43 c1              | cmovae r8, rcx
+    0x3439d56 | 48 8b c8                 | mov rcx, rax
+    0x3439d59 | e8 42 4c 52 ff           | call 0x295e9a0
+    0x3439d5e | 48 8b 8d a8 01 00 00     | mov rcx, qword ptr [rbp + 0x1a8]
+    0x3439d65 | 48 85 c9                 | test rcx, rcx
+    0x3439d68 | 74 34                    | je 0x3439d9e
+    0x3439d6a | 48 8b 01                 | mov rax, qword ptr [rcx]
+    0x3439d6d | 48 89 7c 24 30           | mov qword ptr [rsp + 0x30], rdi
+    0x3439d72 | 48 c7 44 24 38 0a 00 00.. | mov qword ptr [rsp + 0x38], 0xa
+    0x3439d7b | 0f 28 44 24 30           | movaps xmm0, xmmword ptr [rsp + 0x30]
+    0x3439d80 | 66 0f 7f 44 24 30        | movdqa xmmword ptr [rsp + 0x30], xmm0
+    0x3439d86 | 41 b9 01 00 00 00        | mov r9d, 0x1
+    0x3439d8c | 4c 8b c3                 | mov r8, rbx
+    0x3439d8f | 48 8d 54 24 30           | lea rdx, [rsp + 0x30]
+    0x3439d94 | 48 8b 40 08              | mov rax, qword ptr [rax + 0x8]
+    0x3439d98 | ff 15 a2 ff ff 02        | call qword ptr [rip + 0x2ffffa2] ; __guard_dispatch_icall_fptr (0x6439d40)
+    L_0x3439d9e:
+    0x3439d9e | 8b 1d 94 c3 cd 04        | mov ebx, dword ptr [rip + 0x4cdc394] ; DFIntMaxVariantCountRRSPerMyriad
+    0x3439da4 | 4c 89 74 24 30           | mov qword ptr [rsp + 0x30], r14
+    0x3439da9 | 4c 89 74 24 40           | mov qword ptr [rsp + 0x40], r14
+    0x3439dae | 48 c7 44 24 48 0f 00 00.. | mov qword ptr [rsp + 0x48], 0xf
+    0x3439db7 | c6 44 24 30 00           | mov byte ptr [rsp + 0x30], 0x0
+    0x3439dbc | b9 20 00 00 00           | mov ecx, 0x20
+    0x3439dc1 | e8 8a 3b 2c fd           | call 0x6fd950
+    0x3439dc6 | 48 c7 44 24 40 1d 00 00.. | mov qword ptr [rsp + 0x40], 0x1d
+    0x3439dcf | 48 c7 44 24 48 1f 00 00.. | mov qword ptr [rsp + 0x48], 0x1f
+    0x3439dd8 | 0f 10 05 61 2d f6 03     | movups xmm0, xmmword ptr [rip + 0x3f62d61]
+    0x3439ddf | 0f 11 00                 | movups xmmword ptr [rax], xmm0
+    0x3439de2 | f2 0f 10 0d 66 2d f6 03  | movsd xmm1, qword ptr [rip + 0x3f62d66] ; "antCountLimit"
+    0x3439dea | f2 0f 11 48 10           | movsd qword ptr [rax + 0x10], xmm1
+    0x3439def | 8b 0d 63 2d f6 03        | mov ecx, dword ptr [rip + 0x3f62d63]
+    0x3439df5 | 89 48 18                 | mov dword ptr [rax + 0x18], ecx
+    0x3439df8 | 0f b6 0d 5d 2d f6 03     | movzx ecx, byte ptr [rip + 0x3f62d5d]
+    0x3439dff | 88 48 1c                 | mov byte ptr [rax + 0x1c], cl
+    0x3439e02 | c6 40 1d 00              | mov byte ptr [rax + 0x1d], 0x0
+    0x3439e06 | 48 89 44 24 30           | mov qword ptr [rsp + 0x30], rax
+    0x3439e0b | c6 44 24 20 00           | mov byte ptr [rsp + 0x20], 0x0
+    0x3439e10 | 41 b1 01                 | mov r9b, 0x1
+    0x3439e13 | 44 8b c3                 | mov r8d, ebx
+    0x3439e16 | 48 8d 54 24 30           | lea rdx, [rsp + 0x30]
+    0x3439e1b | 48 8d 4c 24 50           | lea rcx, [rsp + 0x50]
+    0x3439e20 | e8 0b 94 52 ff           | call 0x2963230
+    0x3439e25 | 90                       | nop
+    0x3439e26 | 48 8b 44 24 48           | mov rax, qword ptr [rsp + 0x48]
+    0x3439e2b | 48 83 f8 10              | cmp rax, 0x10
+    0x3439e2f | 72 2e                    | jb 0x3439e5f
+    0x3439e31 | 48 ff c0                 | inc rax
+    0x3439e34 | 48 8b 4c 24 30           | mov rcx, qword ptr [rsp + 0x30]
+    0x3439e39 | 48 8b d1                 | mov rdx, rcx
+    0x3439e3c | 48 3d 00 10 00 00        | cmp rax, 0x1000
+    0x3439e42 | 72 15                    | jb 0x3439e59
+    0x3439e44 | 48 8b 49 f8              | mov rcx, qword ptr [rcx - 0x8]
+    0x3439e48 | 48 2b d1                 | sub rdx, rcx
+    0x3439e4b | 48 8d 42 f8              | lea rax, [rdx - 0x8]
+    0x3439e4f | 48 83 f8 1f              | cmp rax, 0x1f
+    0x3439e53 | 0f 87 04 01 00 00        | ja 0x3439f5d
+    L_0x3439e59:
+    0x3439e59 | e8 62 bc 51 01           | call 0x4955ac0
+    0x3439e5e | 90                       | nop
+    L_0x3439e5f:
+    0x3439e5f | 48 8b 8d b0 01 00 00     | mov rcx, qword ptr [rbp + 0x1b0]
+    0x3439e66 | 48 85 c9                 | test rcx, rcx
+    0x3439e69 | 74 05                    | je 0x3439e70
+    0x3439e6b | e8 d0 10 2a fd           | call 0x6daf40
+    L_0x3439e70:
+    0x3439e70 | 48 8b 85 98 01 00 00     | mov rax, qword ptr [rbp + 0x198]
+    0x3439e77 | 48 83 f8 10              | cmp rax, 0x10
+    0x3439e7b | 72 30                    | jb 0x3439ead
+    0x3439e7d | 48 ff c0                 | inc rax
+    0x3439e80 | 48 8b 8d 80 01 00 00     | mov rcx, qword ptr [rbp + 0x180]
+    0x3439e87 | 48 8b d1                 | mov rdx, rcx
+    0x3439e8a | 48 3d 00 10 00 00        | cmp rax, 0x1000
+    0x3439e90 | 72 15                    | jb 0x3439ea7
+    0x3439e92 | 48 8b 49 f8              | mov rcx, qword ptr [rcx - 0x8]
+    0x3439e96 | 48 2b d1                 | sub rdx, rcx
+    0x3439e99 | 48 8d 42 f8              | lea rax, [rdx - 0x8]
+    0x3439e9d | 48 83 f8 1f              | cmp rax, 0x1f
+    0x3439ea1 | 0f 87 b0 00 00 00        | ja 0x3439f57
+    L_0x3439ea7:
+    0x3439ea7 | e8 14 bc 51 01           | call 0x4955ac0
+    0x3439eac | 90                       | nop
+    L_0x3439ead:
+    0x3439ead | 66 0f 6f 05 db 2a 17 04  | movdqa xmm0, xmmword ptr [rip + 0x4172adb]
+    0x3439eb5 | f3 0f 7f 85 90 01 00 00  | movdqu xmmword ptr [rbp + 0x190], xmm0
+    0x3439ebd | c6 85 80 01 00 00 00     | mov byte ptr [rbp + 0x180], 0x0
+    0x3439ec4 | 48 8b 85 70 01 00 00     | mov rax, qword ptr [rbp + 0x170]
+    0x3439ecb | 48 83 f8 10              | cmp rax, 0x10
+    0x3439ecf | 72 2c                    | jb 0x3439efd
+    0x3439ed1 | 48 ff c0                 | inc rax
+    0x3439ed4 | 48 8b 8d 58 01 00 00     | mov rcx, qword ptr [rbp + 0x158]
+    0x3439edb | 48 8b d1                 | mov rdx, rcx
+    0x3439ede | 48 3d 00 10 00 00        | cmp rax, 0x1000
+    0x3439ee4 | 72 11                    | jb 0x3439ef7
+    0x3439ee6 | 48 8b 49 f8              | mov rcx, qword ptr [rcx - 0x8]
+    0x3439eea | 48 2b d1                 | sub rdx, rcx
+    0x3439eed | 48 8d 42 f8              | lea rax, [rdx - 0x8]
+    0x3439ef1 | 48 83 f8 1f              | cmp rax, 0x1f
+    0x3439ef5 | 77 60                    | ja 0x3439f57
+    L_0x3439ef7:
+    0x3439ef7 | e8 c4 bb 51 01           | call 0x4955ac0
+    0x3439efc | 90                       | nop
+    L_0x3439efd:
+    0x3439efd | 66 0f 6f 05 8b 2a 17 04  | movdqa xmm0, xmmword ptr [rip + 0x4172a8b]
+    0x3439f05 | f3 0f 7f 85 68 01 00 00  | movdqu xmmword ptr [rbp + 0x168], xmm0
+    0x3439f0d | c6 85 58 01 00 00 00     | mov byte ptr [rbp + 0x158], 0x0
+    0x3439f14 | 48 8d 4c 24 50           | lea rcx, [rsp + 0x50]
+    0x3439f19 | e8 02 86 2f fd           | call 0x732520
+    0x3439f1e | f6 44 24 50 01           | test byte ptr [rsp + 0x50], 0x1
+    0x3439f23 | 75 0b                    | jne 0x3439f30
+    0x3439f25 | 48 8b 4c 24 58           | mov rcx, qword ptr [rsp + 0x58]
+    0x3439f2a | e8 91 bb 51 01           | call 0x4955ac0
+    0x3439f2f | 90                       | nop
+    L_0x3439f30:
+    0x3439f30 | 48 8b 8d b8 01 00 00     | mov rcx, qword ptr [rbp + 0x1b8]
+    0x3439f37 | 48 33 cc                 | xor rcx, rsp
+    0x3439f3a | e8 61 a9 9a 02           | call 0x5de48a0
+    0x3439f3f | 4c 8d 9c 24 c0 02 00 00  | lea r11, [rsp + 0x2c0]
+    0x3439f47 | 49 8b 5b 30              | mov rbx, qword ptr [r11 + 0x30]
+    0x3439f4b | 49 8b 73 38              | mov rsi, qword ptr [r11 + 0x38]
+    0x3439f4f | 49 8b e3                 | mov rsp, r11
+    0x3439f52 | 41 5e                    | pop r14
+    0x3439f54 | 5f                       | pop rdi
+    0x3439f55 | 5d                       | pop rbp
+    0x3439f56 | c3                       | ret
+    L_0x3439f57:
+    0x3439f57 | e8 24 a6 9d 02           | call 0x5e14580
+    0x3439f5c | 90                       | nop
+    L_0x3439f5d:
+    0x3439f5d | e8 1e a6 9d 02           | call 0x5e14580
+    0x3439f62 | 90                       | nop
+
+[Bytecode Hex]
+  0x343d150: 48 83 ec 28 | 48 8d 05 f5 27 11 05 | 4c 8b c9 | 48 3b d0
+  0x343d161: 0f 85 6f 01 00 00 | 48 63 0d ca 9b cd 04 | 85 c9 | 7e 3b
+  0x343d172: 41 8b 00 | 48 8d 14 80 | 41 8b 40 04 | 48 c1 e2 04
+  0x343d181: 48 03 d0 | 48 3b d1 | 76 24 | 4c 8d 05 10 c7 f6 03
+  0x343d190: 49 8d 89 18 01 00 00 | 48 8d 15 b2 fa f5 03 | e8 fd 9c f2 ff | b8 01 00 00 00
+  0x343d1a8: 48 83 c4 28 | c3 | 49 f7 81 b0 00 00 00 f8 ff ff ff | 0f 85 9d 00 00 00
+  0x343d1be: 44 8b 15 bb 9b cd 04 | 45 85 d2 | 74 3d | 41 8b 81 3c 01 00 00
+  0x343d1d1: 49 8d 89 18 01 00 00 | 8d 14 80 | c1 e2 04 | 41 03 91 40 01 00 00
+  0x343d1e5: 41 3b d2 | 7e 1d | 4c 8d 05 af c6 f6 03 | 48 8d 15 d8 f7 f5 03
+  0x343d1f8: e8 a3 9c f2 ff | b8 01 00 00 00 | 48 83 c4 28 | c3
+  0x343d207: 48 63 05 5a 9b cd 04 | 85 c0 | 7e 34 | 49 8d 89 18 01 00 00
+  0x343d219: 48 8b 51 08 | 48 2b 11 | 48 c1 fa 05 | 48 3b d0
+  0x343d227: 72 1d | 4c 8d 05 70 c6 f6 03 | 48 8d 15 89 f7 f5 03 | e8 64 9c f2 ff
+  0x343d23c: b8 01 00 00 00 | 48 83 c4 28 | c3 | 41 8b 00
+  0x343d249: 41 01 81 3c 01 00 00 | 41 8b 40 04 | 41 01 81 40 01 00 00 | 41 80 b9 64 01 00 00 00
+  0x343d263: 74 32 | 8b 05 b5 8e cd 04 | 41 39 00 | 76 27
+  0x343d270: 41 80 b9 65 01 00 00 00 | 75 13 | 41 c6 81 65 01 00 00 01 | 49 8b c9
+  0x343d285: 41 8b 10 | e8 f3 c8 ff ff | b8 01 00 00 00 | 48 83 c4 28
+  0x343d296: c3 | 41 80 b9 66 01 00 00 00 | 0f 84 1d 01 00 00 | 80 3d c4 01 d0 04 00
+  0x343d2ac: 0f 84 10 01 00 00 | 49 8d 89 18 01 00 00 | 4c 8d 05 e0 c5 f6 03 | 48 8d 15 c9 f6 f5 03
+  0x343d2c7: e8 d4 9b f2 ff | b8 01 00 00 00 | 48 83 c4 28 | c3
+  0x343d2d6: 48 8d 05 13 25 11 05 | 48 3b d0 | 0f 85 dc 00 00 00 | 48 63 15 4b 9a cd 04
+  0x343d2ed: 85 d2 | 7e 23 | 41 8b 00 | 48 8d 0c 80
+  0x343d2f8: 41 8b 40 04 | 48 c1 e1 04 | 48 03 c8 | 48 3b ca
+  0x343d306: 76 0c | 4c 8d 05 a1 c5 f6 03 | e9 7c fe ff ff | 49 f7 81 d0 00 00 00 f8 ff ff ff
+  0x343d31f: 0f 85 9d 00 00 00 | 44 8b 15 54 9a cd 04 | 45 85 d2 | 74 3d
+  0x343d331: 41 8b 81 3c 01 00 00 | 49 8d 89 18 01 00 00 | 8d 14 80 | c1 e2 04
+  0x343d345: 41 03 91 40 01 00 00 | 41 3b d2 | 7e 1d | 4c 8d 05 58 c5 f6 03
+  0x343d358: 48 8d 15 71 f6 f5 03 | e8 3c 9b f2 ff | b8 01 00 00 00 | 48 83 c4 28
+  0x343d36d: c3 | 48 63 05 f3 99 cd 04 | 85 c0 | 7e 34
+  0x343d379: 49 8d 89 18 01 00 00 | 48 8b 51 08 | 48 2b 11 | 48 c1 fa 05
+  0x343d38b: 48 3b d0 | 72 1d | 4c 8d 05 19 c5 f6 03 | 48 8d 15 22 f6 f5 03
+  0x343d39e: e8 fd 9a f2 ff | b8 01 00 00 00 | 48 83 c4 28 | c3
+  0x343d3ad: 41 8b 00 | 41 01 81 3c 01 00 00 | 41 8b 40 04 | 41 01 81 40 01 00 00
+  0x343d3c2: 33 c0 | 48 83 c4 28 | c3
+
+  [Child Bytecode Hex 0x3366ea0..0x336710c]
+  0x3366ea0: 40 55 | 53 | 56 | 57
+  0x3366ea5: 41 54 | 41 55 | 41 56 | 41 57
+  0x3366ead: 48 8d 6c 24 e1 | 48 81 ec a8 00 00 00 | 48 8b 05 20 18 d7 04 | 48 33 c4
+  0x3366ec3: 48 89 45 0f | 49 8b f1 | 4d 8b e0 | 4c 8b fa
+  0x3366ed0: 4c 8b f1 | 45 33 ed | 44 89 6d a7 | ff 41 20
+  0x3366edd: 4d 85 c9 | 74 73 | 49 8b 79 60 | 48 85 ff
+  0x3366ee9: 74 13 | 48 8b 4f 60 | 48 85 c9 | 74 0d
+  0x3366ef4: e8 b7 02 3f fd | 48 8b f8 | eb 03 | 48 8b fe
+  0x3366f01: 48 85 ff | 74 4f | 48 8b 5f 18 | e8 41 e2 45 ff
+  0x3366f0f: 0f b7 93 c0 01 00 00 | 0f b7 88 c0 01 00 00 | 2b d1 | 0f b7 80 c2 01 00 00
+  0x3366f26: 49 8b cd | 3b d0 | 48 0f 46 cf | 48 85 c9
+  0x3366f32: 74 21 | e8 57 58 95 fd | 48 8b 08 | 48 8d 81 28 05 00 00
+  0x3366f43: 48 85 c9 | 49 0f 44 c5 | 48 85 c0 | 74 06
+  0x3366f4f: ff 80 20 01 00 00 | 41 8b 56 20 | 8d 42 ff | 85 c2
+  0x3366f5e: 0f 85 77 01 00 00 | 48 85 f6 | 74 1f | 48 8b 06
+  0x3366f6c: 48 8d 55 ef | 48 8b ce | 48 8b 80 b0 00 00 00 | ff 15 c0 2d 0d 03
+  0x3366f80: 90 | bb 01 00 00 00 | eb 35 | b9 20 00 00 00
+  0x3366f8d: e8 be 69 39 fd | 48 c7 45 df 10 00 00 00 | 48 c7 45 e7 1f 00 00 00 | 0f 10 05 cf 59 03 04
+  0x3366fa9: 0f 11 00 | 44 88 68 10 | 48 89 45 cf | 48 8d 45 cf
+  0x3366fb8: bb 02 00 00 00 | 4c 89 6d af | 4c 89 6d bf | 4c 89 6d c7
+  0x3366fc9: 0f 10 00 | 0f 11 45 af | 0f 10 48 10 | 0f 11 4d bf
+  0x3366fd8: 4c 89 68 10 | 48 c7 40 18 0f 00 00 00 | c6 00 00 | f6 c3 02
+  0x3366fea: 74 3d | 83 e3 fd | 89 5d a7 | 48 8b 45 e7
+  0x3366ff6: 48 83 f8 10 | 72 2d | 48 ff c0 | 48 8b 4d cf
+  0x3367003: 48 8b d1 | 48 3d 00 10 00 00 | 72 15 | 48 8b 49 f8
+  0x3367012: 48 2b d1 | 48 8d 42 f8 | 48 83 f8 1f | 0f 87 de 00 00 00
+  0x3367023: e8 98 ea 5e 01 | 90 | f6 c3 01 | 74 47
+  0x336702e: 48 8b 45 07 | 48 83 f8 10 | 72 2d | 48 ff c0
+  0x336703b: 48 8b 4d ef | 48 8b d1 | 48 3d 00 10 00 00 | 72 15
+  0x336704a: 48 8b 49 f8 | 48 2b d1 | 48 8d 42 f8 | 48 83 f8 1f
+  0x3367059: 0f 87 a8 00 00 00 | e8 5c ea 5e 01 | 90 | 4c 89 6d ff
+  0x3367069: 48 c7 45 07 0f 00 00 00 | c6 45 ef 00 | 41 8b 46 20 | 48 8d 4d af
+  0x336707d: 48 83 7d c7 10 | 48 0f 43 4d af | 89 44 24 28 | 48 89 4c 24 20
+  0x3367090: 4d 8b cc | 4d 8b c7 | 48 8d 15 23 5f 03 04 | b9 03 00 00 00
+  0x33670a2: e8 e9 de 88 fe | 90 | 48 8b 45 c7 | 48 83 f8 10
+  0x33670b0: 72 29 | 48 ff c0 | 48 8b 4d af | 48 8b d1
+  0x33670bc: 48 3d 00 10 00 00 | 72 11 | 48 8b 49 f8 | 48 2b d1
+  0x33670cb: 48 8d 42 f8 | 48 83 f8 1f | 77 26 | e8 e6 e9 5e 01
+  0x33670da: 90 | 48 8b 4d 0f | 48 33 cc | e8 b9 d7 a7 02
+  0x33670e7: 48 81 c4 a8 00 00 00 | 41 5f | 41 5e | 41 5d
+  0x33670f4: 41 5c | 5f | 5e | 5b
+  0x33670f9: 5d | c3 | e8 80 d4 aa 02 | 90
+  0x3367101: e8 7a d4 aa 02 | 90 | e8 74 d4 aa 02
+
+  [Child Bytecode Hex 0x3439b80..0x3439f63]
+  0x3439b80: 48 89 5c 24 18 | 48 89 74 24 20 | 55 | 57
+  0x3439b8c: 41 56 | 48 8d ac 24 40 fe ff ff | 48 81 ec c0 02 00 00 | 48 8b 05 3c eb c9 04
+  0x3439ba4: 48 33 c4 | 48 89 85 b8 01 00 00 | 8b fa | 48 8b f1
+  0x3439bb3: 8b 1d 7f c5 cd 04 | 44 8b 05 14 ed d6 04 | 41 83 f8 ff | 75 23
+  0x3439bc6: e8 85 b9 53 01 | 44 8b c0 | b8 59 17 b7 d1 | 41 f7 e0
+  0x3439bd6: c1 ea 0d | 69 ca 10 27 00 00 | 44 2b c1 | 44 89 05 eb ec d6 04
+  0x3439be9: 44 3b c3 | 0f 8d 3e 03 00 00 | 83 4c 24 50 01 | 48 8d 4c 24 50
+  0x3439bfc: e8 2f ad 52 ff | 90 | 45 33 f6 | 4c 89 b5 58 01 00 00
+  0x3439c0c: 66 0f 6f 05 7c 2d 17 04 | f3 0f 7f 85 68 01 00 00 | 44 88 b5 58 01 00 00 | 44 89 b5 78 01 00 00
+  0x3439c2a: c6 85 7c 01 00 00 01 | 4c 89 b5 80 01 00 00 | f3 0f 7f 85 90 01 00 00 | 44 88 b5 80 01 00 00
+  0x3439c47: 44 89 b5 a4 01 00 00 | 48 8b 0d 2b f4 47 05 | 48 8b c1 | 48 83 e0 fc
+  0x3439c5c: 48 a9 f8 ff ff ff | 74 2c | 0f b6 c1 | d0 f8
+  0x3439c69: a8 01 | 48 8d 15 f6 f3 47 05 | 48 0f 44 15 ee f3 47 05 | 48 83 e1 f8
+  0x3439c7e: 48 8b 01 | 48 8d 8d a8 01 00 00 | ff 15 b2 00 00 03 | eb 0b
+  0x3439c90: 0f 57 c0 | f3 0f 7f 85 a8 01 00 00 | 45 33 c0 | 48 8d 1d 73 e2 d6 03
+  0x3439ca5: 48 8b d3 | 48 8d 4c 24 50 | e8 fe a1 52 ff | 48 85 c0
+  0x3439cb5: 74 4a | 8b d7 | 48 8b c8 | e8 df 50 52 ff
+  0x3439cc1: 48 8b 8d a8 01 00 00 | 48 85 c9 | 74 34 | 48 8b 01
+  0x3439cd0: 48 89 5c 24 30 | 48 c7 44 24 38 0c 00 00 00 | 0f 28 44 24 30 | 66 0f 7f 44 24 30
+  0x3439ce9: 4c 8b c7 | 41 b9 01 00 00 00 | 48 8d 54 24 30 | 48 8b 40 20
+  0x3439cfb: ff 15 3f 00 00 03 | 48 8b 5e 68 | 48 83 7b 18 10 | 72 03
+  0x3439d0c: 48 8b 1b | 45 33 c0 | 48 8d 3d 27 30 f6 03 | 48 8b d7
+  0x3439d1c: 48 8d 4c 24 50 | e8 8a a1 52 ff | 48 85 c0 | 74 73
+  0x3439d2b: 48 8d 15 13 d4 20 03 | 48 85 db | 48 0f 45 d3 | 49 c7 c0 ff ff ff ff
+  0x3439d40: 49 ff c0 | 42 80 3c 02 00 | 75 f6 | b9 00 f0 00 00
+  0x3439d4f: 4c 3b c1 | 4c 0f 43 c1 | 48 8b c8 | e8 42 4c 52 ff
+  0x3439d5e: 48 8b 8d a8 01 00 00 | 48 85 c9 | 74 34 | 48 8b 01
+  0x3439d6d: 48 89 7c 24 30 | 48 c7 44 24 38 0a 00 00 00 | 0f 28 44 24 30 | 66 0f 7f 44 24 30
+  0x3439d86: 41 b9 01 00 00 00 | 4c 8b c3 | 48 8d 54 24 30 | 48 8b 40 08
+  0x3439d98: ff 15 a2 ff ff 02 | 8b 1d 94 c3 cd 04 | 4c 89 74 24 30 | 4c 89 74 24 40
+  0x3439dae: 48 c7 44 24 48 0f 00 00 00 | c6 44 24 30 00 | b9 20 00 00 00 | e8 8a 3b 2c fd
+  0x3439dc6: 48 c7 44 24 40 1d 00 00 00 | 48 c7 44 24 48 1f 00 00 00 | 0f 10 05 61 2d f6 03 | 0f 11 00
+  0x3439de2: f2 0f 10 0d 66 2d f6 03 | f2 0f 11 48 10 | 8b 0d 63 2d f6 03 | 89 48 18
+  0x3439df8: 0f b6 0d 5d 2d f6 03 | 88 48 1c | c6 40 1d 00 | 48 89 44 24 30
+  0x3439e0b: c6 44 24 20 00 | 41 b1 01 | 44 8b c3 | 48 8d 54 24 30
+  0x3439e1b: 48 8d 4c 24 50 | e8 0b 94 52 ff | 90 | 48 8b 44 24 48
+  0x3439e2b: 48 83 f8 10 | 72 2e | 48 ff c0 | 48 8b 4c 24 30
+  0x3439e39: 48 8b d1 | 48 3d 00 10 00 00 | 72 15 | 48 8b 49 f8
+  0x3439e48: 48 2b d1 | 48 8d 42 f8 | 48 83 f8 1f | 0f 87 04 01 00 00
+  0x3439e59: e8 62 bc 51 01 | 90 | 48 8b 8d b0 01 00 00 | 48 85 c9
+  0x3439e69: 74 05 | e8 d0 10 2a fd | 48 8b 85 98 01 00 00 | 48 83 f8 10
+  0x3439e7b: 72 30 | 48 ff c0 | 48 8b 8d 80 01 00 00 | 48 8b d1
+  0x3439e8a: 48 3d 00 10 00 00 | 72 15 | 48 8b 49 f8 | 48 2b d1
+  0x3439e99: 48 8d 42 f8 | 48 83 f8 1f | 0f 87 b0 00 00 00 | e8 14 bc 51 01
+  0x3439eac: 90 | 66 0f 6f 05 db 2a 17 04 | f3 0f 7f 85 90 01 00 00 | c6 85 80 01 00 00 00
+  0x3439ec4: 48 8b 85 70 01 00 00 | 48 83 f8 10 | 72 2c | 48 ff c0
+  0x3439ed4: 48 8b 8d 58 01 00 00 | 48 8b d1 | 48 3d 00 10 00 00 | 72 11
+  0x3439ee6: 48 8b 49 f8 | 48 2b d1 | 48 8d 42 f8 | 48 83 f8 1f
+  0x3439ef5: 77 60 | e8 c4 bb 51 01 | 90 | 66 0f 6f 05 8b 2a 17 04
+  0x3439f05: f3 0f 7f 85 68 01 00 00 | c6 85 58 01 00 00 00 | 48 8d 4c 24 50 | e8 02 86 2f fd
+  0x3439f1e: f6 44 24 50 01 | 75 0b | 48 8b 4c 24 58 | e8 91 bb 51 01
+  0x3439f2f: 90 | 48 8b 8d b8 01 00 00 | 48 33 cc | e8 61 a9 9a 02
+  0x3439f3f: 4c 8d 9c 24 c0 02 00 00 | 49 8b 5b 30 | 49 8b 73 38 | 49 8b e3
+  0x3439f52: 41 5e | 5f | 5d | c3
+  0x3439f57: e8 24 a6 9d 02 | 90 | e8 1e a6 9d 02 | 90
+
+[Strings .rdata na função]
+  * onServerInvoke
+  * single invocation memory size exceeded
+  * queue memory usage exceeded
+  * queue exhausted
+  * dropped because remote is not in allow list
+  * onClientInvoke
+  * Remote function invocation %s for %s; did you forget to implement %s ? (%u events dropped)
+  * VariantCount
+  * RemoteName
+
+[Co-Flags na mesma função]
+  * DFIntRemoteFunctionSingleInvocationSizeLimit = 0 (default)
+  * DFIntRemoteFunctionDelayedQueueLimit = 256 (default)
+  * DFIntMaxVariantCountRRS = 100000 (default)
+  * DFFlagEnforceLuaAppsRemoteAllowList = false (default)
+  * DFIntMaxVariantCountRRSPerMyriad = 5000 (default)
+  * FFlagSimEnableBindToAnimation = true (default) [vizinha em .data]
+  * DFFlagRemoteFunctionSandboxCheck = true (default) [vizinha em .data]
+  * DFIntkAssetsUploadApiFlowTelemetryEventLoggingPerMyriad = 10000 (default) [vizinha em .data]
+  * DFIntUGCOperationStatusPollingMaxRetry = 300 (default) [vizinha em .data]
+  * DFIntOperationStatusPollingMaxRetry = 720 (default) [vizinha em .data]
+  * DFIntAssetsUploadStatusPollingErrorMaxRetry = 3 (default) [vizinha em .data]

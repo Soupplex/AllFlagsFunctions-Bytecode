@@ -1,0 +1,379 @@
+FFlag     : FLogWorldStepsBehind
+RVA .data : 0x80ec000
+XREFs     : 6 total (6 em runtime)
+Insn RVA  : 0x13eb0b7
+Operação  : 0x13eb0b7: mov/math reg, [flag] ; fn=0x13eafa0..0x13eb41d
+
+[Disassembly .text]
+  === [Resumo do Efeito da FFlag no Engine (RBX::WorldStep)] ===
+    Classe  : RBX::WorldStep (RTTI Resolvido)
+    Padrão  : FLogWorldStepsBehind = 0 (default) [log, mode=1]
+    Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
+    Fórmula : WorldStepsBehind != 0
+    Fórmula : WorldStepsBehind >= 6 && WorldStepsBehind >> 8 >= 3
+    Fórmula : WorldStepsBehind != 0 && WorldStepsBehind >= 6
+    Fórmula : WorldStepsBehind >> 8 >= 3
+    Altera  : this->field_0x3d0, this->field_0x3c8, this->field_0x3c0
+  
+  === [Decompilacao C++ da Funcao 0x13eafa0..0x13eb41d] ===
+    struct RBX::WorldStep {
+      /* +0xe8 */ int32_t field_0xe8;
+      /* +0x3b8 */ double  field_0x3b8;
+      /* +0x3c0 */ double  field_0x3c0;
+      /* +0x3c8 */ int32_t field_0x3c8;
+      /* +0x3d0 */ double  field_0x3d0;
+      /* +0x868 */ float   field_0x868;
+    };
+    
+    // Flag defaults: WorldStepMax = 30, WorldStepsOffsetAdjustRate = 100, WorldStepsBehind = 0, WorldStepsBehindG = 0
+    double RBX::WorldStep::func_0x13eafa0(RBX::WorldStep* this) {
+      if (this->field_0x3c8 != 0) {
+        double ftmp_2 = this->field_0x868 * (this->field_0x3b8 - this->field_0x3c0) - (double)(this->field_0xe8 - this->field_0x3c8);
+        this->field_0x3d0 = ftmp_2 + this->field_0x3d0;
+        double fxmm1_1;
+        if (ftmp_2 + this->field_0x3d0 <= max((double)WorldStepMax, 1.0)) {
+          if (max((double)WorldStepMax, 1.0) > ftmp_2 + this->field_0x3d0) {
+            fxmm1_1 = max((double)WorldStepMax, 1.0);
+          } else {
+            fxmm1_1 = ftmp_2 + this->field_0x3d0;
+          }
+        } else {
+          fxmm1_1 = max((double)WorldStepMax, 1.0);
+        }
+        this->field_0x3d0 = fxmm1_1;
+        double fxmm2_2;
+        if (WorldStepsOffsetAdjustRate <= 4000.0) {
+          if (WorldStepsOffsetAdjustRate < 1.0) {
+            fxmm2_2 = 1.0;
+          } else {
+            fxmm2_2 = WorldStepsOffsetAdjustRate;
+          }
+        } else {
+          fxmm2_2 = 4000.0;
+        }
+        double fxmm1_5;
+        if (fxmm1_1 > fxmm2_2 / 1000.0) {
+          fxmm1_5 = fxmm1_1 - fxmm2_2 / 1000.0;
+        } else if (fxmm2_2 / 1000.0 > fxmm1_1) {
+          fxmm1_5 = fxmm1_1 + fxmm2_2 / 1000.0;
+        } else {
+          fxmm1_5 = 0.0;
+        }
+        this->field_0x3d0 = fxmm1_5;
+        if (WorldStepsBehind != 0) {
+          if (WorldStepsBehind >= 6 && WorldStepsBehind >> 8 >= 3) {
+            FLog::Log("[FLog::WorldStepsBehind] DELTA     WorldSteps       : %d");
+          }
+          if (WorldStepsBehind != 0 && WorldStepsBehind >= 6) {
+            if (WorldStepsBehind >> 8 >= 3) {
+              FLog::Log("[FLog::WorldStepsBehind] Expected  WorldSteps       : %d");
+            }
+            if (WorldStepsBehind >= 6 && WorldStepsBehind >> 8 >= 3) {
+              FLog::Log("[FLog::WorldStepsBehind] dt: %f");
+            }
+          }
+        }
+        if (WorldStepsBehindG >= 6 && WorldStepsBehindG >> 8 >= 3) {
+          FLog::Log("[FLog::WorldStepsBehindG] Number of WorldSteps behind, wsps, deltaTime: %f  %f  %f");
+        }
+      }
+      if (this->field_0xe8 != this->field_0xe8) {
+        call_0x1bf4f90(1, "getWorldStepId changed %d %d", this->field_0xe8);
+      }
+      this->field_0x3c8 = this->field_0xe8;
+      this->field_0x3c0 = this->field_0x3b8;
+      return this->field_0x3d0 / this->field_0x868;
+    }
+  
+  === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
+    0x13eafa0 | 48 8b c4                 | mov rax, rsp
+    0x13eafa3 | 53                       | push rbx
+    0x13eafa4 | 57                       | push rdi
+    0x13eafa5 | 48 81 ec b8 00 00 00     | sub rsp, 0xb8
+    0x13eafac | 8b b9 e8 00 00 00        | mov edi, dword ptr [rcx + 0xe8]
+    0x13eafb2 | 48 8b d9                 | mov rbx, rcx
+    0x13eafb5 | 8b 89 c8 03 00 00        | mov ecx, dword ptr [rcx + 0x3c8]
+    0x13eafbb | 85 c9                    | test ecx, ecx
+    0x13eafbd | 0f 84 f9 03 00 00        | je 0x13eb3bc
+    0x13eafc3 | f2 0f 10 1d e5 4e 1b 06  | movsd xmm3, qword ptr [rip + 0x61b4ee5] ; 1.0
+    0x13eafcb | 0f 57 c9                 | xorps xmm1, xmm1
+    0x13eafce | f2 0f 10 25 5a 70 1c 06  | movsd xmm4, qword ptr [rip + 0x61c705a] ; 0.0
+    0x13eafd6 | 48 89 70 e8              | mov qword ptr [rax - 0x18], rsi
+    0x13eafda | 0f 29 70 d8              | movaps xmmword ptr [rax - 0x28], xmm6
+    0x13eafde | f3 0f 10 b3 68 08 00 00  | movss xmm6, dword ptr [rbx + 0x868]
+    0x13eafe6 | 0f 29 78 c8              | movaps xmmword ptr [rax - 0x38], xmm7
+    0x13eafea | f2 0f 10 bb b8 03 00 00  | movsd xmm7, qword ptr [rbx + 0x3b8]
+    0x13eaff2 | f2 0f 5c bb c0 03 00 00  | subsd xmm7, qword ptr [rbx + 0x3c0]
+    0x13eaffa | 44 0f 29 40 b8           | movaps xmmword ptr [rax - 0x48], xmm8
+    0x13eafff | 8b c7                    | mov eax, edi
+    0x13eb001 | 0f 5a f6                 | cvtps2pd xmm6, xmm6
+    0x13eb004 | 2b c1                    | sub eax, ecx
+    0x13eb006 | 45 0f 57 c0              | xorps xmm8, xmm8
+    0x13eb00a | f2 0f 59 f7              | mulsd xmm6, xmm7
+    0x13eb00e | f2 44 0f 2a c0           | cvtsi2sd xmm8, eax
+    0x13eb013 | 0f 28 c6                 | movaps xmm0, xmm6
+    0x13eb016 | f2 41 0f 5c c0           | subsd xmm0, xmm8
+    0x13eb01b | f2 0f 58 83 d0 03 00 00  | addsd xmm0, qword ptr [rbx + 0x3d0]
+    0x13eb023 | f2 0f 11 83 d0 03 00 00  | movsd qword ptr [rbx + 0x3d0], xmm0
+    0x13eb02b | f2 0f 2a 0d 6d 0f d0 06  | cvtsi2sd xmm1, dword ptr [rip + 0x6d00f6d] ; DFIntWorldStepMax
+    0x13eb033 | f2 0f 5f cb              | maxsd xmm1, xmm3
+    0x13eb037 | 66 0f 2f c1              | comisd xmm0, xmm1
+    0x13eb03b | 0f 28 d1                 | movaps xmm2, xmm1
+    0x13eb03e | 0f 57 d4                 | xorps xmm2, xmm4
+    0x13eb041 | 77 0e                    | ja 0x13eb051
+    0x13eb043 | 66 0f 2f d0              | comisd xmm2, xmm0
+    0x13eb047 | 76 05                    | jbe 0x13eb04e
+    0x13eb049 | 0f 28 ca                 | movaps xmm1, xmm2
+    0x13eb04c | eb 03                    | jmp 0x13eb051
+    L_0x13eb04e:
+    0x13eb04e | 0f 28 c8                 | movaps xmm1, xmm0
+    L_0x13eb051:
+    0x13eb051 | f2 0f 10 15 cf 55 1b 06  | movsd xmm2, qword ptr [rip + 0x61b55cf] ; 4000.0
+    0x13eb059 | f2 0f 11 8b d0 03 00 00  | movsd qword ptr [rbx + 0x3d0], xmm1
+    0x13eb061 | 66 0f 6e 05 7f 0f d0 06  | movd xmm0, dword ptr [rip + 0x6d00f7f] ; DFIntWorldStepsOffsetAdjustRate
+    0x13eb069 | f3 0f e6 c0              | cvtdq2pd xmm0, xmm0
+    0x13eb06d | 66 0f 2f c2              | comisd xmm0, xmm2
+    0x13eb071 | 77 0e                    | ja 0x13eb081
+    0x13eb073 | 66 0f 2f d8              | comisd xmm3, xmm0
+    0x13eb077 | 76 05                    | jbe 0x13eb07e
+    0x13eb079 | 0f 28 d3                 | movaps xmm2, xmm3
+    0x13eb07c | eb 03                    | jmp 0x13eb081
+    L_0x13eb07e:
+    0x13eb07e | 0f 28 d0                 | movaps xmm2, xmm0
+    L_0x13eb081:
+    0x13eb081 | f2 0f 5e 15 27 55 1b 06  | divsd xmm2, qword ptr [rip + 0x61b5527] ; 1000.0
+    0x13eb089 | 66 0f 2f ca              | comisd xmm1, xmm2
+    0x13eb08d | 76 06                    | jbe 0x13eb095
+    0x13eb08f | f2 0f 5c ca              | subsd xmm1, xmm2
+    0x13eb093 | eb 15                    | jmp 0x13eb0aa
+    L_0x13eb095:
+    0x13eb095 | 0f 28 c2                 | movaps xmm0, xmm2
+    0x13eb098 | 0f 57 c4                 | xorps xmm0, xmm4
+    0x13eb09b | 66 0f 2f c1              | comisd xmm0, xmm1
+    0x13eb09f | 76 06                    | jbe 0x13eb0a7
+    0x13eb0a1 | f2 0f 58 ca              | addsd xmm1, xmm2
+    0x13eb0a5 | eb 03                    | jmp 0x13eb0aa
+    L_0x13eb0a7:
+    0x13eb0a7 | 0f 57 c9                 | xorps xmm1, xmm1
+    L_0x13eb0aa:
+    0x13eb0aa | f2 0f 11 8b d0 03 00 00  | movsd qword ptr [rbx + 0x3d0], xmm1
+    0x13eb0b2 | be ad 10 ff ff           | mov esi, 0xffff10ad
+    0x13eb0b7 | 48 8b 0d 42 0f d0 06     | mov rcx, qword ptr [rip + 0x6d00f42] ; FLogWorldStepsBehind
+    0x13eb0be | 84 c9                    | test cl, cl
+    0x13eb0c0 | 0f 84 19 02 00 00        | je 0x13eb2df
+    0x13eb0c6 | 80 f9 06                 | cmp cl, 0x6
+    0x13eb0c9 | 0f 82 ab 00 00 00        | jb 0x13eb17a
+    0x13eb0cf | 48 8b c1                 | mov rax, rcx
+    0x13eb0d2 | 48 c1 e8 08              | shr rax, 0x8
+    0x13eb0d6 | 3c 03                    | cmp al, 0x3
+    0x13eb0d8 | 0f 82 9c 00 00 00        | jb 0x13eb17a
+    0x13eb0de | 48 8d 05 fb c0 7b 09     | lea rax, [rip + 0x97bc0fb]
+    0x13eb0e5 | c7 84 24 d8 00 00 00 00.. | mov dword ptr [rsp + 0xd8], 0x0
+    0x13eb0f0 | 48 89 84 24 d0 00 00 00  | mov qword ptr [rsp + 0xd0], rax
+    0x13eb0f8 | 48 8d 4c 24 40           | lea rcx, [rsp + 0x40]
+    0x13eb0fd | 48 8b 94 24 d0 00 00 00  | mov rdx, qword ptr [rsp + 0xd0]
+    0x13eb105 | 44 8b c6                 | mov r8d, esi
+    0x13eb108 | 0f 10 0d f1 0e d0 06     | movups xmm1, xmmword ptr [rip + 0x6d00ef1] ; FLogWorldStepsBehind
+    0x13eb10f | c7 84 24 d0 00 00 00 00.. | mov dword ptr [rsp + 0xd0], 0x0
+    0x13eb11a | 48 81 ea 68 c2 97 03     | sub rdx, 0x397c268
+    0x13eb121 | 48 8b 84 24 d0 00 00 00  | mov rax, qword ptr [rsp + 0xd0]
+    0x13eb129 | 48 89 44 24 30           | mov qword ptr [rsp + 0x30], rax
+    0x13eb12e | 48 8b 84 24 d8 00 00 00  | mov rax, qword ptr [rsp + 0xd8]
+    0x13eb136 | 48 89 44 24 28           | mov qword ptr [rsp + 0x28], rax
+    0x13eb13b | 66 41 0f 5a c0           | cvtpd2ps xmm0, xmm8
+    0x13eb140 | c7 84 24 e0 00 00 00 00.. | mov dword ptr [rsp + 0xe0], 0x0
+    0x13eb14b | 48 8b 84 24 e0 00 00 00  | mov rax, qword ptr [rsp + 0xe0]
+    0x13eb153 | 48 89 44 24 20           | mov qword ptr [rsp + 0x20], rax
+    0x13eb158 | 0f 29 4c 24 40           | movaps xmmword ptr [rsp + 0x40], xmm1
+    0x13eb15d | f3 0f 11 84 24 e8 00 00.. | movss dword ptr [rsp + 0xe8], xmm0
+    0x13eb166 | 4c 8b 8c 24 e8 00 00 00  | mov r9, qword ptr [rsp + 0xe8]
+    0x13eb16e | e8 ad 6e 58 03           | call 0x4972020
+    0x13eb173 | 48 8b 0d 86 0e d0 06     | mov rcx, qword ptr [rip + 0x6d00e86] ; FLogWorldStepsBehind
+    L_0x13eb17a:
+    0x13eb17a | 84 c9                    | test cl, cl
+    0x13eb17c | 0f 84 5d 01 00 00        | je 0x13eb2df
+    0x13eb182 | 80 f9 06                 | cmp cl, 0x6
+    0x13eb185 | 0f 82 54 01 00 00        | jb 0x13eb2df
+    0x13eb18b | 48 8b c1                 | mov rax, rcx
+    0x13eb18e | 48 c1 e8 08              | shr rax, 0x8
+    0x13eb192 | 3c 03                    | cmp al, 0x3
+    0x13eb194 | 0f 82 9b 00 00 00        | jb 0x13eb235
+    0x13eb19a | 48 8d 05 0c 02 7c 09     | lea rax, [rip + 0x97c020c]
+    0x13eb1a1 | c7 84 24 d8 00 00 00 00.. | mov dword ptr [rsp + 0xd8], 0x0
+    0x13eb1ac | 48 89 84 24 d0 00 00 00  | mov qword ptr [rsp + 0xd0], rax
+    0x13eb1b4 | 48 8d 4c 24 50           | lea rcx, [rsp + 0x50]
+    0x13eb1b9 | 48 8b 94 24 d0 00 00 00  | mov rdx, qword ptr [rsp + 0xd0]
+    0x13eb1c1 | 4c 8b c6                 | mov r8, rsi
+    0x13eb1c4 | 0f 10 0d 35 0e d0 06     | movups xmm1, xmmword ptr [rip + 0x6d00e35] ; FLogWorldStepsBehind
+    0x13eb1cb | c7 84 24 d0 00 00 00 00.. | mov dword ptr [rsp + 0xd0], 0x0
+    0x13eb1d6 | 48 81 ea f5 03 98 03     | sub rdx, 0x39803f5
+    0x13eb1dd | 48 8b 84 24 d0 00 00 00  | mov rax, qword ptr [rsp + 0xd0]
+    0x13eb1e5 | 48 89 44 24 30           | mov qword ptr [rsp + 0x30], rax
+    0x13eb1ea | 48 8b 84 24 d8 00 00 00  | mov rax, qword ptr [rsp + 0xd8]
+    0x13eb1f2 | 48 89 44 24 28           | mov qword ptr [rsp + 0x28], rax
+    0x13eb1f7 | 66 0f 5a c6              | cvtpd2ps xmm0, xmm6
+    0x13eb1fb | c7 84 24 e0 00 00 00 00.. | mov dword ptr [rsp + 0xe0], 0x0
+    0x13eb206 | 48 8b 84 24 e0 00 00 00  | mov rax, qword ptr [rsp + 0xe0]
+    0x13eb20e | 48 89 44 24 20           | mov qword ptr [rsp + 0x20], rax
+    0x13eb213 | 0f 29 4c 24 50           | movaps xmmword ptr [rsp + 0x50], xmm1
+    0x13eb218 | f3 0f 11 84 24 e8 00 00.. | movss dword ptr [rsp + 0xe8], xmm0
+    0x13eb221 | 4c 8b 8c 24 e8 00 00 00  | mov r9, qword ptr [rsp + 0xe8]
+    0x13eb229 | e8 f2 6d 58 03           | call 0x4972020
+    0x13eb22e | 48 8b 0d cb 0d d0 06     | mov rcx, qword ptr [rip + 0x6d00dcb] ; FLogWorldStepsBehind
+    L_0x13eb235:
+    0x13eb235 | 80 f9 06                 | cmp cl, 0x6
+    0x13eb238 | 0f 82 a1 00 00 00        | jb 0x13eb2df
+    0x13eb23e | 48 c1 e9 08              | shr rcx, 0x8
+    0x13eb242 | 80 f9 03                 | cmp cl, 0x3
+    0x13eb245 | 0f 82 94 00 00 00        | jb 0x13eb2df
+    0x13eb24b | 48 8d 05 28 43 7c 09     | lea rax, [rip + 0x97c4328]
+    0x13eb252 | c7 84 24 d8 00 00 00 00.. | mov dword ptr [rsp + 0xd8], 0x0
+    0x13eb25d | 48 89 84 24 d0 00 00 00  | mov qword ptr [rsp + 0xd0], rax
+    0x13eb265 | 48 8d 4c 24 60           | lea rcx, [rsp + 0x60]
+    0x13eb26a | 48 8b 94 24 d0 00 00 00  | mov rdx, qword ptr [rsp + 0xd0]
+    0x13eb272 | 4c 8b c6                 | mov r8, rsi
+    0x13eb275 | 0f 10 0d 84 0d d0 06     | movups xmm1, xmmword ptr [rip + 0x6d00d84] ; FLogWorldStepsBehind
+    0x13eb27c | c7 84 24 d0 00 00 00 00.. | mov dword ptr [rsp + 0xd0], 0x0
+    0x13eb287 | 48 81 ea 82 45 98 03     | sub rdx, 0x3984582
+    0x13eb28e | 48 8b 84 24 d0 00 00 00  | mov rax, qword ptr [rsp + 0xd0]
+    0x13eb296 | 48 89 44 24 30           | mov qword ptr [rsp + 0x30], rax
+    0x13eb29b | 48 8b 84 24 d8 00 00 00  | mov rax, qword ptr [rsp + 0xd8]
+    0x13eb2a3 | 48 89 44 24 28           | mov qword ptr [rsp + 0x28], rax
+    0x13eb2a8 | 66 0f 5a c7              | cvtpd2ps xmm0, xmm7
+    0x13eb2ac | c7 84 24 e0 00 00 00 00.. | mov dword ptr [rsp + 0xe0], 0x0
+    0x13eb2b7 | 48 8b 84 24 e0 00 00 00  | mov rax, qword ptr [rsp + 0xe0]
+    0x13eb2bf | 48 89 44 24 20           | mov qword ptr [rsp + 0x20], rax
+    0x13eb2c4 | 0f 29 4c 24 60           | movaps xmmword ptr [rsp + 0x60], xmm1
+    0x13eb2c9 | f3 0f 11 84 24 e8 00 00.. | movss dword ptr [rsp + 0xe8], xmm0
+    0x13eb2d2 | 4c 8b 8c 24 e8 00 00 00  | mov r9, qword ptr [rsp + 0xe8]
+    0x13eb2da | e8 41 6d 58 03           | call 0x4972020
+    L_0x13eb2df:
+    0x13eb2df | 48 8b 05 6a 0b d0 06     | mov rax, qword ptr [rip + 0x6d00b6a] ; FLogWorldStepsBehindG
+    0x13eb2e6 | 0f 28 bc 24 90 00 00 00  | movaps xmm7, xmmword ptr [rsp + 0x90]
+    0x13eb2ee | 3c 06                    | cmp al, 0x6
+    0x13eb2f0 | 0f 82 ad 00 00 00        | jb 0x13eb3a3
+    0x13eb2f6 | 48 c1 e8 08              | shr rax, 0x8
+    0x13eb2fa | 3c 03                    | cmp al, 0x3
+    0x13eb2fc | 0f 82 a1 00 00 00        | jb 0x13eb3a3
+    0x13eb302 | 66 0f 5a c6              | cvtpd2ps xmm0, xmm6
+    0x13eb306 | 48 8d 05 70 0d 7e 09     | lea rax, [rip + 0x97e0d70] ; "[FLog::WorldStepsBehindG] Number of WorldSteps behind, wsps, deltaTime: %f  %f  %f"
+    0x13eb30d | 4c 8b c6                 | mov r8, rsi
+    0x13eb310 | 48 89 84 24 d0 00 00 00  | mov qword ptr [rsp + 0xd0], rax
+    0x13eb318 | 48 8d 4c 24 70           | lea rcx, [rsp + 0x70]
+    0x13eb31d | 48 8b 94 24 d0 00 00 00  | mov rdx, qword ptr [rsp + 0xd0]
+    0x13eb325 | c7 84 24 d0 00 00 00 00.. | mov dword ptr [rsp + 0xd0], 0x0
+    0x13eb330 | 48 81 ea 5d 10 9a 03     | sub rdx, 0x39a105d
+    0x13eb337 | 48 8b 84 24 d0 00 00 00  | mov rax, qword ptr [rsp + 0xd0]
+    0x13eb33f | 48 89 44 24 30           | mov qword ptr [rsp + 0x30], rax
+    0x13eb344 | f3 0f 11 84 24 d8 00 00.. | movss dword ptr [rsp + 0xd8], xmm0
+    0x13eb34d | f2 0f 10 83 d0 03 00 00  | movsd xmm0, qword ptr [rbx + 0x3d0]
+    0x13eb355 | 48 8b 84 24 d8 00 00 00  | mov rax, qword ptr [rsp + 0xd8]
+    0x13eb35d | 66 41 0f 5a c8           | cvtpd2ps xmm1, xmm8
+    0x13eb362 | 48 89 44 24 28           | mov qword ptr [rsp + 0x28], rax
+    0x13eb367 | 66 0f 5a c0              | cvtpd2ps xmm0, xmm0
+    0x13eb36b | f3 0f 11 8c 24 e0 00 00.. | movss dword ptr [rsp + 0xe0], xmm1
+    0x13eb374 | 0f 10 0d d5 0a d0 06     | movups xmm1, xmmword ptr [rip + 0x6d00ad5] ; FLogWorldStepsBehindG
+    0x13eb37b | 48 8b 84 24 e0 00 00 00  | mov rax, qword ptr [rsp + 0xe0]
+    0x13eb383 | f3 0f 11 84 24 e8 00 00.. | movss dword ptr [rsp + 0xe8], xmm0
+    0x13eb38c | 4c 8b 8c 24 e8 00 00 00  | mov r9, qword ptr [rsp + 0xe8]
+    0x13eb394 | 0f 29 4c 24 70           | movaps xmmword ptr [rsp + 0x70], xmm1
+    0x13eb399 | 48 89 44 24 20           | mov qword ptr [rsp + 0x20], rax
+    0x13eb39e | e8 7d 6c 58 03           | call 0x4972020
+    L_0x13eb3a3:
+    0x13eb3a3 | 44 0f 28 84 24 80 00 00.. | movaps xmm8, xmmword ptr [rsp + 0x80]
+    0x13eb3ac | 0f 28 b4 24 a0 00 00 00  | movaps xmm6, xmmword ptr [rsp + 0xa0]
+    0x13eb3b4 | 48 8b b4 24 b0 00 00 00  | mov rsi, qword ptr [rsp + 0xb0]
+    L_0x13eb3bc:
+    0x13eb3bc | 44 8b 8b e8 00 00 00     | mov r9d, dword ptr [rbx + 0xe8]
+    0x13eb3c3 | 41 3b f9                 | cmp edi, r9d
+    0x13eb3c6 | 74 14                    | je 0x13eb3dc
+    0x13eb3c8 | 44 8b c7                 | mov r8d, edi
+    0x13eb3cb | 48 8d 15 06 fb e3 05     | lea rdx, [rip + 0x5e3fb06] ; "getWorldStepId changed %d %d"
+    0x13eb3d2 | b9 01 00 00 00           | mov ecx, 0x1
+    0x13eb3d7 | e8 b4 9b 80 00           | call 0x1bf4f90
+    L_0x13eb3dc:
+    0x13eb3dc | f2 0f 10 93 d0 03 00 00  | movsd xmm2, qword ptr [rbx + 0x3d0]
+    0x13eb3e4 | f3 0f 10 8b 68 08 00 00  | movss xmm1, dword ptr [rbx + 0x868]
+    0x13eb3ec | f2 0f 10 83 b8 03 00 00  | movsd xmm0, qword ptr [rbx + 0x3b8]
+    0x13eb3f4 | 8b 83 e8 00 00 00        | mov eax, dword ptr [rbx + 0xe8]
+    0x13eb3fa | 0f 5a c9                 | cvtps2pd xmm1, xmm1
+    0x13eb3fd | 89 83 c8 03 00 00        | mov dword ptr [rbx + 0x3c8], eax
+    0x13eb403 | f2 0f 11 83 c0 03 00 00  | movsd qword ptr [rbx + 0x3c0], xmm0
+    0x13eb40b | f2 0f 5e d1              | divsd xmm2, xmm1
+    0x13eb40f | 66 0f 5a c2              | cvtpd2ps xmm0, xmm2
+    0x13eb413 | 48 81 c4 b8 00 00 00     | add rsp, 0xb8
+    0x13eb41a | 5f                       | pop rdi
+    0x13eb41b | 5b                       | pop rbx
+    0x13eb41c | c3                       | ret
+
+[Bytecode Hex]
+  0x13eafa0: 48 8b c4 | 53 | 57 | 48 81 ec b8 00 00 00
+  0x13eafac: 8b b9 e8 00 00 00 | 48 8b d9 | 8b 89 c8 03 00 00 | 85 c9
+  0x13eafbd: 0f 84 f9 03 00 00 | f2 0f 10 1d e5 4e 1b 06 | 0f 57 c9 | f2 0f 10 25 5a 70 1c 06
+  0x13eafd6: 48 89 70 e8 | 0f 29 70 d8 | f3 0f 10 b3 68 08 00 00 | 0f 29 78 c8
+  0x13eafea: f2 0f 10 bb b8 03 00 00 | f2 0f 5c bb c0 03 00 00 | 44 0f 29 40 b8 | 8b c7
+  0x13eb001: 0f 5a f6 | 2b c1 | 45 0f 57 c0 | f2 0f 59 f7
+  0x13eb00e: f2 44 0f 2a c0 | 0f 28 c6 | f2 41 0f 5c c0 | f2 0f 58 83 d0 03 00 00
+  0x13eb023: f2 0f 11 83 d0 03 00 00 | f2 0f 2a 0d 6d 0f d0 06 | f2 0f 5f cb | 66 0f 2f c1
+  0x13eb03b: 0f 28 d1 | 0f 57 d4 | 77 0e | 66 0f 2f d0
+  0x13eb047: 76 05 | 0f 28 ca | eb 03 | 0f 28 c8
+  0x13eb051: f2 0f 10 15 cf 55 1b 06 | f2 0f 11 8b d0 03 00 00 | 66 0f 6e 05 7f 0f d0 06 | f3 0f e6 c0
+  0x13eb06d: 66 0f 2f c2 | 77 0e | 66 0f 2f d8 | 76 05
+  0x13eb079: 0f 28 d3 | eb 03 | 0f 28 d0 | f2 0f 5e 15 27 55 1b 06
+  0x13eb089: 66 0f 2f ca | 76 06 | f2 0f 5c ca | eb 15
+  0x13eb095: 0f 28 c2 | 0f 57 c4 | 66 0f 2f c1 | 76 06
+  0x13eb0a1: f2 0f 58 ca | eb 03 | 0f 57 c9 | f2 0f 11 8b d0 03 00 00
+  0x13eb0b2: be ad 10 ff ff | 48 8b 0d 42 0f d0 06 | 84 c9 | 0f 84 19 02 00 00
+  0x13eb0c6: 80 f9 06 | 0f 82 ab 00 00 00 | 48 8b c1 | 48 c1 e8 08
+  0x13eb0d6: 3c 03 | 0f 82 9c 00 00 00 | 48 8d 05 fb c0 7b 09 | c7 84 24 d8 00 00 00 00 00 00 00
+  0x13eb0f0: 48 89 84 24 d0 00 00 00 | 48 8d 4c 24 40 | 48 8b 94 24 d0 00 00 00 | 44 8b c6
+  0x13eb108: 0f 10 0d f1 0e d0 06 | c7 84 24 d0 00 00 00 00 00 00 00 | 48 81 ea 68 c2 97 03 | 48 8b 84 24 d0 00 00 00
+  0x13eb129: 48 89 44 24 30 | 48 8b 84 24 d8 00 00 00 | 48 89 44 24 28 | 66 41 0f 5a c0
+  0x13eb140: c7 84 24 e0 00 00 00 00 00 00 00 | 48 8b 84 24 e0 00 00 00 | 48 89 44 24 20 | 0f 29 4c 24 40
+  0x13eb15d: f3 0f 11 84 24 e8 00 00 00 | 4c 8b 8c 24 e8 00 00 00 | e8 ad 6e 58 03 | 48 8b 0d 86 0e d0 06
+  0x13eb17a: 84 c9 | 0f 84 5d 01 00 00 | 80 f9 06 | 0f 82 54 01 00 00
+  0x13eb18b: 48 8b c1 | 48 c1 e8 08 | 3c 03 | 0f 82 9b 00 00 00
+  0x13eb19a: 48 8d 05 0c 02 7c 09 | c7 84 24 d8 00 00 00 00 00 00 00 | 48 89 84 24 d0 00 00 00 | 48 8d 4c 24 50
+  0x13eb1b9: 48 8b 94 24 d0 00 00 00 | 4c 8b c6 | 0f 10 0d 35 0e d0 06 | c7 84 24 d0 00 00 00 00 00 00 00
+  0x13eb1d6: 48 81 ea f5 03 98 03 | 48 8b 84 24 d0 00 00 00 | 48 89 44 24 30 | 48 8b 84 24 d8 00 00 00
+  0x13eb1f2: 48 89 44 24 28 | 66 0f 5a c6 | c7 84 24 e0 00 00 00 00 00 00 00 | 48 8b 84 24 e0 00 00 00
+  0x13eb20e: 48 89 44 24 20 | 0f 29 4c 24 50 | f3 0f 11 84 24 e8 00 00 00 | 4c 8b 8c 24 e8 00 00 00
+  0x13eb229: e8 f2 6d 58 03 | 48 8b 0d cb 0d d0 06 | 80 f9 06 | 0f 82 a1 00 00 00
+  0x13eb23e: 48 c1 e9 08 | 80 f9 03 | 0f 82 94 00 00 00 | 48 8d 05 28 43 7c 09
+  0x13eb252: c7 84 24 d8 00 00 00 00 00 00 00 | 48 89 84 24 d0 00 00 00 | 48 8d 4c 24 60 | 48 8b 94 24 d0 00 00 00
+  0x13eb272: 4c 8b c6 | 0f 10 0d 84 0d d0 06 | c7 84 24 d0 00 00 00 00 00 00 00 | 48 81 ea 82 45 98 03
+  0x13eb28e: 48 8b 84 24 d0 00 00 00 | 48 89 44 24 30 | 48 8b 84 24 d8 00 00 00 | 48 89 44 24 28
+  0x13eb2a8: 66 0f 5a c7 | c7 84 24 e0 00 00 00 00 00 00 00 | 48 8b 84 24 e0 00 00 00 | 48 89 44 24 20
+  0x13eb2c4: 0f 29 4c 24 60 | f3 0f 11 84 24 e8 00 00 00 | 4c 8b 8c 24 e8 00 00 00 | e8 41 6d 58 03
+  0x13eb2df: 48 8b 05 6a 0b d0 06 | 0f 28 bc 24 90 00 00 00 | 3c 06 | 0f 82 ad 00 00 00
+  0x13eb2f6: 48 c1 e8 08 | 3c 03 | 0f 82 a1 00 00 00 | 66 0f 5a c6
+  0x13eb306: 48 8d 05 70 0d 7e 09 | 4c 8b c6 | 48 89 84 24 d0 00 00 00 | 48 8d 4c 24 70
+  0x13eb31d: 48 8b 94 24 d0 00 00 00 | c7 84 24 d0 00 00 00 00 00 00 00 | 48 81 ea 5d 10 9a 03 | 48 8b 84 24 d0 00 00 00
+  0x13eb33f: 48 89 44 24 30 | f3 0f 11 84 24 d8 00 00 00 | f2 0f 10 83 d0 03 00 00 | 48 8b 84 24 d8 00 00 00
+  0x13eb35d: 66 41 0f 5a c8 | 48 89 44 24 28 | 66 0f 5a c0 | f3 0f 11 8c 24 e0 00 00 00
+  0x13eb374: 0f 10 0d d5 0a d0 06 | 48 8b 84 24 e0 00 00 00 | f3 0f 11 84 24 e8 00 00 00 | 4c 8b 8c 24 e8 00 00 00
+  0x13eb394: 0f 29 4c 24 70 | 48 89 44 24 20 | e8 7d 6c 58 03 | 44 0f 28 84 24 80 00 00 00
+  0x13eb3ac: 0f 28 b4 24 a0 00 00 00 | 48 8b b4 24 b0 00 00 00 | 44 8b 8b e8 00 00 00 | 41 3b f9
+  0x13eb3c6: 74 14 | 44 8b c7 | 48 8d 15 06 fb e3 05 | b9 01 00 00 00
+  0x13eb3d7: e8 b4 9b 80 00 | f2 0f 10 93 d0 03 00 00 | f3 0f 10 8b 68 08 00 00 | f2 0f 10 83 b8 03 00 00
+  0x13eb3f4: 8b 83 e8 00 00 00 | 0f 5a c9 | 89 83 c8 03 00 00 | f2 0f 11 83 c0 03 00 00
+  0x13eb40b: f2 0f 5e d1 | 66 0f 5a c2 | 48 81 c4 b8 00 00 00 | 5f
+  0x13eb41b: 5b | c3
+
+[Strings .rdata na função]
+  * [FLog::WorldStepsBehind] DELTA     WorldSteps       : %d
+  * [FLog::WorldStepsBehind] Expected  WorldSteps       : %d
+  * [FLog::WorldStepsBehind] dt: %f
+  * [FLog::WorldStepsBehindG] Number of WorldSteps behind, wsps, deltaTime: %f  %f  %f
+  * getWorldStepId changed %d %d
+
+[Co-Flags na mesma função]
+  * DFIntWorldStepMax = 30 (default)
+  * DFIntWorldStepsOffsetAdjustRate = 100 (default)
+  * FLogWorldStepsBehindG = 0 (default)
+  * DFIntBulletContactBreakOrthogonalThresholdActivatePercent = 200 (default) [vizinha em .data]
+  * DFIntMaxMissedWorldStepsRemembered = 16 (default) [vizinha em .data]
+  * FFlagPhysicsNewSpanningTree = false (default) [vizinha em .data]
+  * DFFlagSimAdaptiveEnable60HzParts = true (default) [vizinha em .data]
+  * DFIntSimArbiterPositionCorrectionFactorThresholdThou = 300 (default) [vizinha em .data]
+  * DFFlagDebugSimAdaptiveEnable60HzHumanoids = false (default) [vizinha em .data]

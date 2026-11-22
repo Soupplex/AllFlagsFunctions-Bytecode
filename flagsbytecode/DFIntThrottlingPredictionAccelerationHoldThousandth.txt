@@ -1,0 +1,346 @@
+FFlag     : DFIntThrottlingPredictionAccelerationHoldThousandth
+RVA .data : 0x80ec680
+XREFs     : 1 total (1 em runtime)
+Insn RVA  : 0x146b28c
+Operação  : 0x146b28c: mov/math reg, [flag] ; fn=0x146b170..0x146b489
+
+[Disassembly .text]
+  === [Resumo do Efeito da FFlag no Engine (RBX::ThrottlingOverestimation)] ===
+    Classe  : RBX::ThrottlingOverestimation (RTTI Resolvido)
+    Padrão  : DFIntThrottlingPredictionAccelerationHoldThousandth = 4 (default) [int, mode=2]
+    Papel   : Multiplicador / Escala aplicado sobre limites ou métricas da função
+    Fórmula : (float)ThrottlingPredictionAccelerationHoldThousandth / 1000.0 * min(ftmp_7, ftmp_8)
+    Altera  : this->field_0x8->field_0x8, this->field_0x8->field_0xc
+  
+  === [Decompilacao C++ da Funcao 0x146b170..0x146b489] ===
+    struct RBX::ThrottlingOverestimation {
+      /* +0x8 */ void*   field_0x8;
+    };
+    
+    // Flag defaults: ThrottlingOverestimationFactorTenths = 20, ThrottlingPredictionAccelerationHoldThousandth = 4, ThrottledVelocityThresholdTenths = 15, MaxThrottleCount = 5
+    void RBX::ThrottlingOverestimation::func_0x146b170(RBX::ThrottlingOverestimation* this, int64_t param_2, void* param_3) {
+      float ftmp_1 = 1.0 / (param_3->field_0x58 - param_2->field_0x58);
+      float ftmp_2 = param_3->field_0x40 - param_2->field_0x40;
+      float ftmp_3 = param_2->field_0x40 * param_2->field_0x40 + param_2->field_0x3c * param_2->field_0x3c;
+      float ftmp_4 = param_3->field_0x3c - param_2->field_0x3c;
+      float ftmp_5 = param_3->field_0x44 - param_2->field_0x44;
+      float ftmp_6 = param_3->field_0x40 * param_3->field_0x40 + param_3->field_0x3c * param_3->field_0x3c;
+      float ftmp_7 = ftmp_6 + param_3->field_0x44 * param_3->field_0x44;
+      float ftmp_8 = ftmp_3 + param_2->field_0x44 * param_2->field_0x44;
+      float ftmp_9 = ftmp_2 * ftmp_2 + ftmp_4 * ftmp_4;
+      float ftmp_10 = (float)ThrottlingPredictionAccelerationHoldThousandth / 1000.0 * min(ftmp_7, ftmp_8);
+      float fxmm12_1;
+      float fxmm0_2;
+      auto* f_8 = this->field_0x8;
+      auto expr_1 = (float)ThrottlingOverestimationFactorTenths / 10.0;
+      if (ftmp_9 + ftmp_5 * ftmp_5 <= ftmp_10) {
+        float ftmp_11 = (param_3->field_0x34 - param_2->field_0x34) * ftmp_1;
+        float ftmp_12 = (param_3->field_0x38 - param_2->field_0x38) * ftmp_1;
+        float ftmp_13 = (param_3->field_0x30 - param_2->field_0x30) * ftmp_1;
+        float ftmp_14 = ftmp_11 * ftmp_11 + ftmp_13 * ftmp_13;
+        if (global_0x759e788 > ftmp_14 + ftmp_12 * ftmp_12) {
+          auto ret_0x2d1efc0_1 = call_0x2d1efc0(&param_3->field_0xc, &param_2->field_0xc);
+          if (ret_0x2d1efc0_1 == 0) {
+            L_0x146b345:
+            float ftmp_15 = (param_3->field_0x44 + param_2->field_0x44) * 0.5;
+            float ftmp_16 = (param_3->field_0x40 + param_2->field_0x40) * 0.5;
+            float ftmp_17 = (param_3->field_0x3c + param_2->field_0x3c) * 0.5;
+            float ftmp_19 = (ftmp_16 * ftmp_16 + ftmp_17 * ftmp_17 + ftmp_15 * ftmp_15) / (ftmp_14 + ftmp_12 * ftmp_12);
+            float ftmp_20 = (float)(ThrottledVelocityThresholdTenths * ThrottledVelocityThresholdTenths) / 100.0;
+            if (ftmp_19 > ftmp_20) {
+              if (0.0 <= ftmp_19) {
+                fxmm0_2 = sqrtf(ftmp_19);
+              } else {
+                fxmm12_1 = ftmp_19;
+                auto ret_0x609e228_2 = call_0x609e228(fxmm12_1);
+                fxmm0_2 = ret_0x609e228_2;
+              }
+              float ftmp_21 = (float)max((uint64_t)(fxmm0_2 * expr_1), 1);
+              if (!isnan(1.0 / ftmp_21) && !isnan(f_8->field_0xc) && 1.0 / ftmp_21 == f_8->field_0xc) {
+                f_8->field_0x8 = 0;
+              } else {
+                if (f_8->field_0xc <= 1.0 / ftmp_21) {
+                  if (f_8->field_0x8 > MaxThrottleCount) {
+                    L_0x146b404:
+                    f_8->field_0x8 = 0;
+                    f_8->field_0xc = 1.0 / ftmp_21;
+                  } else {
+                    L_0x146b43a:
+                    f_8->field_0x8 = f_8->field_0x8 + 1;
+                  }
+                } else {
+                  f_8->field_0x8 = 0;
+                  f_8->field_0xc = 1.0 / ftmp_21;
+                }
+              }
+            } else if (f_8->field_0x8 > MaxThrottleCount) {
+              f_8->field_0x8 = 0;
+              f_8->field_0xc = 1.0f;
+            } else {
+              f_8->field_0x8 = f_8->field_0x8 + 1;
+            }
+          }
+          return;
+        }
+        goto L_0x146b345;
+      }
+      fxmm12_1 = (param_3->field_0x40 + param_2->field_0x40) * 0.5;
+      auto ret_0x609e228_2 = call_0x609e228(fxmm12_1);
+      fxmm0_2 = ret_0x609e228_2;
+      float ftmp_21 = (float)max((uint64_t)(fxmm0_2 * expr_1), 1);
+      if (!isnan(1.0 / ftmp_21) && !isnan(f_8->field_0xc) && 1.0 / ftmp_21 == f_8->field_0xc) {
+        f_8->field_0x8 = 0;
+      } else {
+        if (f_8->field_0xc <= 1.0 / ftmp_21) {
+          if (f_8->field_0x8 > MaxThrottleCount) {
+            goto L_0x146b404;
+          } else {
+            goto L_0x146b43a;
+          }
+        } else {
+          goto L_0x146b404;
+        }
+      }
+    }
+  
+  === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
+    0x146b170 | 4c 8b dc                 | mov r11, rsp
+    0x146b173 | 53                       | push rbx
+    0x146b174 | 48 81 ec d0 00 00 00     | sub rsp, 0xd0
+    0x146b17b | f3 0f 10 05 51 3f 13 06  | movss xmm0, dword ptr [rip + 0x6133f51] ; 0.5
+    0x146b183 | 49 8d 43 10              | lea rax, [r11 + 0x10]
+    0x146b187 | f3 0f 10 5a 3c           | movss xmm3, dword ptr [rdx + 0x3c]
+    0x146b18c | 48 8b d9                 | mov rbx, rcx
+    0x146b18f | f3 0f 10 62 44           | movss xmm4, dword ptr [rdx + 0x44]
+    0x146b194 | 49 8d 4b 18              | lea rcx, [r11 + 0x18]
+    0x146b198 | 41 0f 29 73 e8           | movaps xmmword ptr [r11 - 0x18], xmm6
+    0x146b19d | 41 0f 29 7b d8           | movaps xmmword ptr [r11 - 0x28], xmm7
+    0x146b1a2 | f3 41 0f 10 78 3c        | movss xmm7, dword ptr [r8 + 0x3c]
+    0x146b1a8 | 45 0f 29 43 c8           | movaps xmmword ptr [r11 - 0x38], xmm8
+    0x146b1ad | 0f 28 f7                 | movaps xmm6, xmm7
+    0x146b1b0 | f3 45 0f 10 40 44        | movss xmm8, dword ptr [r8 + 0x44]
+    0x146b1b6 | f3 0f 5c f3              | subss xmm6, xmm3
+    0x146b1ba | 45 0f 29 4b b8           | movaps xmmword ptr [r11 - 0x48], xmm9
+    0x146b1bf | 41 0f 28 c8              | movaps xmm1, xmm8
+    0x146b1c3 | 45 0f 29 53 a8           | movaps xmmword ptr [r11 - 0x58], xmm10
+    0x146b1c8 | f3 0f 58 cc              | addss xmm1, xmm4
+    0x146b1cc | f3 44 0f 10 52 40        | movss xmm10, dword ptr [rdx + 0x40]
+    0x146b1d2 | 41 0f 28 e8              | movaps xmm5, xmm8
+    0x146b1d6 | 45 0f 29 5b 98           | movaps xmmword ptr [r11 - 0x68], xmm11
+    0x146b1db | f3 0f 5c ec              | subss xmm5, xmm4
+    0x146b1df | 45 0f 29 63 88           | movaps xmmword ptr [r11 - 0x78], xmm12
+    0x146b1e4 | 44 0f 29 6c 24 50        | movaps xmmword ptr [rsp + 0x50], xmm13
+    0x146b1ea | 44 0f 29 74 24 40        | movaps xmmword ptr [rsp + 0x40], xmm14
+    0x146b1f0 | 44 0f 29 7c 24 30        | movaps xmmword ptr [rsp + 0x30], xmm15
+    0x146b1f6 | 44 0f 28 ff              | movaps xmm15, xmm7
+    0x146b1fa | f3 45 0f 10 58 40        | movss xmm11, dword ptr [r8 + 0x40]
+    0x146b200 | f3 44 0f 58 fb           | addss xmm15, xmm3
+    0x146b205 | f3 44 0f 10 35 a6 44 13.. | movss xmm14, dword ptr [rip + 0x61344a6] ; 1.0
+    0x146b20e | 45 0f 28 e3              | movaps xmm12, xmm11
+    0x146b212 | f3 45 0f 10 68 34        | movss xmm13, dword ptr [r8 + 0x34]
+    0x146b218 | f3 45 0f 58 e2           | addss xmm12, xmm10
+    0x146b21d | f3 44 0f 5c 6a 34        | subss xmm13, dword ptr [rdx + 0x34]
+    0x146b223 | f3 0f 59 c8              | mulss xmm1, xmm0
+    0x146b227 | 45 0f 28 cb              | movaps xmm9, xmm11
+    0x146b22b | f3 44 0f 59 f8           | mulss xmm15, xmm0
+    0x146b230 | f3 45 0f 5c ca           | subss xmm9, xmm10
+    0x146b235 | f3 44 0f 59 e0           | mulss xmm12, xmm0
+    0x146b23a | 41 0f 28 d6              | movaps xmm2, xmm14
+    0x146b23e | f2 41 0f 10 40 58        | movsd xmm0, qword ptr [r8 + 0x58]
+    0x146b244 | f2 0f 5c 42 58           | subsd xmm0, qword ptr [rdx + 0x58]
+    0x146b249 | f3 0f 11 4c 24 20        | movss dword ptr [rsp + 0x20], xmm1
+    0x146b24f | f3 45 0f 59 d2           | mulss xmm10, xmm10
+    0x146b254 | f3 45 0f 59 db           | mulss xmm11, xmm11
+    0x146b259 | 66 0f 5a c8              | cvtpd2ps xmm1, xmm0
+    0x146b25d | f3 41 0f 10 40 38        | movss xmm0, dword ptr [r8 + 0x38]
+    0x146b263 | f3 0f 5c 42 38           | subss xmm0, dword ptr [rdx + 0x38]
+    0x146b268 | f3 0f 5e d1              | divss xmm2, xmm1
+    0x146b26c | f3 41 0f 10 48 30        | movss xmm1, dword ptr [r8 + 0x30]
+    0x146b272 | f3 0f 5c 4a 30           | subss xmm1, dword ptr [rdx + 0x30]
+    0x146b277 | f3 0f 59 c2              | mulss xmm0, xmm2
+    0x146b27b | f3 45 0f 59 c9           | mulss xmm9, xmm9
+    0x146b280 | f3 0f 11 84 24 f8 00 00.. | movss dword ptr [rsp + 0xf8], xmm0
+    0x146b289 | 0f 57 c0                 | xorps xmm0, xmm0
+    0x146b28c | f3 0f 2a 05 ec 13 c8 06  | cvtsi2ss xmm0, dword ptr [rip + 0x6c813ec] ; DFIntThrottlingPredictionAccelerationHoldThousandth
+    0x146b294 | f3 0f 59 db              | mulss xmm3, xmm3
+    0x146b298 | f3 0f 5e 05 08 5a 13 06  | divss xmm0, dword ptr [rip + 0x6135a08] ; 1000.0
+    0x146b2a0 | f3 0f 59 ff              | mulss xmm7, xmm7
+    0x146b2a4 | f3 44 0f 58 d3           | addss xmm10, xmm3
+    0x146b2a9 | f3 0f 59 e4              | mulss xmm4, xmm4
+    0x146b2ad | f3 44 0f 58 df           | addss xmm11, xmm7
+    0x146b2b2 | f3 45 0f 59 c0           | mulss xmm8, xmm8
+    0x146b2b7 | f3 44 0f 58 d4           | addss xmm10, xmm4
+    0x146b2bc | f3 0f 59 f6              | mulss xmm6, xmm6
+    0x146b2c0 | f3 0f 59 ed              | mulss xmm5, xmm5
+    0x146b2c4 | f3 45 0f 58 d8           | addss xmm11, xmm8
+    0x146b2c9 | f3 0f 59 ca              | mulss xmm1, xmm2
+    0x146b2cd | f3 44 0f 58 ce           | addss xmm9, xmm6
+    0x146b2d2 | f3 45 0f 11 53 10        | movss dword ptr [r11 + 0x10], xmm10
+    0x146b2d8 | f3 44 0f 59 ea           | mulss xmm13, xmm2
+    0x146b2dd | 45 0f 2f da              | comiss xmm11, xmm10
+    0x146b2e1 | f3 45 0f 11 5b 18        | movss dword ptr [r11 + 0x18], xmm11
+    0x146b2e7 | f3 44 0f 58 cd           | addss xmm9, xmm5
+    0x146b2ec | 48 0f 46 c1              | cmovbe rax, rcx
+    0x146b2f0 | f3 0f 59 00              | mulss xmm0, dword ptr [rax]
+    0x146b2f4 | 44 0f 2f c8              | comiss xmm9, xmm0
+    0x146b2f8 | 0f 87 9f 00 00 00        | ja 0x146b39d ; [Nanomite Reconstructed: ja +0x9f via cfg_exit_block_resolver]
+    0x146b2fe | f3 0f 10 84 24 f8 00 00.. | movss xmm0, dword ptr [rsp + 0xf8]
+    0x146b307 | f3 45 0f 59 ed           | mulss xmm13, xmm13
+    0x146b30c | f3 0f 59 c0              | mulss xmm0, xmm0
+    0x146b310 | f3 0f 59 c9              | mulss xmm1, xmm1
+    0x146b314 | f3 44 0f 58 e9           | addss xmm13, xmm1
+    0x146b319 | f3 44 0f 58 e8           | addss xmm13, xmm0
+    0x146b31e | f3 0f 10 05 62 34 13 06  | movss xmm0, dword ptr [rip + 0x6133462]
+    0x146b326 | 41 0f 2f c5              | comiss xmm0, xmm13
+    0x146b32a | 76 19                    | jbe 0x146b345
+    0x146b32c | 48 83 c2 0c              | add rdx, 0xc
+    0x146b330 | 49 8d 48 0c              | lea rcx, [r8 + 0xc]
+    0x146b334 | e8 87 3c 8b 01           | call 0x2d1efc0
+    0x146b339 | 84 c0                    | test al, al
+    0x146b33b | 74 08                    | je 0x146b345
+    0x146b33d | 0f 57 c0                 | xorps xmm0, xmm0
+    0x146b340 | e9 03 01 00 00           | jmp 0x146b448
+    L_0x146b345:
+    0x146b345 | f3 0f 10 44 24 20        | movss xmm0, dword ptr [rsp + 0x20]
+    0x146b34b | 8b 05 7f 14 c8 06        | mov eax, dword ptr [rip + 0x6c8147f] ; DFIntThrottledVelocityThresholdTenths
+    0x146b351 | f3 0f 59 c0              | mulss xmm0, xmm0
+    0x146b355 | f3 45 0f 59 e4           | mulss xmm12, xmm12
+    0x146b35a | 0f af c0                 | imul eax, eax
+    0x146b35d | f3 45 0f 59 ff           | mulss xmm15, xmm15
+    0x146b362 | f3 45 0f 58 e7           | addss xmm12, xmm15
+    0x146b367 | f3 44 0f 58 e0           | addss xmm12, xmm0
+    0x146b36c | 0f 57 c0                 | xorps xmm0, xmm0
+    0x146b36f | f3 0f 2a c0              | cvtsi2ss xmm0, eax
+    0x146b373 | f3 45 0f 5e e5           | divss xmm12, xmm13
+    0x146b378 | f3 0f 5e 05 e4 56 13 06  | divss xmm0, dword ptr [rip + 0x61356e4] ; 100.0
+    0x146b380 | 44 0f 2f e0              | comiss xmm12, xmm0
+    0x146b384 | 0f 86 8d 00 00 00        | jbe 0x146b417
+    0x146b38a | 0f 57 c0                 | xorps xmm0, xmm0
+    0x146b38d | 41 0f 2e c4              | ucomiss xmm0, xmm12
+    0x146b391 | 77 0a                    | ja 0x146b39d
+    0x146b393 | 0f 57 c0                 | xorps xmm0, xmm0
+    0x146b396 | f3 41 0f 51 c4           | sqrtss xmm0, xmm12
+    0x146b39b | eb 09                    | jmp 0x146b3a6
+    L_0x146b39d:
+    0x146b39d | 41 0f 28 c4              | movaps xmm0, xmm12
+    0x146b3a1 | e8 82 2e c3 04           | call 0x609e228
+    L_0x146b3a6:
+    0x146b3a6 | 66 0f 6e 0d ea 12 c8 06  | movd xmm1, dword ptr [rip + 0x6c812ea] ; DFIntThrottlingOverestimationFactorTenths
+    0x146b3ae | b9 01 00 00 00           | mov ecx, 0x1
+    0x146b3b3 | 0f 5b c9                 | cvtdq2ps xmm1, xmm1
+    0x146b3b6 | f3 0f 5e 0d d2 53 13 06  | divss xmm1, dword ptr [rip + 0x61353d2] ; 10.0
+    0x146b3be | f3 0f 59 c1              | mulss xmm0, xmm1
+    0x146b3c2 | f3 48 0f 2c c0           | cvttss2si rax, xmm0
+    0x146b3c7 | 0f 57 c0                 | xorps xmm0, xmm0
+    0x146b3ca | 3b c1                    | cmp eax, ecx
+    0x146b3cc | 0f 42 c1                 | cmovb eax, ecx
+    0x146b3cf | 48 8b 4b 08              | mov rcx, qword ptr [rbx + 0x8]
+    0x146b3d3 | f3 48 0f 2a c0           | cvtsi2ss xmm0, rax
+    0x146b3d8 | f3 44 0f 5e f0           | divss xmm14, xmm0
+    0x146b3dd | f3 0f 10 41 0c           | movss xmm0, dword ptr [rcx + 0xc]
+    0x146b3e2 | 44 0f 2e f0              | ucomiss xmm14, xmm0
+    0x146b3e6 | 7a 0b                    | jp 0x146b3f3
+    0x146b3e8 | 75 09                    | jne 0x146b3f3
+    0x146b3ea | c7 41 08 00 00 00 00     | mov dword ptr [rcx + 0x8], 0x0
+    0x146b3f1 | eb 4c                    | jmp 0x146b43f
+    L_0x146b3f3:
+    0x146b3f3 | 41 0f 2f c6              | comiss xmm0, xmm14
+    0x146b3f7 | 77 0b                    | ja 0x146b404
+    0x146b3f9 | 8b 41 08                 | mov eax, dword ptr [rcx + 0x8]
+    0x146b3fc | 3b 05 66 12 c8 06        | cmp eax, dword ptr [rip + 0x6c81266] ; DFIntMaxThrottleCount
+    0x146b402 | 76 36                    | jbe 0x146b43a
+    L_0x146b404:
+    0x146b404 | c7 41 08 00 00 00 00     | mov dword ptr [rcx + 0x8], 0x0
+    0x146b40b | 48 8b 43 08              | mov rax, qword ptr [rbx + 0x8]
+    0x146b40f | f3 44 0f 11 70 0c        | movss dword ptr [rax + 0xc], xmm14
+    0x146b415 | eb 28                    | jmp 0x146b43f
+    L_0x146b417:
+    0x146b417 | 48 8b 4b 08              | mov rcx, qword ptr [rbx + 0x8]
+    0x146b41b | 8b 41 08                 | mov eax, dword ptr [rcx + 0x8]
+    0x146b41e | 3b 05 44 12 c8 06        | cmp eax, dword ptr [rip + 0x6c81244] ; DFIntMaxThrottleCount
+    0x146b424 | 76 14                    | jbe 0x146b43a
+    0x146b426 | c7 41 08 00 00 00 00     | mov dword ptr [rcx + 0x8], 0x0
+    0x146b42d | 48 8b 43 08              | mov rax, qword ptr [rbx + 0x8]
+    0x146b431 | c7 40 0c 00 00 80 3f     | mov dword ptr [rax + 0xc], 0x3f800000
+    0x146b438 | eb 05                    | jmp 0x146b43f
+    L_0x146b43a:
+    0x146b43a | ff c0                    | inc eax
+    0x146b43c | 89 41 08                 | mov dword ptr [rcx + 0x8], eax
+    L_0x146b43f:
+    0x146b43f | 48 8b 43 08              | mov rax, qword ptr [rbx + 0x8]
+    0x146b443 | f3 0f 10 40 0c           | movss xmm0, dword ptr [rax + 0xc]
+    L_0x146b448:
+    0x146b448 | 44 0f 28 74 24 40        | movaps xmm14, xmmword ptr [rsp + 0x40]
+    0x146b44e | 4c 8d 9c 24 d0 00 00 00  | lea r11, [rsp + 0xd0]
+    0x146b456 | 41 0f 28 73 f0           | movaps xmm6, xmmword ptr [r11 - 0x10]
+    0x146b45b | 41 0f 28 7b e0           | movaps xmm7, xmmword ptr [r11 - 0x20]
+    0x146b460 | 45 0f 28 43 d0           | movaps xmm8, xmmword ptr [r11 - 0x30]
+    0x146b465 | 45 0f 28 4b c0           | movaps xmm9, xmmword ptr [r11 - 0x40]
+    0x146b46a | 45 0f 28 53 b0           | movaps xmm10, xmmword ptr [r11 - 0x50]
+    0x146b46f | 45 0f 28 5b a0           | movaps xmm11, xmmword ptr [r11 - 0x60]
+    0x146b474 | 45 0f 28 63 90           | movaps xmm12, xmmword ptr [r11 - 0x70]
+    0x146b479 | 45 0f 28 6b 80           | movaps xmm13, xmmword ptr [r11 - 0x80]
+    0x146b47e | 44 0f 28 7c 24 30        | movaps xmm15, xmmword ptr [rsp + 0x30]
+    0x146b484 | 49 8b e3                 | mov rsp, r11
+    0x146b487 | 5b                       | pop rbx
+    0x146b488 | c3                       | ret
+
+[Bytecode Hex]
+  0x146b170: 4c 8b dc | 53 | 48 81 ec d0 00 00 00 | f3 0f 10 05 51 3f 13 06
+  0x146b183: 49 8d 43 10 | f3 0f 10 5a 3c | 48 8b d9 | f3 0f 10 62 44
+  0x146b194: 49 8d 4b 18 | 41 0f 29 73 e8 | 41 0f 29 7b d8 | f3 41 0f 10 78 3c
+  0x146b1a8: 45 0f 29 43 c8 | 0f 28 f7 | f3 45 0f 10 40 44 | f3 0f 5c f3
+  0x146b1ba: 45 0f 29 4b b8 | 41 0f 28 c8 | 45 0f 29 53 a8 | f3 0f 58 cc
+  0x146b1cc: f3 44 0f 10 52 40 | 41 0f 28 e8 | 45 0f 29 5b 98 | f3 0f 5c ec
+  0x146b1df: 45 0f 29 63 88 | 44 0f 29 6c 24 50 | 44 0f 29 74 24 40 | 44 0f 29 7c 24 30
+  0x146b1f6: 44 0f 28 ff | f3 45 0f 10 58 40 | f3 44 0f 58 fb | f3 44 0f 10 35 a6 44 13 06
+  0x146b20e: 45 0f 28 e3 | f3 45 0f 10 68 34 | f3 45 0f 58 e2 | f3 44 0f 5c 6a 34
+  0x146b223: f3 0f 59 c8 | 45 0f 28 cb | f3 44 0f 59 f8 | f3 45 0f 5c ca
+  0x146b235: f3 44 0f 59 e0 | 41 0f 28 d6 | f2 41 0f 10 40 58 | f2 0f 5c 42 58
+  0x146b249: f3 0f 11 4c 24 20 | f3 45 0f 59 d2 | f3 45 0f 59 db | 66 0f 5a c8
+  0x146b25d: f3 41 0f 10 40 38 | f3 0f 5c 42 38 | f3 0f 5e d1 | f3 41 0f 10 48 30
+  0x146b272: f3 0f 5c 4a 30 | f3 0f 59 c2 | f3 45 0f 59 c9 | f3 0f 11 84 24 f8 00 00 00
+  0x146b289: 0f 57 c0 | f3 0f 2a 05 ec 13 c8 06 | f3 0f 59 db | f3 0f 5e 05 08 5a 13 06
+  0x146b2a0: f3 0f 59 ff | f3 44 0f 58 d3 | f3 0f 59 e4 | f3 44 0f 58 df
+  0x146b2b2: f3 45 0f 59 c0 | f3 44 0f 58 d4 | f3 0f 59 f6 | f3 0f 59 ed
+  0x146b2c4: f3 45 0f 58 d8 | f3 0f 59 ca | f3 44 0f 58 ce | f3 45 0f 11 53 10
+  0x146b2d8: f3 44 0f 59 ea | 45 0f 2f da | f3 45 0f 11 5b 18 | f3 44 0f 58 cd
+  0x146b2ec: 48 0f 46 c1 | f3 0f 59 00 | 44 0f 2f c8 | cc cc
+  0x146b2fa: cc cc | cc cc | f3 0f 10 84 24 f8 00 00 00 | f3 45 0f 59 ed
+  0x146b30c: f3 0f 59 c0 | f3 0f 59 c9 | f3 44 0f 58 e9 | f3 44 0f 58 e8
+  0x146b31e: f3 0f 10 05 62 34 13 06 | 41 0f 2f c5 | 76 19 | 48 83 c2 0c
+  0x146b330: 49 8d 48 0c | e8 87 3c 8b 01 | 84 c0 | 74 08
+  0x146b33d: 0f 57 c0 | e9 03 01 00 00 | f3 0f 10 44 24 20 | 8b 05 7f 14 c8 06
+  0x146b351: f3 0f 59 c0 | f3 45 0f 59 e4 | 0f af c0 | f3 45 0f 59 ff
+  0x146b362: f3 45 0f 58 e7 | f3 44 0f 58 e0 | 0f 57 c0 | f3 0f 2a c0
+  0x146b373: f3 45 0f 5e e5 | f3 0f 5e 05 e4 56 13 06 | 44 0f 2f e0 | 0f 86 8d 00 00 00
+  0x146b38a: 0f 57 c0 | 41 0f 2e c4 | 77 0a | 0f 57 c0
+  0x146b396: f3 41 0f 51 c4 | eb 09 | 41 0f 28 c4 | e8 82 2e c3 04
+  0x146b3a6: 66 0f 6e 0d ea 12 c8 06 | b9 01 00 00 00 | 0f 5b c9 | f3 0f 5e 0d d2 53 13 06
+  0x146b3be: f3 0f 59 c1 | f3 48 0f 2c c0 | 0f 57 c0 | 3b c1
+  0x146b3cc: 0f 42 c1 | 48 8b 4b 08 | f3 48 0f 2a c0 | f3 44 0f 5e f0
+  0x146b3dd: f3 0f 10 41 0c | 44 0f 2e f0 | 7a 0b | 75 09
+  0x146b3ea: c7 41 08 00 00 00 00 | eb 4c | 41 0f 2f c6 | 77 0b
+  0x146b3f9: 8b 41 08 | 3b 05 66 12 c8 06 | 76 36 | c7 41 08 00 00 00 00
+  0x146b40b: 48 8b 43 08 | f3 44 0f 11 70 0c | eb 28 | 48 8b 4b 08
+  0x146b41b: 8b 41 08 | 3b 05 44 12 c8 06 | 76 14 | c7 41 08 00 00 00 00
+  0x146b42d: 48 8b 43 08 | c7 40 0c 00 00 80 3f | eb 05 | ff c0
+  0x146b43c: 89 41 08 | 48 8b 43 08 | f3 0f 10 40 0c | 44 0f 28 74 24 40
+  0x146b44e: 4c 8d 9c 24 d0 00 00 00 | 41 0f 28 73 f0 | 41 0f 28 7b e0 | 45 0f 28 43 d0
+  0x146b465: 45 0f 28 4b c0 | 45 0f 28 53 b0 | 45 0f 28 5b a0 | 45 0f 28 63 90
+  0x146b479: 45 0f 28 6b 80 | 44 0f 28 7c 24 30 | 49 8b e3 | 5b
+  0x146b488: c3
+
+[Strings .rdata na função]
+  (Nenhuma string literal direta neste bloco)
+
+[Co-Flags na mesma função]
+  * DFIntThrottledVelocityThresholdTenths = 15 (default)
+  * DFIntThrottlingOverestimationFactorTenths = 20 (default)
+  * DFIntMaxThrottleCount = 5 (default)
+  * DFIntMaxAverageFrameDelayExceedFactor = 3 (default) [vizinha em .data]
+  * DFIntTargetTimeDelayFacctorTenths = 20 (default) [vizinha em .data]
+  * DFIntNumFramesToKeepAfterInterpolation = 1 (default) [vizinha em .data]
+  * DFFlagDebugMechanismInterpolationWorldSpace = false (default) [vizinha em .data]
+  * DFIntMaxDebugFramesForVisuals = 2000 (default) [vizinha em .data]
+  * DFIntCheckPVCachedRotVelThresholdPercent = 250 (default) [vizinha em .data]
