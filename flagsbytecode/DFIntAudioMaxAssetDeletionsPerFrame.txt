@@ -9,7 +9,7 @@ Operação  : 0x44b815a: mov/math reg, [flag] ; fn=0x44b7f60..0x44b8927
     Classe  : Soundscape::ReleasePool::Soundscape (RTTI Resolvido)
     Padrão  : DFIntAudioMaxAssetDeletionsPerFrame = 10 (default) [int, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : i_ebx + 1 > AudioMaxAssetDeletionsPerFrame
+    Fórmula : i_ebx > AudioMaxAssetDeletionsPerFrame
     Altera  : this->field_0x1c8->field_0x28, this->field_0x308, this->field_0x30c, this->field_0x3d8->field_m0x10, this->field_0x3d8->field_m0x8, this->field_0x3e8
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
@@ -36,38 +36,45 @@ Operação  : 0x44b815a: mov/math reg, [flag] ; fn=0x44b7f60..0x44b8927
         if (global_0x8deea68 == -1) {
           int32_t i_eax = 0;
           do { // L_0x44b8020
-            if ("Sound"[i_eax] != "GPU"->field_m0x1[(i_eax + 1)]) break;
-            break;
-          } while ((i_eax + 1) != 4); // loop -> L_0x44b8020
-          global_0x8deea70 = call_0x29a3390("Sound", "garbageCollectSounds", -1, "Sound"[i_eax] == "GPU"->field_m0x1[i_eax + 1]);
+            i_eax++;
+            if ("Sound"[i_eax] != "GPU"->field_m0x1[i_eax]) break;
+          } while (i_eax != 4); // loop -> L_0x44b8020
+          global_0x8deea70 = call_0x29a3390("Sound", "garbageCollectSounds", -1, "Sound"[i_eax] == "GPU"->field_m0x1[i_eax]);
           call_0x14f0(&sym_0x8deea68);
         }
       }
-      void* sel_rdx_1 = DebugDetailedSoundProfiler ? global_0x8deea70 : 0;
-      if (sel_rdx_1 != 0) {
-        call_0x2924c40(&local_0x60, sel_rdx_1, -1, 0);
+      if ((DebugDetailedSoundProfiler ? global_0x8deea70 : 0) != 0) {
+        call_0x2924c40(&local_0x60, DebugDetailedSoundProfiler ? global_0x8deea70 : 0, -1, 0);
       }
       if (SoundJoinMemoryFixes) {
         call_0x495a220(&local_0x100);
         this->field_0x1c8->field_0x28 = local_0x100;
       }
-      int32_t v_rcx_27 = 40;
       int32_t v_r12_29 = -1;
-      auto* f_3d8 = this->field_0x3d8;
-      if ((f_3d8 - this->field_0x3d0) >> 4 != 0) {
+      if ((this->field_0x3d8 - this->field_0x3d0) >> 4 != 0) {
+        uint64_t i_ecx = ((this->field_0x3d8 - this->field_0x3d0) >> 4) << 4;
         int32_t i_ebx = 0;
+        int32_t i_r15d = 0;
+        int32_t i_edi = 0;
         int32_t i_r12d = -1;
-        int32_t v_r12_20;
-        void* v_rbx_18;
-        int64_t vret_6;
+        uint64_t i_r13d = (this->field_0x3d8 - this->field_0x3d0) >> 4;
+        int32_t v_r12_22;
+        void* v_rbx_21;
         do { // L_0x44b8130
-          vret_6 = rsi->field_m0x10->vfunc_0x10() // -> RBX::Path2D::fn_0x3ee38d0;
-          v_rbx_18 = i_ebx;
-          v_r12_20 = i_r12d;
+          auto vret_6 = ((((this->field_0x3d0 + i_ecx)->field_m0x10)->field_0x0))->vfunc_0x10() // -> RBX::Path2D::fn_0x3ee38d0;
+          void* v_rbx_16 = i_ebx;
+          int32_t v_rdi_17 = i_edi;
+          int32_t v_r12_18 = i_r12d;
+          int32_t v_r15_19 = i_r15d;
+          v_rbx_21 = i_ebx;
+          v_r12_22 = i_r12d;
           if (vret_6 == 0) {
-            if ((i_ebx + 1) > AudioMaxAssetDeletionsPerFrame) break;
-            auto vret_7 = rsi->field_m0x10->vfunc_0x38() // -> RBX::Soundscape::W4RollOffMode::fn_0xc94710;
+            i_ebx++;
+            if (i_ebx > AudioMaxAssetDeletionsPerFrame) break;
+            auto vret_7 = ((((this->field_0x3d0 + i_ecx)->field_m0x10)->field_0x0))->vfunc_0x38() // -> RBX::Soundscape::W4RollOffMode::fn_0xc94710;
             auto ret_0x44ca240_8 = call_0x44ca240(&this->field_0x300, vret_7, &local_0x108);
+            int32_t v_rdi_4 = i_edi;
+            int32_t stk_6;
             if (ret_0x44ca240_8 != 0) {
               if (local_0x108->field_0x30 != 0) {
                 call_0x6daf40(local_0x108->field_0x30);
@@ -79,19 +86,26 @@ Operação  : 0x44b815a: mov/math reg, [flag] ; fn=0x44b7f60..0x44b8927
               }
               call_0x6f8fb0(&local_0x1d0);
               this->field_0x308 = this->field_0x308 + i_r12d;
-              this->field_0x30c = this->field_0x30c + 1;
+              this->field_0x30c++;
+              v_rdi_4 = i_edi | 0x1;
+              stk_6 = i_edi | 0x1;
+            } else {
+              stk_6 = 0;
             }
-            void* mem_1_1 = rsi->field_m0x10;
-            rsi->field_m0x10 = f_3d8->field_m0x10;
-            void* prev_0x3d8->field_m0x10_2 = f_3d8->field_m0x10;
-            f_3d8->field_m0x10 = mem_1_1;
-            void* mem_3_3 = rsi->field_m0x8;
-            rsi->field_m0x8 = f_3d8->field_m0x8;
-            void* prev_0x3d8->field_m0x8_4 = f_3d8->field_m0x8;
-            f_3d8->field_m0x8 = mem_3_3;
+            void* prev_0x3d0 + i_ecx)->field_m0x10_1 = (this->field_0x3d0 + i_ecx)->field_m0x10;
+            (this->field_0x3d0 + i_ecx)->field_m0x10 = this->field_0x3d8->field_m0x10;
+            void* prev_0x3d8->field_m0x10_2 = this->field_0x3d8->field_m0x10;
+            this->field_0x3d8->field_m0x10 = prev_0x3d0 + i_ecx)->field_m0x10_1;
+            void* prev_0x3d0 + i_ecx)->field_m0x8_3 = (this->field_0x3d0 + i_ecx)->field_m0x8;
+            (this->field_0x3d0 + i_ecx)->field_m0x8 = this->field_0x3d8->field_m0x8;
+            void* prev_0x3d8->field_m0x8_4 = this->field_0x3d8->field_m0x8;
+            this->field_0x3d8->field_m0x8 = prev_0x3d0 + i_ecx)->field_m0x8_3;
+            int32_t v_rdi_10 = v_rdi_4;
+            int32_t stk_11;
             if (this->field_0x3e8 == 0) {
               void* v_rbx_7;
               void* v_rsi_8;
+              int32_t v_rdi_9;
               if (global_0x84a44d6 != 0) {
                 auto ret_0x2e13190_16 = call_0x2e13190();
                 auto vret_17 = ret_0x2e13190_16->vfunc_0x8(ret_0x2e13190_16, 80, (80 - 0x48)) // -> RBX::NavigationService::PathUpdateJob::fn_0x4067bc0;
@@ -103,6 +117,7 @@ Operação  : 0x44b815a: mov/math reg, [flag] ; fn=0x44b7f60..0x44b8927
                 call_0x44a66c0(&vret_17->field_0x18);
                 v_rbx_7 = &vret_17->field_0x18;
                 v_rsi_8 = vret_17;
+                v_rdi_9 = (v_rdi_4 | 0x2 | 0x10) & 0xffffffef | 0xc;
               } else {
                 auto ret_0x4956040_14 = call_0x4956040(72);
                 ret_0x4956040_14->field_0x8 = 1;
@@ -111,6 +126,7 @@ Operação  : 0x44b815a: mov/math reg, [flag] ; fn=0x44b7f60..0x44b8927
                 call_0x44a66c0(&ret_0x4956040_14->field_0x10);
                 v_rbx_7 = &ret_0x4956040_14->field_0x10;
                 v_rsi_8 = ret_0x4956040_14;
+                v_rdi_9 = v_rdi_4 | 0x2 | 0x20;
               }
               this->field_0x3e8 = v_rbx_7;
               void* prev_0x3f0_5 = this->field_0x3f0;
@@ -118,22 +134,30 @@ Operação  : 0x44b815a: mov/math reg, [flag] ; fn=0x44b7f60..0x44b8927
               if (prev_0x3f0_5 != 0) {
                 call_0x6daf40(prev_0x3f0_5);
               }
+              v_rdi_10 = v_rdi_9 & 0xfffffffd;
+              stk_11 = v_rdi_9 & 0xfffffffd;
+            } else {
+              stk_11 = stk_6;
             }
-            auto vret_20 = f_3d8->field_m0x10->vfunc_0x18() // -> RBX::Path2D::fn_0x3ee3920;
-            void* prev_0x3d8->field_m0x10_6 = f_3d8->field_m0x10;
-            f_3d8->field_m0x10 = 0;
-            void* prev_0x3d8->field_m0x8_7 = f_3d8->field_m0x8;
-            f_3d8->field_m0x8 = 0;
+            auto vret_20 = this->field_0x3d8->field_m0x10->vfunc_0x18() // -> RBX::Path2D::fn_0x3ee3920;
+            void* prev_0x3d8->field_m0x10_6 = this->field_0x3d8->field_m0x10;
+            this->field_0x3d8->field_m0x10 = 0;
+            void* prev_0x3d8->field_m0x8_7 = this->field_0x3d8->field_m0x8;
+            this->field_0x3d8->field_m0x8 = 0;
             auto ret_0x21247e0_21 = call_0x21247e0(this->field_0x3e8);
+            int32_t v_rdi_14;
             if (ret_0x21247e0_21 == 0) {
+              int32_t v_rdi_13 = v_rdi_10;
               if (prev_0x3d8->field_m0x8_7 != 0) {
-                if (atomic_fetch_sub(&f_3d8->field_m0x8->field_0x8, 1) == 1) {
-                  f_3d8->field_m0x8->vfunc_0x0(prev_0x3d8->field_m0x8_7) // -> Soundscape::EBA::P8VideoFrameProp::fn_0xc94e10;
-                  if (atomic_fetch_sub(&f_3d8->field_m0x8->field_0xc, 1) == 1) {
-                    f_3d8->field_m0x8->vfunc_0x8(prev_0x3d8->field_m0x8_7) // -> RBX::NavigationService::PathUpdateJob::fn_0x4067bc0;
+                if (atomic_fetch_sub(&this->field_0x3d8->field_m0x8->field_0x8, 1) == 1) {
+                  this->field_0x3d8->field_m0x8->vfunc_0x0(prev_0x3d8->field_m0x8_7) // -> Soundscape::EBA::P8VideoFrameProp::fn_0xc94e10;
+                  if (atomic_fetch_sub(&this->field_0x3d8->field_m0x8->field_0xc, 1) == 1) {
+                    this->field_0x3d8->field_m0x8->vfunc_0x8(prev_0x3d8->field_m0x8_7) // -> RBX::NavigationService::PathUpdateJob::fn_0x4067bc0;
                   }
                 }
+                v_rdi_13 = stk_11;
               }
+              v_rdi_14 = v_rdi_13;
             } else {
               ret_0x21247e0_21->field_0x0 = prev_0x3d8->field_m0x10_6;
               ret_0x21247e0_21->field_0x8 = prev_0x3d8->field_m0x8_7;
@@ -154,28 +178,44 @@ Operação  : 0x44b815a: mov/math reg, [flag] ; fn=0x44b7f60..0x44b8927
                   v_rcx_12 = -1;
                 }
               }
+              v_rdi_14 = stk_11;
             }
-            if (f_3d8->field_m0x8 != 0) {
-              atomic_fetch_sub(&f_3d8->field_m0x8->field_0x8, 1);
-              if (atomic_fetch_sub(&f_3d8->field_m0x8->field_0x8, 1) == 1) {
-                f_3d8->field_m0x8->vfunc_0x0(f_3d8->field_m0x8) // -> Soundscape::EBA::P8VideoFrameProp::fn_0xc94e10;
-                if (atomic_fetch_sub(&f_3d8->field_m0x8->field_0xc, 1) == 1) {
-                  f_3d8->field_m0x8->vfunc_0x8(f_3d8->field_m0x8) // -> RBX::NavigationService::PathUpdateJob::fn_0x4067bc0;
-                } else {
-                  atomic_fetch_sub(&f_3d8->field_m0x8->field_0xc, 1);
+            int32_t v_rdi_15 = v_rdi_14;
+            if (this->field_0x3d8->field_m0x8 != 0) {
+              if (atomic_fetch_sub(&this->field_0x3d8->field_m0x8->field_0x8, 1) == 1) {
+                this->field_0x3d8->field_m0x8->vfunc_0x0(this->field_0x3d8->field_m0x8) // -> Soundscape::EBA::P8VideoFrameProp::fn_0xc94e10;
+                if (atomic_fetch_sub(&this->field_0x3d8->field_m0x8->field_0xc, 1) == 1) {
+                  this->field_0x3d8->field_m0x8->vfunc_0x8(this->field_0x3d8->field_m0x8) // -> RBX::NavigationService::PathUpdateJob::fn_0x4067bc0;
                 }
               }
+              v_rdi_15 = stk_11;
             }
-            v_rbx_18 = local_0x118;
-            v_r12_20 = -1;
+            this->field_0x3d8 = this->field_0x3d8 - 0x10;
+            v_rbx_16 = local_0x118;
+            v_rdi_17 = v_rdi_15;
+            v_r12_18 = -1;
+            v_r15_19 = 0;
+            i_r13d--;
+            i_ecx = (((this->field_0x3d8 - this->field_0x3d0) >> 4) << 4) - 0x10;
+            i_ebx = v_rbx_16;
+            i_r15d = v_r15_19;
+            i_edi = v_rdi_17;
+            i_r12d = v_r12_18;
+          } else {
+            i_r13d--;
+            i_ecx = (((this->field_0x3d8 - this->field_0x3d0) >> 4) << 4) - 0x10;
+            i_ebx = v_rbx_16;
+            i_r15d = v_r15_19;
+            i_edi = v_rdi_17;
+            i_r12d = v_r12_18;
           }
-        } while ((((f_3d8 - this->field_0x3d0) >> 4) - 1) != 0); // loop -> L_0x44b8130
-        if (vret_6 == 0 ? i_ebx + 1 : v_rbx_18 != 0 && this->field_0x3e8 != 0 && this->field_0x3e8->field_0x30 != 0) {
+        } while (i_r13d != 0); // loop -> L_0x44b8130
+        if (v_rbx_21 != 0 && this->field_0x3e8 != 0 && this->field_0x3e8->field_0x30 != 0) {
           if (this->field_0x3f0 != 0) {
-            this->field_0x3f0->field_0xc = this->field_0x3f0->field_0xc + 1;
+            this->field_0x3f0->field_0xc++;
           }
           if (global_0x8da5d90 > rbp->field_0x58->field_0x0->field_0x0[40]) {
-            call_0x12e0(&sym_0x8da5d90, 0.0);
+            call_0x12e0(&sym_0x8da5d90);
             if (global_0x8da5d90 == -1) {
               auto ret_0x4956040_27 = call_0x4956040(552);
               if (ret_0x4956040_27 != 0) {
@@ -187,73 +227,82 @@ Operação  : 0x44b815a: mov/math reg, [flag] ; fn=0x44b7f60..0x44b8927
               }
             }
           }
+          auto local_0x1a8 = 0.0;
           call_0x2934520(global_0x8da5d98, "SoundService", &local_0x1a8, 0);
           if ((local_0x1c0 & 0xfffffffc & 0xfffffff8) != 0) {
             if ((~((local_0x1c0 & 0xfffffffc) >> 2) & 0x1) == 0) {
-              local_0x1a8->vfunc(local_0x1a8);
+              (((local_0x1c0 & 0xfffffffc) & 0xfffffff8))->vfunc_0x10(local_0x1a8) // -> RBX::Path2D::fn_0x3ee38d0;
             }
             if ((local_0x1c0 >> 1 & 0x1) == 0) {
               call_0x4955ac0(local_0x1a8);
-              v_r12_29 = vret_6 == 0 ? i_r12d : v_r12_20;
+              v_r12_29 = v_r12_22;
             } else {
-              v_rcx_27 = ~((local_0x1c0 & 0xfffffffc) >> 2);
-              v_r12_29 = vret_6 == 0 ? i_r12d : v_r12_20;
+              v_r12_29 = v_r12_22;
             }
           } else {
-            v_r12_29 = vret_6 == 0 ? i_r12d : v_r12_20;
+            v_r12_29 = v_r12_22;
           }
         } else {
-          v_rcx_27 = (((f_3d8 - this->field_0x3d0) >> 4) << 4) - 0x10;
-          v_r12_29 = vret_6 == 0 ? i_r12d : v_r12_20;
+          v_r12_29 = v_r12_22;
         }
       }
       if (local_0x70 != 0) {
         if (global_0x75b2c80 != -1) {
-          if (0 != 0) {
-            call_0x29a42e0(33, ((0 == 1) + 2) << 48, 0, 0);
+          if (0) {
+            call_0x29a42e0(33, ((0) + 2) << 48, 0, 0);
           }
-          int32_t v_rcx_34 = v_rcx_27;
           if (global_0x84a44d6 != 0 && MicroProfilerMemoryScope) {
-            call_0x497fea0();
-            if (((0) << 24 | local_0xa4 & 0xffffff) == 0) {
-              if ((0.0) != 0) {
-                auto local_0xe0 = 0.0;
-                call_0x29a42e0(20, (0) << 24 | local_0xa4 & 0xffffff, &local_0xe0, 8);
-              } else {
-                v_rcx_34 = 0.0;
+            auto ret_0x497fea0_36 = call_0x497fea0();
+            void* v_rcx_33 = ret_0x497fea0_36->field_0x0;
+            if (ret_0x497fea0_36->field_0x0 == 0) {
+              v_rcx_33 = &ret_0x497fea0_36->field_0x8;
+            }
+            void* stk_34;
+            void* stk_35;
+            void* stk_36;
+            if (0) {
+              stk_34 = local_0xa0 + (v_rcx_33->field_0x0);
+              stk_35 = local_0x90 + (v_rcx_33->field_0x8);
+              stk_36 = local_0x98 + (v_rcx_33->field_0x10);
+            } else {
+              stk_34 = 0;
+              stk_35 = 0.0;
+              stk_36 = 0.0;
+            }
+            if (((stk_34 & 0xffffff) << 24 | local_0xa4 & 0xffffff) == 0) {
+              if ((stk_35 << 32 | stk_36) != 0) {
+                auto local_0xe0 = stk_35 << 32 | stk_36;
+                call_0x29a42e0(20, (stk_34 & 0xffffff) << 24 | local_0xa4 & 0xffffff, &local_0xe0, 8);
               }
             } else {
-              auto local_0xe0 = 0.0;
-              call_0x29a42e0(20, (0) << 24 | local_0xa4 & 0xffffff, &local_0xe0, 8);
+              auto local_0xe0 = stk_35 << 32 | stk_36;
+              call_0x29a42e0(20, (stk_34 & 0xffffff) << 24 | local_0xa4 & 0xffffff, &local_0xe0, 8);
             }
           }
-          int32_t v_rcx_38 = v_rcx_34;
           if (global_0x75b2c80 != -1) {
             auto ret_0x29a1bc0_38 = call_0x29a1bc0();
             if (ret_0x29a1bc0_38->field_0x0 != 0) {
               uint64_t tsc_0x44b876b = rdtsc();
-              void* v_rcx_37;
-              if (global_0x816d648->field_0xb8 != 0) {
+              void* v_rcx_42;
+              if ((global_0x816d648->field_0xb8 & local_0x70 >> 14) != 0) {
                 if (ret_0x29a1bc0_38->field_0x0->field_0x565 != 0) {
-                  int32_t v_r12_36 = v_r12_29;
+                  int32_t v_r12_41 = v_r12_29;
                   if (global_0x816d648->field_0x26d5a0 != 0) {
-                    auto vret_39 = ret_0x29a1bc0_38->field_0x0->field_0x30->vfunc(ret_0x29a1bc0_38->field_0x0->field_0x30);
-                    v_r12_36 = vret_39;
+                    auto vret_39 = global_0x816d648->vfunc_0x26d5a0(ret_0x29a1bc0_38->field_0x0->field_0x30);
+                    v_r12_41 = vret_39;
                   }
-                  call_0x29a3900(local_0x70, v_r12_36, 0, global_0x8479b18);
-                  v_rcx_37 = ret_0x29a1bc0_38->field_0x0->field_0x44;
-                  call_0x29a3900(v_rcx_37, tsc_0x44b876b - global_0x8cda630, 4, global_0x8479b18);
-                } else {
-                  v_rcx_38 = local_0x70 >> 14;
+                  call_0x29a3900(local_0x70, v_r12_41, 0, global_0x8479b18);
+                  v_rcx_42 = ret_0x29a1bc0_38->field_0x0->field_0x44;
+                  call_0x29a3900(v_rcx_42, tsc_0x44b876b - global_0x8cda630, 4, global_0x8479b18);
                 }
               } else {
-                v_rcx_37 = local_0x70;
-                call_0x29a3900(v_rcx_37, tsc_0x44b876b - global_0x8cda630, 4, global_0x8479b18);
+                v_rcx_42 = local_0x70;
+                call_0x29a3900(v_rcx_42, tsc_0x44b876b - global_0x8cda630, 4, global_0x8479b18);
               }
             }
           }
-          if (global_0x8629678 != 0 && global_0x84dcf68 != 0) {
-            v_rcx_38->vfunc();
+          if ((global_0x8629678 & local_0x70 >> 14 & global_0x86295f8) != 0 && global_0x84dcf68 != 0) {
+            (*global_0x84dcf68)();
           }
         }
         auto ret_0x29243d0_43 = call_0x29243d0();
@@ -903,41 +952,81 @@ Operação  : 0x44b815a: mov/math reg, [flag] ; fn=0x44b7f60..0x44b8927
       auto ret_0x27c61e0_3 = call_0x27c61e0();
       call_0x6f7510(&local_0x48, &ret_0x27c61e0_3->field_0x8);
       auto ret_0xb582d0_5 = call_0xb582d0(&param_2->field_0x8);
-      int32_t i_esi = 0;
       int32_t i_r13d = ret_0xb582d0_5 & this->field_0x10 - 1;
+      void* i_ebp = this->field_0x0;
+      void* i_r14d = param_2;
+      int32_t i_esi = 0;
+      int32_t i_r12d = 1;
+      int64_t v_rdi_4;
       do { // L_0x44ca2f0
         void* v_rcx_1 = &param_2->field_0x8;
         if (param_2->field_0x20 >= 16) {
           v_rcx_1 = param_2->field_0x8;
         }
-        int64_t v_rdi_4 = i_r13d * 56 + this->field_0x0;
-        if (param_2->field_0x18 == (((i_r13d * 56) + this->field_0x0) + 8)->field_0x10) {
-          auto ret_0x5e06820_6 = memcmp(v_rcx_1, i_r13d * 56 + this->field_0x0 + 8, param_2->field_0x18);
+        uint8_t v_bl_3;
+        v_rdi_4 = i_r13d * 56 + i_ebp;
+        if (param_2->field_0x18 == (((i_r13d * 56) + i_ebp) + 8)->field_0x10) {
+          auto ret_0x5e06820_6 = memcmp(v_rcx_1, i_r13d * 56 + i_ebp + 8, param_2->field_0x18);
           if (ret_0x5e06820_6 == 0) {
-            if (((param_2->field_0x0 ^ ((i_r13d * 56) + this->field_0x0)->field_0x0) & (1ULL << 8)) >= 0) break;
+            if (((i_r14d->field_0x0 ^ ((i_r13d * 56) + i_ebp)->field_0x0) & 1ULL << 8) >= 0) break;
             L_0x44ca33d:
-            void* v_rcx_2 = i_r13d * 56 + this->field_0x0 + 8;
-            if ((((i_r13d * 56) + this->field_0x0) + 8)->field_0x18 >= 16) {
-              v_rcx_2 = (((i_r13d * 56) + this->field_0x0) + 8)->field_0x0;
+            void* v_rcx_2 = i_r13d * 56 + i_ebp + 8;
+            if ((((i_r13d * 56) + i_ebp) + 8)->field_0x18 >= 16) {
+              v_rcx_2 = (((i_r13d * 56) + i_ebp) + 8)->field_0x0;
             }
-            if ((((i_r13d * 56) + this->field_0x0) + 8)->field_0x10 == local_0x80) {
-              auto ret_0x5e06820_7 = memcmp(v_rcx_2, local_0x70.c_str(), (((i_r13d * 56) + this->field_0x0) + 8)->field_0x10);
+            if ((((i_r13d * 56) + i_ebp) + 8)->field_0x10 == local_0x80) {
+              auto ret_0x5e06820_7 = memcmp(v_rcx_2, local_0x70.c_str(), (((i_r13d * 56) + i_ebp) + 8)->field_0x10);
               if (ret_0x5e06820_7 == 0) {
-                if (((local_0x68 ^ ((i_r13d * 56) + this->field_0x0)->field_0x0) & (1ULL << 8)) >= 0) break;
+                if (((local_0x68 ^ ((i_r13d * 56) + i_ebp)->field_0x0) & 1ULL << 8) >= 0) break;
                 L_0x44ca38a:
+                void* v_rbx_5 = i_r13d * 56 + i_ebp + 8;
+                if ((((i_r13d * 56) + i_ebp) + 8)->field_0x18 >= 16) {
+                  v_rbx_5 = (((i_r13d * 56) + i_ebp) + 8)->field_0x0;
+                }
+                int32_t v_rsi_6 = i_esi;
+                if ((((i_r13d * 56) + i_ebp) + 8)->field_0x10 == local_0x58) {
+                  auto ret_0x5e06820_10 = memcmp(v_rbx_5, local_0x48.c_str(), (((i_r13d * 56) + i_ebp) + 8)->field_0x10);
+                  if (ret_0x5e06820_10 == 0 && ((ret_0x27c61e0_3->field_0x0 ^ ((i_r13d * 56) + i_ebp)->field_0x0) & 1ULL << 8) >= 0) {
+                    v_rsi_6 = i_esi == 0 ? i_r13d * 56 + i_ebp : i_esi;
+                  }
+                }
+                int32_t prev_i_r12d_1 = i_r12d;
+                i_r12d++;
+                i_r13d = i_r13d + prev_i_r12d_1 & this->field_0x10 - 1;
+                i_ebp = this->field_0x0;
+                i_r14d = param_2;
+                i_esi = v_rsi_6;
+              } else {
+                void* v_rbx_5 = i_r13d * 56 + i_ebp + 8;
+                if ((((i_r13d * 56) + i_ebp) + 8)->field_0x18 >= 16) {
+                  v_rbx_5 = (((i_r13d * 56) + i_ebp) + 8)->field_0x0;
+                }
+                int32_t v_rsi_6 = i_esi;
+                if ((((i_r13d * 56) + i_ebp) + 8)->field_0x10 == local_0x58) {
+                  auto ret_0x5e06820_10 = memcmp(v_rbx_5, local_0x48.c_str(), (((i_r13d * 56) + i_ebp) + 8)->field_0x10);
+                  if (ret_0x5e06820_10 == 0 && ((ret_0x27c61e0_3->field_0x0 ^ ((i_r13d * 56) + i_ebp)->field_0x0) & 1ULL << 8) >= 0) {
+                    v_rsi_6 = i_esi == 0 ? i_r13d * 56 + i_ebp : i_esi;
+                  }
+                }
+                int32_t prev_i_r12d_1 = i_r12d;
+                i_r12d++;
+                i_r13d = i_r13d + prev_i_r12d_1 & this->field_0x10 - 1;
+                i_ebp = this->field_0x0;
+                i_r14d = param_2;
+                i_esi = v_rsi_6;
               }
             } else {
               goto L_0x44ca38a;
             }
           } else {
-            void* v_rcx_2 = i_r13d * 56 + this->field_0x0 + 8;
-            if ((((i_r13d * 56) + this->field_0x0) + 8)->field_0x18 >= 16) {
-              v_rcx_2 = (((i_r13d * 56) + this->field_0x0) + 8)->field_0x0;
+            void* v_rcx_2 = i_r13d * 56 + i_ebp + 8;
+            if ((((i_r13d * 56) + i_ebp) + 8)->field_0x18 >= 16) {
+              v_rcx_2 = (((i_r13d * 56) + i_ebp) + 8)->field_0x0;
             }
-            if ((((i_r13d * 56) + this->field_0x0) + 8)->field_0x10 == local_0x80) {
-              auto ret_0x5e06820_7 = memcmp(v_rcx_2, local_0x70.c_str(), (((i_r13d * 56) + this->field_0x0) + 8)->field_0x10);
+            if ((((i_r13d * 56) + i_ebp) + 8)->field_0x10 == local_0x80) {
+              auto ret_0x5e06820_7 = memcmp(v_rcx_2, local_0x70.c_str(), (((i_r13d * 56) + i_ebp) + 8)->field_0x10);
               if (ret_0x5e06820_7 == 0) {
-                if (((local_0x68 ^ ((i_r13d * 56) + this->field_0x0)->field_0x0) & (1ULL << 8)) >= 0) break;
+                if (((local_0x68 ^ ((i_r13d * 56) + i_ebp)->field_0x0) & 1ULL << 8) >= 0) break;
                 goto L_0x44ca38a;
               } else {
                 goto L_0x44ca38a;
@@ -945,20 +1034,21 @@ Operação  : 0x44b815a: mov/math reg, [flag] ; fn=0x44b7f60..0x44b8927
             } else {
               goto L_0x44ca38a;
             }
-          } else {
-            goto L_0x44ca33d;
           }
-          param_3->field_0x0 = v_rdi_4;
-          call_0x6f8fb0(&local_0x48);
-          call_0x6f8fb0(&local_0x70);
-          return v_bl_3;
-        } while (true); // loop -> L_0x44ca2f0
-        v_rdi_4 = i_esi != 0 ? i_esi : i_r13d * 56 + this->field_0x0;
+        } else {
+          goto L_0x44ca33d;
+        }
         param_3->field_0x0 = v_rdi_4;
         call_0x6f8fb0(&local_0x48);
         call_0x6f8fb0(&local_0x70);
         return v_bl_3;
-      }
+      } while (true); // loop -> L_0x44ca2f0
+      v_bl_3 = 0;
+      v_rdi_4 = i_esi != 0 ? i_esi : i_r13d * 56 + i_ebp;
+      param_3->field_0x0 = v_rdi_4;
+      call_0x6f8fb0(&local_0x48);
+      call_0x6f8fb0(&local_0x70);
+      return v_bl_3;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x44ca240..0x44ca445)] ===
@@ -1185,17 +1275,12 @@ Operação  : 0x44b815a: mov/math reg, [flag] ; fn=0x44b7f60..0x44b8927
     };
     
     // Flag defaults: AudioMaxAssetDeletionsPerFrame = 10
-    auto RBX::AudioMax::func_0x44cc200(RBX::AudioMax* this) {
+    void RBX::AudioMax::func_0x44cc200(RBX::AudioMax* this) {
       auto* f_8 = this->field_0x8;
       if (f_8 != 0 && f_8->field_0x8 != 0) {
         do { // L_0x44cc215
-          if (atomic_cas(&f_8->field_0x8, f_8->field_0x8, (f_8->field_0x8 + 1)) == 0) break;
-          return;
+          if (atomic_cas(&f_8->field_0x8, f_8->field_0x8, f_8->field_0x8 + 1) == 0) break;
         } while (f_8->field_0x8 != 0); // loop -> L_0x44cc215
-        if (f_8 != 0) {
-          return tailcall_0x6daf40(f_8);
-        }
-        return;
       }
     }
   

@@ -48,7 +48,7 @@ Operação  : 0x3be1f4f: cmp byte [flag], imm8 ; fn=0x3be1d80..0x3be2060 [via FF
         if (this != 0) {
           do { // L_0x3be1e90
             atomic_try_incref(&this->field_m0x88->field_0x8);
-            if (atomic_cas(&this->field_m0x88->field_0x8, this->field_m0x88->field_0x8, (this->field_m0x88->field_0x8 + 1)) == 0) break;
+            if (atomic_cas(&this->field_m0x88->field_0x8, this->field_m0x88->field_0x8, this->field_m0x88->field_0x8 + 1) == 0) break;
           } while (true); // loop -> L_0x3be1e90
           v_rcx_2 = 0;
           v_rdi_3 = this->field_m0x90;
@@ -67,26 +67,24 @@ Operação  : 0x3be1f4f: cmp byte [flag], imm8 ; fn=0x3be1d80..0x3be2060 [via FF
         }
         auto ret_0x180f9e0_9 = call_0x180f9e0(&local_0x60);
         auto local_0x40 = stk_5;
-        call_0x3f72ff0(&this->field_0x750, param_2, ret_0x180f9e0_9, &local_0x40);
+        auto ret_0x3f72ff0_10 = call_0x3f72ff0(&this->field_0x750, param_2, ret_0x180f9e0_9, &local_0x40);
         call_0x6f8fb0(&local_0x68);
         if (local_0x48 != 0) {
           call_0x6daf40(local_0x48);
         }
-        if (rax != 0 && CloudClientRemoteTextBoxFocus) {
-          call_0x3be21f0(&this->field_m0x98, param_2, 0);
-        } else {
-          call_0x3fbf360(&this->field_m0x98, &this->field_0x750, param_2, local_0x30);
+        if (ret_0x3f72ff0_10 != 0) {
+          if (CloudClientRemoteTextBoxFocus) {
+            call_0x3be21f0(&this->field_m0x98, param_2, 0);
+          } else {
+            call_0x3fbf360(&this->field_m0x98, &this->field_0x750, param_2, local_0x30);
+          }
         }
       } else {
         local_0x30 = 0;
         auto ret_0x3be2070_5 = call_0x3be2070(&this->field_m0x98, param_2, &local_0x30);
         if (ret_0x3be2070_5 != 0) {
           if (VideoDisplayFixYUVShaderResolution) {
-            if (this->field_0x714 > 0) {
-              if (this->field_0x710 <= 0) {
-                call_0x3bea430(&this->field_0x708);
-              }
-            } else {
+            if (this->field_0x714 <= 0 || this->field_0x710 <= 0) {
               call_0x3bea430(&this->field_0x708);
             }
           }
@@ -319,18 +317,19 @@ Operação  : 0x3be1f4f: cmp byte [flag], imm8 ; fn=0x3be1d80..0x3be2060 [via FF
             r10->field_0x40->field_0x0 = 0;
             r10->field_0x40->field_0x8 = 0;
             if (r11->field_0x8 != 0) {
-              r11->field_0x8->field_0x8 = r11->field_0x8->field_0x8 + 1;
+              r11->field_0x8->field_0x8++;
             }
             r10->field_0x40->field_0x0 = r11->field_0x0;
             r10->field_0x40->field_0x8 = r11->field_0x8;
+            (r10 + 0x38)->field_0x8 = (r10 + 0x38)->field_0x8 + 0x10;
             return;
           }
           return tailcall_0x81a6b0(r10 + 0x38, r10->field_0x40, r11);
         }
-      } else {
-        this->field_0x30 = 1;
         return;
       }
+      this->field_0x30 = 1;
+      return;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x3b44460..0x3b444ca)] ===
@@ -386,7 +385,7 @@ Operação  : 0x3be1f4f: cmp byte [flag], imm8 ; fn=0x3be1d80..0x3be2060 [via FF
     
     // Flag defaults: CloudClientRemoteTextBoxFocus = false, DebugTestImageDrawItem = false
     void RBX::CloudClient::func_0x3be21f0(RBX::CloudClient* this, int64_t param_2, void* param_3) {
-      auto vret_1 = this->vfunc_0x7a0->field_0x18(&this->field_0x7a0, &local_0xc0);
+      auto vret_1 = (&this->field_0x7a0)->vfunc_0x18(&this->field_0x7a0, &local_0xc0) // -> RBX::Path2D::fn_0x3ee3920;
       float fxmm8_1;
       if (local_0xc0 != 0) {
         auto vret_2 = local_0xc0->vfunc_0x48(vret_1) // -> RBX::ModelInstance::BackpackItem::fn_0x333d900;
@@ -416,7 +415,7 @@ Operação  : 0x3be1f4f: cmp byte [flag], imm8 ; fn=0x3be1d80..0x3be2060 [via FF
               L_0x3be2348:
               fstk_3 = 0;
             } else {
-              fstk_3 = std::clamp(0.0, ret_0x3fbf710_5->field_0x0 / param_3, 1.0);
+              fstk_3 = std::clamp(ret_0x3fbf710_5->field_0x0 / param_3, 0.0, 1.0);
             }
           } else {
             fstk_3 = 0;
@@ -424,91 +423,43 @@ Operação  : 0x3be1f4f: cmp byte [flag], imm8 ; fn=0x3be1d80..0x3be2060 [via FF
         } else if (!isnan(param_3) && param_3 == 0.0 && !isnan(local_0x9c) && local_0x9c == 0.0) {
           goto L_0x3be2348;
         } else {
-          fstk_3 = std::clamp(0.0, ret_0x3fbf710_5->field_0x0 / param_3, 1.0);
+          fstk_3 = std::clamp(ret_0x3fbf710_5->field_0x0 / param_3, 0.0, 1.0);
         }
         sel_rsi_1->vfunc_0xc8(sel_rsi_1) // -> RBX::PartDragTool::fn_0x3b44460;
         sel_rsi_1->vfunc_0xc8(sel_rsi_1) // -> RBX::PartDragTool::fn_0x3b44460;
         call_0x3e64170(this, &local_0x88);
         float ftmp_3 = min(local_0x8c + fxmm8_1, local_0x94 + fxmm8_1);
         float ftmp_4 = min(local_0x94 + fxmm8_1, local_0x8c + fxmm8_1);
-        auto expr_1 = param_2->field_0x28->field_0x148 != param_2->field_0x28->field_0x150;
-        if (this->field_0x838 == 0) {
-          if (DebugTestImageDrawItem) {
-            call_0x48ea2c0(param_2, &this->field_0x838, this->field_0x848);
-            int64_t local_0x50;
-            int64_t local_0xbc;
-            int64_t local_0xb8;
-            int64_t local_0xb4;
-            int64_t local_0xb0;
-            if (param_2->field_0x28 != 0) {
-              local_0xb0 = min(min(local_0x88, local_0x90), min(local_0x90, local_0x88));
-              local_0xb4 = max(ftmp_3, ftmp_4);
-              local_0xb8 = min(min(local_0x90, local_0x88), min(local_0x88, local_0x90));
-              local_0xbc = max(ftmp_4, ftmp_3);
-              local_0x50 = fstk_3;
-              call_0x48ee2f0(param_2->field_0x28, &local_0xb0, &local_0x88, &local_0x50);
-            } else {
-              local_0xb0 = min(min(local_0x88, local_0x90), min(local_0x90, local_0x88));
-              local_0xb4 = max(ftmp_3, ftmp_4);
-              local_0xb8 = min(min(local_0x90, local_0x88), min(local_0x88, local_0x90));
-              local_0xbc = max(ftmp_4, ftmp_3);
-              local_0x50 = fstk_3;
-              param_2->vfunc_0xe0(param_2, &local_0xb0, &local_0x88, &local_0x50) // -> RBX::BackpackItem::fn_0x3c943f0;
-            }
-            if (param_2->field_0x28 != 0) {
-              if expr_1 {
-                if (0.0 != 0) {
-                  0.0->field_0x8 = 0.0->field_0x8 + 1;
-                }
-                param_2->field_0x28->field_0x148->field_0x0 = 0.0;
-                param_2->field_0x28->field_0x148->field_0x8 = 0.0;
-              } else {
-                call_0x81a6b0(&param_2->field_0x28->field_0x140, param_2->field_0x28->field_0x148, &local_0x68);
-              }
-              void* v_al_10;
-              if (local_0x68 != 0) {
-                auto vret_14 = local_0x68->vfunc_0x18() // -> RBX::Path2D::fn_0x3ee3920;
-                v_al_10 = vret_14;
-              } else {
-                v_al_10 = 255;
-              }
-              if (param_2->field_0x28->field_0x160 != param_2->field_0x28->field_0x168) {
-                param_2->field_0x28->field_0x160->field_0x0 = v_al_10;
-                param_2->field_0x28->field_0x160 = param_2->field_0x28->field_0x160 + 1;
-              } else {
-                auto local_0x150 = v_al_10;
-                call_0x15cedd0(&param_2->field_0x28->field_0x158, param_2->field_0x28->field_0x160, &local_0x150);
-              }
-              if (local_0x70 != 0) {
-                local_0x70->field_0x8 = local_0x70->field_0x8 + 1;
-              }
-              param_2->field_0x28->field_0x68 = local_0x68;
-              void* prev_0x70_2 = param_2->field_0x28->field_0x70;
-              param_2->field_0x28->field_0x70 = local_0x70;
-              if (prev_0x70_2 != 0) {
-                call_0x6daf40(prev_0x70_2);
-              }
-            } else {
-              param_2->vfunc_0xb0(param_2, &local_0x68, 0) // -> FMOD::ChannelStream::fn_0x28bf410;
-            }
-            if (local_0x70 != 0) {
-              call_0x6daf40(local_0x70);
-            }
-          }
-        } else {
+        if (this->field_0x838 != 0 || DebugTestImageDrawItem) {
           call_0x48ea2c0(param_2, &this->field_0x838, this->field_0x848);
+          int64_t local_0x50;
+          int64_t local_0xbc;
+          int64_t local_0xb8;
+          int64_t local_0xb4;
+          int64_t local_0xb0;
           if (param_2->field_0x28 != 0) {
-            goto L_0x3be2613;
+            local_0xb0 = min(min(local_0x88, local_0x90), min(local_0x90, local_0x88));
+            local_0xb4 = max(ftmp_3, ftmp_4);
+            local_0xb8 = min(min(local_0x90, local_0x88), min(local_0x88, local_0x90));
+            local_0xbc = max(ftmp_4, ftmp_3);
+            local_0x50 = fstk_3;
+            call_0x48ee2f0(param_2->field_0x28, &local_0xb0, &local_0x88, &local_0x50);
           } else {
-            goto L_0x3be262d;
+            local_0xb0 = min(min(local_0x88, local_0x90), min(local_0x90, local_0x88));
+            local_0xb4 = max(ftmp_3, ftmp_4);
+            local_0xb8 = min(min(local_0x90, local_0x88), min(local_0x88, local_0x90));
+            local_0xbc = max(ftmp_4, ftmp_3);
+            local_0x50 = fstk_3;
+            param_2->vfunc_0xe0(param_2, &local_0xb0, &local_0x88, &local_0x50) // -> RBX::BackpackItem::fn_0x3c943f0;
           }
           if (param_2->field_0x28 != 0) {
-            if expr_1 {
+            if (param_2->field_0x28->field_0x148 != param_2->field_0x28->field_0x150) {
               if (0.0 != 0) {
-                0.0->field_0x8 = 0.0->field_0x8 + 1;
+                0.0->field_0x8++;
               }
               param_2->field_0x28->field_0x148->field_0x0 = 0.0;
               param_2->field_0x28->field_0x148->field_0x8 = 0.0;
+              param_2->field_0x28->field_0x148 = param_2->field_0x28->field_0x148 + 0x10;
             } else {
               call_0x81a6b0(&param_2->field_0x28->field_0x140, param_2->field_0x28->field_0x148, &local_0x68);
             }
@@ -521,19 +472,16 @@ Operação  : 0x3be1f4f: cmp byte [flag], imm8 ; fn=0x3be1d80..0x3be2060 [via FF
             }
             if (param_2->field_0x28->field_0x160 != param_2->field_0x28->field_0x168) {
               param_2->field_0x28->field_0x160->field_0x0 = v_al_10;
-              param_2->field_0x28->field_0x160 = param_2->field_0x28->field_0x160 + 1;
+              param_2->field_0x28->field_0x160++;
             } else {
               auto local_0x150 = v_al_10;
               call_0x15cedd0(&param_2->field_0x28->field_0x158, param_2->field_0x28->field_0x160, &local_0x150);
             }
-            if (local_0x70 != 0) {
-              local_0x70->field_0x8 = local_0x70->field_0x8 + 1;
-            }
             param_2->field_0x28->field_0x68 = local_0x68;
-            void* prev_0x70_2 = param_2->field_0x28->field_0x70;
+            void* prev_0x70_3 = param_2->field_0x28->field_0x70;
             param_2->field_0x28->field_0x70 = local_0x70;
-            if (prev_0x70_2 != 0) {
-              call_0x6daf40(prev_0x70_2);
+            if (prev_0x70_3 != 0) {
+              call_0x6daf40(prev_0x70_3);
             }
           } else {
             param_2->vfunc_0xb0(param_2, &local_0x68, 0) // -> FMOD::ChannelStream::fn_0x28bf410;
@@ -954,7 +902,7 @@ Operação  : 0x3be1f4f: cmp byte [flag], imm8 ; fn=0x3be1d80..0x3be2060 [via FF
         atomic_try_incref(&v_rdx_2->field_0x8);
         if (atomic_cas(&v_rdx_2->field_0x8, v_rax_1, &local_0x41) == 0) break;
       } while (true); // loop -> L_0x3be20e0
-      if ((2) != 0 && 0 != 0) {
+      if (0) {
         call_0x6daf40(0);
       }
       void* fstk_3;
@@ -962,7 +910,7 @@ Operação  : 0x3be1f4f: cmp byte [flag], imm8 ; fn=0x3be1d80..0x3be2060 [via FF
       if (f_10 != 0) {
         auto* f_8 = this->field_0x8;
         void* sel_rax_1 = f_8 == 0 ? 0 : f_8->field_0x7a0;
-        f_10->field_0xc = f_10->field_0xc + 1;
+        f_10->field_0xc++;
         fstk_3 = sel_rax_1;
         stk_4 = f_10;
       } else {
@@ -975,12 +923,12 @@ Operação  : 0x3be1f4f: cmp byte [flag], imm8 ; fn=0x3be1d80..0x3be2060 [via FF
       auto local_0x48 = stk_4;
       auto local_0x4c = 0.0;
       auto local_0x50 = &local_0x40;
-      call_0x3f72db0(&this->field_0x7e8, param_2, ret_0x180f9e0_2, &local_0x40);
+      auto ret_0x3f72db0_3 = call_0x3f72db0(&this->field_0x7e8, param_2, ret_0x180f9e0_2, &local_0x40);
       call_0x6f8fb0(&local_0x80);
       if (f_10 != 0) {
         call_0x6daf40(f_10);
       }
-      return rax;
+      return ret_0x3f72db0_3;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x3be2070..0x3be21e5)] ===

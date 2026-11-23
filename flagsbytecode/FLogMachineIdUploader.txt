@@ -11,7 +11,7 @@ Operação  : 0x108b418: mov/math reg, [flag] ; fn=0x108b3f0..0x108b670
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : MachineIdUploader < 6
     Fórmula : MachineIdUploader >> 8 < 4
-    Fórmula : "[FLog::MachineIdUploader] Raw json: {}"[rax] != 0
+    Fórmula : "[FLog::MachineIdUploader] Raw json: {}"[0] != 0
     Fórmula : MachineIdUploader >> 8 < 3
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
@@ -31,21 +31,40 @@ Operação  : 0x108b418: mov/math reg, [flag] ; fn=0x108b3f0..0x108b670
         FLog::Log("[FLog::MachineIdUploader] Raw json: {}");
       }
       call_0x495dc90(&local_0xa0, &local_0xf0);
+      uint8_t v_dil_2 = 0;
+      uint8_t v_dil_3;
       if (local_0xb8->field_0x58 == 0) {
         auto ret_0x495ce30_2 = call_0x495ce30(&local_0xa0, &local_0x120, &local_0x100);
-        auto expr_1 = "[FLog::MachineIdUploader] Machine is not banned";
         if (ret_0x495ce30_2->field_0x8 == 0) {
           auto ret_0x495ce30_3 = call_0x495ce30(&local_0xa0, &local_0x130, &local_0x110);
+          uint8_t v_dil_1;
           if (ret_0x495ce30_3->field_0x8 == 0 && (ret_0x495ce30_3->field_0x0->field_0xe >> 3 & 0x1) != 0) {
             if (ret_0x495ce30_3->field_0x0->field_0xe == 10) {
+              v_dil_2 = ret_0x495ce30_3->field_0x0->field_0xe != 10;
               L_0x108b574:
               if (MachineIdUploader >= 6 && MachineIdUploader >> 8 >= 3) {
-                FLog::Log(expr_1);
+                FLog::Log("[FLog::MachineIdUploader] Machine is not banned");
+                v_dil_3 = v_dil_2;
+              } else {
+                v_dil_3 = v_dil_2;
               }
+            } else {
+              v_dil_1 = ret_0x495ce30_3->field_0x0->field_0xe != 10;
+              if (!(MachineIdUploader >= 6 && MachineIdUploader >> 8 >= 3)) {
+                v_dil_3 = v_dil_1;
+              }
+            }
+          } else {
+            v_dil_1 = 1;
+            if (!(MachineIdUploader >= 6 && MachineIdUploader >> 8 >= 3)) {
+              v_dil_3 = v_dil_1;
             }
           }
         } else if (MachineIdUploader >= 6 && MachineIdUploader >> 8 >= 3) {
-          FLog::Log(expr_1);
+          FLog::Log("[FLog::MachineIdUploader] Machine is not banned");
+          v_dil_3 = v_dil_2;
+        } else {
+          v_dil_3 = v_dil_2;
         }
       } else {
         goto L_0x108b574;
@@ -86,7 +105,7 @@ Operação  : 0x108b418: mov/math reg, [flag] ; fn=0x108b3f0..0x108b670
     0x108b43e | 48 8b 4d 40              | mov rcx, qword ptr [rbp + 0x40]
     0x108b442 | 48 81 c1 a3 a5 fb ff     | add rcx, 0xfffba5a3
     0x108b449 | 48 89 4c 24 70           | mov qword ptr [rsp + 0x70], rcx
-    0x108b44e | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x108b44e | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     L_0x108b455:
     0x108b455 | 48 ff c0                 | inc rax
     0x108b458 | 80 3c 01 00              | cmp byte ptr [rcx + rax], 0x0
@@ -237,29 +256,31 @@ Operação  : 0x108b418: mov/math reg, [flag] ; fn=0x108b3f0..0x108b670
     // Flag defaults: MachineIdUploader = 1
     void RBX::MachineId::func_0x108b810(RBX::MachineId* this, int64_t param_2, void* param_4) {
       if (param_2 + (param_2 >> 63) != 0) {
+        int32_t i_esi = 0;
+        int32_t i_edi = 0;
         int32_t i_r9d = 0;
         do { // L_0x108b870
           if (i_r9d != 0) {
-            call_0x82a580(&param_2->field_0x10, &sym_0x718affc, this->field_0x8 - this->field_0x0, i_r9d);
+            call_0x82a580(&param_2->field_0x10, &sym_0x718affc);
           }
           auto ret_0x82a580_2 = call_0x82a580(&param_2->field_0x10, "macAddresses");
           call_0x82a580(ret_0x82a580_2, &sym_0x718cbe0);
-          auto ret_0x108b680_4 = call_0x108b680(this->field_0x0, &local_0x20);
+          auto ret_0x108b680_4 = call_0x108b680(this->field_0x0 + i_esi, &local_0x20);
           void* v_rax_1 = ret_0x108b680_4;
           if (ret_0x108b680_4->field_0x18 >= 16) {
             v_rax_1 = ret_0x108b680_4->field_0x0;
           }
           call_0x82ba60(r10, v_rax_1, ret_0x108b680_4->field_0x10);
-          if (local_0x38 >= 16) {
-            void* v_rcx_2 = local_0x20;
-            call_0x4955ac0(v_rcx_2);
-          }
-        } while ((edi + 1) < (rdx + (rdx >> 63))); // loop -> L_0x108b870
+          std::string::_Tidy_deallocate(local_0x20);
+          i_edi++;
+          i_esi += 6;
+          i_r9d = 1;
+        } while (i_edi < rdx + (rdx >> 63)); // loop -> L_0x108b870
       }
       if (MachineIdUploader >= 6 && MachineIdUploader >> 8 >= 3) {
         call_0x7326d0(&param_2->field_0x18, &local_0x40);
         call_0x49722e0(&local_0x20, "capture blocks failed" - 0x147c10, local_0x40.c_str());
-        std::string::_Tidy_deallocate(v_rcx_4);
+        std::string::_Tidy_deallocate(local_0x40);
       }
     }
   
@@ -490,7 +511,6 @@ Operação  : 0x108b418: mov/math reg, [flag] ; fn=0x108b3f0..0x108b670
   * success
   * [FLog::MachineIdUploader] Machine is not banned
   * [FLog::MachineIdUploader] Machine is banned
-  * 0123456789abcdef
   * macAddresses
 
 [Co-Flags na mesma função]

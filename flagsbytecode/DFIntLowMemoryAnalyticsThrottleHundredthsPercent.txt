@@ -47,13 +47,9 @@ Operação  : 0x4ca2b75: mov/math reg, [flag] ; fn=0x4ca2a40..0x4ca2d06 [via FLo
           call_0x9199b0(&this->field_0x78, &this->field_0x80, &local_0x40);
         }
       }
-      if (this->field_0xd8 == 3) {
-        if (atomic_cas(&local_0x48->field_0x0, this->field_0xd8, 1) != 0) {
-          call_0xdac0(local_0x48);
-        }
-        return;
+      if (this->field_0xd8 != 3 || atomic_cas(&local_0x48->field_0x0, this->field_0xd8, 1) != 0) {
+        call_0xdac0(local_0x48);
       }
-      call_0xdac0(local_0x48);
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -69,7 +65,7 @@ Operação  : 0x4ca2b75: mov/math reg, [flag] ; fn=0x4ca2a40..0x4ca2d06 [via FLo
     0x4ca2a67 | 48 89 85 90 03 00 00     | mov qword ptr [rbp + 0x390], rax
     0x4ca2a6e | 4c 8b f2                 | mov r14, rdx
     0x4ca2a71 | 48 8b f1                 | mov rsi, rcx
-    0x4ca2a74 | 48 c7 c3 ff ff ff ff     | mov rbx, 0xffffffff
+    0x4ca2a74 | 48 c7 c3 ff ff ff ff     | mov rbx, -0x1
     0x4ca2a7b | 48 8b 05 0e e1 49 03     | mov rax, qword ptr [rip + 0x349e10e] ; FLogLuaAppExperienceController
     0x4ca2a82 | 3c 06                    | cmp al, 0x6
     0x4ca2a84 | 0f 82 a1 00 00 00        | jb 0x4ca2b2b
@@ -261,15 +257,17 @@ Operação  : 0x4ca2b75: mov/math reg, [flag] ; fn=0x4ca2a40..0x4ca2d06 [via FLo
         call_0x4cf0e40(ret_0x4cee120_6);
       }
       call_0x6db860(&local_0x68, param_3);
-      this->vfunc_0x8->field_0x8->field_0x8[this]->field_0x40((&this->field_0x8 + this->field_0x8->field_0x8), param_2, &local_0x68) // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66540;
+      auto* f_8 = this->field_0x8;
+      f_8->field_0x8->field_0x8[this]->vfunc_0x40((&f_8 + f_8->field_0x8), param_2, &local_0x68) // -> RBX::Solver::ConstraintSingleAxisSpring::fn_0x4d4cf90;
       call_0x2e12fd0(&this->field_0xd0);
       auto* f_e0 = this->field_0xe0;
-      auto i_edi = f_e0->field_0x8;
+      void* i_edi = f_e0->field_0x8;
       if (f_e0->field_0x8->field_0x19 == 0) {
         do { // L_0x4ca1025
-          call_0x9ace70(&f_e0, &f_e0, f_e0->field_0x8->field_0x10);
+          call_0x9ace70(&f_e0, &f_e0, i_edi->field_0x10);
           call_0x4955ac0(i_edi);
-        } while (f_e0->field_0x8->field_0x0->field_0x19 == 0); // loop -> L_0x4ca1025
+          i_edi = i_edi->field_0x0;
+        } while (i_edi->field_0x0->field_0x19 == 0); // loop -> L_0x4ca1025
       }
       f_e0->field_0x8 = f_e0;
       f_e0->field_0x0 = f_e0;
@@ -277,19 +275,15 @@ Operação  : 0x4ca2b75: mov/math reg, [flag] ; fn=0x4ca2a40..0x4ca2d06 [via FLo
       this->field_0xe8 = 0;
       if (this->field_0x120 != 0) {
         do { // L_0x4ca1070
-          auto* f_108 = this->field_0x108;
-          if ((f_108->field_0x0[rcx * 8])->field_0x8 != 0 && atomic_fetch_sub(&((f_108->field_0x0[rcx * 8])->field_0x8)->field_0x8, 1) == 1) {
-            (f_108->field_0x0[rcx * 8])->field_0x8->vfunc((f_108->field_0x0[rcx * 8])->field_0x8);
-            if (atomic_fetch_sub(&((f_108->field_0x0[rcx * 8])->field_0x8)->field_0xc, 1) == 1) {
-              (f_108->field_0x0[rcx * 8])->field_0x8->vfunc((f_108->field_0x0[rcx * 8])->field_0x8);
-            } else {
-              atomic_fetch_sub(&((f_108->field_0x0[rcx * 8])->field_0x8)->field_0xc, 1);
+          if (rcx->field_0x8 != 0 && atomic_fetch_sub(&rcx->field_0x8->field_0x8, 1) == 1) {
+            rcx->field_0x8->vfunc_0x0(rcx->field_0x8) // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66420;
+            if (atomic_fetch_sub(&rcx->field_0x8->field_0xc, 1) == 1) {
+              rcx->field_0x8->vfunc_0x8(rcx->field_0x8) // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66540;
             }
-          } else {
-            atomic_fetch_sub(&((f_108->field_0x0[rcx * 8])->field_0x8)->field_0x8, 1);
           }
-          if ((f_108->field_0x0[rcx * 8])->field_0x8 == 0) break;
-          this->field_0x118 = this->field_0x118 + 1;
+          this->field_0x120--;
+          if (this->field_0x120 == 1) break;
+          this->field_0x118++;
         } while (true); // loop -> L_0x4ca1070
         this->field_0x118 = 0;
       }
@@ -299,17 +293,13 @@ Operação  : 0x4ca2b75: mov/math reg, [flag] ; fn=0x4ca2a40..0x4ca2d06 [via FLo
       f_128->field_0x0 = f_128;
       f_128->field_0x10 = f_128;
       this->field_0x130 = 0;
-      if (this->field_0xd0 == 3) {
-        if (atomic_cas(&this->field_0xd0, this->field_0xd0, 1) != 0) {
-          call_0xdac0(&this->field_0xd0);
-        }
-      } else {
+      if (this->field_0xd0 != 3 || atomic_cas(&this->field_0xd0, this->field_0xd0, 1) != 0) {
         call_0xdac0(&this->field_0xd0);
       }
       int64_t local_0x28;
       if (this->field_0xf0 != 0) {
         if (this->field_0xf8 != 0) {
-          this->field_0xf8->field_0x8 = this->field_0xf8->field_0x8 + 1;
+          this->field_0xf8->field_0x8++;
         }
         local_0x28 = &sym_0x70075c0;
         call_0x4ca3290(this, &local_0x28);

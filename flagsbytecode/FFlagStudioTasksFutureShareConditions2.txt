@@ -48,7 +48,7 @@ Operação  : 0x7f843a: cmp byte [flag], imm8 ; fn=0x7f8420..0x7f850d
       if (global_0x8cbf6b0 > rbp->field_0x58->field_0x0->field_0x0[40]) {
         call_0x12e0(&sym_0x8cbf6b0);
       }
-      return &sym_0x8cbf5d0 + rax * 8;
+      return &sym_0x8cbf5d0 + (atomic_fetch_add(&global_0x8cbf650, 1) & 0xf) * 8;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -132,16 +132,20 @@ Operação  : 0x7f843a: cmp byte [flag], imm8 ; fn=0x7f8420..0x7f850d
             global_0x8cbf688 = ret_0x6fd950_2;
             global_0x8cbf690 = ret_0x6fd950_2;
             global_0x8cbf698 = (StudioFutureSyncPoolSize << 4) + ret_0x6fd950_2;
+            void* i_ebx = StudioFutureSyncPoolSize;
+            uint64_t i_edi = ret_0x6fd950_2;
             do { // L_0x7f8660
-              ret_0x6fd950_2->field_0x0 = 0.0;
-              if (ret_0x6fd950_2 != 0) {
-                call_0xcd30(ret_0x6fd950_2, "FuturePoolWake", 0);
+              i_edi->field_0x0 = 0.0;
+              if (i_edi != 0) {
+                call_0xcd30(i_edi, "FuturePoolWake", 0);
               }
-              if (&ret_0x6fd950_2->field_0x8 != 0) {
-                ret_0x6fd950_2->field_0x8 = 1;
+              if (i_edi != -8) {
+                (i_edi + 8)->field_0x0 = 1;
               }
-            } while ((StudioFutureSyncPoolSize - 1) != 0); // loop -> L_0x7f8660
-            global_0x8cbf690 = &ret_0x6fd950_2->field_0x10;
+              i_edi += 0x10;
+              i_ebx--;
+            } while (i_ebx != 0); // loop -> L_0x7f8660
+            global_0x8cbf690 = i_edi;
           }
           global_0x8cbf680 = &sym_0x8cbf688;
           call_0x14f0(&sym_0x8cbf678);
@@ -266,18 +270,14 @@ Operação  : 0x7f843a: cmp byte [flag], imm8 ; fn=0x7f8420..0x7f850d
     void RBX::StudioTasks::func_0x800110(RBX::StudioTasks* this, int64_t param_2) {
       auto* f_8 = this->field_0x8;
       if (f_8 != 0) {
-        f_8->field_0x8 = f_8->field_0x8 + 1;
+        f_8->field_0x8++;
       }
       auto* f_0 = this->field_0x0;
       auto* f_0_10 = f_0->field_0x10;
       call_0x2e13a20(&local_0x38, &f_0_10->field_0x8, 0);
       if (f_0->field_0x68 == 2) {
         if ((local_0x38 & 0x1) != 0) {
-          if ((local_0x38 & 0xfffffffe)->field_0x0 == 3) {
-            if (atomic_cas(&(local_0x38 & 0xfffffffe)->field_0x0, (local_0x38 & 0xfffffffe)->field_0x0, 1) != 0) {
-              call_0xdac0(local_0x38 & 0xfffffffe);
-            }
-          } else {
+          if ((local_0x38 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x38 & 0xfffffffe)->field_0x0, (local_0x38 & 0xfffffffe)->field_0x0, 1) != 0) {
             call_0xdac0(local_0x38 & 0xfffffffe);
           }
         }
@@ -286,66 +286,50 @@ Operação  : 0x7f843a: cmp byte [flag], imm8 ; fn=0x7f8420..0x7f850d
           call_0x6daf40(f_8);
         }
         return;
-      } else {
-        f_0->field_0x68 = 1;
-        if (f_0->field_0x60 != 0) {
-          call_0x8042f0(&f_0->field_0x18, param_2);
-          if (param_2->field_0x40 != 0) {
-            call_0x73b640(&f_0->field_0x38, &param_2->field_0x20);
-            L_0x80024e:
-            if ((local_0x38 & 0x1) != 0) {
-              if ((local_0x38 & 0xfffffffe)->field_0x0 == 3) {
-                if (atomic_cas(&(local_0x38 & 0xfffffffe)->field_0x0, (local_0x38 & 0xfffffffe)->field_0x0, 1) != 0) {
-                  L_0x80026f:
-                  call_0xdac0(local_0x38 & 0xfffffffe);
-                }
-              } else {
-                call_0xdac0(local_0x38 & 0xfffffffe);
-              }
+      }
+      f_0->field_0x68 = 1;
+      if (f_0->field_0x60 != 0) {
+        call_0x8042f0(&f_0->field_0x18, param_2);
+        if (param_2->field_0x40 != 0) {
+          call_0x73b640(&f_0->field_0x38, &param_2->field_0x20);
+          L_0x80024e:
+          if ((local_0x38 & 0x1) != 0) {
+            if ((local_0x38 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x38 & 0xfffffffe)->field_0x0, (local_0x38 & 0xfffffffe)->field_0x0, 1) != 0) {
+              call_0xdac0(local_0x38 & 0xfffffffe);
             }
-            void* v_rcx_3 = f_0;
-            if (StudioTasksFutureShareConditions2) {
-              v_rcx_3 = f_0_10;
-            }
-            call_0xd150(v_rcx_3, param_2);
-            if (f_8 != 0) {
-              call_0x6daf40(f_8);
-            }
-            return;
           }
-          if (f_0->field_0x58 != 0) {
-            if (f_0->field_0x50 >= 16) {
-              void* v_rcx_1 = f_0->field_0x38;
-              if (f_0->field_0x50 + 1 >= 0x1000 && rcx >= 8 && rcx <= 39) {
-                v_rcx_1 = f_0->field_0x38->field_m0x8;
-              } else {
-                call_0x5e14580();
-              }
-              call_0x4955ac0(v_rcx_1);
-            }
-            f_0->field_0x48 = 0;
-            f_0->field_0x50 = 15;
-            f_0->field_0x38 = 0;
-            f_0->field_0x58 = 0;
-            if ((local_0x38 & 0x1) != 0 && (local_0x38 & 0xfffffffe)->field_0x0 == 3) {
-              if (atomic_cas(&(local_0x38 & 0xfffffffe)->field_0x0, (local_0x38 & 0xfffffffe)->field_0x0, 1) != 0) {
-                goto L_0x80026f;
-              }
-            } else {
-              goto L_0x80026f;
-            }
-            void* v_rcx_3 = f_0;
-            if (StudioTasksFutureShareConditions2) {
-              v_rcx_3 = f_0_10;
-            }
-            call_0xd150(v_rcx_3, param_2);
-            goto L_0x80028f;
+          void* v_rcx_2 = f_0;
+          if (StudioTasksFutureShareConditions2) {
+            v_rcx_2 = f_0_10;
           }
-        } else {
-          call_0x800a20(&f_0->field_0x18, param_2);
-          f_0->field_0x60 = 1;
-          goto L_0x80024e;
+          call_0xd150(v_rcx_2, param_2);
+          if (f_8 != 0) {
+            call_0x6daf40(f_8);
+          }
+          return;
         }
+        if (f_0->field_0x58 != 0) {
+          std::string::_Tidy_deallocate(f_0->field_0x38);
+          f_0->field_0x48 = 0;
+          f_0->field_0x50 = 15;
+          f_0->field_0x38 = 0;
+          f_0->field_0x58 = 0;
+        }
+        if ((local_0x38 & 0x1) != 0) {
+          if ((local_0x38 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x38 & 0xfffffffe)->field_0x0, (local_0x38 & 0xfffffffe)->field_0x0, 1) != 0) {
+            call_0xdac0(local_0x38 & 0xfffffffe);
+          }
+        }
+        void* v_rcx_2 = f_0;
+        if (StudioTasksFutureShareConditions2) {
+          v_rcx_2 = f_0_10;
+        }
+        call_0xd150(v_rcx_2, param_2);
+        goto L_0x80028f;
+      } else {
+        call_0x800a20(&f_0->field_0x18, param_2);
+        f_0->field_0x60 = 1;
+        goto L_0x80024e;
       }
     }
   
@@ -518,13 +502,9 @@ Operação  : 0x7f843a: cmp byte [flag], imm8 ; fn=0x7f8420..0x7f850d
         local_0x48->vfunc(local_0x48, local_0x48);
       }
       if ((local_0x30 & 0x1) != 0) {
-        if ((local_0x30 & 0xfffffffe)->field_0x0 == 3) {
-          if (atomic_cas(&(local_0x30 & 0xfffffffe)->field_0x0, (local_0x30 & 0xfffffffe)->field_0x0, 1) != 0) {
-            call_0xdac0(local_0x30 & 0xfffffffe);
-          }
-          return;
+        if ((local_0x30 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x30 & 0xfffffffe)->field_0x0, (local_0x30 & 0xfffffffe)->field_0x0, 1) != 0) {
+          call_0xdac0(local_0x30 & 0xfffffffe);
         }
-        call_0xdac0(local_0x30 & 0xfffffffe);
       }
     }
   
@@ -646,13 +626,9 @@ Operação  : 0x7f843a: cmp byte [flag], imm8 ; fn=0x7f8420..0x7f850d
         local_0x48->vfunc(local_0x48, local_0x48);
       }
       if ((local_0x30 & 0x1) != 0) {
-        if ((local_0x30 & 0xfffffffe)->field_0x0 == 3) {
-          if (atomic_cas(&(local_0x30 & 0xfffffffe)->field_0x0, (local_0x30 & 0xfffffffe)->field_0x0, 1) != 0) {
-            call_0xdac0(local_0x30 & 0xfffffffe);
-          }
-          return;
+        if ((local_0x30 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x30 & 0xfffffffe)->field_0x0, (local_0x30 & 0xfffffffe)->field_0x0, 1) != 0) {
+          call_0xdac0(local_0x30 & 0xfffffffe);
         }
-        call_0xdac0(local_0x30 & 0xfffffffe);
       }
     }
   
@@ -761,18 +737,14 @@ Operação  : 0x7f843a: cmp byte [flag], imm8 ; fn=0x7f8420..0x7f850d
     void RBX::StudioTasks::func_0x801a10(RBX::StudioTasks* this, int64_t param_2) {
       auto* f_8 = this->field_0x8;
       if (f_8 != 0) {
-        f_8->field_0x8 = f_8->field_0x8 + 1;
+        f_8->field_0x8++;
       }
       auto* f_0 = this->field_0x0;
       auto* f_0_10 = f_0->field_0x10;
       call_0x2e13a20(&local_0x68, &f_0_10->field_0x8, 0);
       if (f_0->field_0x40 != 0) {
         if ((local_0x68 & 0x1) != 0) {
-          if ((local_0x68 & 0xfffffffe)->field_0x0 == 3) {
-            if (atomic_cas(&(local_0x68 & 0xfffffffe)->field_0x0, (local_0x68 & 0xfffffffe)->field_0x0, 1) != 0) {
-              call_0xdac0(local_0x68 & 0xfffffffe);
-            }
-          } else {
+          if ((local_0x68 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x68 & 0xfffffffe)->field_0x0, (local_0x68 & 0xfffffffe)->field_0x0, 1) != 0) {
             call_0xdac0(local_0x68 & 0xfffffffe);
           }
         }
@@ -780,27 +752,22 @@ Operação  : 0x7f843a: cmp byte [flag], imm8 ; fn=0x7f8420..0x7f850d
           call_0x6daf40(f_8);
         }
         return;
-      } else {
-        f_0->field_0x48 = 1;
-        call_0x802950(&f_0->field_0x18, &local_0x38);
-        std::string::_Tidy_deallocate(v_rcx_1);
-        if ((local_0x68 & 0x1) != 0) {
-          if ((local_0x68 & 0xfffffffe)->field_0x0 == 3) {
-            if (atomic_cas(&(local_0x68 & 0xfffffffe)->field_0x0, (local_0x68 & 0xfffffffe)->field_0x0, 1) != 0) {
-              call_0xdac0(local_0x68 & 0xfffffffe);
-            }
-          } else {
-            call_0xdac0(local_0x68 & 0xfffffffe);
-          }
+      }
+      f_0->field_0x48 = 1;
+      call_0x802950(&f_0->field_0x18, &local_0x38);
+      std::string::_Tidy_deallocate(local_0x38);
+      if ((local_0x68 & 0x1) != 0) {
+        if ((local_0x68 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x68 & 0xfffffffe)->field_0x0, (local_0x68 & 0xfffffffe)->field_0x0, 1) != 0) {
+          call_0xdac0(local_0x68 & 0xfffffffe);
         }
-        void* v_rcx_2 = f_0;
-        if (StudioTasksFutureShareConditions2) {
-          v_rcx_2 = f_0_10;
-        }
-        call_0xd150(v_rcx_2, param_2);
-        if (f_8 != 0) {
-          call_0x6daf40(f_8);
-        }
+      }
+      void* v_rcx_2 = f_0;
+      if (StudioTasksFutureShareConditions2) {
+        v_rcx_2 = f_0_10;
+      }
+      call_0xd150(v_rcx_2, param_2);
+      if (f_8 != 0) {
+        call_0x6daf40(f_8);
       }
     }
   
@@ -953,7 +920,7 @@ Operação  : 0x7f843a: cmp byte [flag], imm8 ; fn=0x7f8420..0x7f850d
     void RBX::StudioTasks::func_0x801c90(RBX::StudioTasks* this) {
       auto* f_8 = this->field_0x8;
       if (f_8 != 0) {
-        f_8->field_0x8 = f_8->field_0x8 + 1;
+        f_8->field_0x8++;
       }
       auto* f_0 = this->field_0x0;
       auto* f_0_10 = f_0->field_0x10;
@@ -962,11 +929,7 @@ Operação  : 0x7f843a: cmp byte [flag], imm8 ; fn=0x7f8420..0x7f850d
       if (f_0->field_0x40 != 0) {
         void* v_rbx_4 = f_8;
         if ((local_0x68 & 0x1) != 0) {
-          if ((local_0x68 & 0xfffffffe)->field_0x0 == 3) {
-            if (atomic_cas(&(local_0x68 & 0xfffffffe)->field_0x0, (local_0x68 & 0xfffffffe)->field_0x0, 1) != 0) {
-              call_0xdac0(local_0x68 & 0xfffffffe);
-            }
-          } else {
+          if ((local_0x68 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x68 & 0xfffffffe)->field_0x0, (local_0x68 & 0xfffffffe)->field_0x0, 1) != 0) {
             call_0xdac0(local_0x68 & 0xfffffffe);
           }
           v_rbx_4 = local_0x30;
@@ -976,32 +939,27 @@ Operação  : 0x7f843a: cmp byte [flag], imm8 ; fn=0x7f8420..0x7f850d
           call_0x6daf40(v_rbx_5);
         }
         return;
-      } else {
-        f_0->field_0x48 = 1;
-        auto local_0x38 = 0;
-        call_0x6f7000(&local_0x38, "Buffer size mismatch", 20);
-        call_0x802950(f_0 + 0x18, &local_0x38);
-        std::string::_Tidy_deallocate(v_rcx_1);
-        void* v_rbx_2 = f_8;
-        if ((local_0x68 & 0x1) != 0) {
-          if ((local_0x68 & 0xfffffffe)->field_0x0 == 3) {
-            if (atomic_cas(&(local_0x68 & 0xfffffffe)->field_0x0, (local_0x68 & 0xfffffffe)->field_0x0, 1) != 0) {
-              call_0xdac0(local_0x68 & 0xfffffffe);
-            }
-          } else {
-            call_0xdac0(local_0x68 & 0xfffffffe);
-          }
-          v_rbx_2 = local_0x30;
+      }
+      f_0->field_0x48 = 1;
+      auto local_0x38 = 0;
+      call_0x6f7000(&local_0x38, "Buffer size mismatch", 20);
+      call_0x802950(f_0 + 0x18, &local_0x38);
+      std::string::_Tidy_deallocate(local_0x38);
+      void* v_rbx_2 = f_8;
+      if ((local_0x68 & 0x1) != 0) {
+        if ((local_0x68 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x68 & 0xfffffffe)->field_0x0, (local_0x68 & 0xfffffffe)->field_0x0, 1) != 0) {
+          call_0xdac0(local_0x68 & 0xfffffffe);
         }
-        void* v_rcx_3 = f_0;
-        if (StudioTasksFutureShareConditions2) {
-          v_rcx_3 = f_0_10;
-        }
-        call_0xd150(v_rcx_3, param_2);
-        v_rbx_5 = v_rbx_2;
-        if (v_rbx_5 != 0) {
-          call_0x6daf40(v_rbx_5);
-        }
+        v_rbx_2 = local_0x30;
+      }
+      void* v_rcx_3 = f_0;
+      if (StudioTasksFutureShareConditions2) {
+        v_rcx_3 = f_0_10;
+      }
+      call_0xd150(v_rcx_3, param_2);
+      v_rbx_5 = v_rbx_2;
+      if (v_rbx_5 != 0) {
+        call_0x6daf40(v_rbx_5);
       }
     }
   
@@ -1150,18 +1108,14 @@ Operação  : 0x7f843a: cmp byte [flag], imm8 ; fn=0x7f8420..0x7f850d
     void RBX::StudioTasks::func_0x801e60(RBX::StudioTasks* this, int64_t param_2) {
       auto* f_8 = this->field_0x8;
       if (f_8 != 0) {
-        f_8->field_0x8 = f_8->field_0x8 + 1;
+        f_8->field_0x8++;
       }
       auto* f_0 = this->field_0x0;
       auto* f_0_10 = f_0->field_0x10;
       call_0x2e13a20(&local_0x68, &f_0_10->field_0x8, 0);
       if (f_0->field_0x40 != 0) {
         if ((local_0x68 & 0x1) != 0) {
-          if ((local_0x68 & 0xfffffffe)->field_0x0 == 3) {
-            if (atomic_cas(&(local_0x68 & 0xfffffffe)->field_0x0, (local_0x68 & 0xfffffffe)->field_0x0, 1) != 0) {
-              call_0xdac0(local_0x68 & 0xfffffffe);
-            }
-          } else {
+          if ((local_0x68 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x68 & 0xfffffffe)->field_0x0, (local_0x68 & 0xfffffffe)->field_0x0, 1) != 0) {
             call_0xdac0(local_0x68 & 0xfffffffe);
           }
         }
@@ -1169,27 +1123,22 @@ Operação  : 0x7f843a: cmp byte [flag], imm8 ; fn=0x7f8420..0x7f850d
           call_0x6daf40(f_8);
         }
         return;
-      } else {
-        f_0->field_0x48 = 1;
-        call_0x802950(&f_0->field_0x18, &local_0x38);
-        std::string::_Tidy_deallocate(v_rcx_2);
-        if ((local_0x68 & 0x1) != 0) {
-          if ((local_0x68 & 0xfffffffe)->field_0x0 == 3) {
-            if (atomic_cas(&(local_0x68 & 0xfffffffe)->field_0x0, (local_0x68 & 0xfffffffe)->field_0x0, 1) != 0) {
-              call_0xdac0(local_0x68 & 0xfffffffe);
-            }
-          } else {
-            call_0xdac0(local_0x68 & 0xfffffffe);
-          }
+      }
+      f_0->field_0x48 = 1;
+      call_0x802950(&f_0->field_0x18, &local_0x38);
+      std::string::_Tidy_deallocate(local_0x38);
+      if ((local_0x68 & 0x1) != 0) {
+        if ((local_0x68 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x68 & 0xfffffffe)->field_0x0, (local_0x68 & 0xfffffffe)->field_0x0, 1) != 0) {
+          call_0xdac0(local_0x68 & 0xfffffffe);
         }
-        void* v_rcx_3 = f_0;
-        if (StudioTasksFutureShareConditions2) {
-          v_rcx_3 = f_0_10;
-        }
-        call_0xd150(v_rcx_3, param_2);
-        if (f_8 != 0) {
-          call_0x6daf40(f_8);
-        }
+      }
+      void* v_rcx_3 = f_0;
+      if (StudioTasksFutureShareConditions2) {
+        v_rcx_3 = f_0_10;
+      }
+      call_0xd150(v_rcx_3, param_2);
+      if (f_8 != 0) {
+        call_0x6daf40(f_8);
       }
     }
   
@@ -1350,12 +1299,10 @@ Operação  : 0x7f843a: cmp byte [flag], imm8 ; fn=0x7f8420..0x7f850d
     // Flag defaults: StudioTasksFutureShareConditions2 = false
     auto RBX::StudioTasks::func_0x805100(RBX::StudioTasks* this) {
       call_0x2e13a20(&local_0x28, &this->field_0x10->field_0x8, 0);
-      if ((local_0x28 & 0x1) != 0 && (local_0x28 & 0xfffffffe)->field_0x0 == 3) {
-        if (atomic_cas(&(local_0x28 & 0xfffffffe)->field_0x0, (local_0x28 & 0xfffffffe)->field_0x0, 1) != 0) {
+      if ((local_0x28 & 0x1) != 0) {
+        if ((local_0x28 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x28 & 0xfffffffe)->field_0x0, (local_0x28 & 0xfffffffe)->field_0x0, 1) != 0) {
           call_0xdac0(local_0x28 & 0xfffffffe);
         }
-      } else {
-        call_0xdac0(local_0x28 & 0xfffffffe);
       }
       if (this->field_0x98 != 0) {
         call_0x7f80c0(&this->field_0x70);

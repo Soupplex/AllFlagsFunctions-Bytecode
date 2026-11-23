@@ -37,7 +37,7 @@ Operação  : 0x3b02ddf: cmp byte [flag], imm8 ; fn=0x3b028a0..0x3b02e80 [via FF
       void* sel_rcx_1 = this == 0 ? 0 : this;
       auto ret_0x15c2680_3 = call_0x15c2680(sel_rcx_1);
       if (ret_0x15c2680_3->field_0x0->field_0x10 != 0) {
-        this->vfunc(this, param_2, param_3);
+        (*global_0x80f4bf8)(this, param_2, param_3);
       }
       if (param_3 != 0) {
         call_0x2f257b0(param_3);
@@ -53,8 +53,8 @@ Operação  : 0x3b02ddf: cmp byte [flag], imm8 ; fn=0x3b028a0..0x3b02e80 [via FF
             v_r14_1 = this;
           }
           if (v_r14_1 != 0) {
-            call_0x27c5150();
-            void* sel_rcx_2 = v_r14_1->field_0x18->field_0x1c0 - rax->field_0x1c0 <= rax->field_0x1c2 ? v_r14_1 : 0;
+            auto ret_0x27c5150_8 = call_0x27c5150();
+            void* sel_rcx_2 = v_r14_1->field_0x18->field_0x1c0 - ret_0x27c5150_8->field_0x1c0 <= ret_0x27c5150_8->field_0x1c2 ? v_r14_1 : 0;
             if (sel_rcx_2 != 0) {
               auto ret_0xe29720_9 = call_0xe29720(sel_rcx_2);
               if (ret_0xe29720_9 != 0) {
@@ -67,8 +67,9 @@ Operação  : 0x3b02ddf: cmp byte [flag], imm8 ; fn=0x3b028a0..0x3b02e80 [via FF
                   ret_0x496a260_12->field_0x8 = &sym_0x3b12690;
                   ret_0x496a260_12->field_0x20 = ret_0xe29720_9->field_0x40;
                   if (ret_0xe29720_9->field_0x40 != 0) {
-                    ret_0xe29720_9->field_0x40->field_0x4 = ret_0xe29720_9->field_0x40->field_0x4 + 1;
+                    ret_0xe29720_9->field_0x40->field_0x4++;
                   }
+                  ret_0x496a260_12->field_0x18 = ret_0x496a260_12->field_0x18 & 0xfffffffb;
                   ret_0x496a260_12->field_0x28 = this;
                 } else {
                   v_rax_2 = 0;
@@ -122,11 +123,13 @@ Operação  : 0x3b02ddf: cmp byte [flag], imm8 ; fn=0x3b028a0..0x3b02e80 [via FF
         this->field_0x2a8 = 1.0;
         this->field_0x2b8 = 1.0;
         this->field_0x2c8 = 1.0;
+        int32_t i_ebx = 12;
         int64_t local_0x200;
         do { // L_0x3b02d60
-          local_0x200 = 12;
+          local_0x200 = i_ebx;
           call_0x3b114a0(&this->field_0x428, &local_0x198, &local_0x200);
-        } while ((12 + 1) <= 19); // loop -> L_0x3b02d60
+          i_ebx++;
+        } while (i_ebx <= 19); // loop -> L_0x3b02d60
         if (global_0x8db9fb0 > rbp->field_0x58->field_0x0->field_0x0[40]) {
           call_0x12e0(&sym_0x8db9fb0);
           if (global_0x8db9fb0 == -1) {
@@ -534,80 +537,76 @@ Operação  : 0x3b02ddf: cmp byte [flag], imm8 ; fn=0x3b028a0..0x3b02e80 [via FF
     
     // Flag defaults: EnableInputRecorder4 = false
     void RBX::EnableInput::func_0x3b114a0(RBX::EnableInput* this, int64_t param_2, void* param_3) {
+      uint64_t hash_rdi = fnv1a_hash64(key);
       auto* f_18 = this->field_0x18;
       auto* f_8 = this->field_0x8;
-      if (f_18->field_0x8[rdx * 8] != f_8) {
-        auto i_eax = f_18->field_0x8[rdx * 8];
-        void* v_rax_10 = f_18->field_0x8[rdx * 8];
-        if (param_3->field_0x0 != (f_18->field_0x8[rdx * 8])->field_0x10) {
+      if (f_18->field_0x8[(hash_rdi & this->field_0x30) * 2 * 8] != f_8) {
+        void* i_eax = f_18->field_0x8[(hash_rdi & this->field_0x30) * 2 * 8];
+        void* v_rax_8 = f_18->field_0x8[(hash_rdi & this->field_0x30) * 2 * 8];
+        if (param_3->field_0x0 != (f_18->field_0x8[(hash_rdi & this->field_0x30) * 2 * 8])->field_0x10) {
           do { // L_0x3b11536
-            if (i_eax == f_18->field_0x0[rdx * 8]) break;
-            v_rax_10 = i_eax->field_0x8;
-            param_2->field_0x0 = v_rax_10;
-            return;
+            if (i_eax == f_18->field_0x0[(hash_rdi & this->field_0x30) * 2 * 8]) break;
+            i_eax = i_eax->field_0x8;
           } while (param_3->field_0x0 != i_eax->field_0x8->field_0x10); // loop -> L_0x3b11536
-        } else {
-          param_2->field_0x0 = v_rax_10;
+          param_2->field_0x0 = v_rax_8;
+          L_0x3b1154c:
           return;
         }
+        param_2->field_0x0 = v_rax_8;
+        return;
       }
-      if (this->field_0x10 != 0xaaaaaaaaaaaaaaa) {
+      auto* f_10 = this->field_0x10;
+      if (f_10 != 0xaaaaaaaaaaaaaaa) {
         auto ret_0x4956040_2 = call_0x4956040(24);
         ret_0x4956040_2->field_0x10 = param_3->field_0x0;
-        float fxmm0_1;
-        if (&this->field_0x10->field_0x1 >= 0) {
-          fxmm0_1 = (float)&this->field_0x10->field_0x1;
-        } else {
-          float ftmp_1 = (float)(&this->field_0x10->field_0x1 >> 1 | &this->field_0x10->field_0x1 & 0x1);
-          fxmm0_1 = ftmp_1 * 2;
-        }
+        float fxmm0_1 = (float)(uint64_t)&f_10->field_0x1;
         float fxmm1_2;
         if (this->field_0x38 >= 0) {
           fxmm1_2 = (float)this->field_0x38;
         } else {
-          fxmm1_2 = (float)(this->field_0x38 >> 1 | this->field_0x38 & 0x1) + (float)(this->field_0x38 >> 1 | this->field_0x38 & 0x1);
+          fxmm1_2 = (float)(this->field_0x38 >> 1 | this->field_0x38 & 0x1) * 2;
         }
         if (fxmm0_1 / fxmm1_2 > this->field_0x0) {
           call_0xd1ae60(this);
-          if (f_18->field_0x8[rax * 8] == f_8) {
-          } else {
-            if (ret_0x4956040_2->field_0x10 != (f_18->field_0x8[rax * 8])->field_0x10) {
+          if (f_18->field_0x8[(hash_rdi & this->field_0x30) * 2 * 8] != f_8) {
+            void* i_ecx = f_18->field_0x8[(hash_rdi & this->field_0x30) * 2 * 8];
+            if (ret_0x4956040_2->field_0x10 != (f_18->field_0x8[(hash_rdi & this->field_0x30) * 2 * 8])->field_0x10) {
               do { // L_0x3b11657
-                if (f_18->field_0x8[rax * 8] == f_18->field_0x0[rax * 8]) break;
-                break;
-              } while (ret_0x4956040_2->field_0x10 != ((f_18->field_0x8[rax * 8])->field_0x8)->field_0x10); // loop -> L_0x3b11657
+                if (i_ecx == f_18->field_0x0[(hash_rdi & this->field_0x30) * 2 * 8]) break;
+                i_ecx = i_ecx->field_0x8;
+              } while (ret_0x4956040_2->field_0x10 != i_ecx->field_0x8->field_0x10); // loop -> L_0x3b11657
             }
           }
         }
-        this->field_0x10 = this->field_0x10 + 1;
+        f_10++;
         ret_0x4956040_2->field_0x0 = f_8;
         ret_0x4956040_2->field_0x8 = f_8->field_0x8;
         f_8->field_0x8->field_0x0 = ret_0x4956040_2;
         f_8->field_0x8 = ret_0x4956040_2;
-        if (f_18->field_0x0[rdi * 8] == f_8) {
-          void* prev_0x0[rdi * 8]_2 = f_18->field_0x0[rdi * 8];
-          f_18->field_0x0[rdi * 8] = ret_0x4956040_2;
-          f_18->field_0x8[rdi * 8] = ret_0x4956040_2;
+        if (f_18->field_0x0[(hash_rdi & this->field_0x30) * 2 * 8] == f_8) {
+          void* prev_0x30) * 2 * 8]_2 = f_18->field_0x0[(hash_rdi & this->field_0x30) * 2 * 8];
+          f_18->field_0x0[(hash_rdi & this->field_0x30) * 2 * 8] = ret_0x4956040_2;
+          f_18->field_0x8[(hash_rdi & this->field_0x30) * 2 * 8] = ret_0x4956040_2;
           param_2->field_0x0 = ret_0x4956040_2;
           param_2->field_0x8 = 1;
           return;
         }
-        if (f_18->field_0x0[rdi * 8] == f_8) {
-          void* prev_0x0[rdi * 8]_1 = f_18->field_0x0[rdi * 8];
-          f_18->field_0x0[rdi * 8] = ret_0x4956040_2;
+        if (f_18->field_0x0[(hash_rdi & this->field_0x30) * 2 * 8] == f_8) {
+          void* prev_0x30) * 2 * 8]_1 = f_18->field_0x0[(hash_rdi & this->field_0x30) * 2 * 8];
+          f_18->field_0x0[(hash_rdi & this->field_0x30) * 2 * 8] = ret_0x4956040_2;
           param_2->field_0x0 = ret_0x4956040_2;
           param_2->field_0x8 = 1;
           return;
         }
-        if (f_18->field_0x8[rdi * 8] == f_8->field_0x8) {
-          f_18->field_0x8[rdi * 8] = ret_0x4956040_2;
+        if (f_18->field_0x8[(hash_rdi & this->field_0x30) * 2 * 8] == f_8->field_0x8) {
+          f_18->field_0x8[(hash_rdi & this->field_0x30) * 2 * 8] = ret_0x4956040_2;
           param_2->field_0x0 = ret_0x4956040_2;
           param_2->field_0x8 = 1;
           return;
         }
         param_2->field_0x0 = ret_0x4956040_2;
         param_2->field_0x8 = 1;
-        return;
+        goto L_0x3b1154c;
       } else {
         call_0x5de6850("unordered_map/set too long");
       }

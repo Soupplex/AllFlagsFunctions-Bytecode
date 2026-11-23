@@ -9,10 +9,7 @@ Operação  : 0x1de1945: mov/math reg, [flag] ; fn=0x1de17f0..0x1de1b6e
     Classe  : RBX::StratusTurn (RTTI Resolvido)
     Padrão  : DFStringStratusTurnServerOverride = "" (default) [string, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : StratusTurnServerOverride == (StratusTurnServerOverride << 6) + StratusTurnServerOverride
-    Fórmula : StratusTurnServerOverride->field_0x18 < 16
-    Fórmula : StratusTurnServerOverride->field_0x10 != v_r15_2
-    Fórmula : memcmp(v_rcx_6, local_0x58, StratusTurnServerOverride->field_0x10)
+    Fórmula : i_ebx == (StratusTurnServerOverride << 6) + StratusTurnServerOverride
     Altera  : this->field_0x8->field_0x8
     [XREF #2 @0x1de1c37] Classe  : RBX::StratusTurn (RTTI Resolvido)
     [XREF #2 @0x1de1c37] Fórmula : call_0x746580((StratusTurnServerOverride << 6) + StratusTurnServerOverride + 0x20, &ret_0x1de1f30_4->field_0x20)
@@ -37,38 +34,44 @@ Operação  : 0x1de1945: mov/math reg, [flag] ; fn=0x1de17f0..0x1de1b6e
       auto ret_0x6fd950_1 = call_0x6fd950(32);
       ret_0x6fd950_1->field_0x0 = "output_format_name";
       ret_0x6fd950_1->field_0x10 = global_0x728f508;
-      int32_t i_edx = 0xcbf29ce484222325;
+      int32_t i_ecx = 0;
+      uint64_t i_edx = 0xcbf29ce484222325;
       do { // L_0x1de1881
-      } while ((ecx + 1) < 18); // loop -> L_0x1de1881
-      int64_t tmp_1 = (param_2->field_0x30 & (i_edx ^ ret_0x6fd950_1->field_0x0[ecx]) * 0x100000001b3) + (param_2->field_0x30 & (i_edx ^ ret_0x6fd950_1->field_0x0[ecx]) * 0x100000001b3);
+        i_ecx++;
+        i_edx = (i_edx ^ ret_0x6fd950_1->field_0x0[i_ecx]) * 0x100000001b3;
+      } while (i_ecx < 18); // loop -> L_0x1de1881
+      int64_t idx_1 = (param_2->field_0x30 & (i_edx ^ ret_0x6fd950_1->field_0x0[i_ecx]) * 0x100000001b3) * 2;
       void* v_r15_2 = 0;
-      if (param_2->field_0x18->field_0x8[tmp_1 * 8] != param_2->field_0x8) {
-        auto i_ebx = param_2->field_0x18->field_0x8[tmp_1 * 8];
+      void* i_ebx;
+      if (param_2->field_0x18->field_0x8[idx_1 * 8] != param_2->field_0x8) {
+        i_ebx = param_2->field_0x18->field_0x8[idx_1 * 8];
         do { // L_0x1de18c0
           if ((i_ebx + 0x10)->field_0x10 == 18) {
             auto ret_0x5e06820_2 = memcmp(ret_0x6fd950_1, i_ebx + 0x10, (i_ebx + 0x10)->field_0x10);
             if (ret_0x5e06820_2 == 0) break;
-            if (i_ebx == param_2->field_0x18->field_0x0[tmp_1 * 8]) break;
+            if (i_ebx == param_2->field_0x18->field_0x0[idx_1 * 8]) break;
+            i_ebx = i_ebx->field_0x8;
           } else {
-            if (i_ebx == param_2->field_0x18->field_0x0[tmp_1 * 8]) break;
+            if (i_ebx == param_2->field_0x18->field_0x0[idx_1 * 8]) break;
+            i_ebx = i_ebx->field_0x8;
           }
           call_0x4955ac0(ret_0x6fd950_1);
           break;
         } while (true); // loop -> L_0x1de18c0
       }
       call_0x4955ac0(ret_0x6fd950_1);
-      do { // L_0x1de195e
-        if (StratusTurnServerOverride == ((StratusTurnServerOverride << 6) + StratusTurnServerOverride)) break;
-        void* v_rcx_6 = StratusTurnServerOverride;
-        if (StratusTurnServerOverride->field_0x18 >= 16) {
-          v_rcx_6 = StratusTurnServerOverride->field_0x0;
+      while (i_ebx != (StratusTurnServerOverride << 6) + StratusTurnServerOverride) {
+        void* v_rcx_6 = i_ebx;
+        if (i_ebx->field_0x18 >= 16) {
+          v_rcx_6 = i_ebx->field_0x0;
         }
-        if (StratusTurnServerOverride->field_0x10 == v_r15_2) {
-          auto ret_0x5e06820_9 = memcmp(v_rcx_6, local_0x58, StratusTurnServerOverride->field_0x10);
+        if (i_ebx->field_0x10 == v_r15_2) {
+          auto ret_0x5e06820_9 = memcmp(v_rcx_6, local_0x58, i_ebx->field_0x10);
           if (ret_0x5e06820_9 == 0) break;
         }
-      } while (true); // loop -> L_0x1de195e
-      std::string::_Tidy_deallocate(v_rdi_5);
+        i_ebx += 0x40;
+      }
+      std::string::_Tidy_deallocate(local_0x58);
       auto* f_8 = this->field_0x8;
       if (f_8 != 0 && atomic_fetch_sub(&f_8->field_0x8, 1) == 1) {
         f_8->vfunc_0x0(f_8) // -> RBX::ostreambuf_iterator::fn_0x1bde3e0;
@@ -368,36 +371,37 @@ Operação  : 0x1de1945: mov/math reg, [flag] ; fn=0x1de17f0..0x1de1b6e
           if ((~((param_2->field_0x18 & 0xfffffffc) >> 2) & 0x1) != 0) {
             stk_1 = param_2->field_0x18;
           } else {
-            &local_0x48->vfunc(&local_0x48, param_2);
-            param_2->vfunc(param_2);
+            (((param_2->field_0x18 & 0xfffffffc) & 0xfffffff8))->vfunc_0x8(&local_0x48, param_2) // -> RBX::Instance::StateMachineTransitionDefinition::fn_0x1c1f1a0;
+            ((local_0x60 & 0xfffffff8))->vfunc_0x10(param_2) // -> RBX::AnimationKinematicJoint::fn_0x1dc46c0;
             stk_1 = local_0x60;
           }
         } else {
           stk_1 = param_2->field_0x18;
-          stk_2 = stk_1;
-        } else {
-          stk_2 = param_2->field_0x18;
         }
-        auto ret_0x1de1f30_4 = call_0x1de1f30(this, &local_0x28);
-        ((StratusTurnServerOverride << 6) + StratusTurnServerOverride)->field_0x0 = 0;
-        ((StratusTurnServerOverride << 6) + StratusTurnServerOverride)->field_0x10 = 0;
-        ((StratusTurnServerOverride << 6) + StratusTurnServerOverride)->field_0x18 = 0;
-        ((StratusTurnServerOverride << 6) + StratusTurnServerOverride)->field_0x0 = ret_0x1de1f30_4->field_0x0;
-        ((StratusTurnServerOverride << 6) + StratusTurnServerOverride)->field_0x10 = ret_0x1de1f30_4->field_0x10;
-        call_0x746580((StratusTurnServerOverride << 6) + StratusTurnServerOverride + 0x20, &ret_0x1de1f30_4->field_0x20);
-        StratusTurnServerOverride = StratusTurnServerOverride + 1;
-        if ((stk_2 & 0xfffffffc & 0xfffffff8) != 0) {
-          if ((~((stk_2 & 0xfffffffc) >> 2) & 0x1) == 0) {
-            local_0x48->vfunc(local_0x48);
-          }
-          if ((stk_2 >> 1 & 0x1) == 0) {
-            call_0x4955ac0(local_0x48);
-          }
-        }
-        call_0x6f8fb0(&local_0x28);
-        call_0x6f5b70(param_2);
-        return 0;
+        stk_2 = stk_1;
+      } else {
+        stk_2 = param_2->field_0x18;
       }
+      auto ret_0x1de1f30_4 = call_0x1de1f30(this, &local_0x28);
+      auto expr_1 = (StratusTurnServerOverride << 6) + StratusTurnServerOverride;
+      expr_1->field_0x0 = 0;
+      expr_1->field_0x10 = 0;
+      expr_1->field_0x18 = 0;
+      expr_1->field_0x0 = ret_0x1de1f30_4->field_0x0;
+      expr_1->field_0x10 = ret_0x1de1f30_4->field_0x10;
+      call_0x746580((StratusTurnServerOverride << 6) + StratusTurnServerOverride + 0x20, &ret_0x1de1f30_4->field_0x20);
+      StratusTurnServerOverride++;
+      if ((stk_2 & 0xfffffffc & 0xfffffff8) != 0) {
+        if ((~((stk_2 & 0xfffffffc) >> 2) & 0x1) == 0) {
+          (((stk_2 & 0xfffffffc) & 0xfffffff8))->vfunc_0x10(local_0x48) // -> RBX::AnimationKinematicJoint::fn_0x1dc46c0;
+        }
+        if ((stk_2 >> 1 & 0x1) == 0) {
+          call_0x4955ac0(local_0x48);
+        }
+      }
+      call_0x6f8fb0(&local_0x28);
+      call_0x6f5b70(param_2);
+      return 0;
     }
   
   === [Instrucoes x86-64 do XREF Runtime #2 (0x1de1b70..0x1de1d2e)] ===
@@ -529,39 +533,47 @@ Operação  : 0x1de1945: mov/math reg, [flag] ; fn=0x1de17f0..0x1de1b6e
       if (StratusTurnServerOverride + 1 <= global_0x8161584) {
         return param_2;
       }
-      uint8_t v_r13b_1 = 0;
+      int64_t v_rsi_1 = -1;
+      uint8_t v_r13b_2 = 0;
       if (param_2 >= StratusTurnServerOverride && param_2 < (StratusTurnServerOverride << 6) + StratusTurnServerOverride) {
-        v_r13b_1 = 1;
+        v_rsi_1 = (param_2 - StratusTurnServerOverride) >> 6;
+        v_r13b_2 = 1;
       }
       auto ret_0x4974020_1 = call_0x4974020(StratusTurnServerOverride + 1, StratusTurnServerOverride, global_0x8161584);
       auto ret_0x4956040_2 = call_0x4956040(ret_0x4974020_1 << 6);
+      void* i_ebx;
       if (StratusTurnServerOverride != (StratusTurnServerOverride << 6) + StratusTurnServerOverride) {
         int32_t i_eax = 0;
+        i_ebx = &ret_0x4956040_2->field_0x18;
         do { // L_0x1de2000
-          ret_0x4956040_2->field_0x0 = i_eax;
-          ret_0x4956040_2->field_0x10 = i_eax;
-          ret_0x4956040_2->field_0x18 = i_eax;
-          ret_0x4956040_2->field_0x0 = ret_0x4956040_2->field_0x0[rdi];
-          ret_0x4956040_2->field_0x10 = ret_0x4956040_2->field_0x10[rdi];
-          ret_0x4956040_2->field_0x10[rdi] = i_eax;
-          call_0x746580(&ret_0x4956040_2->field_0x20, StratusTurnServerOverride - ret_0x4956040_2 + 8 + &ret_0x4956040_2->field_0x18);
-        } while ((((StratusTurnServerOverride - ret_0x4956040_2) - 0x18) + &ret_0x4956040_2->field_0x58) != ((StratusTurnServerOverride << 6) + StratusTurnServerOverride)); // loop -> L_0x1de2000
+          i_ebx->field_m0x18 = i_eax;
+          i_ebx->field_m0x8 = i_eax;
+          i_ebx->field_0x0 = i_eax;
+          i_ebx->field_m0x18 = (StratusTurnServerOverride - ret_0x4956040_2)->field_m0x18[i_ebx];
+          i_ebx->field_m0x8 = (StratusTurnServerOverride - ret_0x4956040_2)->field_m0x8[i_ebx];
+          (StratusTurnServerOverride - ret_0x4956040_2)->field_m0x8[i_ebx] = i_eax;
+          (StratusTurnServerOverride - ret_0x4956040_2)[i_ebx] = 15;
+          (StratusTurnServerOverride - ret_0x4956040_2)->field_m0x18[i_ebx] = 0;
+          call_0x746580(i_ebx + 8, StratusTurnServerOverride - ret_0x4956040_2 + 8 + i_ebx);
+          i_ebx += 0x40;
+        } while (StratusTurnServerOverride - ret_0x4956040_2 - 0x18 + i_ebx != (StratusTurnServerOverride << 6) + StratusTurnServerOverride); // loop -> L_0x1de2000
       }
       if (StratusTurnServerOverride != (StratusTurnServerOverride << 6) + StratusTurnServerOverride) {
         do { // L_0x1de2070
-          call_0x6f5b70(rbx + 0x20);
-          call_0x6f8fb0((StratusTurnServerOverride << 6) + StratusTurnServerOverride - 0x40);
-        } while (StratusTurnServerOverride != (((StratusTurnServerOverride << 6) + StratusTurnServerOverride) - 0x40)); // loop -> L_0x1de2070
+          i_ebx -= 0x40;
+          call_0x6f5b70(i_ebx + 0x20);
+          call_0x6f8fb0(i_ebx);
+        } while (StratusTurnServerOverride != i_ebx); // loop -> L_0x1de2070
       }
       if (StratusTurnServerOverride != &sym_0x8161588) {
         call_0x4955ac0(StratusTurnServerOverride);
       }
       StratusTurnServerOverride = ret_0x4956040_2;
       global_0x8161584 = ret_0x4974020_1;
-      if (v_r13b_1 == 0) {
+      if (v_r13b_2 == 0) {
         return param_2;
       }
-      return (((param_2 - StratusTurnServerOverride) >> 6) << 6) + ret_0x4956040_2;
+      return (v_rsi_1 << 6) + ret_0x4956040_2;
     }
   
   === [Instrucoes x86-64 do XREF Runtime #3 (0x1de1f30..0x1de2107)] ===
@@ -594,7 +606,7 @@ Operação  : 0x1de1945: mov/math reg, [flag] ; fn=0x1de17f0..0x1de1b6e
     0x1de1f87 | c3                       | ret
     L_0x1de1f88:
     0x1de1f88 | 45 32 ed                 | xor r13b, r13b
-    0x1de1f8b | 48 c7 c6 ff ff ff ff     | mov rsi, 0xffffffff
+    0x1de1f8b | 48 c7 c6 ff ff ff ff     | mov rsi, -0x1
     0x1de1f92 | 48 8b 15 df f5 37 06     | mov rdx, qword ptr [rip + 0x637f5df] ; DFStringStratusTurnServerOverride
     0x1de1f99 | 48 c1 e0 06              | shl rax, 0x6
     0x1de1f9d | 4c 8d 0c 10              | lea r9, [rax + rdx]
@@ -707,18 +719,17 @@ Operação  : 0x1de1945: mov/math reg, [flag] ; fn=0x1de17f0..0x1de1b6e
     // Flag defaults: StratusTurnServerOverride = ""
     auto RBX::StratusTurn::func_0x1dde3e0(RBX::StratusTurn* this) {
       call_0x495dc90(&local_0x50, &local_0xa0);
+      void* v_r12_78 = this;
       if (local_0x58 == 0 && local_0x50->field_0xe == 3) {
         auto ret_0x495ce30_7 = call_0x495ce30(&local_0x50, &local_0x78, &local_0xa0);
-        void* v_rsi_32;
-        int32_t v_r14_33 = 0;
-        void* v_r15_34;
-        void* v_r13_40;
-        void* v_r15_42 = 0;
-        void* v_r13_74;
-        void* v_r13_84 = 4;
+        void* v_rsi_25;
+        int32_t v_r14_26 = 0;
+        void* v_r15_27;
+        void* v_r13_32;
+        void* v_r15_34 = 0;
+        void* v_r13_60;
+        void* v_r13_70 = 4;
         int64_t local_0xc0;
-        void* v_rcx_59;
-        void* v_rcx_55;
         int64_t local_0x44;
         int64_t local_0x40;
         int64_t local_0x3c;
@@ -726,137 +737,164 @@ Operação  : 0x1de1945: mov/math reg, [flag] ; fn=0x1de17f0..0x1de1b6e
         int64_t local_0xe0;
         int64_t local_0x108;
         if (ret_0x495ce30_7->field_0x8 == 0 && ret_0x495ce30_7->field_0x0->field_0xe == 4) {
-          auto ret_0x495ce30_14 = call_0x495ce30(&local_0x50, &local_0x78, &local_0xa0);
+          call_0x495ce30(&local_0x50, &local_0x78, &local_0xa0);
           if (global_0x8df58d0 > rbp->field_0x58->field_0x0->field_0x0[40]) {
             L_0x1ddf016:
             call_0x12e0(&sym_0x8df58d0);
             if (global_0x8df58d0 == -1) {
               global_0x81baf08 = 0.0;
-              global_0x81baf16 = v_r13_84;
+              global_0x81baf16 = v_r13_70;
               call_0x5de4c80(&sym_0x641bd30);
               call_0x14f0(&sym_0x8df58d0);
             }
           }
-          if (ret_0x495ce30_14->field_0x8 == 0 && ret_0x495ce30_14->field_0x0->field_0xe != 4) {
-            L_0x1dde538:
-          }
           if ((rax->field_0x8 & 0xffffffffffff) != (rax->field_0x0 << 4) + (rax->field_0x8 & 0xffffffffffff)) {
-            auto i_esi = 0.0;
+            uint64_t i_r8d = 0xffffffffffff;
+            uint64_t i_ebx = rax->field_0x8 & 0xffffffffffff;
+            int32_t i_r14d = 0;
+            void* i_esi = 0.0;
             int32_t i_r15d = 0;
-            void* v_r15_28;
-            int32_t v_r14_27;
-            void* v_rsi_25;
+            void* v_r15_22;
+            int32_t v_r14_21;
+            void* v_rsi_19;
             do { // L_0x1dde567
-              uint8_t v_al_11;
-              auto expr_1 = (rax->field_0x8 & 0xffffffffffff)->field_0xe >> 10 & 0x1;
-              if ((rax->field_0x8 & 0xffffffffffff) != 0 && expr_1 != 0) {
-                v_al_11 = 1;
+              uint8_t v_al_6;
+              if (i_ebx != 0) {
+                if ((i_ebx->field_0xe >> 10 & 0x1) != 0) {
+                  v_al_6 = 1;
+                } else {
+                  v_al_6 = 0;
+                }
               } else {
-                v_al_11 = 0;
+                v_al_6 = 0;
               }
-              v_rsi_25 = i_esi;
-              v_r14_27 = 0;
-              v_r15_28 = i_r15d;
-              if (v_al_11 != 0) {
-                void* v_r13_13 = 15;
-                if ((rax->field_0x8 & 0xffffffffffff) != 0 && expr_1 != 0) {
+              v_rsi_19 = i_esi;
+              int64_t v_r8_20 = i_r8d;
+              v_r14_21 = i_r14d;
+              v_r15_22 = i_r15d;
+              if (v_al_6 != 0) {
+                void* v_r13_7 = 15;
+                if (i_ebx != 0 && (i_ebx->field_0xe >> 10 & 0x1) != 0) {
                   local_0x108 = 0;
-                  call_0x6f7000(&local_0x108, rax->field_0x8 & 0xffffffffffff, 13 - (rax->field_0x8 & 0xffffffffffff)->field_0xd);
+                  call_0x6f7000(&local_0x108, i_ebx, 13 - i_ebx->field_0xd);
                 } else {
                   local_0xe0 = 0;
                   call_0x6f7510(&local_0x108, &local_0xe0);
-                  v_r13_13 = local_0xf8;
+                  v_r13_7 = local_0xf8;
                 }
-                void* v_rax_15;
-                void* v_rsi_16;
-                void* v_r15_17 = i_r15d;
+                void* v_rax_9;
+                void* v_rsi_10 = i_esi;
+                void* v_r15_11 = i_r15d;
                 if (i_esi != i_r15d) {
-                  0.0->field_0x0 = local_0x108;
-                  0.0->field_0x10 = local_0x118;
-                  v_rax_15 = 15;
-                  v_rsi_16 = &0.0->field_0x20;
+                  i_esi->field_0x0 = local_0x108;
+                  i_esi->field_0x10 = local_0x118;
+                  i_esi += 0x20;
+                  v_rax_9 = 15;
                 } else {
                   local_0x38 = 0.0;
                   local_0x3c = 0.0;
                   local_0x40 = 0.0;
                   local_0x44 = 0.0;
                   call_0x73f900(&local_0x38, i_esi, &local_0x108);
-                  v_rax_15 = local_0x120;
-                  v_rsi_16 = local_0x40;
-                  v_r15_17 = local_0x48;
+                  v_rax_9 = local_0x120;
+                  v_rsi_10 = local_0x40;
+                  v_r15_11 = local_0x48;
                 }
-                if (v_rax_15 >= 16) {
-                  void* v_rcx_20 = local_0x108;
-                  if (v_rax_15 + 1 >= 4096) {
-                    if ((local_0x108 - local_0x108->field_m0x8) < 8 || (local_0x108 - local_0x108->field_m0x8) > 39) break;
+                if (v_rax_9 >= 16) {
+                  void* v_rcx_14 = local_0x108;
+                  if (v_rax_9 + 1 >= 4096) {
+                    if (local_0x108 - local_0x108->field_m0x8 < 8 || local_0x108 - local_0x108->field_m0x8 > 39) break;
                   }
-                  call_0x4955ac0(v_rcx_20);
+                  call_0x4955ac0(v_rcx_14);
                 }
-                if (v_r13_13 >= 16) {
-                  void* v_rcx_22 = local_0xe0;
-                  call_0x4955ac0(v_rcx_22);
+                if (v_r13_7 >= 16) {
+                  void* v_rcx_16 = local_0xe0;
+                  call_0x4955ac0(v_rcx_16);
                 }
-                v_rsi_25 = v_rsi_16;
-                v_r14_27 = 32;
-                v_r15_28 = v_r15_17;
+                v_rsi_19 = v_rsi_10;
+                v_r8_20 = 0xffffffffffff;
+                v_r14_21 = i_r14d | 0x20;
+                v_r15_22 = v_r15_11;
               }
-            } while (((rax->field_0x8 & 0xffffffffffff) + 0x10) != ((rax->field_0x0 << 4) + (rax->field_0x8 & 0xffffffffffff))); // loop -> L_0x1dde567
-            v_rsi_32 = v_rsi_25;
-            v_r14_33 = v_r14_27;
-            v_r15_34 = v_r15_28;
-            if (local_0x38 != v_rsi_32) {
+              i_ebx += 0x10;
+              i_r8d = v_r8_20;
+              i_r14d = v_r14_21;
+              i_esi = v_rsi_19;
+              i_r15d = v_r15_22;
+            } while (i_ebx != (rax->field_0x0 << 4) + (rax->field_0x8 & 0xffffffffffff)); // loop -> L_0x1dde567
+            v_rsi_25 = v_rsi_19;
+            v_r14_26 = v_r14_21;
+            v_r15_27 = v_r15_22;
+            if (local_0x38 != v_rsi_25) {
               auto ret_0x495ce30_29 = call_0x495ce30(&local_0x50, &local_0x78, &local_0xa0);
               if (ret_0x495ce30_29->field_0x8 == 0 && (ret_0x495ce30_29->field_0x0->field_0xe >> 10 & 0x1) != 0) {
                 auto local_0x128 = 0;
                 call_0x6f7000(&local_0x128, ret_0x495ce30_29->field_0x0, 13 - ret_0x495ce30_29->field_0x0->field_0xd);
               }
               auto ret_0x495ce30_31 = call_0x495ce30(&local_0x50, &local_0x78, &local_0xa0);
-              int32_t v_r14_52;
+              int32_t v_r14_40;
               if (ret_0x495ce30_31->field_0x8 == 0 && (ret_0x495ce30_31->field_0x0->field_0xe >> 10 & 0x1) != 0) {
                 auto ret_0x495ce30_34 = call_0x495ce30(&local_0x50, &local_0x88, &local_0xa0);
                 if (ret_0x495ce30_34->field_0x8 == 0 && (ret_0x495ce30_34->field_0x0->field_0xe >> 10 & 0x1) != 0) {
                   auto local_0xa0 = 0;
                   call_0x6f7000(&local_0xa0, ret_0x495ce30_34->field_0x0, 13 - ret_0x495ce30_34->field_0x0->field_0xd);
                 }
-                v_r14_52 = v_r14_33 | 0x40 | 0x2 | 0x4;
+                v_r14_40 = v_r14_26 | 0x40 | 0x2 | 0x4;
               } else {
                 auto ret_0x495ce30_32 = call_0x495ce30(&local_0x50, &local_0x108, &local_0xa0);
                 if (ret_0x495ce30_32->field_0x8 == 0 && (ret_0x495ce30_32->field_0x0->field_0xe >> 10 & 0x1) != 0) {
                   local_0xe0 = 0;
                   call_0x6f7000(&local_0xe0, ret_0x495ce30_32->field_0x0, 13 - ret_0x495ce30_32->field_0x0->field_0xd);
                 }
-                v_r14_52 = v_r14_33 | 0x40 | 0x8 | 0x10;
+                v_r14_40 = v_r14_26 | 0x40 | 0x8 | 0x10;
               }
-              int32_t v_r14_56 = v_r14_52;
-              if ((v_r14_52 & 0x10) != 0 && local_0xf8 >= 16) {
-                v_rcx_55 = local_0xe0;
-                if (local_0xf8 + 1 >= 4096) {
-                  if (local_0xe0 - local_0xe0->field_m0x8 < 8 || local_0xe0 - local_0xe0->field_m0x8 > 39) {
-                    L_0x1ddf070:
+              int32_t v_r14_44 = v_r14_40;
+              if ((v_r14_40 & 0x10) != 0) {
+                if (local_0xf8 >= 16) {
+                  void* v_rcx_43 = local_0xe0;
+                  if (local_0xf8 + 1 >= 4096) {
+                    if (local_0xe0 - local_0xe0->field_m0x8 < 8 || local_0xe0 - local_0xe0->field_m0x8 > 39) {
                     call_0x5e14580();
                     L_0x1ddf076:
                     call_0x5e14580();
+                    L_0x1ddf07c:
+                    call_0x5e14580();
+                    call_0x5e14580();
+                    }
+                  }
+                  call_0x4955ac0(v_rcx_43);
+                  v_r14_44 = v_r14_40 & 0xffffffef;
+                } else {
+                  v_r14_44 = v_r14_40 & 0xffffffef;
+                }
+              }
+              int32_t v_r14_48 = v_r14_44;
+              if ((v_r14_44 & 0x8) != 0) {
+                if (0) {
+                  void* v_rcx_47 = local_0xc0;
+                  if (0) {
+                    call_0x5e14580();
                     call_0x5e14580();
                     call_0x5e14580();
                   }
+                  call_0x4955ac0(v_rcx_47);
+                  v_r14_48 = v_r14_44 & 0xfffffff7;
+                } else {
+                  v_r14_48 = v_r14_44 & 0xfffffff7;
                 }
-                call_0x4955ac0(v_rcx_55);
-                v_r14_56 = v_r14_52 & 0xffffffef;
               }
-              v_r14_56 = v_r14_52 & 0xffffffef;
-              if ((v_r14_56 & 0x8) != 0 && 15 >= 16) {
-                v_rcx_59 = local_0xc0;
-                if (16 >= 4096) {
-                  if (local_0xc0 - local_0xc0->field_m0x8 < 8 || local_0xc0 - local_0xc0->field_m0x8 > 39) {
-                    call_0x5e14580();
-                    call_0x5e14580();
-                    call_0x5e14580();
+              if ((v_r14_48 & 0x4) != 0) {
+                if (0) {
+                  void* v_rcx_51 = 0;
+                  if (0) {
+                    if (-0->field_m0x8 < 8 || -0->field_m0x8 > 39) {
+                    goto L_0x1ddf07c;
+                    }
                   }
+                  call_0x4955ac0(v_rcx_51);
                 }
-                call_0x4955ac0(v_rcx_59);
               }
-              std::string::_Tidy_deallocate(v_rcx_63);
-              std::string::_Tidy_deallocate(v_rcx_67);
+              std::string::_Tidy_deallocate(local_0xc0);
               L_0x1ddebf9:
               call_0x4960850(&local_0xe0, 0);
               local_0xe8->vfunc_0x20(local_0xe8) // -> RBX::GroundCastShape::fn_0x2528500;
@@ -864,12 +902,9 @@ Operação  : 0x1de1945: mov/math reg, [flag] ; fn=0x1de17f0..0x1de1b6e
               local_0xe8->vfunc_0x40(local_0xe8, "urls", (0 + 4)) // -> RBX::_WDU_Mbstatet::fn_0x1d65720;
               local_0xe8->vfunc_0x20(local_0xe8) // -> RBX::GroundCastShape::fn_0x2528500;
               do { // L_0x1ddec70
-                void* v_rdx_68 = local_0x38;
-                if (local_0x38->field_0x18 >= 16) {
-                  v_rdx_68 = local_0x38->field_0x0;
-                }
-                local_0xe8->vfunc_0x40(local_0xe8, v_rdx_68, local_0x38->field_0x10, 0) // -> RBX::_WDU_Mbstatet::fn_0x1d65720;
-              } while (&local_0x38->field_0x20 != v_rsi_32); // loop -> L_0x1ddec70
+                local_0xe8->vfunc_0x40(local_0xe8, i_ebx, i_ebx->field_0x10, 0) // -> RBX::_WDU_Mbstatet::fn_0x1d65720;
+                i_ebx += 0x20;
+              } while (i_ebx != v_rsi_25); // loop -> L_0x1ddec70
               local_0xe8->vfunc_0x28(local_0xe8, 0) // -> RBX::_WDU_Mbstatet::fn_0x1d65870;
               local_0xe8->vfunc_0x40(local_0xe8, "username", (0 + 8)) // -> RBX::_WDU_Mbstatet::fn_0x1d65720;
               local_0xe8->vfunc_0x40(local_0xe8, local_0x128.c_str(), local_0x138, 0) // -> RBX::_WDU_Mbstatet::fn_0x1d65720;
@@ -884,73 +919,70 @@ Operação  : 0x1de1945: mov/math reg, [flag] ; fn=0x1de17f0..0x1de1b6e
               call_0x4955ac0(local_0xe0->field_0x10);
               call_0x4955ac0(local_0xe0->field_0x8);
               call_0x4955ac0(local_0xe0);
-              if (local_0xb8 >= 16) {
-                void* v_rcx_69 = local_0xa0;
-                call_0x4955ac0(v_rcx_69);
-              }
+              std::string::_Tidy_deallocate(local_0xa0);
               if (local_0x140 >= 16) {
-                void* v_rcx_71 = local_0x128;
-                call_0x4955ac0(v_rcx_71);
+                void* v_rcx_57 = local_0x128;
+                call_0x4955ac0(v_rcx_57);
               }
               if (local_0x38 != 0) {
                 do { // L_0x1ddeeb0
-                  call_0x6f8fb0(local_0x38);
-                } while (&local_0x38->field_0x20 != v_rsi_32); // loop -> L_0x1ddeeb0
-                void* v_r13_91 = local_0x38;
-                if ((v_r15_34 - local_0x38 & 0xffffffe0) >= 4096) {
+                  call_0x6f8fb0(i_ebx);
+                  i_ebx += 0x20;
+                } while (i_ebx != v_rsi_25); // loop -> L_0x1ddeeb0
+                void* v_r13_77 = local_0x38;
+                if ((v_r15_27 - local_0x38 & 0xffffffe0) >= 4096) {
                   if (local_0x38 - local_0x38->field_m0x8 >= 8 && local_0x38 - local_0x38->field_m0x8 <= 39) {
-                    v_r13_91 = local_0x38->field_m0x8;
-                    call_0x4955ac0(v_r13_91);
+                    v_r13_77 = local_0x38->field_m0x8;
+                    call_0x4955ac0(v_r13_77);
                     L_0x1ddeeee:
                     if (local_0x68 != 0) {
                     call_0x495d7b0(local_0x68);
+                    v_r12_78 = local_0x70;
+                    } else {
+                    v_r12_78 = local_0x70;
                     }
                     L_0x1ddefd1:
                     if (local_0x60 != 0) {
                     call_0x495ff10(local_0x60);
                     }
-                    return v_r12_92;
+                    return v_r12_78;
                   } else {
-                    v_r13_74 = local_0x38->field_m0x8;
+                    v_r13_60 = local_0x38->field_m0x8;
                     L_0x1ddf010:
                     call_0x5e14580();
-                    v_r13_84 = v_r13_74;
+                    v_r13_70 = v_r13_60;
                     call_0x12e0(&sym_0x8df58d0);
                     if (global_0x8df58d0 == -1) {
                     goto L_0x1ddf02f;
                     }
-                    if (ret_0x495ce30_14->field_0x8 == 0) {
-                    if (ret_0x495ce30_14->field_0x0->field_0xe != 4) {
-                    goto L_0x1dde538;
-                    }
-                    } else {
-                    goto L_0x1dde538;
-                    }
                   }
                 } else {
-                  call_0x4955ac0(v_r13_91);
+                  call_0x4955ac0(v_r13_77);
                   if (local_0x68 != 0) {
                     call_0x495d7b0(local_0x68);
+                    v_r12_78 = local_0x70;
+                  } else {
+                    v_r12_78 = local_0x70;
                   }
                   if (local_0x60 != 0) {
                     call_0x495ff10(local_0x60);
                   }
-                  return v_r12_92;
+                  return v_r12_78;
                 }
               } else {
                 goto L_0x1ddeeee;
               }
             } else {
-              v_r13_40 = local_0x38;
-              v_r15_42 = v_r15_34;
+              v_r13_32 = local_0x38;
+              v_r15_34 = v_r15_27;
               L_0x1ddef10:
-              if (v_r13_40 != 0) {
-                void* v_r13_46 = v_r13_40;
-                if ((v_r15_42 - v_r13_40 & 0xffffffe0) >= 4096) {
-                  if (v_r13_40 - v_r13_40->field_m0x8 >= 8 && v_r13_40 - v_r13_40->field_m0x8 <= 39) {
-                    v_r13_46 = v_r13_40->field_m0x8;
+              if (v_r13_32 != 0) {
+                void* v_r13_38 = v_r13_32;
+                if ((v_r15_34 - v_r13_32 & 0xffffffe0) >= 4096) {
+                  if (v_r13_32 - v_r13_32->field_m0x8 >= 8 && v_r13_32 - v_r13_32->field_m0x8 <= 39) {
+                    v_r13_38 = v_r13_32->field_m0x8;
                     L_0x1ddef44:
-                    call_0x4955ac0(v_r13_46);
+                    call_0x4955ac0(v_r13_38);
                     L_0x1ddef4d:
                     if (local_0x68 != 0) {
                     if (local_0x68->field_0x20 != 0) {
@@ -961,21 +993,26 @@ Operação  : 0x1de1945: mov/math reg, [flag] ; fn=0x1de17f0..0x1de1b6e
                     call_0x4955ac0(local_0x68->field_0x30);
                     call_0x495f7d0(local_0x68);
                     call_0x4955ac0(local_0x68);
+                    v_r12_78 = local_0x70;
+                    } else {
+                    v_r12_78 = local_0x70;
                     }
                     goto L_0x1ddefd1;
                   } else {
-                    v_r13_74 = v_r13_40->field_m0x8;
+                    v_r13_60 = v_r13_32->field_m0x8;
                     call_0x5e14580();
-                    v_r13_84 = v_r13_74;
+                    v_r13_70 = v_r13_60;
                     goto L_0x1ddf016;
                   }
                 } else {
-                  call_0x4955ac0(v_r13_46);
+                  call_0x4955ac0(v_r13_38);
                   if (local_0x68 != 0) {
                     if (local_0x68->field_0x20 != 0) {
                     call_0x495ff10(local_0x68->field_0x20);
                     }
                     goto L_0x1ddef65;
+                  } else {
+                    v_r12_78 = local_0x70;
                   }
                   goto L_0x1ddefd1;
                 }
@@ -984,15 +1021,15 @@ Operação  : 0x1de1945: mov/math reg, [flag] ; fn=0x1de17f0..0x1de1b6e
               }
             }
           }
-          v_r13_40 = 0.0;
-          if (v_r13_40 != 0) {
-            void* v_r13_46 = v_r13_40;
-            if ((v_r15_42 - v_r13_40 & 0xffffffe0) >= 4096) {
-              if (v_r13_40 - v_r13_40->field_m0x8 >= 8 && v_r13_40 - v_r13_40->field_m0x8 <= 39) {
-                v_r13_46 = v_r13_40->field_m0x8;
+          v_r13_32 = 0.0;
+          if (v_r13_32 != 0) {
+            void* v_r13_38 = v_r13_32;
+            if ((v_r15_34 - v_r13_32 & 0xffffffe0) >= 4096) {
+              if (v_r13_32 - v_r13_32->field_m0x8 >= 8 && v_r13_32 - v_r13_32->field_m0x8 <= 39) {
+                v_r13_38 = v_r13_32->field_m0x8;
                 goto L_0x1ddef44;
               } else {
-                v_r13_74 = v_r13_40->field_m0x8;
+                v_r13_60 = v_r13_32->field_m0x8;
                 goto L_0x1ddf010;
               }
             } else {
@@ -1002,79 +1039,74 @@ Operação  : 0x1de1945: mov/math reg, [flag] ; fn=0x1de17f0..0x1de1b6e
           goto L_0x1ddef4d;
         } else {
           auto ret_0x495ce30_8 = call_0x495ce30(&local_0x50, &local_0x78, &local_0xa0);
-          if (ret_0x495ce30_8->field_0x8 == 0 && (ret_0x495ce30_8->field_0x0->field_0xe >> 10 & 0x1) != 0) {
-            auto ret_0x495ce30_9 = call_0x495ce30(&local_0x50, &local_0x78, &local_0xa0);
-            auto ret_0x495d100_10 = call_0x495d100(ret_0x495ce30_9, &local_0xc0, &local_0xe0);
-            local_0x38 = 0.0;
-            local_0x3c = 0.0;
-            local_0x40 = 0.0;
-            local_0x44 = 0.0;
-            call_0x73f900(&local_0x38, 0, ret_0x495d100_10);
-            if (local_0xd8 >= 16) {
-              void* v_rcx_3 = local_0xc0;
-              if (local_0xd8 + 1 >= 4096) {
-                if (local_0xc0 - local_0xc0->field_m0x8 < 8 || local_0xc0 - local_0xc0->field_m0x8 > 39) {
-                  call_0x5e14580();
-                  call_0x5e14580();
-                  call_0x5e14580();
-                  goto L_0x1ddf076;
-                }
-              }
-              call_0x4955ac0(v_rcx_3);
-            }
-            if (local_0xf8 >= 16) {
-              void* v_rcx_5 = local_0xe0;
-              if (local_0xf8 + 1 >= 4096) {
-                if (local_0xe0 - local_0xe0->field_m0x8 < 8 || local_0xe0 - local_0xe0->field_m0x8 > 39) {
-                  call_0x5e14580();
-                  goto L_0x1ddf070;
-                }
-              }
-              call_0x4955ac0(v_rcx_5);
-            }
-            v_rsi_32 = local_0x40;
-            v_r15_34 = local_0x48;
-            if (local_0x38 != v_rsi_32) {
-              auto ret_0x495ce30_29 = call_0x495ce30(&local_0x50, &local_0x78, &local_0xa0);
-              if (ret_0x495ce30_29->field_0x8 == 0 && (ret_0x495ce30_29->field_0x0->field_0xe >> 10 & 0x1) != 0) {
-                auto local_0x128 = 0;
-                call_0x6f7000(&local_0x128, ret_0x495ce30_29->field_0x0, 13 - ret_0x495ce30_29->field_0x0->field_0xd);
-              }
-              auto ret_0x495ce30_31 = call_0x495ce30(&local_0x50, &local_0x78, &local_0xa0);
-              int32_t v_r14_52;
-              if (ret_0x495ce30_31->field_0x8 == 0 && (ret_0x495ce30_31->field_0x0->field_0xe >> 10 & 0x1) != 0) {
-                auto ret_0x495ce30_34 = call_0x495ce30(&local_0x50, &local_0x88, &local_0xa0);
-                if (ret_0x495ce30_34->field_0x8 == 0 && (ret_0x495ce30_34->field_0x0->field_0xe >> 10 & 0x1) != 0) {
-                  auto local_0xa0 = 0;
-                  call_0x6f7000(&local_0xa0, ret_0x495ce30_34->field_0x0, 13 - ret_0x495ce30_34->field_0x0->field_0xd);
-                }
-                v_r14_52 = v_r14_33 | 0x40 | 0x2 | 0x4;
-              } else {
-                auto ret_0x495ce30_32 = call_0x495ce30(&local_0x50, &local_0x108, &local_0xa0);
-                if (ret_0x495ce30_32->field_0x8 == 0 && (ret_0x495ce30_32->field_0x0->field_0xe >> 10 & 0x1) != 0) {
-                  if ((4096 & ret_0x495ce30_32->field_0x0->field_0xe) != 0) {
-                  } else {
+          if (ret_0x495ce30_8->field_0x8 == 0) {
+            if ((ret_0x495ce30_8->field_0x0->field_0xe >> 10 & 0x1) != 0) {
+              auto ret_0x495ce30_9 = call_0x495ce30(&local_0x50, &local_0x78, &local_0xa0);
+              auto ret_0x495d100_10 = call_0x495d100(ret_0x495ce30_9, &local_0xc0, &local_0xe0);
+              local_0x38 = 0.0;
+              local_0x3c = 0.0;
+              local_0x40 = 0.0;
+              local_0x44 = 0.0;
+              call_0x73f900(&local_0x38, 0, ret_0x495d100_10);
+              if (local_0xd8 >= 16) {
+                void* v_rcx_1 = local_0xc0;
+                if (local_0xd8 + 1 >= 4096) {
+                  if (local_0xc0 - local_0xc0->field_m0x8 < 8 || local_0xc0 - local_0xc0->field_m0x8 > 39) {
+                    call_0x5e14580();
+                    call_0x5e14580();
+                    call_0x5e14580();
+                    goto L_0x1ddf076;
                   }
-                  local_0xe0 = 0;
-                  call_0x6f7000(&local_0xe0, ret_0x495ce30_32->field_0x0, 13 - ret_0x495ce30_32->field_0x0->field_0xd);
-                } else {
                 }
-                v_r14_52 = v_r14_33 | 0x40 | 0x8 | 0x10;
+                call_0x4955ac0(v_rcx_1);
               }
-              int32_t v_r14_56 = v_r14_52;
-              std::string::_Tidy_deallocate(v_rcx_55);
-              v_r14_56 = v_r14_52 & 0xffffffef;
-              std::string::_Tidy_deallocate(v_rcx_59);
-              std::string::_Tidy_deallocate(v_rcx_63);
-              std::string::_Tidy_deallocate(v_rcx_67);
-              goto L_0x1ddebf9;
-            } else {
-              v_r13_40 = local_0x38;
-              v_r15_42 = v_r15_34;
-              goto L_0x1ddef10;
+              std::string::_Tidy_deallocate(local_0xe0);
+              v_rsi_25 = local_0x40;
+              v_r15_27 = local_0x48;
+              if (local_0x38 != v_rsi_25) {
+                auto ret_0x495ce30_29 = call_0x495ce30(&local_0x50, &local_0x78, &local_0xa0);
+                if (ret_0x495ce30_29->field_0x8 == 0 && (ret_0x495ce30_29->field_0x0->field_0xe >> 10 & 0x1) != 0) {
+                  auto local_0x128 = 0;
+                  call_0x6f7000(&local_0x128, ret_0x495ce30_29->field_0x0, 13 - ret_0x495ce30_29->field_0x0->field_0xd);
+                }
+                auto ret_0x495ce30_31 = call_0x495ce30(&local_0x50, &local_0x78, &local_0xa0);
+                int32_t v_r14_40;
+                if (ret_0x495ce30_31->field_0x8 == 0 && (ret_0x495ce30_31->field_0x0->field_0xe >> 10 & 0x1) != 0) {
+                  auto ret_0x495ce30_34 = call_0x495ce30(&local_0x50, &local_0x88, &local_0xa0);
+                  if (ret_0x495ce30_34->field_0x8 == 0 && (ret_0x495ce30_34->field_0x0->field_0xe >> 10 & 0x1) != 0) {
+                    auto local_0xa0 = 0;
+                    call_0x6f7000(&local_0xa0, ret_0x495ce30_34->field_0x0, 13 - ret_0x495ce30_34->field_0x0->field_0xd);
+                  }
+                  v_r14_40 = v_r14_26 | 0x40 | 0x2 | 0x4;
+                } else {
+                  auto ret_0x495ce30_32 = call_0x495ce30(&local_0x50, &local_0x108, &local_0xa0);
+                  if (ret_0x495ce30_32->field_0x8 == 0 && (ret_0x495ce30_32->field_0x0->field_0xe >> 10 & 0x1) != 0) {
+                    local_0xe0 = 0;
+                    call_0x6f7000(&local_0xe0, ret_0x495ce30_32->field_0x0, 13 - ret_0x495ce30_32->field_0x0->field_0xd);
+                  }
+                  v_r14_40 = v_r14_26 | 0x40 | 0x8 | 0x10;
+                }
+                int32_t v_r14_44 = v_r14_40;
+                if ((v_r14_40 & 0x10) != 0) {
+                  std::string::_Tidy_deallocate(local_0xe0);
+                }
+                int32_t v_r14_48 = v_r14_44;
+                if ((v_r14_44 & 0x8) != 0) {
+                  std::string::_Tidy_deallocate(local_0xc0);
+                }
+                if ((v_r14_48 & 0x4) != 0) {
+                  std::string::_Tidy_deallocate(0);
+                }
+                std::string::_Tidy_deallocate(local_0xc0);
+                goto L_0x1ddebf9;
+              } else {
+                v_r13_32 = local_0x38;
+                v_r15_34 = v_r15_27;
+                goto L_0x1ddef10;
+              }
             }
           }
-          v_r13_40 = 0.0;
+          v_r13_32 = 0.0;
           goto L_0x1ddef10;
         }
       } else {
@@ -1087,7 +1119,6 @@ Operação  : 0x1de1945: mov/math reg, [flag] ; fn=0x1de17f0..0x1de1b6e
           call_0x4955ac0(local_0x68->field_0x30);
           call_0x495f7d0(local_0x68);
           call_0x4955ac0(local_0x68);
-        } else {
         }
         goto L_0x1ddefd1;
       }

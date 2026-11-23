@@ -9,8 +9,8 @@ Operação  : 0x524eb04: mov/math reg, [flag] ; fn=0x524ea00..0x524ebcc
     Classe  : RBX::AvatarLoad (RTTI Resolvido)
     Padrão  : DFIntAvatarLoadTimeLayeredClothingCapMilliseconds = 10000 (default) [int, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : AvatarLoadTimeLayeredClothingCapMilliseconds / 1000.0
-    Fórmula : local_0x60 - this->field_0x158 < AvatarLoadTimeLayeredClothingCapMilliseconds / 1000.0
+    Fórmula : (double)AvatarLoadTimeLayeredClothingCapMilliseconds / 1000.0
+    Fórmula : local_0x60 - this->field_0x158 < (double)AvatarLoadTimeLayeredClothingCapMilliseconds / 1000.0
     Altera  : this->field_0x173, this->field_0x160, this->field_0x171
     [Child @0x524e5d0] Papel   : Parâmetro de configuração lido diretamente pela rotina
     [Child @0x524ebd0] Papel   : Parâmetro de configuração lido diretamente pela rotina
@@ -34,17 +34,15 @@ Operação  : 0x524eb04: mov/math reg, [flag] ; fn=0x524ea00..0x524ebcc
       auto* f_180 = this->field_0x180;
       if (f_180 != 0 && f_180->field_0x8 != 0) {
         do { // L_0x524ea40
-          if (atomic_cas(&f_180->field_0x8, f_180->field_0x8, (f_180->field_0x8 + 1)) == 0) break;
-          v_rsi_3 = 0.0;
-          break;
+          if (atomic_cas(&f_180->field_0x8, f_180->field_0x8, f_180->field_0x8 + 1) == 0) break;
         } while (f_180->field_0x8 != 0); // loop -> L_0x524ea40
-        v_rsi_3 = this->field_0x178;
+        v_rsi_3 = 0.0;
       } else {
         v_rsi_3 = 0.0;
       }
       if (v_rsi_3 != 0 && v_rsi_3->field_0x60 != 0) {
-        call_0xdccab0();
-        void* sel_r15_1 = v_rsi_3->field_0x60->field_0x18->field_0x1c0 - rax->field_0x1c0 <= rax->field_0x1c2 ? v_rsi_3->field_0x60 : 0;
+        auto ret_0xdccab0_1 = call_0xdccab0();
+        void* sel_r15_1 = v_rsi_3->field_0x60->field_0x18->field_0x1c0 - ret_0xdccab0_1->field_0x1c0 <= ret_0xdccab0_1->field_0x1c2 ? v_rsi_3->field_0x60 : 0;
         if (sel_r15_1 != 0) {
           auto ret_0x3cfdb30_2 = call_0x3cfdb30(v_rsi_3);
           void* v_rbx_6 = 0;
@@ -64,22 +62,24 @@ Operação  : 0x524eb04: mov/math reg, [flag] ; fn=0x524ea00..0x524ebcc
               v_bl_7 = 1;
             }
             call_0x495a220(&local_0x60);
-            if (this->field_0x170 != 0 && this->field_0x171 != 0 && v_bl_7 == 0) {
-              if (local_0x60 - this->field_0x158 >= AvatarLoadTimeLayeredClothingCapMilliseconds / 1000.0) {
-                this->field_0x173 = 1;
+            if (this->field_0x170 != 0 && this->field_0x171 != 0) {
+              if (v_bl_7 == 0) {
+                if (local_0x60 - this->field_0x158 >= (double)AvatarLoadTimeLayeredClothingCapMilliseconds / 1000.0) {
+                  this->field_0x173 = 1;
+                  this->field_0x160 = local_0x60;
+                  this->field_0x171 = 0;
+                  call_0x4968fd0(&this->field_0x398);
+                  if (this->field_0x170 != 0 && this->field_0x174 != 0) {
+                    call_0x524ebd0(this, this->field_0x160, 1);
+                  }
+                }
+              } else {
                 this->field_0x160 = local_0x60;
                 this->field_0x171 = 0;
                 call_0x4968fd0(&this->field_0x398);
                 if (this->field_0x170 != 0 && this->field_0x174 != 0) {
                   call_0x524ebd0(this, this->field_0x160, 1);
                 }
-              }
-            } else {
-              this->field_0x160 = local_0x60;
-              this->field_0x171 = 0;
-              call_0x4968fd0(&this->field_0x398);
-              if (this->field_0x170 != 0 && this->field_0x174 != 0) {
-                call_0x524ebd0(this, this->field_0x160, 1);
               }
             }
           } else {
@@ -227,7 +227,7 @@ Operação  : 0x524eb04: mov/math reg, [flag] ; fn=0x524ea00..0x524ebcc
     };
     
     // Flag defaults: AvatarLoadTimeLayeredClothingCapMilliseconds = 10000
-    auto RBX::AvatarLoad::func_0x524e5d0(RBX::AvatarLoad* this, int64_t param_2) {
+    auto RBX::AvatarLoad::func_0x524e5d0(RBX::AvatarLoad* this) {
       auto vret_1 = this->vfunc_0x80(this) // -> RBX::Lua::LuaArguments::fn_0x4089eb0;
       if (vret_1 != 0) {
         auto vret_2 = this->vfunc_0x90(this) // -> RBX::Collision::BlockBlockContact::fn_0x4d2c780;
@@ -400,10 +400,12 @@ Operação  : 0x524eb04: mov/math reg, [flag] ; fn=0x524ea00..0x524ebcc
       this->field_0x178 = 0;
       void* prev_0x180_1 = this->field_0x180;
       this->field_0x180 = 0;
-      if (prev_0x180_1 != 0 && atomic_fetch_sub(&this->field_0x180->field_0xc, 1) == 1) {
-        this->field_0x180->vfunc_0x8() // -> RBX::WindowsMediaPickerImpl::fn_0x5088cd0;
-      } else {
-        atomic_fetch_sub(&this->field_0x180->field_0xc, 1);
+      if (prev_0x180_1 != 0) {
+        if (atomic_fetch_sub(&this->field_0x180->field_0xc, 1) == 1) {
+          this->field_0x180->vfunc_0x8() // -> RBX::WindowsMediaPickerImpl::fn_0x5088cd0;
+        } else {
+          atomic_fetch_sub(&this->field_0x180->field_0xc, 1);
+        }
       }
       uint8_t v_al_2;
       if (this->field_0x170 != 0 && this->field_0x174 != 0) {

@@ -16,8 +16,7 @@ Operação  : 0x275fc96: cmp [flag], reg ; fn=0x275fc20..0x275fd86
     Caller @0x27600d3 (in fn_0x275fd90): call 0x275fc20  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
     Caller @0x2760358 (in fn_0x275fd90): call 0x275fc20  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
     [XREF #2 @0x2766d2e] Classe  : RBX::DebugRupp (RTTI Resolvido)
-    [XREF #2 @0x2766d2e] Fórmula : CLI56775
-    [XREF #2 @0x2766d2e] Altera  : this->field_0x358->field_0x0[rax * 8]
+    [XREF #2 @0x2766d2e] Altera  : this->field_0x358->field_0x0[atomic_fetch_add(&this->field_0x360, 1) * 8]
     [XREF #3 @0x277e5ea] Classe  : RBX::CLI221822 (RTTI Resolvido)
     [XREF #3 @0x277e5ea] Fórmula : CLI56775
   
@@ -35,15 +34,15 @@ Operação  : 0x275fc96: cmp [flag], reg ; fn=0x275fc20..0x275fd86
     auto RBX::RaknetJoin::func_0x275fc20(RBX::RaknetJoin* this, int64_t param_2) {
       call_0x2e12fd0(&this->field_0x808);
       if (this->field_0x818 != this->field_0x81c) {
-        this->field_0x818 = this->field_0x818 + 1;
+        this->field_0x818++;
         int32_t v_rax_1;
-        if (this->field_0x818 + 1 == this->field_0x820) {
+        if (this->field_0x818 == this->field_0x820) {
           this->field_0x818 = 0;
           v_rax_1 = this->field_0x820 - 1;
-        } else if (this->field_0x818 == -1) {
+        } else if (this->field_0x818 == 0) {
           v_rax_1 = this->field_0x820 - 1;
         } else {
-          v_rax_1 = this->field_0x818 + 1 - 1;
+          v_rax_1 = this->field_0x818 - 1;
         }
         auto* f_810 = this->field_0x810;
         param_2->field_0x0 = f_810->field_0x0[v_rax_1 * 8];
@@ -57,13 +56,9 @@ Operação  : 0x275fc96: cmp [flag], reg ; fn=0x275fc20..0x275fd86
           }
         }
       }
-      if (this->field_0x808 == 3) {
-        if (atomic_cas(&this->field_0x808, this->field_0x808, 1) != 0) {
-          call_0xdac0(&this->field_0x808);
-        }
-        return param_2;
+      if (this->field_0x808 != 3 || atomic_cas(&this->field_0x808, this->field_0x808, 1) != 0) {
+        call_0xdac0(&this->field_0x808);
       }
-      call_0xdac0(&this->field_0x808);
       return param_2;
     }
   
@@ -203,8 +198,6 @@ Operação  : 0x275fc96: cmp [flag], reg ; fn=0x275fc20..0x275fd86
       void* stk_4;
       void* stk_5;
       void* stk_6;
-      void* stk_7;
-      void* stk_8;
       if ((local_0x290->field_0x3 & 0x1) != 0) {
         if (Rupp >= 6 && Rupp >> 8 >= 4) {
           FLog::Log("[DFLog::Rupp] Assigning address from reverse endpoint: {} | {}");
@@ -218,276 +211,99 @@ Operação  : 0x275fc96: cmp [flag], reg ; fn=0x275fc20..0x275fd86
         stk_4 = local_0x58;
         stk_5 = local_0x5c;
         stk_6 = local_0x60;
-        stk_7 = local_0x64;
-        stk_8 = local_0x68;
       } else {
         stk_4 = param_2->field_0x0;
         stk_5 = param_2->field_0x4;
         stk_6 = param_2->field_0x8;
-        stk_7 = param_2->field_0xc;
-        stk_8 = param_2->field_0x10;
       }
       call_0x2798db0();
-      int64_t i_eax;
       if (this->field_0x7d8 != 0) {
-        i_eax = &this->field_0x63c;
+        void* i_eax = &this->field_0x63c;
+        int32_t i_edx = 0;
         do { // L_0x2766610
-          if (this->field_0x63a == global_0x81b7b3a && this->field_0x638 == global_0x81b7b38) {
-            if (this->field_0x638 == 2) {
-              if (this->field_0x63c == global_0x81b7b3c) break;
-              if (this->field_0x638 == stk_4) {
-                if (this->field_0x638 == 2) {
+          if (i_eax->field_m0x2 == global_0x81b7b3a && i_eax->field_m0x4 == global_0x81b7b38) {
+            if (i_eax->field_m0x4 == 2) {
+              if (i_eax->field_0x0 == global_0x81b7b3c) break;
+              L_0x276663c:
+              if (i_eax->field_m0x4 == stk_4) {
+                if (i_eax->field_m0x4 == 2) {
                   L_0x2766661:
-                  if (this->field_0x63c == stk_5) break;
+                  if (i_eax->field_0x0 == stk_5) break;
                   L_0x2766667:
+                  i_edx++;
+                  i_eax += 0x20;
                   L_0x2766674:
                   if (stk_4 != this->field_0x600) break;
                   if (stk_4 != 2) break;
                   break;
-                }
-                if (this->field_0x638 == 23 && this->field_0x640 == stk_6) {
-                  if (this->field_0x63c == stk_5) break;
-                }
-              }
-              if (stk_4 != this->field_0x600) break;
-              if (stk_4 != 2) break;
-              break;
-            }
-            if (this->field_0x638 == 23 && this->field_0x640 == global_0x81b7b40) {
-              if (this->field_0x63c == global_0x81b7b3c) break;
-            }
-          }
-          if (this->field_0x638 == stk_4) {
-            if (this->field_0x638 == 2) {
-              goto L_0x2766661;
-            }
-            if (this->field_0x638 == 23 && this->field_0x640 == stk_6) {
-              goto L_0x2766661;
-            }
-          }
-          goto L_0x2766667;
-        } while ((edx + 1) < 10); // loop -> L_0x2766610
-        goto L_0x2766674;
-      }
-      auto expr_1 = atomic_fetch_add(&param_4->field_0x8->field_0xc, r15) == 1;
-      if (0 < this->field_0x112) {
-        auto* f_350 = this->field_0x350;
-        do { // L_0x27667a6
-          if (f_350->field_0x0[(0 * 5280)] == 0) break;
-          if (param_4->field_0x8 == 0) break;
-          if (atomic_fetch_add(&param_4->field_0x8->field_0x8, r15) != 1) break;
-          param_4->field_0x8->vfunc_0x0(param_4->field_0x8) // -> RBX::istreambuf_iterator::fn_0x2bf50a0;
-          if (atomic_fetch_add(&param_4->field_0x8->field_0xc, r15) != 1) break;
-          param_4->field_0x8->vfunc_0x8(param_4->field_0x8) // -> RBX::dtQueryFilter::fn_0x24134b0;
-          break;
-        } while ((r8d + 1) < this->field_0x112); // loop -> L_0x27667a6
-        auto local_0x160 = stk_4;
-        auto local_0x164 = stk_5;
-        auto local_0x168 = stk_6;
-        auto local_0x16c = stk_7;
-        auto local_0x170 = stk_8;
-        auto local_0x174 = param_2->field_0x14;
-        call_0x27672d0(this, &local_0x160, 0);
-        (f_350 + (0 * 5280))->field_0x1408 = this->field_0x598;
-        (f_350 + (0 * 5280))->field_0x13f8 = local_0x268->field_0x0;
-        (f_350 + (0 * 5280))->field_0x1400 = local_0x268->field_0x8;
-        if (local_0x260 > (f_350 + (0 * 5280))->field_0x1408) {
-          (f_350 + (0 * 5280))->field_0x1408 = local_0x260;
-        }
-        (f_350 + (0 * 5280))->field_0x1430 = local_0x278;
-        (f_350 + (0 * 5280))->field_0xff8 = local_0x278;
-        auto vret_8 = this->vfunc_0x310(this) // -> RBX::PartAdornment::SurfaceSelection::fn_0x2f68850;
-        if (vret_8 != 0) {
-          void* stk_17;
-          if (local_0x288->field_0x8 == 16) {
-            if (DebugRuppTokenLogService) {
-              (f_350 + (0 * 5280))->field_0x1458 = local_0x288->field_0x0->field_0x0;
-            }
-            int32_t v_rax_16 = 0;
-            auto* f_980 = this->field_0x980;
-            if (f_980 != 0 && local_0x288->field_0x8 == 16) {
-              auto* f_66 = this->field_0x66;
-              f_66->vfunc(f_66);
-              auto local_0x38 = 0;
-              auto vret_10 = f_980->vfunc_0x8(f_980, local_0x288->field_0x0, &local_0x130, &local_0x38) // -> RBX::dtQueryFilter::fn_0x24134b0;
-              call_0x2179460(0, local_0x48, 0, vret_10);
-              v_rax_16 = vret_10 == 0 ? 0 : local_0x38;
-            }
-            stk_17 = v_rax_16;
-          } else {
-            if (DebugRuppTokenLogService) {
-              (f_350 + (0 * 5280))->field_0x1458 = 0.0;
-            }
-            stk_17 = local_0x250;
-          }
-          (f_350 + (0 * 5280))->field_0x1440 = stk_17;
-        }
-        if (local_0x40->field_0x8 != 0) {
-          local_0x40->field_0x8->field_0x8 = local_0x40->field_0x8->field_0x8 + 1;
-        }
-        ((f_350 + (0 * 5280)) + 0x188)->field_0x0 = local_0x40->field_0x0;
-        void* prev_0x8_2 = ((f_350 + (0 * 5280)) + 0x188)->field_0x8;
-        ((f_350 + (0 * 5280)) + 0x188)->field_0x8 = local_0x40->field_0x8;
-        if (prev_0x8_2 != 0 && atomic_fetch_add(&prev_0x8_2->field_0x8, r15) == 1) {
-          prev_0x8_2->vfunc_0x0(prev_0x8_2) // -> RBX::istreambuf_iterator::fn_0x2bf50a0;
-          if (atomic_fetch_add(&prev_0x8_2->field_0xc, r15) == 1) {
-            prev_0x8_2->vfunc_0x8(prev_0x8_2) // -> RBX::dtQueryFilter::fn_0x24134b0;
-          }
-        }
-        call_0x2789a70(f_350 + 0x188);
-        call_0x2789730(f_350 + 0x188);
-        auto ret_0x4959ee0_16 = call_0x4959ee0();
-        int32_t v_r8_21 = 0;
-        double fxmm0_22;
-        if (ret_0x4959ee0_16 * 1000000.0 >= global_0x75a0c28) {
-          double ftmp_1 = ret_0x4959ee0_16 * 1000000.0 - global_0x75a0c28;
-          if (ftmp_1 < global_0x75a0c28) {
-            v_r8_21 = 0x8000000000000000;
-            fxmm0_22 = ftmp_1;
-          } else {
-            fxmm0_22 = ftmp_1;
-          }
-        } else {
-          fxmm0_22 = ret_0x4959ee0_16 * 1000000.0;
-        }
-        ((f_350 + (0 * 5280)) + 0x188)->field_0xbf8->vfunc(((f_350 + (0 * 5280)) + 0x188)->field_0xbf8, (uint64_t)fxmm0_22 + v_r8_21, (f_350 + (0 * 5280))->field_0x1408 - 0x3a);
-        (f_350 + (0 * 5280))->field_0x1b0 = this->field_0x620;
-        (f_350 + (0 * 5280))->field_0x1b8 = this->field_0x624 * 1000;
-        (f_350 + (0 * 5280))->field_0x340 = this->field_0x5e4;
-        (f_350 + (0 * 5280))->field_0x348 = this->field_0x9a8;
-        this->field_0x358->field_0x0[rax * 8] = f_350;
-        if (param_4->field_0x8 != 0) {
-          param_4->field_0x8->field_0x8 = param_4->field_0x8->field_0x8 + 1;
-        }
-        (f_350 + (0 * 5280))->field_0x1418 = param_4->field_0x0;
-        void* prev_0x1420_3 = (f_350 + (0 * 5280))->field_0x1420;
-        (f_350 + (0 * 5280))->field_0x1420 = param_4->field_0x8;
-        if (prev_0x1420_3 != 0 && atomic_fetch_add(&prev_0x1420_3->field_0x8, r15) == 1) {
-          prev_0x1420_3->vfunc_0x0(prev_0x1420_3) // -> RBX::istreambuf_iterator::fn_0x2bf50a0;
-          if (atomic_fetch_add(&prev_0x1420_3->field_0xc, r15) == 1) {
-            prev_0x1420_3->vfunc_0x8(prev_0x1420_3) // -> RBX::dtQueryFilter::fn_0x24134b0;
-          }
-        }
-        do { // L_0x2766c10
-          i_eax->field_m0x18 = 65535;
-          i_eax->field_m0x10 = 0;
-          i_eax->field_m0x8 = 65535;
-          i_eax->field_0x0 = 0;
-          i_eax->field_0x8 = 65535;
-          i_eax->field_0x10 = 0;
-          i_eax->field_0x18 = 65535;
-          i_eax->field_0x20 = 0;
-          i_eax->field_0x28 = 65535;
-          i_eax->field_0x30 = 0;
-          ((f_350 + (0 * 5280)) + 0x12e8)->field_0x0 = 0;
-        } while ((4 - 1) != 0); // loop -> L_0x2766c10
-        (f_350 + (0 * 5280))->field_0x149c = 6;
-        (f_350 + (0 * 5280))->field_0x1388 = 0;
-        (f_350 + (0 * 5280))->field_0x1 = 0;
-        (f_350 + (0 * 5280))->field_0x13e8 = local_0x50;
-        (f_350 + (0 * 5280))->field_0x13e0 = local_0x50;
-        if ((local_0x278 & 0x80) == 0) {
-          (f_350 + (0 * 5280))->field_0x13f0 = local_0x50;
-        }
-        (f_350 + (0 * 5280))->field_0x1390 = local_0x50;
-        (f_350 + (0 * 5280))->field_0x13a0 = local_0x50;
-        (f_350 + (0 * 5280))->field_0x1398 = local_0x50;
-        (f_350 + (0 * 5280))->field_0x13a8 = local_0x50;
-        (f_350 + (0 * 5280))->field_0x13b0 = local_0x50;
-        (f_350 + (0 * 5280))->field_0x13b8 = local_0x50;
-        (f_350 + (0 * 5280))->field_0x13c0 = local_0x50;
-        (f_350 + (0 * 5280))->field_0x13c8 = local_0x50;
-        (f_350 + (0 * 5280))->field_0x13d8 = local_0x50;
-        (f_350 + (0 * 5280))->field_0x1470 = 0;
-        (f_350 + (0 * 5280))->field_0x1478 = 0;
-        (f_350 + (0 * 5280))->field_0x1448 = 0;
-        void* prev_0x1450_4 = (f_350 + (0 * 5280))->field_0x1450;
-        (f_350 + (0 * 5280))->field_0x1450 = 0;
-        if (prev_0x1450_4 != 0 && atomic_fetch_add(&prev_0x1450_4->field_0x8, r15) == 1) {
-          prev_0x1450_4->vfunc_0x0(prev_0x1450_4) // -> RBX::istreambuf_iterator::fn_0x2bf50a0;
-          if (atomic_fetch_add(&prev_0x1450_4->field_0xc, r15) == 1) {
-            prev_0x1450_4->vfunc_0x8(prev_0x1450_4) // -> RBX::dtQueryFilter::fn_0x24134b0;
-          } else {
-            atomic_fetch_add(&prev_0x1450_4->field_0xc, r15);
-          }
-        } else {
-          atomic_fetch_add(&prev_0x1450_4->field_0x8, r15);
-        }
-        (f_350 + (0 * 5280))->field_0x1498 = 0;
-        if (CLI56775) {
-          if (this->field_0x808 == 1) {
-            if (atomic_cas(&this->field_0x808, this->field_0x808, 3) != 0) {
-              if ((this->field_0x808 & 0x1) != 0) {
-                auto local_0x1d0 = param_4;
-                auto ret_0xd6e0_22 = call_0xd6e0(&local_0x1d0, "RSL::Mutex", 0);
-                call_0xd710(ret_0xd6e0_22, 0);
-                auto i_r14d = this->field_0x808;
-                L_0x2766d90:
-                do { // L_0x2766d90
-                  L_0x2766d90:
-                  atomic_try_incref(&this->field_0x808);
-                  if (atomic_cas(&this->field_0x808, i_r14d, local_0x1d0) == 0) break;
-                  auto local_0x1d8 = local_0x1d0;
-                  call_0xdac0(&local_0x1d8);
-                  call_0xcca0(&local_0x1d8);
+                } else if (i_eax->field_m0x4 == 23 && i_eax->field_0x4 == stk_6) {
+                  if (i_eax->field_0x0 == stk_5) break;
+                  i_edx++;
+                  i_eax += 0x20;
+                  if (stk_4 != this->field_0x600) break;
+                  if (stk_4 != 2) break;
                   break;
-                } while ((i_r14d & 0x1) != 0); // loop -> L_0x2766d90
-                if (i_r14d != 1) {
-                  L_0x2766dd7:
-                  call_0xd8a0(&this->field_0x808, 0);
+                } else {
+                  goto L_0x2766667;
                 }
               } else {
-                call_0xd8a0(&this->field_0x808, 0);
+                goto L_0x2766667;
               }
-            }
-          } else {
-            if ((this->field_0x808 & 0x1) != 0) {
-              auto local_0x1d0 = param_4;
-              auto ret_0xd6e0_22 = call_0xd6e0(&local_0x1d0, "RSL::Mutex", 0);
-              call_0xd710(ret_0xd6e0_22, 0);
-              auto i_r14d = this->field_0x808;
-              goto L_0x2766d90;
+            } else if (i_eax->field_m0x4 == 23 && i_eax->field_0x4 == global_0x81b7b40) {
+              if (i_eax->field_0x0 == global_0x81b7b3c) break;
+              if (i_eax->field_m0x4 == stk_4) {
+                if (i_eax->field_m0x4 == 2) {
+                  goto L_0x2766661;
+                } else if (i_eax->field_m0x4 == 23 && i_eax->field_0x4 == stk_6) {
+                  goto L_0x2766661;
+                } else {
+                  goto L_0x2766667;
+                }
+              } else {
+                goto L_0x2766667;
+              }
             } else {
-              goto L_0x2766dd7;
-            }
-          }
-          call_0x2783340(&this->field_0x828, &local_0x150, &local_0x160);
-          if (this->field_0x808 == 3) {
-            if (atomic_cas(&this->field_0x808, 3, 1) != 0) {
-              call_0xdac0(&this->field_0x808);
+              goto L_0x276663c;
             }
           } else {
-            call_0xdac0(&this->field_0x808);
+            goto L_0x276663c;
           }
+        } while (i_edx < 10); // loop -> L_0x2766610
+        goto L_0x2766674;
+      } else {
+        if (0 < this->field_0x112) {
+          do { // L_0x27667a6
+            if (this->field_0x350->field_0x0[i_r8d * 5280] == 0) break;
+            i_r8d++;
+          } while (i_r8d < this->field_0x112); // loop -> L_0x27667a6
+          if (param_4->field_0x8 != 0 && atomic_fetch_sub(&param_4->field_0x8->field_0x8, 1) == 1) {
+            param_4->field_0x8->vfunc_0x0(param_4->field_0x8) // -> RBX::istreambuf_iterator::fn_0x2bf50a0;
+            if (atomic_fetch_sub(&param_4->field_0x8->field_0xc, 1) == 1) {
+              param_4->field_0x8->vfunc_0x8(param_4->field_0x8) // -> RBX::dtQueryFilter::fn_0x24134b0;
+            }
+          }
+          if (local_0x280->field_0x8 != 0 && atomic_fetch_sub(&local_0x280->field_0x8->field_0x8, 1) == 1) {
+            local_0x280->field_0x8->vfunc_0x0(local_0x280->field_0x8) // -> RBX::istreambuf_iterator::fn_0x2bf50a0;
+            if (atomic_fetch_sub(&local_0x280->field_0x8->field_0xc, 1) == 1) {
+              local_0x280->field_0x8->vfunc_0x8(local_0x280->field_0x8) // -> RBX::dtQueryFilter::fn_0x24134b0;
+            }
+          }
+          return 0;
         }
-        if (param_4->field_0x8 != 0 && atomic_fetch_add(&param_4->field_0x8->field_0x8, r15) == 1) {
+        if (param_4->field_0x8 != 0 && atomic_fetch_sub(&param_4->field_0x8->field_0x8, 1) == 1) {
           param_4->field_0x8->vfunc_0x0(param_4->field_0x8) // -> RBX::istreambuf_iterator::fn_0x2bf50a0;
-          if expr_1 {
+          if (atomic_fetch_sub(&param_4->field_0x8->field_0xc, 1) == 1) {
             param_4->field_0x8->vfunc_0x8(param_4->field_0x8) // -> RBX::dtQueryFilter::fn_0x24134b0;
           }
         }
-        if (local_0x40->field_0x8 != 0 && atomic_fetch_add(&local_0x40->field_0x8->field_0x8, r15) == 1) {
-          local_0x40->field_0x8->vfunc_0x0(local_0x40->field_0x8) // -> RBX::istreambuf_iterator::fn_0x2bf50a0;
-          if (atomic_fetch_add(&local_0x40->field_0x8->field_0xc, r15) == 1) {
-            local_0x40->field_0x8->vfunc_0x8(local_0x40->field_0x8) // -> RBX::dtQueryFilter::fn_0x24134b0;
-            return f_350;
+        if (local_0x280->field_0x8 != 0 && atomic_fetch_sub(&local_0x280->field_0x8->field_0x8, 1) == 1) {
+          local_0x280->field_0x8->vfunc_0x0(local_0x280->field_0x8) // -> RBX::istreambuf_iterator::fn_0x2bf50a0;
+          if (atomic_fetch_sub(&local_0x280->field_0x8->field_0xc, 1) == 1) {
+            local_0x280->field_0x8->vfunc_0x8(local_0x280->field_0x8) // -> RBX::dtQueryFilter::fn_0x24134b0;
           }
         }
-        return f_350;
+        return 0;
       }
-      if (param_4->field_0x8 != 0 && atomic_fetch_add(&param_4->field_0x8->field_0x8, r15) == 1) {
-        param_4->field_0x8->vfunc_0x0(param_4->field_0x8) // -> RBX::istreambuf_iterator::fn_0x2bf50a0;
-        if expr_1 {
-          param_4->field_0x8->vfunc_0x8(param_4->field_0x8) // -> RBX::dtQueryFilter::fn_0x24134b0;
-        }
-      }
-      if (local_0x280->field_0x8 != 0 && atomic_fetch_add(&local_0x280->field_0x8->field_0x8, r15) == 1) {
-        local_0x280->field_0x8->vfunc_0x0(local_0x280->field_0x8) // -> RBX::istreambuf_iterator::fn_0x2bf50a0;
-        if (atomic_fetch_add(&local_0x280->field_0x8->field_0xc, r15) == 1) {
-          local_0x280->field_0x8->vfunc_0x8(local_0x280->field_0x8) // -> RBX::dtQueryFilter::fn_0x24134b0;
-        }
-      }
-      return 0;
     }
   
   === [Instrucoes x86-64 do XREF Runtime #2 (0x27663a0..0x2766ec3)] ===
@@ -520,7 +336,7 @@ Operação  : 0x275fc96: cmp [flag], reg ; fn=0x275fc20..0x275fd86
     0x2766415 | 0f 11 45 60              | movups xmmword ptr [rbp + 0x60], xmm0
     0x2766419 | 0f 28 4a 10              | movaps xmm1, xmmword ptr [rdx + 0x10]
     0x276641d | 0f 11 4d 70              | movups xmmword ptr [rbp + 0x70], xmm1
-    0x2766421 | 49 c7 c7 ff ff ff ff     | mov r15, 0xffffffff
+    0x2766421 | 49 c7 c7 ff ff ff ff     | mov r15, -0x1
     0x2766428 | 41 be ff ff 00 00        | mov r14d, 0xffff
     0x276642e | f6 43 03 01              | test byte ptr [rbx + 0x3], 0x1
     0x2766432 | 0f 84 24 01 00 00        | je 0x276655c
@@ -966,7 +782,7 @@ Operação  : 0x275fc96: cmp [flag], reg ; fn=0x275fc20..0x275fd86
     0x2766ace | e8 0d 34 1f 02           | call 0x4959ee0
     0x2766ad3 | f2 0f 59 05 d5 9c e3 04  | mulsd xmm0, qword ptr [rip + 0x4e39cd5] ; 1000000.0
     0x2766adb | 45 33 c0                 | xor r8d, r8d
-    0x2766ade | f2 0f 10 0d 42 a1 e3 04  | movsd xmm1, qword ptr [rip + 0x4e3a142]
+    0x2766ade | f2 0f 10 0d 42 a1 e3 04  | movsd xmm1, qword ptr [rip + 0x4e3a142] ; 9.22337e+18
     0x2766ae6 | 66 0f 2f c1              | comisd xmm0, xmm1
     0x2766aea | 72 17                    | jb 0x2766b03
     0x2766aec | f2 0f 5c c1              | subsd xmm0, xmm1
@@ -1233,10 +1049,11 @@ Operação  : 0x275fc96: cmp [flag], reg ; fn=0x275fc20..0x275fd86
     
     // Flag defaults: CLI221822 = false, CLI56775 = true, CLI222117 = false, RakNetMemorySubScopes = false
     void RBX::CLI221822::func_0x277e510(RBX::CLI221822* this) {
+      auto local_0x50 = local_0x50 | 0x1;
       call_0x2964930(&local_0x50);
       if ((global_0x88b9080 & 0xfffffffc & 0xfffffff8) != 0) {
         void* sel_rdx_1 = (global_0x88b9080 >> 1 & 0x1) == 0 ? global_0x88b9068 : sym_0x88b9068;
-        &local_0x2a8->vfunc(&local_0x2a8, sel_rdx_1);
+        ((global_0x88b9080 & 0xfffffff8))->vfunc_0x0(&local_0x2a8, sel_rdx_1) // -> RBX::istreambuf_iterator::fn_0x2bf50a0;
       }
       if (CLI56775) {
         auto ret_0x2963eb0_3 = call_0x2963eb0(&local_0x50, "MaxBytesReturnQueue", 0);
@@ -1375,30 +1192,17 @@ Operação  : 0x275fc96: cmp [flag], reg ; fn=0x275fc20..0x275fd86
       int64_t local_0x30;
       if ((local_0x50 & 0xfffffffe) != 0) {
         auto ret_0x6fd950_57 = call_0x6fd950(32);
-        ret_0x6fd950_57->field_0x0 = "RakNetRxBytesInQueueStats";
-        ret_0x6fd950_57->field_0x10 = "ueueStats";
+        memcpy(ret_0x6fd950_57, "RakNetRxBytesInQueueStats", 25);
         ret_0x6fd950_57->field_0x18 = global_0x72e7910;
         local_0x30 = ret_0x6fd950_57;
         call_0x2963230(&local_0x50, &local_0x30, 10000, 1);
-        std::string::_Tidy_deallocate(v_rcx_5);
+        std::string::_Tidy_deallocate(local_0x30);
       }
       if (local_0x2b0 != 0) {
         call_0x6daf40(local_0x2b0);
       }
-      if (global_0x75ac990 >= 16) {
-        void* v_rcx_6 = 0;
-        if (global_0x75ac990 + 1 >= 0x1000 && -0->field_m0x8 < 8 || -0->field_m0x8 > 39) {
-          call_0x5e14580();
-        }
-        call_0x4955ac0(v_rcx_6);
-      }
-      if (global_0x75ac990 >= 16) {
-        void* v_rcx_8 = 0;
-        if (global_0x75ac990 + 1 >= 0x1000 && -0->field_m0x8 < 8 || -0->field_m0x8 > 39) {
-          call_0x5e14580();
-        }
-        call_0x4955ac0(v_rcx_8);
-      }
+      std::string::_Tidy_deallocate(0);
+      std::string::_Tidy_deallocate(0);
       call_0x732520(&local_0x50);
       if ((local_0x50 & 0x1) == 0) {
         call_0x4955ac0(local_0x58);

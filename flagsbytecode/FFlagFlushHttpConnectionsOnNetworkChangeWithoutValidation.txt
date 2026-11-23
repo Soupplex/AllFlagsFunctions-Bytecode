@@ -20,7 +20,8 @@ Operação  : 0x2b8e5cc: cmp [flag], reg ; fn=0x2b8e570..0x2b8e787
     this->field_0xa18 (offset +0xa18) <- FFlagUseConnectivityV2HttpRecoveryBridge = false (@0x2b8e5b7)
     [Child @0x2b98cd0] Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
     [XREF #2 @0x2b992e9] Classe  : RBX::FlushHttp (RTTI Resolvido)
-    [XREF #2 @0x2b992e9] Altera  : this->field_0xa14, this->field_0xa70
+    [XREF #2 @0x2b992e9] Fórmula : !FlushHttpConnectionsOnNetworkChangeWithoutValidation
+    [XREF #2 @0x2b992e9] Altera  : this->field_0xa20, this->field_0xa14, this->field_0xa28, this->field_0xa18, this->field_0xa70
   
   === [Decompilacao C++ da Funcao 0x2b8e570..0x2b8e787] ===
     struct RBX::HttpTrace {
@@ -33,58 +34,45 @@ Operação  : 0x2b8e5cc: cmp [flag], reg ; fn=0x2b8e570..0x2b8e787
     // Flag defaults: HttpTraceNew = 6, UseConnectivityV2HttpRecoveryBridge = false, FlushHttpConnectionsOnNetworkChangeWithoutValidation = false
     void RBX::HttpTrace::func_0x2b8e570(RBX::HttpTrace* this, int64_t param_2) {
       auto prev_0xa14_1 = this->field_0xa14;
-      this->field_0xa14 = this;
+      this->field_0xa14 = -1;
       int32_t v_rbx_2 = prev_0xa14_1;
       if (global_0x84a44d6 != 0 && UseConnectivityV2HttpRecoveryBridge) {
         auto prev_0xa18_2 = this->field_0xa18;
         this->field_0xa18 = 0;
-        int32_t v_rax_1 = 0;
+        uint8_t v_al_1 = 0;
         if (!FlushHttpConnectionsOnNetworkChangeWithoutValidation && prev_0xa18_2 != 0 && this->field_0xa20 != 0) {
-          int32_t selected_eax_1 = this->field_0xa28 == this->field_0xa20 ? this + 2 : 0;
-          v_rax_1 = selected_eax_1;
+          v_al_1 = this->field_0xa28 == this->field_0xa20;
         }
-        auto expr_1 = "[DFLog::HttpTraceNew] workerThreadProcessNetworkChange: processing deferred network change on HT";
-        auto expr_2 = atomic_cas(&param_2->field_0x0->field_0x0, param_2->field_0x0->field_0x0, this + 2) != 0;
-        if (prev_0xa14_1 == this) {
-          if (v_rax_1 != 0) {
-            v_rbx_2 = this + 2;
+        if (prev_0xa14_1 == -1) {
+          if (v_al_1 != 0) {
+            v_rbx_2 = 1;
             L_0x2b8e609:
             if (HttpTraceNew >= 6 && HttpTraceNew >> 8 >= 3) {
-              FLog::Log(expr_1);
+              FLog::Log("[DFLog::HttpTraceNew] workerThreadProcessNetworkChange: processing deferred network change on HT");
             }
-            if (param_2->field_0x0->field_0x0 == 3) {
-              if expr_2 {
-                L_0x2b8e745:
-                call_0xdac0(param_2->field_0x0);
-              }
-            } else {
+            if (param_2->field_0x0->field_0x0 != 3 || atomic_cas(&param_2->field_0x0->field_0x0, param_2->field_0x0->field_0x0, 1) != 0) {
               call_0xdac0(param_2->field_0x0);
             }
             call_0x2b98cd0(this, v_rbx_2);
             call_0x2e12fd0(param_2->field_0x0);
-            param_2->field_0x8 = this + 2;
+            param_2->field_0x8 = 1;
             return;
           }
           return;
         }
         if (HttpTraceNew >= 6 && HttpTraceNew >> 8 >= 3) {
-          FLog::Log(expr_1);
+          FLog::Log("[DFLog::HttpTraceNew] workerThreadProcessNetworkChange: processing deferred network change on HT");
         }
-        if (param_2->field_0x0->field_0x0 == 3) {
-          if expr_2 {
-            goto L_0x2b8e745;
-          }
-        } else {
-          goto L_0x2b8e745;
+        if (param_2->field_0x0->field_0x0 != 3 || atomic_cas(&param_2->field_0x0->field_0x0, param_2->field_0x0->field_0x0, 1) != 0) {
+          call_0xdac0(param_2->field_0x0);
         }
         call_0x2b98cd0(this, v_rbx_2);
         call_0x2e12fd0(param_2->field_0x0);
-        param_2->field_0x8 = this + 2;
+        param_2->field_0x8 = 1;
         return;
-      } else {
-        if (prev_0xa14_1 != this) {
-          goto L_0x2b8e609;
-        }
+      }
+      if (prev_0xa14_1 != -1) {
+        goto L_0x2b8e609;
       }
     }
   
@@ -99,7 +87,7 @@ Operação  : 0x2b8e5cc: cmp [flag], reg ; fn=0x2b8e570..0x2b8e787
     0x2b8e589 | 48 89 84 24 b0 00 00 00  | mov qword ptr [rsp + 0xb0], rax
     0x2b8e591 | 8b 99 14 0a 00 00        | mov ebx, dword ptr [rcx + 0xa14]
     0x2b8e597 | 48 8b f9                 | mov rdi, rcx
-    0x2b8e59a | 48 c7 c1 ff ff ff ff     | mov rcx, 0xffffffff
+    0x2b8e59a | 48 c7 c1 ff ff ff ff     | mov rcx, -0x1
     0x2b8e5a1 | 32 c0                    | xor al, al
     0x2b8e5a3 | 38 05 2d 5f 91 05        | cmp byte ptr [rip + 0x5915f2d], al
     0x2b8e5a9 | 48 8b f2                 | mov rsi, rdx
@@ -240,18 +228,13 @@ Operação  : 0x2b8e5cc: cmp [flag], reg ; fn=0x2b8e570..0x2b8e787
         auto ret_0x2bebc20_1 = call_0x2bebc20();
         if (ret_0x2bebc20_1 == 0) {
           if (f_30 != 0) {
-            f_30->field_0x8 = f_30->field_0x8 + 1;
+            f_30->field_0x8++;
           }
           if (f_28 != 0) {
             call_0x2e12fd0(&f_28->field_0x20);
             auto ret_0x2bfd710_3 = call_0x2bfd710(f_28->field_0x38, 17, 1);
             call_0x2bd6e00("CURLMOPT_NETWORK_CHANGED", ret_0x2bfd710_3, 1);
-            if (f_28->field_0x20 == 3) {
-              if (atomic_cas(&f_28->field_0x20, f_28->field_0x20, 1) != 0) {
-                L_0x2b98e95:
-                call_0xdac0(&f_28->field_0x20);
-              }
-            } else {
+            if (f_28->field_0x20 != 3 || atomic_cas(&f_28->field_0x20, f_28->field_0x20, 1) != 0) {
               call_0xdac0(&f_28->field_0x20);
             }
           }
@@ -261,18 +244,14 @@ Operação  : 0x2b8e5cc: cmp [flag], reg ; fn=0x2b8e570..0x2b8e787
         }
       } else {
         if (f_30 != 0) {
-          f_30->field_0x8 = f_30->field_0x8 + 1;
+          f_30->field_0x8++;
         }
         if (f_28 != 0) {
           call_0x2e12fd0(&f_28->field_0x20);
           auto ret_0x2bfd710_3 = call_0x2bfd710(f_28->field_0x38, 17, 1);
           call_0x2bd6e00("CURLMOPT_NETWORK_CHANGED", ret_0x2bfd710_3, 1);
-          if (f_28->field_0x20 == 3) {
-            if (atomic_cas(&f_28->field_0x20, f_28->field_0x20, 1) != 0) {
-              goto L_0x2b98e95;
-            }
-          } else {
-            goto L_0x2b98e95;
+          if (f_28->field_0x20 != 3 || atomic_cas(&f_28->field_0x20, f_28->field_0x20, 1) != 0) {
+            call_0xdac0(&f_28->field_0x20);
           }
         }
         if (f_30 != 0) {
@@ -282,13 +261,9 @@ Operação  : 0x2b8e5cc: cmp [flag], reg ; fn=0x2b8e570..0x2b8e787
       call_0x2e12fd0(&this->field_0xb8);
       auto* f_c8 = this->field_0xc8;
       if (f_c8 != 0) {
-        f_c8->field_0x8 = f_c8->field_0x8 + 1;
+        f_c8->field_0x8++;
       }
-      if (this->field_0xb8 == 3) {
-        if (atomic_cas(&this->field_0xb8, this->field_0xb8, 1) != 0) {
-          call_0xdac0(&this->field_0xb8);
-        }
-      } else {
+      if (this->field_0xb8 != 3 || atomic_cas(&this->field_0xb8, this->field_0xb8, 1) != 0) {
         call_0xdac0(&this->field_0xb8);
       }
       if (this->field_0xc0 != 0) {
@@ -346,7 +321,7 @@ Operação  : 0x2b8e5cc: cmp [flag], reg ; fn=0x2b8e570..0x2b8e787
     L_0x2b98d82:
     0x2b98d82 | 48 89 44 24 30           | mov qword ptr [rsp + 0x30], rax
     0x2b98d87 | 48 89 4d b7              | mov qword ptr [rbp - 0x49], rcx
-    0x2b98d8b | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x2b98d8b | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     L_0x2b98d92:
     0x2b98d92 | 48 ff c0                 | inc rax
     0x2b98d95 | 80 3c 01 00              | cmp byte ptr [rcx + rax], 0x0
@@ -476,179 +451,66 @@ Operação  : 0x2b8e5cc: cmp [flag], reg ; fn=0x2b8e570..0x2b8e787
     0x2b98f51 | 5d                       | pop rbp
     0x2b98f52 | c3                       | ret
   
-  === [Decompilacao C++ do XREF Runtime #2: 0x2b98f60..0x2b993b8 (insn @0x2b992e9: cmp byte [flag], imm8)] ===
+  === [Decompilacao C++ do XREF Runtime #2: 0x2b99180..0x2b993b8 (insn @0x2b992e9: cmp byte [flag], imm8)] ===
     struct RBX::FlushHttp {
-      /* +0x20 */ void*   field_0x20;
-      /* +0x28 */ void*   field_0x28;
-      /* +0xa14 */ int32_t field_0xa14;
+      /* +0xa14 */ uint8_t field_0xa14;
+      /* +0xa18 */ uint8_t field_0xa18;
+      /* +0xa20 */ uint8_t field_0xa20;
+      /* +0xa28 */ uint8_t field_0xa28;
       /* +0xa70 */ uint8_t field_0xa70;
     };
     
-    // Flag defaults: FlushHttpConnectionsOnNetworkChangeWithoutValidation = false, HttpTraceNew = 6, DebugHttpRequestSecondaryImpl = false
-    void RBX::FlushHttp::func_0x2b98f60(RBX::FlushHttp* this, int64_t param_2) {
-      if (HttpTraceNew >= 6) {
-        if (HttpTraceNew >> 8 >= 3) {
-          FLog::Log("[DFLog::HttpTraceNew] deferring network change to worker thread, reason: {} (called from non-wor");
+    // Flag defaults: FlushHttpConnectionsOnNetworkChangeWithoutValidation = false, HttpTraceNew = 6, UseConnectivityV2HttpRecoveryBridge = false, DebugHttpRequestSecondaryImpl = false
+    void RBX::FlushHttp::func_0x2b99180(RBX::FlushHttp* this, void* param_3, void* param_4) {
+      if (param_4 != 0) {
+        if (HttpTraceNew >= 6 && HttpTraceNew >> 8 >= 3) {
+          "[DFLog::HttpTraceNew] deferring connectivity update to worker thread, reason: {}, generation: {}";
+          call_0x4971cd0(&frame_m0x40, 3, &frame_m0x50, &local_0x30);
         }
-        call_0x2e12fd0(&this->field_0x20);
-        this->field_0xa14 = param_2;
+      } else {
+        call_0x4971cd0(&frame_m0x40, 3, &frame_m0x50, &local_0x30);
+      }
+      call_0x2e12fd0(this + 0x20);
+      if (this->field_0xa30 != 0) {
+        if ((1 & param_4) != 0 && param_3 > this->field_0xa20) {
+          this->field_0xa20 = param_3;
+          if (UseConnectivityV2HttpRecoveryBridge && FlushHttpConnectionsOnNetworkChangeWithoutValidation) {
+            this->field_0xa14 = 1;
+          }
+        }
+        if ((param_4 & 0x2) != 0 && param_3 > this->field_0xa28) {
+          this->field_0xa28 = param_3;
+        }
+        this->field_0xa18 = 1;
         auto* f_28 = this->field_0x28;
         auto* f_28_38 = f_28->field_0x38;
         if (global_0x84a44d6 != 0 && DebugHttpRequestSecondaryImpl) {
-          auto ret_0x2bebc20_2 = call_0x2bebc20();
-          if (ret_0x2bebc20_2 != 0) {
+          auto ret_0x2bebc20_3 = call_0x2bebc20();
+          if (ret_0x2bebc20_3 != 0) {
             this->field_0xa70 = 1;
-            L_0x2b99126:
-            call_0xd150(&this->field_0xa68, param_2);
+            L_0x2b99361:
+            call_0xd150(this + 0xa68, param_2);
           } else {
             if (f_28 != 0) {
               if (f_28_38 != 0 && f_28_38->field_0x0 == 764702) {
                 f_28_38->field_0x2c8->vfunc(f_28_38->field_0x2c8);
               }
-              call_0xd150(&this->field_0xa68, param_2);
+              call_0xd150(this + 0xa68, param_2);
             }
           }
         } else if (f_28 != 0) {
           if (f_28_38 != 0 && f_28_38->field_0x0 == 764702) {
             f_28_38->field_0x2c8->vfunc(f_28_38->field_0x2c8);
           }
-          goto L_0x2b99126;
+          goto L_0x2b99361;
         }
-        if (this->field_0x20 == 3) {
-          if (atomic_cas(&this->field_0x20, this->field_0x20, 1) != 0) {
-            call_0xdac0(&this->field_0x20);
-          }
-        } else {
-          call_0xdac0(&this->field_0x20);
-        }
+      }
+      if ((this + 0x20)->field_0x0 != 3 || atomic_cas(&(this + 0x20)->field_0x0, (this + 0x20)->field_0x0, 1) != 0) {
+        call_0xdac0(this + 0x20);
       }
     }
   
-  === [Instrucoes x86-64 do XREF Runtime #2 (0x2b98f60..0x2b993b8)] ===
-    0x2b98f60 | 48 89 5c 24 10           | mov qword ptr [rsp + 0x10], rbx
-    0x2b98f65 | 48 89 74 24 18           | mov qword ptr [rsp + 0x18], rsi
-    0x2b98f6a | 57                       | push rdi
-    0x2b98f6b | 48 81 ec d0 00 00 00     | sub rsp, 0xd0
-    0x2b98f72 | 48 8b 05 67 f7 53 05     | mov rax, qword ptr [rip + 0x553f767]
-    0x2b98f79 | 48 33 c4                 | xor rax, rsp
-    0x2b98f7c | 48 89 84 24 c0 00 00 00  | mov qword ptr [rsp + 0xc0], rax
-    0x2b98f84 | 8b f2                    | mov esi, edx
-    0x2b98f86 | 48 8b f9                 | mov rdi, rcx
-    0x2b98f89 | 48 8b 05 40 eb 56 05     | mov rax, qword ptr [rip + 0x556eb40] ; DFLogHttpTraceNew
-    0x2b98f90 | 3c 06                    | cmp al, 0x6
-    0x2b98f92 | 0f 82 c2 01 00 00        | jb 0x2b9915a ; [Nanomite Reconstructed: jb +0x1c2 via flog_level_guard_jb_resolver]
-    0x2b98f98 | 48 c1 e8 08              | shr rax, 0x8
-    0x2b98f9c | 3c 03                    | cmp al, 0x3
-    0x2b98f9e | 0f 82 14 01 00 00        | jb 0x2b990b8
-    0x2b98fa4 | 48 8d 05 0b ee 69 08     | lea rax, [rip + 0x869ee0b] ; "[DFLog::HttpTraceNew] deferring network change to worker thread, reason: {} (called from non-wor"
-    0x2b98fab | 48 89 84 24 b0 00 00 00  | mov qword ptr [rsp + 0xb0], rax
-    0x2b98fb3 | 48 8b 8c 24 b0 00 00 00  | mov rcx, qword ptr [rsp + 0xb0]
-    0x2b98fbb | 48 81 c1 3a ab 10 fc     | add rcx, 0xfc10ab3a
-    0x2b98fc2 | 83 fa ff                 | cmp edx, -0x1
-    0x2b98fc5 | 74 3f                    | je 0x2b99006
-    0x2b98fc7 | 85 d2                    | test edx, edx
-    0x2b98fc9 | 74 29                    | je 0x2b98ff4
-    0x2b98fcb | 83 fa 01                 | cmp edx, 0x1
-    0x2b98fce | 74 12                    | je 0x2b98fe2
-    0x2b98fd0 | 48 8d 05 11 1c 60 04     | lea rax, [rip + 0x4601c11] ; "Unknown"
-    0x2b98fd7 | 48 c7 44 24 38 07 00 00.. | mov qword ptr [rsp + 0x38], 0x7
-    0x2b98fe0 | eb 34                    | jmp 0x2b99016
-    L_0x2b98fe2:
-    0x2b98fe2 | 48 8d 05 c7 c0 7a 04     | lea rax, [rip + 0x47ac0c7] ; "ConnectivitySignal"
-    0x2b98fe9 | 48 c7 44 24 38 12 00 00.. | mov qword ptr [rsp + 0x38], 0x12
-    0x2b98ff2 | eb 22                    | jmp 0x2b99016
-    L_0x2b98ff4:
-    0x2b98ff4 | 48 8d 05 9d c0 7a 04     | lea rax, [rip + 0x47ac09d] ; "RakNetDisconnect"
-    0x2b98ffb | 48 c7 44 24 38 10 00 00.. | mov qword ptr [rsp + 0x38], 0x10
-    0x2b99004 | eb 10                    | jmp 0x2b99016
-    L_0x2b99006:
-    0x2b99006 | 48 8d 05 93 df 5f 04     | lea rax, [rip + 0x45fdf93] ; "None"
-    0x2b9900d | 48 c7 44 24 38 04 00 00.. | mov qword ptr [rsp + 0x38], 0x4
-    L_0x2b99016:
-    0x2b99016 | 48 89 44 24 30           | mov qword ptr [rsp + 0x30], rax
-    0x2b9901b | 48 89 4c 24 60           | mov qword ptr [rsp + 0x60], rcx
-    0x2b99020 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
-    L_0x2b99027:
-    0x2b99027 | 48 ff c0                 | inc rax
-    0x2b9902a | 80 3c 01 00              | cmp byte ptr [rcx + rax], 0x0
-    0x2b9902e | 75 f7                    | jne 0x2b99027
-    0x2b99030 | 48 89 44 24 68           | mov qword ptr [rsp + 0x68], rax
-    0x2b99035 | 48 8d 44 24 30           | lea rax, [rsp + 0x30]
-    0x2b9903a | 48 89 44 24 40           | mov qword ptr [rsp + 0x40], rax
-    0x2b9903f | 48 8d 05 0a bc b6 fd     | lea rax, [rip - 0x24943f6]
-    0x2b99046 | 48 89 44 24 48           | mov qword ptr [rsp + 0x48], rax
-    0x2b9904b | 0f 28 44 24 40           | movaps xmm0, xmmword ptr [rsp + 0x40]
-    0x2b99050 | 66 0f 7f 84 24 b0 00 00.. | movdqa xmmword ptr [rsp + 0xb0], xmm0
-    0x2b99059 | 48 c7 44 24 50 0f 00 00.. | mov qword ptr [rsp + 0x50], 0xf
-    0x2b99062 | 48 8d 84 24 b0 00 00 00  | lea rax, [rsp + 0xb0]
-    0x2b9906a | 48 89 44 24 58           | mov qword ptr [rsp + 0x58], rax
-    0x2b9906f | 0f 28 44 24 50           | movaps xmm0, xmmword ptr [rsp + 0x50]
-    0x2b99074 | 66 0f 7f 44 24 70        | movdqa xmmword ptr [rsp + 0x70], xmm0
-    0x2b9907a | 0f 28 4c 24 60           | movaps xmm1, xmmword ptr [rsp + 0x60]
-    0x2b9907f | 66 0f 7f 8c 24 80 00 00.. | movdqa xmmword ptr [rsp + 0x80], xmm1
-    0x2b99088 | 0f 10 05 41 ea 56 05     | movups xmm0, xmmword ptr [rip + 0x556ea41] ; DFLogHttpTraceNew
-    0x2b9908f | 0f 29 84 24 90 00 00 00  | movaps xmmword ptr [rsp + 0x90], xmm0
-    0x2b99097 | c6 44 24 20 01           | mov byte ptr [rsp + 0x20], 0x1
-    0x2b9909c | 4c 8d 4c 24 70           | lea r9, [rsp + 0x70]
-    0x2b990a1 | 4c 8d 84 24 80 00 00 00  | lea r8, [rsp + 0x80]
-    0x2b990a9 | b2 03                    | mov dl, 0x3
-    0x2b990ab | 48 8d 8c 24 90 00 00 00  | lea rcx, [rsp + 0x90]
-    0x2b990b3 | e8 18 8c dd 01           | call 0x4971cd0
-    L_0x2b990b8:
-    0x2b990b8 | 48 8d 5f 20              | lea rbx, [rdi + 0x20]
-    0x2b990bc | 48 89 9c 24 a0 00 00 00  | mov qword ptr [rsp + 0xa0], rbx
-    0x2b990c4 | c6 84 24 a8 00 00 00 01  | mov byte ptr [rsp + 0xa8], 0x1
-    0x2b990cc | 48 8b cb                 | mov rcx, rbx
-    0x2b990cf | e8 fc 9e 27 00           | call 0x2e12fd0
-    0x2b990d4 | 90                       | nop
-    0x2b990d5 | 89 b7 14 0a 00 00        | mov dword ptr [rdi + 0xa14], esi
-    0x2b990db | 80 3d f4 b3 90 05 00     | cmp byte ptr [rip + 0x590b3f4], 0x0
-    0x2b990e2 | 74 1b                    | je 0x2b990ff
-    0x2b990e4 | 80 3d cd f0 56 05 00     | cmp byte ptr [rip + 0x556f0cd], 0x0 ; DFFlagDebugHttpRequestSecondaryImpl
-    0x2b990eb | 74 12                    | je 0x2b990ff
-    0x2b990ed | e8 2e 2b 05 00           | call 0x2bebc20
-    0x2b990f2 | 84 c0                    | test al, al
-    0x2b990f4 | 74 09                    | je 0x2b990ff
-    0x2b990f6 | c6 87 70 0a 00 00 01     | mov byte ptr [rdi + 0xa70], 0x1
-    0x2b990fd | eb 27                    | jmp 0x2b99126
-    L_0x2b990ff:
-    0x2b990ff | 48 8b 4f 28              | mov rcx, qword ptr [rdi + 0x28]
-    0x2b99103 | 48 85 c9                 | test rcx, rcx
-    0x2b99106 | 74 2b                    | je 0x2b99133
-    0x2b99108 | 48 8b 49 38              | mov rcx, qword ptr [rcx + 0x38]
-    0x2b9910c | 48 85 c9                 | test rcx, rcx
-    0x2b9910f | 74 15                    | je 0x2b99126
-    0x2b99111 | 81 39 1e ab 0b 00        | cmp dword ptr [rcx], 0xbab1e
-    0x2b99117 | 75 0d                    | jne 0x2b99126
-    0x2b99119 | 48 8b 89 c8 02 00 00     | mov rcx, qword ptr [rcx + 0x2c8]
-    0x2b99120 | ff 15 4a 08 8a 03        | call qword ptr [rip + 0x38a084a] ; __guard_dispatch_icall_fptr (0x6439970)
-    L_0x2b99126:
-    0x2b99126 | 48 8d 8f 68 0a 00 00     | lea rcx, [rdi + 0xa68]
-    0x2b9912d | e8 1e 40 47 fd           | call 0xd150
-    0x2b99132 | 90                       | nop
-    L_0x2b99133:
-    0x2b99133 | 48 8b 03                 | mov rax, qword ptr [rbx]
-    0x2b99136 | 90                       | nop
-    0x2b99137 | 48 83 f8 03              | cmp rax, 0x3
-    0x2b9913b | 75 0c                    | jne 0x2b99149
-    0x2b9913d | b9 01 00 00 00           | mov ecx, 0x1
-    0x2b99142 | f0 48 0f b1 0b           | lock cmpxchg qword ptr [rbx], rcx
-    0x2b99147 | 74 09                    | je 0x2b99152
-    L_0x2b99149:
-    0x2b99149 | 48 8b cb                 | mov rcx, rbx
-    0x2b9914c | e8 6f 49 47 fd           | call 0xdac0
-    0x2b99151 | 90                       | nop
-    L_0x2b99152:
-    0x2b99152 | 48 8b 8c 24 c0 00 00 00  | mov rcx, qword ptr [rsp + 0xc0]
-    L_0x2b9915a:
-    0x2b9915a | 48 33 cc                 | xor rcx, rsp
-    0x2b9915d | e8 3e b7 24 03           | call 0x5de48a0
-    0x2b99162 | 4c 8d 9c 24 d0 00 00 00  | lea r11, [rsp + 0xd0]
-    0x2b9916a | 49 8b 5b 18              | mov rbx, qword ptr [r11 + 0x18]
-    0x2b9916e | 49 8b 73 20              | mov rsi, qword ptr [r11 + 0x20]
-    0x2b99172 | 49 8b e3                 | mov rsp, r11
-    0x2b99175 | 5f                       | pop rdi
-    0x2b99176 | c3                       | ret
+  === [Instrucoes x86-64 do XREF Runtime #2 (0x2b99180..0x2b993b8)] ===
     0x2b99180 | 45 84 c9                 | test r9b, r9b
     0x2b99183 | 0f 84 8b 00 00 00        | je 0x2b99214 ; [Nanomite Reconstructed: je +0x8b via cfg_join_label_resolver]
     0x2b99189 | 48 89 5c 24 10           | mov qword ptr [rsp + 0x10], rbx
@@ -679,7 +541,7 @@ Operação  : 0x2b8e5cc: cmp [flag], reg ; fn=0x2b8e570..0x2b8e787
     0x2b991fb | 48 89 44 24 50           | mov qword ptr [rsp + 0x50], rax
     0x2b99200 | 48 c7 44 24 58 12 00 00.. | mov qword ptr [rsp + 0x58], 0x12
     0x2b99209 | 48 89 4d 80              | mov qword ptr [rbp - 0x80], rcx
-    0x2b9920d | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x2b9920d | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     L_0x2b99214:
     0x2b99214 | 48 ff c0                 | inc rax
     0x2b99217 | 80 3c 01 00              | cmp byte ptr [rcx + rax], 0x0
@@ -864,77 +726,47 @@ Operação  : 0x2b8e5cc: cmp [flag], reg ; fn=0x2b8e570..0x2b8e787
   0x2b98f4b: 41 5f | 41 5e | 5f | 5e
   0x2b98f51: 5d | c3
 
-  [XREF #2 Bytecode Hex 0x2b98f60..0x2b993b8]
-  0x2b98f60: 48 89 5c 24 10 | 48 89 74 24 18 | 57 | 48 81 ec d0 00 00 00
-  0x2b98f72: 48 8b 05 67 f7 53 05 | 48 33 c4 | 48 89 84 24 c0 00 00 00 | 8b f2
-  0x2b98f86: 48 8b f9 | 48 8b 05 40 eb 56 05 | 3c 06 | cc cc
-  0x2b98f94: cc cc | cc cc | 48 c1 e8 08 | 3c 03
-  0x2b98f9e: 0f 82 14 01 00 00 | 48 8d 05 0b ee 69 08 | 48 89 84 24 b0 00 00 00 | 48 8b 8c 24 b0 00 00 00
-  0x2b98fbb: 48 81 c1 3a ab 10 fc | 83 fa ff | 74 3f | 85 d2
-  0x2b98fc9: 74 29 | 83 fa 01 | 74 12 | 48 8d 05 11 1c 60 04
-  0x2b98fd7: 48 c7 44 24 38 07 00 00 00 | eb 34 | 48 8d 05 c7 c0 7a 04 | 48 c7 44 24 38 12 00 00 00
-  0x2b98ff2: eb 22 | 48 8d 05 9d c0 7a 04 | 48 c7 44 24 38 10 00 00 00 | eb 10
-  0x2b99006: 48 8d 05 93 df 5f 04 | 48 c7 44 24 38 04 00 00 00 | 48 89 44 24 30 | 48 89 4c 24 60
-  0x2b99020: 48 c7 c0 ff ff ff ff | 48 ff c0 | 80 3c 01 00 | 75 f7
-  0x2b99030: 48 89 44 24 68 | 48 8d 44 24 30 | 48 89 44 24 40 | 48 8d 05 0a bc b6 fd
-  0x2b99046: 48 89 44 24 48 | 0f 28 44 24 40 | 66 0f 7f 84 24 b0 00 00 00 | 48 c7 44 24 50 0f 00 00 00
-  0x2b99062: 48 8d 84 24 b0 00 00 00 | 48 89 44 24 58 | 0f 28 44 24 50 | 66 0f 7f 44 24 70
-  0x2b9907a: 0f 28 4c 24 60 | 66 0f 7f 8c 24 80 00 00 00 | 0f 10 05 41 ea 56 05 | 0f 29 84 24 90 00 00 00
-  0x2b99097: c6 44 24 20 01 | 4c 8d 4c 24 70 | 4c 8d 84 24 80 00 00 00 | b2 03
-  0x2b990ab: 48 8d 8c 24 90 00 00 00 | e8 18 8c dd 01 | 48 8d 5f 20 | 48 89 9c 24 a0 00 00 00
-  0x2b990c4: c6 84 24 a8 00 00 00 01 | 48 8b cb | e8 fc 9e 27 00 | 90
-  0x2b990d5: 89 b7 14 0a 00 00 | 80 3d f4 b3 90 05 00 | 74 1b | 80 3d cd f0 56 05 00
-  0x2b990eb: 74 12 | e8 2e 2b 05 00 | 84 c0 | 74 09
-  0x2b990f6: c6 87 70 0a 00 00 01 | eb 27 | 48 8b 4f 28 | 48 85 c9
-  0x2b99106: 74 2b | 48 8b 49 38 | 48 85 c9 | 74 15
-  0x2b99111: 81 39 1e ab 0b 00 | 75 0d | 48 8b 89 c8 02 00 00 | ff 15 4a 08 8a 03
-  0x2b99126: 48 8d 8f 68 0a 00 00 | e8 1e 40 47 fd | 90 | 48 8b 03
-  0x2b99136: 90 | 48 83 f8 03 | 75 0c | b9 01 00 00 00
-  0x2b99142: f0 48 0f b1 0b | 74 09 | 48 8b cb | e8 6f 49 47 fd
-  0x2b99151: 90 | 48 8b 8c 24 c0 00 00 00 | 48 33 cc | e8 3e b7 24 03
-  0x2b99162: 4c 8d 9c 24 d0 00 00 00 | 49 8b 5b 18 | 49 8b 73 20 | 49 8b e3
-  0x2b99175: 5f | c3 | cc cc | cc cc
-  0x2b9917b: cc cc | cc cc | cc | 45 84 c9
-  0x2b99183: cc cc | cc cc | cc cc | 48 89 5c 24 10
-  0x2b9918e: 48 89 74 24 18 | 48 89 7c 24 20 | 55 | 41 56
-  0x2b9919b: 41 57 | 48 8d 6c 24 f0 | 48 81 ec 10 01 00 00 | 48 8b 05 30 f5 53 05
-  0x2b991b0: 48 33 c4 | 48 89 45 00 | 41 0f b6 f1 | 49 8b f8
-  0x2b991be: 48 8b d9 | 48 8b 05 08 e9 56 05 | 3c 06 | 0f 82 d1 00 00 00
-  0x2b991d0: 48 c1 e8 08 | 3c 03 | 0f 82 c5 00 00 00 | 48 8d 05 7b 11 70 08
-  0x2b991e3: 48 89 44 24 30 | 48 8b 4c 24 30 | 48 81 c1 02 86 0a fc | 48 8d 05 b5 be 7a 04
-  0x2b991fb: 48 89 44 24 50 | 48 c7 44 24 58 12 00 00 00 | 48 89 4d 80 | 48 c7 c0 ff ff ff ff
-  0x2b99214: 48 ff c0 | 80 3c 01 00 | 75 f7 | 48 89 45 88
-  0x2b99221: 48 8d 44 24 50 | 48 89 44 24 60 | 48 8d 05 1e ba b6 fd | 48 89 44 24 68
-  0x2b99237: 48 89 7d 90 | 89 75 a0 | 0f 10 44 24 60 | 0f 11 45 d0
-  0x2b99247: 0f 10 4d 90 | 0f 11 4d e0 | 0f 10 45 a0 | 0f 11 45 f0
-  0x2b99257: 48 c7 44 24 70 4f 01 00 00 | 48 8d 45 d0 | 48 89 44 24 78 | 0f 28 44 24 70
-  0x2b9926e: 66 0f 7f 44 24 30 | 0f 28 4d 80 | 66 0f 7f 4d b0 | 0f 10 05 4c e8 56 05
-  0x2b99284: 0f 29 45 c0 | c6 44 24 20 01 | 4c 8d 4c 24 30 | 4c 8d 45 b0
-  0x2b99296: b2 03 | 48 8d 4d c0 | e8 2f 8a dd 01 | 4c 8d 73 20
-  0x2b992a5: 4c 89 74 24 40 | c6 44 24 48 01 | 49 8b ce | e8 19 9d 27 00
-  0x2b992b7: 90 | 41 bf 01 00 00 00 | 80 bb 30 0a 00 00 00 | 0f 84 a3 00 00 00
-  0x2b992cb: 41 84 f7 | 74 29 | 48 3b bb 20 0a 00 00 | 76 20
-  0x2b992d9: 48 89 bb 20 0a 00 00 | 80 3d 41 e7 56 05 00 | 74 10 | 80 3d 50 e7 56 05 00
-  0x2b992f0: 74 07 | 44 89 bb 14 0a 00 00 | 40 f6 c6 02 | 74 10
-  0x2b992ff: 48 3b bb 28 0a 00 00 | 76 07 | 48 89 bb 28 0a 00 00 | 44 88 bb 18 0a 00 00
-  0x2b99316: 80 3d b9 b1 90 05 00 | 74 1b | 80 3d 92 ee 56 05 00 | 74 12
-  0x2b99328: e8 f3 28 05 00 | 84 c0 | 74 09 | 44 88 bb 70 0a 00 00
-  0x2b99338: eb 27 | 48 8b 4b 28 | 48 85 c9 | 74 2b
-  0x2b99343: 48 8b 49 38 | 48 85 c9 | 74 15 | 81 39 1e ab 0b 00
-  0x2b99352: 75 0d | 48 8b 89 c8 02 00 00 | ff 15 0f 06 8a 03 | 48 8d 8b 68 0a 00 00
-  0x2b99368: e8 e3 3d 47 fd | 90 | 49 8b 06 | 90
-  0x2b99372: 48 83 f8 03 | 75 0c | 48 8b 4c 24 40 | f0 4c 0f b1 39
-  0x2b99382: 74 0b | 48 8b 4c 24 40 | e8 32 47 47 fd | 90
-  0x2b9938f: 48 8b 4d 00 | 48 33 cc | e8 05 b5 24 03 | 4c 8d 9c 24 10 01 00 00
-  0x2b993a3: 49 8b 5b 28 | 49 8b 73 30 | 49 8b 7b 38 | 49 8b e3
-  0x2b993b2: 41 5f | 41 5e | 5d | c3
+  [XREF #2 Bytecode Hex 0x2b99180..0x2b993b8]
+  0x2b99180: 45 84 c9 | cc cc | cc cc | cc cc
+  0x2b99189: 48 89 5c 24 10 | 48 89 74 24 18 | 48 89 7c 24 20 | 55
+  0x2b99199: 41 56 | 41 57 | 48 8d 6c 24 f0 | 48 81 ec 10 01 00 00
+  0x2b991a9: 48 8b 05 30 f5 53 05 | 48 33 c4 | 48 89 45 00 | 41 0f b6 f1
+  0x2b991bb: 49 8b f8 | 48 8b d9 | 48 8b 05 08 e9 56 05 | 3c 06
+  0x2b991ca: 0f 82 d1 00 00 00 | 48 c1 e8 08 | 3c 03 | 0f 82 c5 00 00 00
+  0x2b991dc: 48 8d 05 7b 11 70 08 | 48 89 44 24 30 | 48 8b 4c 24 30 | 48 81 c1 02 86 0a fc
+  0x2b991f4: 48 8d 05 b5 be 7a 04 | 48 89 44 24 50 | 48 c7 44 24 58 12 00 00 00 | 48 89 4d 80
+  0x2b9920d: 48 c7 c0 ff ff ff ff | 48 ff c0 | 80 3c 01 00 | 75 f7
+  0x2b9921d: 48 89 45 88 | 48 8d 44 24 50 | 48 89 44 24 60 | 48 8d 05 1e ba b6 fd
+  0x2b99232: 48 89 44 24 68 | 48 89 7d 90 | 89 75 a0 | 0f 10 44 24 60
+  0x2b99243: 0f 11 45 d0 | 0f 10 4d 90 | 0f 11 4d e0 | 0f 10 45 a0
+  0x2b99253: 0f 11 45 f0 | 48 c7 44 24 70 4f 01 00 00 | 48 8d 45 d0 | 48 89 44 24 78
+  0x2b99269: 0f 28 44 24 70 | 66 0f 7f 44 24 30 | 0f 28 4d 80 | 66 0f 7f 4d b0
+  0x2b9927d: 0f 10 05 4c e8 56 05 | 0f 29 45 c0 | c6 44 24 20 01 | 4c 8d 4c 24 30
+  0x2b99292: 4c 8d 45 b0 | b2 03 | 48 8d 4d c0 | e8 2f 8a dd 01
+  0x2b992a1: 4c 8d 73 20 | 4c 89 74 24 40 | c6 44 24 48 01 | 49 8b ce
+  0x2b992b2: e8 19 9d 27 00 | 90 | 41 bf 01 00 00 00 | 80 bb 30 0a 00 00 00
+  0x2b992c5: 0f 84 a3 00 00 00 | 41 84 f7 | 74 29 | 48 3b bb 20 0a 00 00
+  0x2b992d7: 76 20 | 48 89 bb 20 0a 00 00 | 80 3d 41 e7 56 05 00 | 74 10
+  0x2b992e9: 80 3d 50 e7 56 05 00 | 74 07 | 44 89 bb 14 0a 00 00 | 40 f6 c6 02
+  0x2b992fd: 74 10 | 48 3b bb 28 0a 00 00 | 76 07 | 48 89 bb 28 0a 00 00
+  0x2b9930f: 44 88 bb 18 0a 00 00 | 80 3d b9 b1 90 05 00 | 74 1b | 80 3d 92 ee 56 05 00
+  0x2b99326: 74 12 | e8 f3 28 05 00 | 84 c0 | 74 09
+  0x2b99331: 44 88 bb 70 0a 00 00 | eb 27 | 48 8b 4b 28 | 48 85 c9
+  0x2b99341: 74 2b | 48 8b 49 38 | 48 85 c9 | 74 15
+  0x2b9934c: 81 39 1e ab 0b 00 | 75 0d | 48 8b 89 c8 02 00 00 | ff 15 0f 06 8a 03
+  0x2b99361: 48 8d 8b 68 0a 00 00 | e8 e3 3d 47 fd | 90 | 49 8b 06
+  0x2b99371: 90 | 48 83 f8 03 | 75 0c | 48 8b 4c 24 40
+  0x2b9937d: f0 4c 0f b1 39 | 74 0b | 48 8b 4c 24 40 | e8 32 47 47 fd
+  0x2b9938e: 90 | 48 8b 4d 00 | 48 33 cc | e8 05 b5 24 03
+  0x2b9939b: 4c 8d 9c 24 10 01 00 00 | 49 8b 5b 28 | 49 8b 73 30 | 49 8b 7b 38
+  0x2b993af: 49 8b e3 | 41 5f | 41 5e | 5d
+  0x2b993b7: c3
 
 [Strings .rdata na função]
   * [DFLog::HttpTraceNew] workerThreadProcessNetworkChange: processing deferred network change on HT
   * Unknown
   * ConnectivitySignal
   * RakNetDisconnect
-  * [DFLog::HttpTraceNew] deferring network change to worker thread, reason: {} (called from non-wor
   * [DFLog::HttpTraceNew] deferring connectivity update to worker thread, reason: {}, generation: {}
   * [DFLog::HttpTraceNew] notified of network switch, reason: {}
   * CURLMOPT_NETWORK_CHANGED

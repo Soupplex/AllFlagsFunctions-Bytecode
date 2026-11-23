@@ -21,7 +21,7 @@ Operação  : 0x4ca2b75: mov/math reg, [flag] ; fn=0x4ca2a40..0x4ca2d06
     [XREF #4 @0x4cf3314] Classe  : RBX::LowMemory (RTTI Resolvido)
     [XREF #4 @0x4cf3314] Fórmula : LowMemoryWarning < 6
     [XREF #4 @0x4cf3314] Fórmula : LowMemoryWarning >> 8 < 3
-    [XREF #4 @0x4cf3314] Fórmula : ("[FLog::LowMemoryWarning] Low memory telemetry event sent." - 0x1f3d32)[rbx + 1] != 0
+    [XREF #4 @0x4cf3314] Fórmula : ("[FLog::LowMemoryWarning] Low memory telemetry event sent." - 0x1f3d32)[0] != 0
   
   === [Decompilacao C++ da Funcao 0x4ca2a40..0x4ca2d06] ===
     struct RBX::SendLua {
@@ -56,13 +56,9 @@ Operação  : 0x4ca2b75: mov/math reg, [flag] ; fn=0x4ca2a40..0x4ca2d06
           call_0x9199b0(&this->field_0x78, &this->field_0x80, &local_0x40);
         }
       }
-      if (this->field_0xd8 == 3) {
-        if (atomic_cas(&local_0x48->field_0x0, this->field_0xd8, 1) != 0) {
-          call_0xdac0(local_0x48);
-        }
-        return;
+      if (this->field_0xd8 != 3 || atomic_cas(&local_0x48->field_0x0, this->field_0xd8, 1) != 0) {
+        call_0xdac0(local_0x48);
       }
-      call_0xdac0(local_0x48);
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -78,7 +74,7 @@ Operação  : 0x4ca2b75: mov/math reg, [flag] ; fn=0x4ca2a40..0x4ca2d06
     0x4ca2a67 | 48 89 85 90 03 00 00     | mov qword ptr [rbp + 0x390], rax
     0x4ca2a6e | 4c 8b f2                 | mov r14, rdx
     0x4ca2a71 | 48 8b f1                 | mov rsi, rcx
-    0x4ca2a74 | 48 c7 c3 ff ff ff ff     | mov rbx, 0xffffffff
+    0x4ca2a74 | 48 c7 c3 ff ff ff ff     | mov rbx, -0x1
     0x4ca2a7b | 48 8b 05 0e e1 49 03     | mov rax, qword ptr [rip + 0x349e10e] ; FLogLuaAppExperienceController
     0x4ca2a82 | 3c 06                    | cmp al, 0x6
     0x4ca2a84 | 0f 82 a1 00 00 00        | jb 0x4ca2b2b
@@ -270,15 +266,17 @@ Operação  : 0x4ca2b75: mov/math reg, [flag] ; fn=0x4ca2a40..0x4ca2d06
         call_0x4cf0e40(ret_0x4cee120_6);
       }
       call_0x6db860(&local_0x68, param_3);
-      this->vfunc_0x8->field_0x8->field_0x8[this]->field_0x40((&this->field_0x8 + this->field_0x8->field_0x8), param_2, &local_0x68) // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66540;
+      auto* f_8 = this->field_0x8;
+      f_8->field_0x8->field_0x8[this]->vfunc_0x40((&f_8 + f_8->field_0x8), param_2, &local_0x68) // -> RBX::Solver::ConstraintSingleAxisSpring::fn_0x4d4cf90;
       call_0x2e12fd0(&this->field_0xd0);
       auto* f_e0 = this->field_0xe0;
-      auto i_edi = f_e0->field_0x8;
+      void* i_edi = f_e0->field_0x8;
       if (f_e0->field_0x8->field_0x19 == 0) {
         do { // L_0x4ca1025
-          call_0x9ace70(&f_e0, &f_e0, f_e0->field_0x8->field_0x10);
+          call_0x9ace70(&f_e0, &f_e0, i_edi->field_0x10);
           call_0x4955ac0(i_edi);
-        } while (f_e0->field_0x8->field_0x0->field_0x19 == 0); // loop -> L_0x4ca1025
+          i_edi = i_edi->field_0x0;
+        } while (i_edi->field_0x0->field_0x19 == 0); // loop -> L_0x4ca1025
       }
       f_e0->field_0x8 = f_e0;
       f_e0->field_0x0 = f_e0;
@@ -286,19 +284,15 @@ Operação  : 0x4ca2b75: mov/math reg, [flag] ; fn=0x4ca2a40..0x4ca2d06
       this->field_0xe8 = 0;
       if (this->field_0x120 != 0) {
         do { // L_0x4ca1070
-          auto* f_108 = this->field_0x108;
-          if ((f_108->field_0x0[rcx * 8])->field_0x8 != 0 && atomic_fetch_sub(&((f_108->field_0x0[rcx * 8])->field_0x8)->field_0x8, 1) == 1) {
-            (f_108->field_0x0[rcx * 8])->field_0x8->vfunc((f_108->field_0x0[rcx * 8])->field_0x8);
-            if (atomic_fetch_sub(&((f_108->field_0x0[rcx * 8])->field_0x8)->field_0xc, 1) == 1) {
-              (f_108->field_0x0[rcx * 8])->field_0x8->vfunc((f_108->field_0x0[rcx * 8])->field_0x8);
-            } else {
-              atomic_fetch_sub(&((f_108->field_0x0[rcx * 8])->field_0x8)->field_0xc, 1);
+          if (rcx->field_0x8 != 0 && atomic_fetch_sub(&rcx->field_0x8->field_0x8, 1) == 1) {
+            rcx->field_0x8->vfunc_0x0(rcx->field_0x8) // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66420;
+            if (atomic_fetch_sub(&rcx->field_0x8->field_0xc, 1) == 1) {
+              rcx->field_0x8->vfunc_0x8(rcx->field_0x8) // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66540;
             }
-          } else {
-            atomic_fetch_sub(&((f_108->field_0x0[rcx * 8])->field_0x8)->field_0x8, 1);
           }
-          if ((f_108->field_0x0[rcx * 8])->field_0x8 == 0) break;
-          this->field_0x118 = this->field_0x118 + 1;
+          this->field_0x120--;
+          if (this->field_0x120 == 1) break;
+          this->field_0x118++;
         } while (true); // loop -> L_0x4ca1070
         this->field_0x118 = 0;
       }
@@ -308,17 +302,13 @@ Operação  : 0x4ca2b75: mov/math reg, [flag] ; fn=0x4ca2a40..0x4ca2d06
       f_128->field_0x0 = f_128;
       f_128->field_0x10 = f_128;
       this->field_0x130 = 0;
-      if (this->field_0xd0 == 3) {
-        if (atomic_cas(&this->field_0xd0, this->field_0xd0, 1) != 0) {
-          call_0xdac0(&this->field_0xd0);
-        }
-      } else {
+      if (this->field_0xd0 != 3 || atomic_cas(&this->field_0xd0, this->field_0xd0, 1) != 0) {
         call_0xdac0(&this->field_0xd0);
       }
       int64_t local_0x28;
       if (this->field_0xf0 != 0) {
         if (this->field_0xf8 != 0) {
-          this->field_0xf8->field_0x8 = this->field_0xf8->field_0x8 + 1;
+          this->field_0xf8->field_0x8++;
         }
         local_0x28 = &sym_0x70075c0;
         call_0x4ca3290(this, &local_0x28);
@@ -550,7 +540,7 @@ Operação  : 0x4ca2b75: mov/math reg, [flag] ; fn=0x4ca2a40..0x4ca2d06
     0x4ca4144 | 48 33 c4                 | xor rax, rsp
     0x4ca4147 | 48 89 84 24 f0 03 00 00  | mov qword ptr [rsp + 0x3f0], rax
     0x4ca414f | 48 8b f9                 | mov rdi, rcx
-    0x4ca4152 | 48 c7 c3 ff ff ff ff     | mov rbx, 0xffffffff
+    0x4ca4152 | 48 c7 c3 ff ff ff ff     | mov rbx, -0x1
     0x4ca4159 | 80 3d a0 d2 49 03 00     | cmp byte ptr [rip + 0x349d2a0], 0x0 ; FFlagSendLuaAppUnloadCounter
     0x4ca4160 | 0f 84 ff 00 00 00        | je 0x4ca4265
     0x4ca4166 | 48 8b 05 ab d2 49 03     | mov rax, qword ptr [rip + 0x349d2ab] ; FLogLowMemoryWarning
@@ -652,7 +642,7 @@ Operação  : 0x4ca2b75: mov/math reg, [flag] ; fn=0x4ca2a40..0x4ca2d06
       if (LowMemoryWarning >= 6 && LowMemoryWarning >> 8 >= 3) {
         FLog::Log("[FLog::LowMemoryWarning] Low memory warning received. Telemetry will be collected and sent after");
       }
-      auto local_0x30 = LowMemoryTelemetryDelay;
+      auto local_0x30 = (double)LowMemoryTelemetryDelay;
       auto local_0x38 = param_2;
       call_0x2904690(&local_0x48, &local_0xd0, &local_0x30);
       auto ret_0x29032c0_2 = call_0x29032c0();
@@ -660,11 +650,7 @@ Operação  : 0x4ca2b75: mov/math reg, [flag] ; fn=0x4ca2a40..0x4ca2d06
       call_0x2903f80(&ret_0x29032c0_2->field_0x8, &local_0x48);
       call_0x4959ee0();
       call_0x2904500(&ret_0x29032c0_2->field_0x8, &local_0xc0, &local_0x48);
-      if (ret_0x29032c0_2->field_0x0 == 3) {
-        if (atomic_cas(&ret_0x29032c0_2->field_0x0, ret_0x29032c0_2->field_0x0, 1) != 0) {
-          call_0xdac0(ret_0x29032c0_2);
-        }
-      } else {
+      if (ret_0x29032c0_2->field_0x0 != 3 || atomic_cas(&ret_0x29032c0_2->field_0x0, ret_0x29032c0_2->field_0x0, 1) != 0) {
         call_0xdac0(ret_0x29032c0_2);
       }
       if (local_0x50 != 0) {
@@ -673,11 +659,11 @@ Operação  : 0x4ca2b75: mov/math reg, [flag] ; fn=0x4ca2a40..0x4ca2d06
       if ((local_0xe8 & 0xfffffffc & 0xfffffff8) != 0) {
         if ((local_0xe8 >> 1 & 0x1) != 0) {
           if ((~((local_0xe8 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0xe8 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-            &local_0xd0->vfunc(&local_0xd0);
+            ((~((local_0xe8 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0xe8 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0xd0) // -> RBX::Path2D::fn_0x3ee3920;
           }
         } else {
           if ((~((local_0xe8 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0xe8 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-            local_0xd0->vfunc(local_0xd0);
+            ((~((local_0xe8 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0xe8 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(local_0xd0) // -> RBX::Path2D::fn_0x3ee3920;
           }
           call_0x4955ac0(local_0xd0);
         }
@@ -709,7 +695,7 @@ Operação  : 0x4ca2b75: mov/math reg, [flag] ; fn=0x4ca2a40..0x4ca2d06
     0x4cf3044 | 48 8b 4c 24 30           | mov rcx, qword ptr [rsp + 0x30]
     0x4cf3049 | 48 81 c1 bc 7d ea ff     | add rcx, 0xffea7dbc
     0x4cf3050 | 48 89 4c 24 70           | mov qword ptr [rsp + 0x70], rcx
-    0x4cf3055 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x4cf3055 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x4cf305c | 0f 1f 40 00              | nop
     L_0x4cf3060:
     0x4cf3060 | 48 ff c0                 | inc rax
@@ -861,7 +847,7 @@ Operação  : 0x4ca2b75: mov/math reg, [flag] ; fn=0x4ca2a40..0x4ca2d06
         v_rdx_1 = "Harmony";
       }
       auto local_0x210 = 0;
-      call_0x6f7000(&local_0x210, v_rdx_1, rbx + 1);
+      call_0x6f7000(&local_0x210, v_rdx_1, 0);
       auto vret_2 = this->vfunc();
       vret_2->vfunc(vret_2, &local_0x280, 72);
       if (LowMemoryWarning >= 6 && LowMemoryWarning >> 8 >= 3) {
@@ -892,7 +878,7 @@ Operação  : 0x4ca2b75: mov/math reg, [flag] ; fn=0x4ca2a40..0x4ca2d06
       call_0x6f5b70(&local_0x8e0);
       call_0x6e41c0(&local_0x8e0);
       call_0x6f8fb0(&local_0x628);
-      std::string::_Tidy_deallocate(v_rcx_2);
+      std::string::_Tidy_deallocate(local_0x210);
     }
   
   === [Instrucoes x86-64 do XREF Runtime #4 (0x4cf3240..0x4cf37dc)] ===
@@ -924,7 +910,7 @@ Operação  : 0x4ca2b75: mov/math reg, [flag] ; fn=0x4ca2a40..0x4ca2d06
     0x4cf32a2 | 48 c7 85 20 01 00 00 00.. | mov qword ptr [rbp + 0x120], 0x0
     0x4cf32ad | 48 c7 85 28 01 00 00 0f.. | mov qword ptr [rbp + 0x128], 0xf
     0x4cf32b8 | c6 85 10 01 00 00 00     | mov byte ptr [rbp + 0x110], 0x0
-    0x4cf32bf | 48 c7 c3 ff ff ff ff     | mov rbx, 0xffffffff
+    0x4cf32bf | 48 c7 c3 ff ff ff ff     | mov rbx, -0x1
     0x4cf32c6 | 4c 8b c3                 | mov r8, rbx
     0x4cf32c9 | 0f 1f 80 00 00 00 00     | nop
     L_0x4cf32d0:

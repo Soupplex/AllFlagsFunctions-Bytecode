@@ -1,6 +1,6 @@
 FFlag     : DFLogCaptureEngine
 RVA .data : 0x81227f0
-XREFs     : 20 total (20 em runtime)
+XREFs     : 22 total (22 em runtime)
 Insn RVA  : 0x3c02138
 Operação  : 0x3c02138: mov/math reg, [flag] ; fn=0x3c01f50..0x3c02215
 
@@ -8,7 +8,8 @@ Operação  : 0x3c02138: mov/math reg, [flag] ; fn=0x3c01f50..0x3c02215
   === [Resumo do Efeito da FFlag no Engine (RBX::VideoCapture)] ===
     Classe  : RBX::VideoCapture (RTTI Resolvido)
     Padrão  : DFLogCaptureEngine = 6 (default) [log, mode=2]
-    Papel   : Parâmetro de configuração lido diretamente pela rotina
+    Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
+    Fórmula : CaptureEngine >= 6 && CaptureEngine >> 8 >= 2
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x3c022ab (in fn_0x3c02220): call 0x3c01f50  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
@@ -19,19 +20,20 @@ Operação  : 0x3c02138: mov/math reg, [flag] ; fn=0x3c01f50..0x3c02215
     [XREF #3 @0x3c02529] Classe  : RBX::CaptureEngine (RTTI Resolvido)
     [XREF #3 @0x3c02529] Fórmula : CaptureEngine < 6
     [XREF #3 @0x3c02529] Fórmula : CaptureEngine >> 8 < 5
-    [XREF #3 @0x3c02529] Fórmula : "[DFLog::CaptureEngine] State update: {} -> {}"[rax] != 0
+    [XREF #3 @0x3c02529] Fórmula : "[DFLog::CaptureEngine] State update: {} -> {}"[0] != 0
     [XREF #4 @0x3c02651] Classe  : RBX::CaptureEngine (RTTI Resolvido)
     [XREF #4 @0x3c02651] Fórmula : CaptureEngine < 6
     [XREF #4 @0x3c02651] Fórmula : CaptureEngine >> 8 < 5
-    [XREF #4 @0x3c02651] Fórmula : "[DFLog::CaptureEngine] State advance: {} -> {}"[rbx + 1] != 0
+    [XREF #4 @0x3c02651] Fórmula : "[DFLog::CaptureEngine] State advance: {} -> {}"[0] != 0
     [XREF #4 @0x3c02651] Fórmula : CaptureEngine >> 8 < 3
     [XREF #5 @0x3c0283b] Classe  : RBX::CaptureEngine (RTTI Resolvido)
     [XREF #5 @0x3c0283b] Fórmula : CaptureEngine < 6
     [XREF #5 @0x3c0283b] Fórmula : CaptureEngine >> 8 < 4
-    [XREF #5 @0x3c0283b] Fórmula : "[DFLog::CaptureEngine] Stopping GraphicBufferSource"[rax] != 0
+    [XREF #5 @0x3c0283b] Fórmula : "[DFLog::CaptureEngine] Stopping GraphicBufferSource"[0] != 0
     [XREF #6 @0x3c02e11] Classe  : RBX::CaptureEngine (RTTI Resolvido)
     [XREF #6 @0x3c02e11] Fórmula : CaptureEngine < 6
     [XREF #6 @0x3c02e11] Fórmula : CaptureEngine >> 8 < 3
+    [XREF #6 @0x3c02e11] Fórmula : ("[DFLog::CaptureEngine] GraphicBufferSource is not running" - 0x4a002d)[i_ebx] != 0
     [XREF #6 @0x3c02e11] Altera  : this->field_0xf0->field_0x0[0], this->field_0xf0->field_0x8[0]
     [XREF #7 @0x3c56536] Classe  : RBX::CaptureEngine (RTTI Resolvido)
     [XREF #7 @0x3c56536] Fórmula : CaptureEngine < 6
@@ -45,51 +47,66 @@ Operação  : 0x3c02138: mov/math reg, [flag] ; fn=0x3c01f50..0x3c02215
   === [Decompilacao C++ da Funcao 0x3c01f50..0x3c02215] ===
     // Flag defaults: VideoCaptureSnapshotMinFrameTimeSecond = 1, VideoCaptureSnapshotMaxFrameTimeSecond = 3000, CaptureEngine = 6
     auto RBX::VideoCapture::func_0x3c01f50(RBX::VideoCapture* this) {
+      int64_t v_rbx_3 = -1;
+      uint64_t i_ebp = rbp;
       if (VideoCaptureSnapshotMaxFrameTimeSecond != 0) {
-        void* sel_rax_1 = this > 0 ? this : 30;
-        if (max(0, VideoCaptureSnapshotMinFrameTimeSecond) * sel_rax_1 == VideoCaptureSnapshotMaxFrameTimeSecond * sel_rax_1) {
-          return max(0, VideoCaptureSnapshotMinFrameTimeSecond) * sel_rax_1;
+        if (max(0, VideoCaptureSnapshotMinFrameTimeSecond) * (this > 0 ? this : 30) == VideoCaptureSnapshotMaxFrameTimeSecond * (this > 0 ? this : 30)) {
+          return max(0, VideoCaptureSnapshotMinFrameTimeSecond) * (this > 0 ? this : 30);
         }
-        if (max(0, VideoCaptureSnapshotMinFrameTimeSecond) * sel_rax_1 < VideoCaptureSnapshotMaxFrameTimeSecond * sel_rax_1) {
-          int32_t i_ebx = 0;
+        if (max(0, VideoCaptureSnapshotMinFrameTimeSecond) * (this > 0 ? this : 30) < VideoCaptureSnapshotMaxFrameTimeSecond * (this > 0 ? this : 30)) {
+          uint64_t i_ebx = -1;
+          int32_t i_r13d = 64;
           do { // L_0x3c01fe0
-          } while ((i_ebx >> 1) > -1); // loop -> L_0x3c01fe0
+            i_r13d--;
+            i_ebx = i_ebx >> 1;
+          } while (i_ebx >> 1 > -1); // loop -> L_0x3c01fe0
           int32_t i_edi;
-          if (VideoCaptureSnapshotMaxFrameTimeSecond * sel_rax_1 - 0x8000000000000000 - (r8 - 0x8000000000000000) == -1) {
+          if (r9 - 0x8000000000000000 - (r8 - 0x8000000000000000) == -1) {
+            v_rbx_3 = i_ebx >> 1;
             L_0x3c02040:
             do { // L_0x3c02040
-              L_0x3c02040:
               int64_t ret_0x5de6910_2;
               do { // L_0x3c02050
                 ret_0x5de6910_2 = call_0x5de6910();
-              } while (ret_0x5de6910_2 > (i_ebx >> 1)); // loop -> L_0x3c02050
-            } while ((i_edi + (64 - 1)) < 64); // loop -> L_0x3c02040
+              } while (ret_0x5de6910_2 > v_rbx_3); // loop -> L_0x3c02050
+              i_eax = ret_0x5de6910_2;
+              i_ebp = (i_ebp << (i_r13d - 1)) * 2 | ret_0x5de6910_2;
+              i_edi = i_edi + i_r13d;
+            } while (i_edi + i_r13d < 64); // loop -> L_0x3c02040
           } else {
             int32_t v_rsi_1;
+            auto expr_1 = r9 - 0x8000000000000000 - (r8 - 0x8000000000000000) + 1;
             do { // L_0x3c02080
               v_rsi_1 = 0;
               int32_t v_rdi_2 = 0;
-              if (VideoCaptureSnapshotMaxFrameTimeSecond * sel_rax_1 - 0x8000000000000000 - (r8 - 0x8000000000000000) != 0) {
+              if (r9 - 0x8000000000000000 - (r8 - 0x8000000000000000) != 0) {
                 int32_t i_esi = 0;
                 i_edi = 0;
                 do { // L_0x3c02090
                   int64_t ret_0x5de6910_1;
                   do { // L_0x3c020a0
                     ret_0x5de6910_1 = call_0x5de6910();
-                  } while (ret_0x5de6910_1 > (i_ebx >> 1)); // loop -> L_0x3c020a0
-                  v_rsi_1 = (i_esi << (62)) + (i_esi << (62)) | i_ebx >> 1;
-                  v_rdi_2 = (i_edi << (62)) + (i_edi << (62)) | ret_0x5de6910_1;
-                } while ((((i_esi << ((64 - 1) - 1)) + (i_esi << ((64 - 1) - 1))) | (i_ebx >> 1)) < (((VideoCaptureSnapshotMaxFrameTimeSecond * sel_rax_1) + 0x8000000000000000) - (r8 + 0x8000000000000000))); // loop -> L_0x3c02090
+                  } while (ret_0x5de6910_1 > i_ebx >> 1); // loop -> L_0x3c020a0
+                  i_eax = ret_0x5de6910_1;
+                  i_esi = (i_esi << (i_r13d - 1)) * 2 | i_ebx >> 1;
+                  i_edi = (i_edi << (i_r13d - 1)) * 2 | ret_0x5de6910_1;
+                } while (((i_esi << (i_r13d - 1)) * 2 | i_ebx >> 1) < r9 - 0x8000000000000000 - (r8 - 0x8000000000000000)); // loop -> L_0x3c02090
               }
-              if ((v_rdi_2 / (r15 + 1)) < (v_rsi_1 / (r15 + 1))) break;
-            } while ((v_rsi_1 % (r15 + 1)) != (((VideoCaptureSnapshotMaxFrameTimeSecond * sel_rax_1) + 0x8000000000000000) - (r8 + 0x8000000000000000))); // loop -> L_0x3c02080
+              if (v_rdi_2 / expr_1 < v_rsi_1 / expr_1) break;
+              i_eax = v_rdi_2 / expr_1;
+            } while (v_rsi_1 % expr_1 != r9 - 0x8000000000000000 - (r8 - 0x8000000000000000)); // loop -> L_0x3c02080
           }
           return rdx - 0x8000000000000000;
+        }
+        uint64_t i_eax;
+        if (CaptureEngine >= 6 && CaptureEngine >> 8 >= 2) {
+          i_eax = -1;
           do { // L_0x3c02173
-          } while (rcx[(i_eax + 1)] != 0); // loop -> L_0x3c02173
+            i_eax++;
+          } while (rcx[i_eax] != 0); // loop -> L_0x3c02173
           FLog::Log("[DFLog::CaptureEngine] Invalid configuration for snapshot range [0]. Skipping snapshot");
         }
-        return rbx;
+        return -1;
       }
       goto L_0x3c02040;
     }
@@ -102,7 +119,7 @@ Operação  : 0x3c02138: mov/math reg, [flag] ; fn=0x3c01f50..0x3c02215
     0x3c01f61 | 48 33 c4                 | xor rax, rsp
     0x3c01f64 | 48 89 84 24 a0 00 00 00  | mov qword ptr [rsp + 0xa0], rax
     0x3c01f6c | 4c 63 0d 45 f7 51 04     | movsxd r9, dword ptr [rip + 0x451f745] ; DFIntVideoCaptureSnapshotMaxFrameTimeSecond
-    0x3c01f73 | 48 c7 c3 ff ff ff ff     | mov rbx, 0xffffffff
+    0x3c01f73 | 48 c7 c3 ff ff ff ff     | mov rbx, -0x1
     0x3c01f7a | 45 85 c9                 | test r9d, r9d
     0x3c01f7d | 0f 84 bd 00 00 00        | je 0x3c02040 ; [Nanomite Reconstructed: je +0xbd via cfg_join_label_resolver]
     0x3c01f83 | 85 c9                    | test ecx, ecx
@@ -333,10 +350,7 @@ Operação  : 0x3c02138: mov/math reg, [flag] ; fn=0x3c01f50..0x3c02215
       if (ret_0x4975c90_3->field_0x8 != 0) {
         call_0x6daf40(ret_0x4975c90_3->field_0x8);
       }
-      if (local_0xd0 >= 16) {
-        void* v_rcx_1 = local_0xb8;
-        call_0x4955ac0(v_rcx_1);
-      }
+      std::string::_Tidy_deallocate(local_0xb8);
       if (CaptureEngine >= 6 && CaptureEngine >> 8 >= 4) {
         FLog::Log("[DFLog::CaptureEngine] GraphicBufferSource created with dimensions {}x{} at {} fps. Snapshot tar");
         "[DFLog::CaptureEngine] GraphicBufferSource created with dimensions {}x{} at {} fps. Snapshot tar";
@@ -447,7 +461,7 @@ Operação  : 0x3c02138: mov/math reg, [flag] ; fn=0x3c01f50..0x3c02215
     0x3c02399 | 48 8b 4c 24 30           | mov rcx, qword ptr [rsp + 0x30]
     0x3c0239e | 48 81 c1 a2 fa e9 ff     | add rcx, 0xffe9faa2
     0x3c023a5 | 48 89 4d 80              | mov qword ptr [rbp - 0x80], rcx
-    0x3c023a9 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x3c023a9 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     L_0x3c023b0:
     0x3c023b0 | 48 ff c0                 | inc rax
     0x3c023b3 | 80 3c 01 00              | cmp byte ptr [rcx + rax], 0x0
@@ -529,7 +543,7 @@ Operação  : 0x3c02138: mov/math reg, [flag] ; fn=0x3c01f50..0x3c02215
     0x3c0253e | 0f 82 cf 00 00 00        | jb 0x3c02613
     0x3c02544 | 48 8d 05 5e 88 9b 03     | lea rax, [rip + 0x39b885e] ; "[DFLog::CaptureEngine] State update: {} -> {}"
     0x3c0254b | 48 89 44 24 70           | mov qword ptr [rsp + 0x70], rax
-    0x3c02550 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x3c02550 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x3c02557 | 48 8b 4c 24 70           | mov rcx, qword ptr [rsp + 0x70]
     0x3c0255c | 48 81 c1 f7 16 e4 ff     | add rcx, 0xffe416f7
     0x3c02563 | 48 89 4c 24 60           | mov qword ptr [rsp + 0x60], rcx
@@ -583,12 +597,12 @@ Operação  : 0x3c02138: mov/math reg, [flag] ; fn=0x3c01f50..0x3c02215
         FLog::Log("[DFLog::CaptureEngine] State advance: {} -> {}");
       }
       if (atomic_cas(&this->field_0xc, param_2->field_0x0, param_3) != 0) {
-        auto prev_0x0_1 = param_2->field_0x0;
-        param_2->field_0x0 = prev_0x0_1;
-        if (CaptureEngine >= 6 && CaptureEngine >> 8 >= 3) {
-          FLog::Log("[DFLog::CaptureEngine] State advance failed: {} -> {}");
+        param_2->field_0x0 = param_2->field_0x0;
+        if (CaptureEngine >= 6) {
+          if (CaptureEngine >> 8 >= 3) {
+            FLog::Log("[DFLog::CaptureEngine] State advance failed: {} -> {}");
+          }
         }
-        return;
       }
     }
   
@@ -608,7 +622,7 @@ Operação  : 0x3c02138: mov/math reg, [flag] ; fn=0x3c01f50..0x3c02215
     0x3c0265f | 44 89 44 24 30           | mov dword ptr [rsp + 0x30], r8d
     0x3c02664 | 48 8b fa                 | mov rdi, rdx
     0x3c02667 | 48 8b f1                 | mov rsi, rcx
-    0x3c0266a | 48 c7 c3 ff ff ff ff     | mov rbx, 0xffffffff
+    0x3c0266a | 48 c7 c3 ff ff ff ff     | mov rbx, -0x1
     0x3c02671 | 3c 06                    | cmp al, 0x6
     0x3c02673 | 0f 82 a9 00 00 00        | jb 0x3c02722
     0x3c02679 | 48 c1 e8 08              | shr rax, 0x8
@@ -728,21 +742,21 @@ Operação  : 0x3c02138: mov/math reg, [flag] ; fn=0x3c01f50..0x3c02215
             if (ret_0x3c02630_1 != 0) break;
             if (VideoCaptureUseNewService6 != ret_0x3c02630_1) {
               if (local_0x30 == 0) break;
-              if ((local_0x30 - 1) == 0) break;
-              if (((local_0x30 - 1) - 1) == 0) break;
-              if (((local_0x30 - 1) - 1) == 1) break;
+              if (local_0x30 == 1) break;
+              if (local_0x30 == 2) break;
+              if ((local_0x30) == 0) break;
               if (local_0x30 == 3) break;
               L_0x3c0293c:
             } else if (local_0x30 != 0) {
-              if ((local_0x30 - 1) == 0) break;
-              if (((local_0x30 - 1) - 1) == 0) break;
-              if (((local_0x30 - 1) - 1) == 1) break;
+              if (local_0x30 == 1) break;
+              if (local_0x30 == 2) break;
+              if ((local_0x30) == 0) break;
               if (local_0x30 == 3) break;
             } else {
               goto L_0x3c0293c;
             }
           } while (true); // loop -> L_0x3c028f0
-        } while ((local_0x30 - 1) == 0); // loop -> L_0x3c028e6
+        } while (local_0x30 == 1); // loop -> L_0x3c028e6
       }
     }
   
@@ -761,7 +775,7 @@ Operação  : 0x3c02138: mov/math reg, [flag] ; fn=0x3c01f50..0x3c02215
     0x3c02853 | 0f 82 85 00 00 00        | jb 0x3c028de
     0x3c02859 | 48 8d 05 0a e6 a0 03     | lea rax, [rip + 0x3a0e60a] ; "[DFLog::CaptureEngine] Stopping GraphicBufferSource"
     0x3c02860 | 48 89 44 24 60           | mov qword ptr [rsp + 0x60], rax
-    0x3c02865 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x3c02865 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x3c0286c | 48 8b 4c 24 60           | mov rcx, qword ptr [rsp + 0x60]
     0x3c02871 | 48 81 c1 66 b6 de ff     | add rcx, 0xffdeb666
     0x3c02878 | 48 89 4c 24 50           | mov qword ptr [rsp + 0x50], rcx
@@ -850,19 +864,21 @@ Operação  : 0x3c02138: mov/math reg, [flag] ; fn=0x3c01f50..0x3c02215
       if (ret_0x3c02630_1 == 0) {
         if (local_0x30 != 1) {
           do { // L_0x3c02e50
-          } while (i_eax[(rbx + 1)] != 0); // loop -> L_0x3c02e50
+            i_ebx++;
+          } while (("[DFLog::CaptureEngine] GraphicBufferSource is not running" - 0x4a002d)[i_ebx] != 0); // loop -> L_0x3c02e50
           FLog::Log("[DFLog::CaptureEngine] GraphicBufferSource is not running");
           return tailcall_0x3c030e0(&local_0x40, 3, &local_0x60, &local_0x50);
         }
-        int32_t i_eax = "[DFLog::CaptureEngine] GraphicBufferSource is already in the Rendering state" - 0x48b86c;
+        uint64_t i_ebx = -1;
         do { // L_0x3c02ee0
-        } while (i_eax[(rbx + 1)] != 0); // loop -> L_0x3c02ee0
+          i_ebx++;
+        } while (rax[i_ebx] != 0); // loop -> L_0x3c02ee0
         FLog::Log("[DFLog::CaptureEngine] GraphicBufferSource is already in the Rendering state");
         return tailcall_0x3c030e0(&local_0x40, 3, &local_0x50, &local_0x60);
       }
       auto* f_f0 = this->field_0xf0;
       call_0x3c050a0(&f_f0);
-      &local_0x70->vfunc(&local_0x70, param_3->field_0x8, (0) + this->field_0x88, this->field_0x10);
+      param_3->vfunc_0x0(&local_0x70, param_3->field_0x8, ((0 << 4) + this->field_0x88), this->field_0x10) // -> RBX::BackpackItem::fn_0x3c943b0;
       f_f0->field_0x0[0] = local_0x70;
       f_f0->field_0x8[0] = local_0x78;
       f_f0->field_0x8[0]->vfunc_0x0(prev_0x8[0]_1) // -> RBX::BackpackItem::fn_0x3c943b0;
@@ -905,7 +921,7 @@ Operação  : 0x3c02138: mov/math reg, [flag] ; fn=0x3c01f50..0x3c02215
     0x3c02e24 | 3c 03                    | cmp al, 0x3
     0x3c02e26 | 0f 82 b4 02 00 00        | jb 0x3c030e0
     0x3c02e2c | 48 8d 05 02 9a c9 03     | lea rax, [rip + 0x3c99a02] ; "[DFLog::CaptureEngine] GraphicBufferSource is not running"
-    0x3c02e33 | 48 c7 c3 ff ff ff ff     | mov rbx, 0xffffffff
+    0x3c02e33 | 48 c7 c3 ff ff ff ff     | mov rbx, -0x1
     0x3c02e3a | 48 89 45 c7              | mov qword ptr [rbp - 0x39], rax
     0x3c02e3e | 48 8b 45 c7              | mov rax, qword ptr [rbp - 0x39]
     0x3c02e42 | 48 05 d3 ff b5 ff        | add rax, 0xffb5ffd3
@@ -940,7 +956,7 @@ Operação  : 0x3c02138: mov/math reg, [flag] ; fn=0x3c01f50..0x3c02215
     0x3c02eb6 | 3c 03                    | cmp al, 0x3
     0x3c02eb8 | 0f 82 22 02 00 00        | jb 0x3c030e0
     0x3c02ebe | 48 8d 05 f7 51 c8 03     | lea rax, [rip + 0x3c851f7] ; "[DFLog::CaptureEngine] GraphicBufferSource is already in the Rendering state"
-    0x3c02ec5 | 48 c7 c3 ff ff ff ff     | mov rbx, 0xffffffff
+    0x3c02ec5 | 48 c7 c3 ff ff ff ff     | mov rbx, -0x1
     0x3c02ecc | 48 89 45 c7              | mov qword ptr [rbp - 0x39], rax
     0x3c02ed0 | 48 8b 45 c7              | mov rax, qword ptr [rbp - 0x39]
     0x3c02ed4 | 48 05 94 47 b7 ff        | add rax, 0xffb74794
@@ -974,7 +990,7 @@ Operação  : 0x3c02138: mov/math reg, [flag] ; fn=0x3c01f50..0x3c02215
     0x3c02f47 | 44 39 b6 f8 00 00 00     | cmp dword ptr [rsi + 0xf8], r14d
     0x3c02f4e | 0f 86 84 01 00 00        | jbe 0x3c030d8
     0x3c02f54 | 4c 89 a4 24 e8 00 00 00  | mov qword ptr [rsp + 0xe8], r12
-    0x3c02f5c | 48 c7 c3 ff ff ff ff     | mov rbx, 0xffffffff
+    0x3c02f5c | 48 c7 c3 ff ff ff ff     | mov rbx, -0x1
     0x3c02f63 | 4c 89 bc 24 a0 00 00 00  | mov qword ptr [rsp + 0xa0], r15
     0x3c02f6b | 4d 8b e6                 | mov r12, r14
     0x3c02f6e | 4d 8b fe                 | mov r15, r14
@@ -1020,12 +1036,8 @@ Operação  : 0x3c02138: mov/math reg, [flag] ; fn=0x3c01f50..0x3c02215
     void RBX::CaptureEngine::func_0x3c56336(RBX::CaptureEngine* this) {
       rax->field_0x0 = rax->field_0x0 + rax;
       rdi->field_0x0 = rdi->field_0x0 + this;
-      frame_0x2b0 = frame_0x2b0 + this;
       call_0x1d48fe0(&frame_0x240, &frame_0xb0, &frame_0xa0);
-      if (frame_0x118 >= 16) {
-        void* v_rcx_1 = frame_0x100;
-        call_0x4955ac0(v_rcx_1);
-      }
+      std::string::_Tidy_deallocate(frame_0x100);
       int64_t frame_0x1e0;
       if (frame_0x250 != 0) {
         frame_0x1e0 = rbx;
@@ -1038,44 +1050,37 @@ Operação  : 0x3c02138: mov/math reg, [flag] ; fn=0x3c01f50..0x3c02215
       call_0x6f8cb0(&frame_0x2c0);
       call_0x6f8cb0(&frame_0x310);
       if (frame_0x1f8 >= 8) {
-        void* v_rcx_3 = frame_0x1e0;
-        call_0x4955ac0(v_rcx_3);
+        void* v_rcx_2 = frame_0x1e0;
+        call_0x4955ac0(v_rcx_2);
       }
       if (VideoCapturePlaystation && CaptureEngine >= 6 && CaptureEngine >> 8 >= 5) {
-        auto expr_1 = "[DFLog::CaptureEngine] Copying captured video from {} to {}";
+        int64_t frame_0x1a0;
         if (frame_0x210 != 0) {
-          FLog::Log(expr_1);
-          auto ret_0x1d68340_11 = call_0x1d68340(expr_1);
-          auto frame_0x1a0 = 0;
+          FLog::Log("[DFLog::CaptureEngine] Copying captured video from {} to {}");
+          auto ret_0x1d68340_11 = call_0x1d68340("[DFLog::CaptureEngine] Copying captured video from {} to {}");
+          frame_0x1a0 = 0;
           call_0x1d60070(frame_0x200, frame_0x200 + frame_0x210 * 2, &frame_0x1a0, ret_0x1d68340_11);
         }
-        int64_t stk_9;
         int64_t frame_0xc0;
         if ((r15 + 0xb8)->field_0x10 != 0) {
-          void* v_rdi_4;
+          void* v_rdi_3;
           if ((r15 + 0xb8)->field_0x18 >= 8) {
-            v_rdi_4 = (r15 + 0xb8)->field_0x0 + (r15 + 0xb8)->field_0x10 + (r15 + 0xb8)->field_0x10;
+            v_rdi_3 = (r15 + 0xb8)->field_0x0 + (r15 + 0xb8)->field_0x10 * 2;
           } else {
-            v_rdi_4 = (r15 + 0xb8)->field_0x10 + (r15 + 0xb8)->field_0x10 + r15 + 0xb8;
+            v_rdi_3 = (r15 + 0xb8)->field_0x10 * 2 + r15 + 0xb8;
           }
-          FLog::Log(expr_1);
+          FLog::Log("[DFLog::CaptureEngine] Copying captured video from {} to {}");
           auto ret_0x1d68340_13 = call_0x1d68340((r15 + 0xb8)->field_0x10);
           frame_0xc0 = 0;
-          call_0x1d60070((r15 + 0xb8)->field_0x18 >= 8 ? (r15 + 0xb8)->field_0x0 : r15 + 0xb8, v_rdi_4, &frame_0xc0, ret_0x1d68340_13);
-          stk_9 = frame_0xd8;
-        } else {
-          stk_9 = 15;
+          call_0x1d60070((r15 + 0xb8)->field_0x18 >= 8 ? (r15 + 0xb8)->field_0x0 : r15 + 0xb8, v_rdi_3, &frame_0xc0, ret_0x1d68340_13);
         }
-        FLog::Log(expr_1);
-        if (stk_9 >= 16) {
-          void* v_rcx_10 = frame_0xc0;
-          call_0x4955ac0(v_rcx_10);
-        }
-        std::string::_Tidy_deallocate(v_rcx_12);
+        FLog::Log("[DFLog::CaptureEngine] Copying captured video from {} to {}");
+        std::string::_Tidy_deallocate(frame_0xc0);
+        std::string::_Tidy_deallocate(frame_0x1a0);
       }
       call_0x1d61ce0(r15 + 0xb8, &frame_0x200, 1);
       call_0x6f8cb0(&frame_0x200);
-      std::string::_Tidy_deallocate(v_rcx_13);
+      std::string::_Tidy_deallocate(frame_0x240);
     }
   
   === [Instrucoes x86-64 do XREF Runtime #7 (0x3c56336..0x3c5689a)] ===
@@ -1445,7 +1450,7 @@ Operação  : 0x3c02138: mov/math reg, [flag] ; fn=0x3c01f50..0x3c02215
     0x3c57f89 | 48 8b 4c 24 60           | mov rcx, qword ptr [rsp + 0x60]
     0x3c57f8e | 48 81 c1 60 27 33 ff     | add rcx, 0xff332760
     0x3c57f95 | 48 89 4c 24 50           | mov qword ptr [rsp + 0x50], rcx
-    0x3c57f9a | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x3c57f9a | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     L_0x3c57fa1:
     0x3c57fa1 | 48 ff c0                 | inc rax
     0x3c57fa4 | 80 3c 01 00              | cmp byte ptr [rcx + rax], 0x0

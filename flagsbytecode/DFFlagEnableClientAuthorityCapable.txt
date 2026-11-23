@@ -9,7 +9,7 @@ Operação  : 0xd6a09d: cmp byte [flag], imm8 ; fn=0xd69fc0..0xd6a143
     Classe  : RBX::DMCTMigrateBase (RTTI Resolvido)
     Padrão  : DFFlagEnableClientAuthorityCapable = true (default) [bool, mode=2]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
-    Fórmula : EnableClientAuthorityCapable
+    Fórmula : ISRStopResendAfterOwnershipLost || EnableClientAuthorityCapable
     Altera  : this->field_0xf9, this->field_0xf0
     [Child @0xd74f40] Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
     [XREF #2 @0xd6a32c] Classe  : RBX::EnableClient (RTTI Resolvido)
@@ -20,12 +20,12 @@ Operação  : 0xd6a09d: cmp byte [flag], imm8 ; fn=0xd69fc0..0xd6a143
     [XREF #3 @0xd6a535] Altera  : this->field_0x178->field_0x1e8->field_0x1c0, this->field_0x178->field_0x1e8->field_0x1c8
     [XREF #4 @0x39b7e07] Classe  : RBX::EnableClient (RTTI Resolvido)
     [XREF #4 @0x39b7e07] Fórmula : !EnableClientAuthorityCapable
-    [XREF #4 @0x39b7e07] Altera  : this->field_0x48->field_0x0
+    [XREF #4 @0x39b7e07] Altera  : this->field_0x48->field_0x0, this->field_0x48
     [XREF #5 @0x39b7fe7] Classe  : RBX::EnableClient (RTTI Resolvido)
     [XREF #5 @0x39b7fe7] Fórmula : !EnableClientAuthorityCapable
     [XREF #6 @0x39b8218] Classe  : RBX::EnableClient (RTTI Resolvido)
     [XREF #6 @0x39b8218] Fórmula : !EnableClientAuthorityCapable
-    [XREF #6 @0x39b8218] Altera  : this->field_0x48->field_0x0
+    [XREF #6 @0x39b8218] Altera  : this->field_0x48->field_0x0, this->field_0x48
     [XREF #7 @0x39b844b] Classe  : RBX::EnableClient (RTTI Resolvido)
     [XREF #7 @0x39b844b] Fórmula : !EnableClientAuthorityCapable
     [XREF #8 @0x4626871] Classe  : RBX::EnableClient (RTTI Resolvido)
@@ -67,28 +67,15 @@ Operação  : 0xd6a09d: cmp byte [flag], imm8 ; fn=0xd69fc0..0xd6a143
       if (v_rcx_1 != 1) {
         this->field_0xf0 = param_2->field_0x0;
       }
-      if (!ISRStopResendAfterOwnershipLost) {
-        if (EnableClientAuthorityCapable) {
-          auto ret_0x4062490_4 = call_0x4062490(&this->field_m0xa8);
-          if (ret_0x4062490_4 != 0 && ret_0x4062490_4->field_0x970 == 1) {
-            auto ret_0x40625d0_5 = call_0x40625d0(&ret_0x4062490_4->field_0x1f0);
-            if (ret_0x40625d0_5 != 0) {
-              if (ret_0x40625d0_5->field_0x980 != 1) {
-                L_0xd6a0d6:
-                auto ret_0x3316f50_6 = call_0x3316f50(&this->field_m0xa8);
-                if (ret_0x3316f50_6 != 0) {
-                  auto local_0x50 = &this->field_m0xa8;
-                  auto local_0x40 = v_rcx_1;
-                  call_0xd74f40(&ret_0x3316f50_6->field_0x6a8, &local_0x50, param_2, &local_0x40);
-                  return;
-                }
-                return;
-              }
-              return;
-            }
+      int64_t local_0x50;
+      if (ISRStopResendAfterOwnershipLost || EnableClientAuthorityCapable) {
+        auto ret_0x4062490_4 = call_0x4062490(&this->field_m0xa8);
+        if (ret_0x4062490_4 != 0 && ret_0x4062490_4->field_0x970 == 1) {
+          auto ret_0x40625d0_5 = call_0x40625d0(&ret_0x4062490_4->field_0x1f0);
+          if (ret_0x40625d0_5 == 0 || ret_0x40625d0_5->field_0x980 != 1) {
             auto ret_0x3316f50_6 = call_0x3316f50(&this->field_m0xa8);
             if (ret_0x3316f50_6 != 0) {
-              auto local_0x50 = &this->field_m0xa8;
+              local_0x50 = &this->field_m0xa8;
               auto local_0x40 = v_rcx_1;
               call_0xd74f40(&ret_0x3316f50_6->field_0x6a8, &local_0x50, param_2, &local_0x40);
               return;
@@ -97,18 +84,6 @@ Operação  : 0xd6a09d: cmp byte [flag], imm8 ; fn=0xd69fc0..0xd6a143
           }
           return;
         }
-        return;
-      }
-      auto ret_0x4062490_4 = call_0x4062490(&this->field_m0xa8);
-      if (ret_0x4062490_4 != 0 && ret_0x4062490_4->field_0x970 == 1) {
-        auto ret_0x40625d0_5 = call_0x40625d0(&ret_0x4062490_4->field_0x1f0);
-        if (ret_0x40625d0_5 != 0) {
-          if (ret_0x40625d0_5->field_0x980 != 1) {
-            goto L_0xd6a0d6;
-          }
-          return;
-        }
-        goto L_0xd6a0d6;
       }
     }
   
@@ -228,42 +203,73 @@ Operação  : 0xd6a09d: cmp byte [flag], imm8 ; fn=0xd69fc0..0xd6a143
     // Flag defaults: EnableClientAuthorityCapable = true
     void RBX::EnableClient::func_0xd74f40(RBX::EnableClient* this, int64_t param_2, void* param_3, void* param_4) {
       auto* f_0 = this->field_0x0;
-      if (f_0 != 0 && f_0->field_0x8 != 0) {
-        auto ret_0xc700_1 = call_0xc700(global_0x84cf408, 1);
-        if (ret_0xc700_1->field_0x0 != 0) {
-          if (f_0 != 0) {
-            f_0->field_0x0 = f_0->field_0x0 + 1;
-          }
-          auto local_0x30 = f_0;
-          call_0x707ef0(&local_0x48, 24, param_3, &local_0x30);
-          if (ret_0xc700_1->field_0x0->field_0x8 != ret_0xc700_1->field_0x0->field_0x10) {
-            call_0x6db970(ret_0xc700_1->field_0x0->field_0x8, &local_0x48);
-          } else {
-            call_0x73d740(ret_0xc700_1->field_0x0, ret_0xc700_1->field_0x0->field_0x8, &local_0x48);
-          }
-          if ((local_0x60 & 0xfffffff8) != 0) {
-            void* v_rax_1 = 0;
-            if ((~((local_0x60 & 0xfffffffc) >> 2) & 0x1) == 0) {
-              v_rax_1 = (local_0x60 & 0xfffffff8)->field_0x18;
+      void* v_rax_1 = f_0;
+      void* v_rdi_2 = this;
+      void* v_rdi_3;
+      int64_t local_0x30;
+      int64_t ret_0xc700_1;
+      if (f_0 != 0) {
+        if (f_0->field_0x8 != 0) {
+          ret_0xc700_1 = call_0xc700(global_0x84cf408, 1);
+          if (ret_0xc700_1->field_0x0 != 0) {
+            if (f_0 != 0) {
+              f_0->field_0x0++;
             }
-            if ((local_0x60 >> 1 & 0x1) != 0) {
-              if (v_rax_1 != 0) {
-                &local_0x48->vfunc(&local_0x48);
-              }
+            local_0x30 = f_0;
+            call_0x707ef0(&local_0x48, 24, param_3, &local_0x30);
+            if (ret_0xc700_1->field_0x0->field_0x8 != ret_0xc700_1->field_0x0->field_0x10) {
+              call_0x6db970(ret_0xc700_1->field_0x0->field_0x8, &local_0x48);
+              ret_0xc700_1->field_0x0->field_0x8 = ret_0xc700_1->field_0x0->field_0x8 + 0x20;
+              v_rdi_3 = 0;
             } else {
-              if (v_rax_1 != 0) {
-                local_0x48->vfunc(local_0x48);
-              }
-              call_0x4955ac0(local_0x48);
+              v_rax_1 = ret_0xc700_1->field_0x0->field_0x8;
+              v_rdi_2 = 0;
+              call_0x73d740(ret_0xc700_1->field_0x0, v_rax_1, &local_0x48);
+              v_rdi_3 = v_rdi_2;
             }
+            if ((local_0x60 & 0xfffffff8) != 0) {
+              void* v_rax_4 = v_rdi_3;
+              if ((~((local_0x60 & 0xfffffffc) >> 2) & 0x1) == 0) {
+                v_rax_4 = (local_0x60 & 0xfffffff8)->field_0x18;
+              }
+              if ((local_0x60 >> 1 & 0x1) != 0) {
+                if (v_rax_4 != 0) {
+                  (&local_0x48)->vfunc(&local_0x48);
+                }
+              } else {
+                if (v_rax_4 != 0) {
+                  local_0x48->vfunc(local_0x48);
+                }
+                call_0x4955ac0(local_0x48);
+              }
+            }
+            call_0x6f6690(&local_0x30);
+            return;
           }
-          call_0x6f6690(&local_0x30);
-          return;
-        } else {
           call_0xd75430(f_0, param_2, param_3, param_4);
           return;
         }
+        return;
       }
+      call_0x73d740(ret_0xc700_1->field_0x0, v_rax_1, &local_0x48);
+      v_rdi_3 = v_rdi_2;
+      if ((local_0x60 & 0xfffffff8) != 0) {
+        void* v_rax_4 = v_rdi_3;
+        if ((~((local_0x60 & 0xfffffffc) >> 2) & 0x1) == 0) {
+          v_rax_4 = (local_0x60 & 0xfffffff8)->field_0x18;
+        }
+        if ((local_0x60 >> 1 & 0x1) != 0) {
+          if (v_rax_4 != 0) {
+            (&local_0x48)->vfunc(&local_0x48);
+          }
+        } else {
+          if (v_rax_4 != 0) {
+            local_0x48->vfunc(local_0x48);
+          }
+          call_0x4955ac0(local_0x48);
+        }
+      }
+      call_0x6f6690(&local_0x30);
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0xd74f40..0xd750b9)] ===
@@ -282,7 +288,7 @@ Operação  : 0xd6a09d: cmp byte [flag], imm8 ; fn=0xd69fc0..0xd6a143
     0xd74f64 | 48 8b f9                 | mov rdi, rcx
     0xd74f67 | 48 8b 01                 | mov rax, qword ptr [rcx]
     0xd74f6a | 48 85 c0                 | test rax, rax
-    0xd74f6d | 0f 84 2d 01 00 00        | je 0xd750a0
+    0xd74f6d | 0f 84 a2 00 00 00        | je 0xd75015 ; [Nanomite Reconstructed: je +0xa2 via cfg_exit_block_resolver]
     0xd74f73 | 48 83 78 08 00           | cmp qword ptr [rax + 0x8], 0x0
     0xd74f78 | 0f 84 22 01 00 00        | je 0xd750a0
     0xd74f7e | ba 01 00 00 00           | mov edx, 0x1
@@ -394,7 +400,7 @@ Operação  : 0xd6a09d: cmp byte [flag], imm8 ; fn=0xd69fc0..0xd6a143
     // Flag defaults: EnableClientAuthorityCapable = true, NetworkSchemaServerEngineNetConfigOnly = true, CLI183138Post2 = false, DebugHashTableMetrics = false, DMCTMigrateBasePartNetwork = true, ISRStopResendAfterOwnershipLost = true
     void RBX::EnableClient::func_0xd6a1d0(RBX::EnableClient* this, int64_t param_2) {
       auto* f_d0 = this->field_0xd0;
-      if (param_2->field_0x0 != f_d0->field_0x0[rax]) {
+      if (param_2->field_0x0 != f_d0->field_0x0[DMCTMigrateBasePartNetwork ? 600 : 476]) {
         call_0x3cef7a0(&local_0x70, &this->field_m0xa8);
         if (param_2->field_0x0 == local_0x70) {
           call_0x1458ca0(f_d0, 0);
@@ -402,15 +408,15 @@ Operação  : 0xd6a09d: cmp byte [flag], imm8 ; fn=0xd69fc0..0xd6a143
         if (global_0x8cd276c > this->field_m0x50->field_0x0->field_0x0[40]) {
           call_0x12e0(&sym_0x8cd276c);
         }
-        uint8_t v_al_3;
+        uint8_t v_al_2;
         if (param_2->field_0x0 != global_0x8cd2768 && param_2->field_0x0 != 2 && param_2->field_0x0 != local_0x70) {
-          v_al_3 = 1;
+          v_al_2 = 1;
         } else {
-          v_al_3 = 0;
+          v_al_2 = 0;
         }
-        this->field_0xf9 = v_al_3;
+        this->field_0xf9 = v_al_2;
         if (param_2->field_0x0 != 1) {
-          this->field_0xf0 = f_d0->field_0x0[rax];
+          this->field_0xf0 = f_d0->field_0x0[DMCTMigrateBasePartNetwork ? 600 : 476];
         }
         if (DMCTMigrateBasePartNetwork) {
           auto* f_d0_220 = f_d0->field_0x220;
@@ -420,29 +426,16 @@ Operação  : 0xd6a09d: cmp byte [flag], imm8 ; fn=0xd69fc0..0xd6a143
         } else {
           f_d0->field_0x1dc = param_2->field_0x0;
         }
-        if (!ISRStopResendAfterOwnershipLost) {
-          if (EnableClientAuthorityCapable) {
-            auto ret_0x4062490_5 = call_0x4062490(&this->field_m0xa8);
-            if (ret_0x4062490_5 != 0 && ret_0x4062490_5->field_0x970 == 1) {
-              auto ret_0x40625d0_6 = call_0x40625d0(&ret_0x4062490_5->field_0x1f0);
-              if (ret_0x40625d0_6 != 0) {
-                if (ret_0x40625d0_6->field_0x980 != 1) {
-                  L_0xd6a365:
-                  auto ret_0x3316f50_7 = call_0x3316f50(&this->field_m0xa8);
-                  if (ret_0x3316f50_7 != 0) {
-                    auto local_0x70 = &this->field_m0xa8;
-                    auto local_0x60 = f_d0->field_0x0[rax];
-                    call_0xd74f40(&ret_0x3316f50_7->field_0x6a8, &local_0x70, &local_0x60, param_2);
-                    return;
-                  }
-                  return;
-                }
-                return;
-              }
+        int64_t local_0x70;
+        if (ISRStopResendAfterOwnershipLost || EnableClientAuthorityCapable) {
+          auto ret_0x4062490_5 = call_0x4062490(&this->field_m0xa8);
+          if (ret_0x4062490_5 != 0 && ret_0x4062490_5->field_0x970 == 1) {
+            auto ret_0x40625d0_6 = call_0x40625d0(&ret_0x4062490_5->field_0x1f0);
+            if (ret_0x40625d0_6 == 0 || ret_0x40625d0_6->field_0x980 != 1) {
               auto ret_0x3316f50_7 = call_0x3316f50(&this->field_m0xa8);
               if (ret_0x3316f50_7 != 0) {
-                auto local_0x70 = &this->field_m0xa8;
-                auto local_0x60 = f_d0->field_0x0[rax];
+                local_0x70 = &this->field_m0xa8;
+                auto local_0x60 = f_d0->field_0x0[DMCTMigrateBasePartNetwork ? 600 : 476];
                 call_0xd74f40(&ret_0x3316f50_7->field_0x6a8, &local_0x70, &local_0x60, param_2);
                 return;
               }
@@ -451,17 +444,6 @@ Operação  : 0xd6a09d: cmp byte [flag], imm8 ; fn=0xd69fc0..0xd6a143
             return;
           }
           return;
-        }
-        auto ret_0x4062490_5 = call_0x4062490(&this->field_m0xa8);
-        if (ret_0x4062490_5 != 0 && ret_0x4062490_5->field_0x970 == 1) {
-          auto ret_0x40625d0_6 = call_0x40625d0(&ret_0x4062490_5->field_0x1f0);
-          if (ret_0x40625d0_6 != 0) {
-            if (ret_0x40625d0_6->field_0x980 != 1) {
-              goto L_0xd6a365;
-            }
-            return;
-          }
-          goto L_0xd6a365;
         }
       }
     }
@@ -616,52 +598,60 @@ Operação  : 0xd6a09d: cmp byte [flag], imm8 ; fn=0xd69fc0..0xd6a143
     0xd6a3e4 | 48 8d 4c 24 20           | lea rcx, [rsp + 0x20]
     0xd6a3e9 | e8 02 c3 09 05           | call 0x5e066f0
   
-  === [Decompilacao C++ do XREF Runtime #3: 0xd6a3f0..0xd6a5fb (insn @0xd6a535: cmp [flag], reg)] ===
+  === [Decompilacao C++ do XREF Runtime #3: 0xd6a440..0xd6a5fb (insn @0xd6a535: cmp [flag], reg)] ===
     struct RBX::EnableClient {
       /* +0x178 */ void*   field_0x178;
     };
     
     // Flag defaults: EnableClientAuthorityCapable = true, DMCTMigrateBasePartNetwork = true, PTREnable = false, NetworkSchemaServerEngineNetConfigOnly = true, CLI183138Post2 = false, CLI1842832 = true, DebugHashTableMetrics = false, NextGenReplicatorEnabledWrite4 = false
-    void RBX::EnableClient::func_0xd6a3f0(RBX::EnableClient* this) {
-      call_0xdf0d00(&this->field_0xa8);
+    void RBX::EnableClient::func_0xd6a440(RBX::EnableClient* this, int64_t param_2) {
+      void* v_rcx_1 = 600;
+      void* v_rdx_2 = param_2;
+      void* v_rcx_3;
+      void* v_rdx_4;
+      int64_t local_0x70;
       auto* f_178 = this->field_0x178;
-      if (f_178->field_0x0[rax] != f_178->field_0x0[rax]) {
-        auto ret_0x4064e20_2 = call_0x4064e20(this);
-        if (ret_0x4064e20_2 != 0) {
+      if (param_2 != f_178->field_0x0[DMCTMigrateBasePartNetwork ? 600 : 476]) {
+        auto ret_0x4064e20_1 = call_0x4064e20(this);
+        if (ret_0x4064e20_1 != 0) {
           auto* f_178_1e8 = f_178->field_0x1e8;
           if (PTREnable && f_178_1e8 != 0) {
             f_178_1e8->field_0x1c0 = 0;
             f_178_1e8->field_0x1c8 = 0;
           }
-          auto ret_0x3316f50_3 = call_0x3316f50(this);
-          if (ret_0x3316f50_3 != 0) {
-            void* v_rcx_1;
-            if (ret_0x3316f50_3->field_0x3f8->field_0x288 == 0) {
-              if (!NetworkSchemaServerEngineNetConfigOnly && CLI1842832) {
-                v_rcx_1 = (CLI183138Post2 ? 16 : 0) | 0x20;
+          auto ret_0x3316f50_2 = call_0x3316f50(this);
+          int64_t local_0x60;
+          if (ret_0x3316f50_2 != 0) {
+            if (ret_0x3316f50_2->field_0x3f8->field_0x288 == 0) {
+              if (!NetworkSchemaServerEngineNetConfigOnly) {
+                if (CLI1842832) {
+                  v_rcx_3 = (CLI183138Post2 ? 16 : 0) | 0x20;
+                  v_rdx_4 = ret_0x3316f50_2;
+                } else {
+                  v_rcx_3 = CLI183138Post2 ? 16 : 0;
+                  v_rdx_4 = ret_0x3316f50_2;
+                }
               } else {
-                v_rcx_1 = CLI183138Post2 ? 16 : 0;
+                v_rcx_3 = 0;
+                v_rdx_4 = ret_0x3316f50_2;
               }
             } else {
-              v_rcx_1 = ret_0x3316f50_3->field_0x3f8->field_0x290;
+              v_rcx_1 = ret_0x3316f50_2->field_0x3f8;
+              v_rdx_2 = ret_0x3316f50_2;
+              v_rcx_3 = v_rcx_1->field_0x290;
+              v_rdx_4 = v_rdx_2;
             }
-            int64_t local_0x70;
-            if (!DebugHashTableMetrics && (v_rcx_1 >> 3 & 0x1) == 0 && !NextGenReplicatorEnabledWrite4 && (v_rcx_1 & 0x1) != 0) {
+            if (DebugHashTableMetrics || (v_rcx_3 >> 3 & 0x1) != 0 || NextGenReplicatorEnabledWrite4 || (v_rcx_3 & 0x1) != 0) {
               if (!ISRStopResendAfterOwnershipLost && !EnableClientAuthorityCapable) {
                 local_0x70 = this;
-                call_0x755c20(&ret_0x3316f50_3->field_0x6a0, &local_0x70);
+                call_0x755c20(&v_rdx_4->field_0x6a0, &local_0x70);
               } else {
                 L_0xd6a554:
                 local_0x70 = this;
-                auto local_0x10 = f_178->field_0x0[rax];
-                auto local_0x60 = f_178->field_0x0[rax];
-                call_0xd74f40(&ret_0x3316f50_3->field_0x6a8, &local_0x70, &local_0x68, &local_0x60);
+                auto local_0x10 = param_2;
+                local_0x60 = f_178->field_0x0[DMCTMigrateBasePartNetwork ? 600 : 476];
+                call_0xd74f40(&v_rdx_4->field_0x6a8, &local_0x70, &local_0x68, &local_0x60);
               }
-            } else if (!ISRStopResendAfterOwnershipLost && !EnableClientAuthorityCapable) {
-              local_0x70 = this;
-              call_0x755c20(&ret_0x3316f50_3->field_0x6a0, &local_0x70);
-            } else {
-              goto L_0xd6a554;
             }
           }
           if (local_0x68 == 2) {
@@ -669,31 +659,29 @@ Operação  : 0xd6a09d: cmp byte [flag], imm8 ; fn=0xd69fc0..0xd6a143
             call_0x1c1f220(this, &local_0x20);
             return;
           }
-          return;
+          if (!(local_0x60 < 1 || local_0x60 > 2)) {
+            return;
+          }
         }
+      }
+      v_rcx_3 = v_rcx_1->field_0x290;
+      v_rdx_4 = v_rdx_2;
+      if (DebugHashTableMetrics || (v_rcx_3 >> 3 & 0x1) != 0 || NextGenReplicatorEnabledWrite4 || (v_rcx_3 & 0x1) != 0) {
+        if (!ISRStopResendAfterOwnershipLost && !EnableClientAuthorityCapable) {
+          local_0x70 = this;
+          call_0x755c20(&v_rdx_4->field_0x6a0, &local_0x70);
+        } else {
+          goto L_0xd6a554;
+        }
+      }
+      if (local_0x68 == 2) {
+        auto local_0x20 = &sym_0x6ee9278;
+        call_0x1c1f220(this, &local_0x20);
+        return;
       }
     }
   
-  === [Instrucoes x86-64 do XREF Runtime #3 (0xd6a3f0..0xd6a5fb)] ===
-    0xd6a3f0 | 48 89 5c 24 08           | mov qword ptr [rsp + 0x8], rbx
-    0xd6a3f5 | 57                       | push rdi
-    0xd6a3f6 | 48 83 ec 20              | sub rsp, 0x20
-    0xd6a3fa | 4c 8b 81 78 01 00 00     | mov r8, qword ptr [rcx + 0x178]
-    0xd6a401 | 48 8b f9                 | mov rdi, rcx
-    0xd6a404 | 80 3d 85 6e 3a 07 00     | cmp byte ptr [rip + 0x73a6e85], 0x0 ; FFlagDMCTMigrateBasePartNetwork
-    0xd6a40b | b9 58 02 00 00           | mov ecx, 0x258
-    0xd6a410 | b8 dc 01 00 00           | mov eax, 0x1dc
-    0xd6a415 | 0f 45 c1                 | cmovnz eax, ecx
-    0xd6a418 | 48 8d 8f a8 00 00 00     | lea rcx, [rdi + 0xa8]
-    0xd6a41f | 41 8b 1c 00              | mov ebx, dword ptr [r8 + rax]
-    0xd6a423 | e8 d8 68 08 00           | call 0xdf0d00
-    0xd6a428 | 8b d3                    | mov edx, ebx
-    0xd6a42a | 48 8b cf                 | mov rcx, rdi
-    0xd6a42d | 48 8b 5c 24 30           | mov rbx, qword ptr [rsp + 0x30]
-    0xd6a432 | 48 83 c4 20              | add rsp, 0x20
-    0xd6a436 | 5f                       | pop rdi
-    0xd6a437 | e9 04 00 00 00           | jmp 0xd6a440
-    L_0xd6a440:
+  === [Instrucoes x86-64 do XREF Runtime #3 (0xd6a440..0xd6a5fb)] ===
     0xd6a440 | 89 54 24 10              | mov dword ptr [rsp + 0x10], edx
     0xd6a444 | 55                       | push rbp
     0xd6a445 | 53                       | push rbx
@@ -709,7 +697,7 @@ Operação  : 0xd6a09d: cmp byte [flag], imm8 ; fn=0xd69fc0..0xd6a143
     0xd6a46c | 41 8b 04 00              | mov eax, dword ptr [r8 + rax]
     0xd6a470 | 89 45 20                 | mov dword ptr [rbp + 0x20], eax
     0xd6a473 | 3b d0                    | cmp edx, eax
-    0xd6a475 | 0f 84 78 01 00 00        | je 0xd6a5f3
+    0xd6a475 | 0f 84 89 00 00 00        | je 0xd6a504 ; [Nanomite Reconstructed: je +0x89 via cfg_exit_block_resolver]
     0xd6a47b | 48 8b cb                 | mov rcx, rbx
     0xd6a47e | e8 9d a9 2f 03           | call 0x4064e20
     0xd6a483 | 33 ff                    | xor edi, edi
@@ -840,38 +828,35 @@ Operação  : 0xd6a09d: cmp byte [flag], imm8 ; fn=0xd69fc0..0xd6a143
         call_0x526bbe0(&param_2->field_0x10, param_3->field_0x20);
       }
       call_0x1969040(&param_2->field_0x10, param_3, 256);
-      if (!ISRStopResendAfterOwnershipLost) {
-        if (EnableClientAuthorityCapable) {
-          call_0x39b72c0(&this->field_0xb8, param_2->field_0x8, param_3);
-        }
-      } else {
+      if (ISRStopResendAfterOwnershipLost || EnableClientAuthorityCapable) {
         call_0x39b72c0(&this->field_0xb8, param_2->field_0x8, param_3);
       }
       int32_t v_rax_1;
-      if (param_2->field_0x60 != 0 && param_2->field_0x60->field_0x28 != -1) {
-        if (param_4 == -1) {
-          call_0x39abd30(&local_0x30, 256);
-          if (param_2->field_0x60->field_0x20 < local_0x50) {
-            call_0x526bbe0(param_2->field_0x60, local_0x50);
-          }
-          call_0x39abe00(param_2->field_0x60, &local_0x30, 256);
-          auto expr_1 = param_2->field_0x60->field_0x20 < param_3->field_0x20;
-        } else {
-          v_rax_1 = param_2->field_0x60->field_0x28;
-          L_0x39b7e97:
-          if (v_rax_1 == param_4) {
-            if expr_1 {
-              call_0x526bbe0(param_2->field_0x60, param_3->field_0x20);
+      if (param_2->field_0x60 != 0) {
+        if (param_2->field_0x60->field_0x28 != -1) {
+          if (param_4 == -1) {
+            call_0x39abd30(&local_0x30, 256);
+            if (param_2->field_0x60->field_0x20 < local_0x50) {
+              call_0x526bbe0(param_2->field_0x60, local_0x50);
             }
-            call_0x1969040(param_2->field_0x60, param_3, 256);
+            call_0x39abe00(param_2->field_0x60, &local_0x30, 256);
           } else {
-            call_0x39b7200(param_2, param_3, param_4);
+            v_rax_1 = param_2->field_0x60->field_0x28;
+            L_0x39b7e97:
+            if (v_rax_1 == param_4) {
+              if (param_2->field_0x60->field_0x20 < param_3->field_0x20) {
+                call_0x526bbe0(param_2->field_0x60, param_3->field_0x20);
+              }
+              call_0x1969040(param_2->field_0x60, param_3, 256);
+            } else {
+              call_0x39b7200(param_2, param_3, param_4);
+            }
           }
         } else {
           if (param_4 != -1) {
             v_rax_1 = param_2->field_0x60 != 0 ? param_2->field_0x60->field_0x28 : -1;
             if (v_rax_1 == param_4) {
-              if expr_1 {
+              if (param_2->field_0x60->field_0x20 < param_3->field_0x20) {
                 call_0x526bbe0(param_2->field_0x60, param_3->field_0x20);
               }
               call_0x1969040(param_2->field_0x60, param_3, 256);
@@ -885,13 +870,13 @@ Operação  : 0xd6a09d: cmp byte [flag], imm8 ; fn=0xd69fc0..0xd6a143
         goto L_0x39b7e97;
       }
       if ((param_2->field_0x78 >> 31 ^ 0x1) == 0) {
-        auto* f_48 = this->field_0x48;
-        param_2->field_0x78 = (f_48 - this->field_0x40) >> 3;
-        if (f_48 != this->field_0x50) {
-          f_48->field_0x0 = param_2;
+        param_2->field_0x78 = (this->field_0x48 - this->field_0x40) >> 3;
+        if (this->field_0x48 != this->field_0x50) {
+          this->field_0x48->field_0x0 = param_2;
+          this->field_0x48 = this->field_0x48 + 8;
         } else {
           auto local_0x28 = param_2;
-          call_0xcd89d0(&this->field_0x38, f_48, &local_0x28);
+          call_0xcd89d0(&this->field_0x38, this->field_0x48, &local_0x28);
         }
       }
       call_0x4954e70(ret_0x4954e70_1);
@@ -1058,11 +1043,7 @@ Operação  : 0xd6a09d: cmp byte [flag], imm8 ; fn=0xd69fc0..0xd6a143
         call_0x526bbe0(local_0x28, param_3->field_0x20);
       }
       call_0x1969040(local_0x28, param_3, 256);
-      if (!ISRStopResendAfterOwnershipLost) {
-        if (EnableClientAuthorityCapable) {
-          call_0x39b72c0(&this->field_0xb8, param_2, param_3);
-        }
-      } else {
+      if (ISRStopResendAfterOwnershipLost || EnableClientAuthorityCapable) {
         call_0x39b72c0(&this->field_0xb8, param_2, param_3);
       }
       int64_t v_rsi_2;
@@ -1070,19 +1051,30 @@ Operação  : 0xd6a09d: cmp byte [flag], imm8 ; fn=0xd69fc0..0xd6a143
         int64_t v_rsi_1 = ((param_2 * 37 & this->field_0xb0 - 1) << 4) + this->field_0xa0;
         auto expr_1 = (((param_2 * 37) & (this->field_0xb0 - 1)) << 4) + this->field_0xa0;
         if (param_2 != expr_1->field_0x0) {
-          auto i_eax = expr_1->field_0x0;
+          int32_t i_r8d = 1;
+          void* i_eax = expr_1->field_0x0;
+          int32_t i_ecx = param_2 * 37 & this->field_0xb0 - 1;
           do { // L_0x39b8040
             if (i_eax == -1) break;
-            v_rsi_1 = (((param_2 * 37 & this->field_0xb0 - 1) + 1 & this->field_0xb0 - 1) << 4) + this->field_0xa0;
-            if (v_rsi_1 == ((this->field_0xb0 << 4) + this->field_0xa0)) break;
+            int32_t prev_i_r8d_1 = i_r8d;
+            i_r8d++;
+            i_eax = rsi->field_0x0;
+            i_ecx = i_ecx + prev_i_r8d_1 & this->field_0xb0 - 1;
+          } while (param_2 != rsi->field_0x0); // loop -> L_0x39b8040
+          if (v_rsi_1 != (this->field_0xb0 << 4) + this->field_0xa0) {
             call_0x39abd30(param_3, 256);
             auto ret_0x39b7680_9 = call_0x39b7680(this, param_2, v_rsi_1->field_0x8);
-            if (ret_0x39b7680_9 == 0) break;
-            if (ret_0x39b7680_9->field_0x20 >= param_3->field_0x20) break;
-            call_0x526bbe0(ret_0x39b7680_9, param_3->field_0x20);
-            break;
-          } while (param_2 != rsi->field_0x0); // loop -> L_0x39b8040
-          v_rsi_2 = (this->field_0xb0 << 4) + this->field_0xa0;
+            if (ret_0x39b7680_9 != 0) {
+              if (ret_0x39b7680_9->field_0x20 < param_3->field_0x20) {
+                call_0x526bbe0(ret_0x39b7680_9, param_3->field_0x20);
+              }
+              call_0x39abe00(ret_0x39b7680_9, param_3, 256);
+            }
+            call_0x39abd30(param_3, 256);
+            v_rsi_2 = v_rsi_1;
+          } else {
+            v_rsi_2 = v_rsi_1;
+          }
         } else if (v_rsi_1 != (this->field_0xb0 << 4) + this->field_0xa0) {
           call_0x39abd30(param_3, 256);
           auto ret_0x39b7680_9 = call_0x39b7680(this, param_2, v_rsi_1->field_0x8);
@@ -1305,40 +1297,41 @@ Operação  : 0xd6a09d: cmp byte [flag], imm8 ; fn=0xd69fc0..0xd6a143
       }
       param_2->field_0x38[(param_3 >> 6) * 8] = param_2->field_0x38[(param_3 >> 6) * 8] | 1 << (param_3 & 0x3f);
       param_2->field_0x10[(param_3 >> 6) * 8] = param_2->field_0x10[(param_3 >> 6) * 8] | 1 << (param_3 & 0x3f);
-      if (!ISRStopResendAfterOwnershipLost) {
-        if (EnableClientAuthorityCapable) {
-          call_0x39b72c0(&this->field_0xb8, param_2->field_0x8, &local_0x38);
-        }
-      } else {
+      int64_t local_0x38;
+      if (ISRStopResendAfterOwnershipLost || EnableClientAuthorityCapable) {
+        local_0x38 = local_0x38 | 1 << (param_3 & 0x3f);
         call_0x39b72c0(&this->field_0xb8, param_2->field_0x8, &local_0x38);
       }
       int32_t v_rax_1;
-      if (param_2->field_0x60 != 0 && param_2->field_0x60->field_0x28 != -1) {
-        if (param_4 == -1) {
-          if (param_2->field_0x60->field_0x20 > param_3) {
-            param_2->field_0x60->field_0x0[(param_3 >> 6) * 8] = param_2->field_0x60->field_0x0[(param_3 >> 6) * 8] & ~(1 << (param_3 & 0x3f));
-          }
-          auto expr_1 = param_3 >= param_2->field_0x60->field_0x20;
-        } else {
-          v_rax_1 = param_2->field_0x60->field_0x28;
-          L_0x39b828e:
-          if (v_rax_1 == param_4) {
-            if expr_1 {
-              call_0x526bbe0(param_2->field_0x60, param_3 + 1);
+      if (param_2->field_0x60 != 0) {
+        if (param_2->field_0x60->field_0x28 != -1) {
+          if (param_4 == -1) {
+            if (param_2->field_0x60->field_0x20 > param_3) {
+              param_2->field_0x60->field_0x0[(param_3 >> 6) * 8] = param_2->field_0x60->field_0x0[(param_3 >> 6) * 8] & ~(1 << (param_3 & 0x3f));
             }
-            param_2->field_0x60->field_0x0[(param_3 >> 6) * 8] = param_2->field_0x60->field_0x0[(param_3 >> 6) * 8] | 1 << (param_3 & 0x3f);
           } else {
-            call_0x39b7200(param_2, &local_0x38, param_4);
+            v_rax_1 = param_2->field_0x60->field_0x28;
+            L_0x39b828e:
+            if (v_rax_1 == param_4) {
+              if (param_3 >= param_2->field_0x60->field_0x20) {
+                call_0x526bbe0(param_2->field_0x60, param_3 + 1);
+              }
+              param_2->field_0x60->field_0x0[(param_3 >> 6) * 8] = param_2->field_0x60->field_0x0[(param_3 >> 6) * 8] | 1 << (param_3 & 0x3f);
+            } else {
+              local_0x38 = local_0x38 | 1 << (param_3 & 0x3f);
+              call_0x39b7200(param_2, &local_0x38, param_4);
+            }
           }
         } else {
           if (param_4 != -1) {
             v_rax_1 = param_2->field_0x60 != 0 ? param_2->field_0x60->field_0x28 : -1;
             if (v_rax_1 == param_4) {
-              if expr_1 {
+              if (param_3 >= param_2->field_0x60->field_0x20) {
                 call_0x526bbe0(param_2->field_0x60, param_3 + 1);
               }
               param_2->field_0x60->field_0x0[(param_3 >> 6) * 8] = param_2->field_0x60->field_0x0[(param_3 >> 6) * 8] | 1 << (param_3 & 0x3f);
             } else {
+              local_0x38 = local_0x38 | 1 << (param_3 & 0x3f);
               call_0x39b7200(param_2, &local_0x38, param_4);
             }
           }
@@ -1348,13 +1341,13 @@ Operação  : 0xd6a09d: cmp byte [flag], imm8 ; fn=0xd69fc0..0xd6a143
         goto L_0x39b828e;
       }
       if ((param_2->field_0x78 >> 31 ^ 0x1) == 0) {
-        auto* f_48 = this->field_0x48;
-        param_2->field_0x78 = (f_48 - this->field_0x40) >> 3;
-        if (f_48 != this->field_0x50) {
-          f_48->field_0x0 = param_2;
+        param_2->field_0x78 = (this->field_0x48 - this->field_0x40) >> 3;
+        if (this->field_0x48 != this->field_0x50) {
+          this->field_0x48->field_0x0 = param_2;
+          this->field_0x48 = this->field_0x48 + 8;
         } else {
           auto local_0x28 = param_2;
-          call_0xcd89d0(&this->field_0x38, f_48, &local_0x28);
+          call_0xcd89d0(&this->field_0x38, this->field_0x48, &local_0x28);
         }
       }
       call_0x4954e70(ret_0x4954e70_1);
@@ -1531,29 +1524,31 @@ Operação  : 0xd6a09d: cmp byte [flag], imm8 ; fn=0xd69fc0..0xd6a143
     void RBX::EnableClient::func_0x39b8380(RBX::EnableClient* this, int64_t param_2, void* param_3, void* param_4) {
       auto ret_0x4954e70_1 = call_0x4954e70(global_0x84c9fcc);
       call_0x39b7a70(this, &local_0x48, param_2, param_3 + 1);
-      if (!ISRStopResendAfterOwnershipLost) {
-        if (EnableClientAuthorityCapable) {
-          call_0x39b72c0(&this->field_0xb8, param_2, &local_0x58);
-        }
-      } else {
+      if (ISRStopResendAfterOwnershipLost || EnableClientAuthorityCapable) {
+        auto local_0x58 = local_0x58 | 1 << (param_3 & 0x3f);
         call_0x39b72c0(&this->field_0xb8, param_2, &local_0x58);
       }
       int64_t v_rsi_1;
       if (this->field_0xb0 != 0) {
+        int32_t i_r8d = 1;
         auto expr_1 = (((param_2 * 37) & (this->field_0xb0 - 1)) << 4) + this->field_0xa0;
-        auto i_eax = expr_1->field_0x0;
+        void* i_eax = expr_1->field_0x0;
+        int32_t i_ecx = param_2 * 37 & this->field_0xb0 - 1;
         v_rsi_1 = ((param_2 * 37 & this->field_0xb0 - 1) << 4) + this->field_0xa0;
         if (param_2 != expr_1->field_0x0) {
           do { // L_0x39b84c3
             if (i_eax == -1) break;
-            v_rsi_1 = (((param_2 * 37 & this->field_0xb0 - 1) + 1 & this->field_0xb0 - 1) << 4) + this->field_0xa0;
-            if (v_rsi_1 == ((this->field_0xb0 << 4) + this->field_0xa0)) break;
-            auto ret_0x39b7680_4 = call_0x39b7680(this, param_2, v_rsi_1->field_0x8);
-            if (ret_0x39b7680_4 == 0) break;
-            if (ret_0x39b7680_4->field_0x20 <= param_3) break;
-            ret_0x39b7680_4->field_0x0[(param_3 >> 6) * 8] = ret_0x39b7680_4->field_0x0[(param_3 >> 6) * 8] & ~(1 << (param_3 & 0x3f));
-            break;
+            int32_t prev_i_r8d_1 = i_r8d;
+            i_r8d++;
+            i_eax = rsi->field_0x0;
+            i_ecx = i_ecx + prev_i_r8d_1 & this->field_0xb0 - 1;
           } while (param_2 != rsi->field_0x0); // loop -> L_0x39b84c3
+          if (v_rsi_1 != (this->field_0xb0 << 4) + this->field_0xa0) {
+            auto ret_0x39b7680_4 = call_0x39b7680(this, param_2, v_rsi_1->field_0x8);
+            if (ret_0x39b7680_4 != 0 && ret_0x39b7680_4->field_0x20 > param_3) {
+              ret_0x39b7680_4->field_0x0[(param_3 >> 6) * 8] = ret_0x39b7680_4->field_0x0[(param_3 >> 6) * 8] & ~(1 << (param_3 & 0x3f));
+            }
+          }
         } else if (v_rsi_1 != (this->field_0xb0 << 4) + this->field_0xa0) {
           auto ret_0x39b7680_4 = call_0x39b7680(this, param_2, v_rsi_1->field_0x8);
           if (ret_0x39b7680_4 != 0 && ret_0x39b7680_4->field_0x20 > param_3) {
@@ -1775,42 +1770,27 @@ Operação  : 0xd6a09d: cmp byte [flag], imm8 ; fn=0xd69fc0..0xd6a143
         this->vfunc_0x448(this, param_2->field_0x0, param_4->field_0x8, local_0x90);
         return;
       }
-      auto* f_3b28 = this->field_0x3b28;
-      auto* f_3b28_3c8 = f_3b28->field_0x3c8;
-      if (ISRTrackClientAuthorityPropertyChangesBeforeOwnership && local_0x70 == 1 && this->field_0xfc != 1 && f_3b28_3c8 != 0) {
-        auto ret_0x4954e70_2 = call_0x4954e70(global_0x84c9fcc);
-        if (EnableClientAuthorityCapable) {
-          if (!DebugHashTableMetrics && (f_3b28_3c8->field_0x188 >> 3 & 0x1) == 0 && !NextGenReplicatorEnabledWrite4) {
-            if ((f_3b28_3c8->field_0x188 & 0x1) != 0) {
+      if (ISRTrackClientAuthorityPropertyChangesBeforeOwnership && local_0x70 == 1 && this->field_0xfc != 1) {
+        auto* f_3b28 = this->field_0x3b28;
+        auto* f_3b28_3c8 = f_3b28->field_0x3c8;
+        if (f_3b28_3c8 != 0) {
+          auto ret_0x4954e70_2 = call_0x4954e70(global_0x84c9fcc);
+          if (EnableClientAuthorityCapable) {
+            if (DebugHashTableMetrics || (f_3b28_3c8->field_0x188 >> 3 & 0x1) != 0 || NextGenReplicatorEnabledWrite4 || (f_3b28_3c8->field_0x188 & 0x1) != 0) {
               auto local_0x68 = f_3b28_3c8->field_0x188;
               auto ret_0x46ec460_3 = call_0x46ec460(param_4->field_0x8, &local_0x68);
               if (ret_0x46ec460_3 != 0) {
-                call_0x46ec720(f_3b28_3c8->field_0x10, param_2->field_0x0->field_0x18, param_4->field_0x8);
-                if (rax == 65535) {
+                auto ret_0x46ec720_5 = call_0x46ec720(f_3b28_3c8->field_0x10, param_2->field_0x0->field_0x18, param_4->field_0x8);
+                if (ret_0x46ec720_5 == 65535) {
                   call_0x4954e70(ret_0x4954e70_2);
                   return;
                 }
                 local_0x68 = param_2->field_0x0->field_0x30 << 32 | param_2->field_0x0->field_0x30 >> 32;
                 auto ret_0x39ba380_6 = call_0x39ba380(&f_3b28_3c8->field_0x2b8, &local_0x68);
-                ret_0x39ba380_6->field_0x0[(rax >> 6) * 8] = ret_0x39ba380_6->field_0x0[(rax >> 6) * 8] | 1 << (rax & 0x3f);
+                ret_0x39ba380_6->field_0x0[(ret_0x46ec720_5 >> 6) * 8] = ret_0x39ba380_6->field_0x0[(ret_0x46ec720_5 >> 6) * 8] | 1 << (ret_0x46ec720_5 & 0x3f);
                 call_0x4954e70(ret_0x4954e70_2);
                 return;
               }
-            }
-          } else {
-            auto local_0x68 = f_3b28_3c8->field_0x188;
-            auto ret_0x46ec460_3 = call_0x46ec460(param_4->field_0x8, &local_0x68);
-            if (ret_0x46ec460_3 != 0) {
-              call_0x46ec720(f_3b28_3c8->field_0x10, param_2->field_0x0->field_0x18, param_4->field_0x8);
-              if (rax == 65535) {
-                call_0x4954e70(ret_0x4954e70_2);
-                return;
-              }
-              local_0x68 = param_2->field_0x0->field_0x30 << 32 | param_2->field_0x0->field_0x30 >> 32;
-              auto ret_0x39ba380_6 = call_0x39ba380(&f_3b28_3c8->field_0x2b8, &local_0x68);
-              ret_0x39ba380_6->field_0x0[(rax >> 6) * 8] = ret_0x39ba380_6->field_0x0[(rax >> 6) * 8] | 1 << (rax & 0x3f);
-              call_0x4954e70(ret_0x4954e70_2);
-              return;
             }
           }
           call_0x4954e70(ret_0x4954e70_2);
@@ -1984,72 +1964,65 @@ Operação  : 0xd6a09d: cmp byte [flag], imm8 ; fn=0xd69fc0..0xd6a143
         if (global_0x8cd276c > rbp->field_0x58->field_0x0->field_0x0[40]) {
           call_0x12e0(&sym_0x8cd276c);
         }
-        auto expr_1 = param_2->field_0x30 << 32 | param_2->field_0x30 >> 32;
-        if (local_0x20 != global_0x8cd2768 && local_0x20 == param_3->field_0x0 && ISRMaintainObjectState5) {
-          if (param_2 != 0) {
-            call_0xdf5f50();
-            void* sel_r8_2 = param_2->field_0x18->field_0x1c0 - rax->field_0x1c0 <= rax->field_0x1c2 ? param_2 : 0;
-            if (sel_r8_2 != 0) {
-              call_0x47f5ab0(&local_0x28, f_0_0->field_0x10, sel_r8_2);
-              if (local_0x48 != 0) {
-                int32_t v_rbx_2 = 0;
-                if (local_0x28 == 0) {
-                  do { // L_0x46c9b51
-                    if (ebx == 3) {
+        if (local_0x20 != global_0x8cd2768 && local_0x20 == param_3->field_0x0) {
+          int32_t i_ebx;
+          auto expr_1 = param_2->field_0x30 << 32 | param_2->field_0x30 >> 32;
+          if (ISRMaintainObjectState5) {
+            if (param_2 != 0) {
+              auto ret_0xdf5f50_7 = call_0xdf5f50();
+              void* sel_r8_2 = param_2->field_0x18->field_0x1c0 - ret_0xdf5f50_7->field_0x1c0 <= ret_0xdf5f50_7->field_0x1c2 ? param_2 : 0;
+              if (sel_r8_2 != 0) {
+                call_0x47f5ab0(&local_0x28, f_0_0->field_0x10, sel_r8_2);
+                if (local_0x48 != 0) {
+                  int32_t v_rbx_2 = 0;
+                  if (local_0x28 == 0) {
+                    do { // L_0x46c9b51
+                    i_ebx++;
+                    if (i_ebx == 4) {
                     return;
                     }
-                    v_rbx_2 = ebx + 1;
-                    if ((v_rbx_2 << 6) + ctz(local_0x28) == -1) {
-                    return;
-                    }
+                    } while (local_0x28 == 0); // loop -> L_0x46c9b51
+                    if ((v_rbx_2 << 6) + ctz(local_0x28) != -1) {
                     auto ret_0x47fab00_9 = call_0x47fab00(f_0_0, expr_1);
-                    if (ret_0x47fab00_9 == 0) {
-                    return;
+                    if (ret_0x47fab00_9 != 0) {
+                    call_0x39b7840(&f_0_0->field_0x188, ret_0x47fab00_9, &local_0x28);
                     }
+                    }
+                  } else if ((v_rbx_2 << 6) + ctz(local_0x28) != -1) {
+                    auto ret_0x47fab00_9 = call_0x47fab00(f_0_0, expr_1);
+                    if (ret_0x47fab00_9 != 0) {
                     call_0x39b7840(&f_0_0->field_0x188, ret_0x47fab00_9, &local_0x28);
-                    return;
-                  } while (local_0x28 == 0); // loop -> L_0x46c9b51
-                  L_0x46c9c5e:
-                  return;
-                }
-                if ((v_rbx_2 << 6) + ctz(local_0x28) != -1) {
-                  auto ret_0x47fab00_9 = call_0x47fab00(f_0_0, expr_1);
-                  if (ret_0x47fab00_9 != 0) {
-                    call_0x39b7840(&f_0_0->field_0x188, ret_0x47fab00_9, &local_0x28);
+                    }
                   }
                 }
               }
             }
-          }
-        } else if (param_2 != 0) {
-          call_0xdf5f50();
-          void* sel_r8_1 = param_2->field_0x18->field_0x1c0 - rax->field_0x1c0 <= rax->field_0x1c2 ? param_2 : 0;
-          if (sel_r8_1 != 0) {
-            call_0x47f5ab0(&local_0x28, f_0_0->field_0x10, sel_r8_1);
-            if (local_0x48 != 0) {
-              int32_t v_rbx_1 = 0;
-              if (local_0x28 == 0) {
-                do { // L_0x46c9c14
-                  if (ebx == 3) {
+          } else if (param_2 != 0) {
+            auto ret_0xdf5f50_4 = call_0xdf5f50();
+            void* sel_r8_1 = param_2->field_0x18->field_0x1c0 - ret_0xdf5f50_4->field_0x1c0 <= ret_0xdf5f50_4->field_0x1c2 ? param_2 : 0;
+            if (sel_r8_1 != 0) {
+              call_0x47f5ab0(&local_0x28, f_0_0->field_0x10, sel_r8_1);
+              if (local_0x48 != 0) {
+                i_ebx = 0;
+                int32_t v_rbx_1 = 0;
+                if (local_0x28 == 0) {
+                  do { // L_0x46c9c14
+                    i_ebx++;
+                    if (i_ebx == 4) {
                     return;
+                    }
+                  } while (local_0x28 == 0); // loop -> L_0x46c9c14
+                  if ((v_rbx_1 << 6) + ctz(local_0x28) != -1) {
+                    call_0x39b76e0(&f_0_0->field_0x188, expr_1, &local_0x28);
                   }
-                  v_rbx_1 = ebx + 1;
-                  if ((v_rbx_1 << 6) + ctz(local_0x28) == -1) {
-                    return;
-                  }
+                } else if ((v_rbx_1 << 6) + ctz(local_0x28) != -1) {
                   call_0x39b76e0(&f_0_0->field_0x188, expr_1, &local_0x28);
-                  return;
-                } while (local_0x28 == 0); // loop -> L_0x46c9c14
-                return;
-              }
-              if ((v_rbx_1 << 6) + ctz(local_0x28) != -1) {
-                call_0x39b76e0(&f_0_0->field_0x188, expr_1, &local_0x28);
+                }
               }
             }
           }
         }
       }
-      goto L_0x46c9c5e;
     }
   
   === [Instrucoes x86-64 do XREF Runtime #9 (0x46c9a30..0x46c9cb1)] ===
@@ -2065,7 +2038,7 @@ Operação  : 0xd6a09d: cmp byte [flag], imm8 ; fn=0xd69fc0..0xd6a143
     0x46c9a55 | 48 8b fa                 | mov rdi, rdx
     0x46c9a58 | 48 8b d9                 | mov rbx, rcx
     0x46c9a5b | 48 83 b8 00 02 00 00 00  | cmp qword ptr [rax + 0x200], 0x0
-    0x46c9a63 | 74 0b                    | je 0x46c9a70
+    0x46c9a63 | 74 0b                    | je 0x46c9a70 ; [Nanomite Reconstructed: je +0xb via cfg_call_guard_resolver]
     0x46c9a65 | 48 8b 01                 | mov rax, qword ptr [rcx]
     0x46c9a68 | 48 8b 08                 | mov rcx, qword ptr [rax]
     0x46c9a6b | e8 b0 db 12 00           | call 0x47f7620
@@ -2248,30 +2221,31 @@ Operação  : 0xd6a09d: cmp byte [flag], imm8 ; fn=0xd69fc0..0xd6a143
   0xd74f40: 40 53 | 56 | 57 | 41 56
   0xd74f46: 41 57 | 48 83 ec 70 | 48 8b 05 8d 37 36 07 | 48 33 c4
   0xd74f56: 48 89 44 24 68 | 4d 8b f9 | 4d 8b f0 | 48 8b f2
-  0xd74f64: 48 8b f9 | 48 8b 01 | 48 85 c0 | 0f 84 2d 01 00 00
-  0xd74f73: 48 83 78 08 00 | 0f 84 22 01 00 00 | ba 01 00 00 00 | 48 8b 0d 7e a4 75 07
-  0xd74f8a: e8 71 77 29 ff | 48 8b 18 | 48 8b 0f | 48 85 db
-  0xd74f98: 0f 84 f4 00 00 00 | 48 89 4c 24 30 | 48 85 c9 | 74 03
-  0xd74fa8: f0 ff 01 | 48 8b 06 | 48 89 44 24 38 | 41 8b 06
-  0xd74fb6: 89 44 24 40 | 41 8b 07 | 89 44 24 44 | 33 ff
-  0xd74fc3: 48 89 7c 24 60 | 48 8d 05 81 d0 e9 ff | 48 89 44 24 28 | 48 8d 05 0d b3 22 06
-  0xd74fdb: 48 89 44 24 20 | 4c 8d 4c 24 30 | 8d 57 18 | 48 8d 4c 24 48
-  0xd74fed: e8 fe 2e 99 ff | 90 | 48 8b 43 08 | 48 3b 43 10
-  0xd74ffb: 74 18 | 48 89 78 18 | 48 8d 54 24 48 | 48 8b c8
-  0xd75009: e8 62 69 96 ff | 48 83 43 08 20 | eb 11 | 4c 8d 44 24 48
-  0xd7501a: 48 8b d0 | 48 8b cb | e8 1b 87 9c ff | 90
-  0xd75026: 48 8b 4c 24 60 | 48 8b d1 | 48 83 e2 f8 | 74 52
-  0xd75034: 48 8b c1 | 48 83 e0 fc | c0 f8 02 | f6 d0
-  0xd75040: a8 01 | 48 8b c7 | 75 04 | 48 8b 42 18
-  0xd7504b: d0 f9 | 48 89 7c 24 60 | f6 c1 01 | 74 12
-  0xd75057: 48 85 c0 | 74 2a | 48 8d 4c 24 48 | ff 15 d9 4c 6c 05
-  0xd75067: eb 1d | 48 8b 5c 24 48 | 48 85 c0 | 74 0a
-  0xd75073: 48 8b cb | ff 15 c4 4c 6c 05 | 90 | 48 8b cb
-  0xd75080: e8 3b 0a be 03 | 90 | 48 8d 4c 24 30 | e8 00 16 98 ff
-  0xd75090: eb 0e | 4d 8b cf | 4d 8b c6 | 48 8b d6
-  0xd7509b: e8 90 03 00 00 | 48 8b 4c 24 68 | 48 33 cc | e8 f3 f7 06 05
-  0xd750ad: 48 83 c4 70 | 41 5f | 41 5e | 5f
-  0xd750b6: 5e | 5b | c3
+  0xd74f64: 48 8b f9 | 48 8b 01 | 48 85 c0 | cc cc
+  0xd74f6f: cc cc | cc cc | 48 83 78 08 00 | 0f 84 22 01 00 00
+  0xd74f7e: ba 01 00 00 00 | 48 8b 0d 7e a4 75 07 | e8 71 77 29 ff | 48 8b 18
+  0xd74f92: 48 8b 0f | 48 85 db | 0f 84 f4 00 00 00 | 48 89 4c 24 30
+  0xd74fa3: 48 85 c9 | 74 03 | f0 ff 01 | 48 8b 06
+  0xd74fae: 48 89 44 24 38 | 41 8b 06 | 89 44 24 40 | 41 8b 07
+  0xd74fbd: 89 44 24 44 | 33 ff | 48 89 7c 24 60 | 48 8d 05 81 d0 e9 ff
+  0xd74fcf: 48 89 44 24 28 | 48 8d 05 0d b3 22 06 | 48 89 44 24 20 | 4c 8d 4c 24 30
+  0xd74fe5: 8d 57 18 | 48 8d 4c 24 48 | e8 fe 2e 99 ff | 90
+  0xd74ff3: 48 8b 43 08 | 48 3b 43 10 | 74 18 | 48 89 78 18
+  0xd75001: 48 8d 54 24 48 | 48 8b c8 | e8 62 69 96 ff | 48 83 43 08 20
+  0xd75013: eb 11 | 4c 8d 44 24 48 | 48 8b d0 | 48 8b cb
+  0xd75020: e8 1b 87 9c ff | 90 | 48 8b 4c 24 60 | 48 8b d1
+  0xd7502e: 48 83 e2 f8 | 74 52 | 48 8b c1 | 48 83 e0 fc
+  0xd7503b: c0 f8 02 | f6 d0 | a8 01 | 48 8b c7
+  0xd75045: 75 04 | 48 8b 42 18 | d0 f9 | 48 89 7c 24 60
+  0xd75052: f6 c1 01 | 74 12 | 48 85 c0 | 74 2a
+  0xd7505c: 48 8d 4c 24 48 | ff 15 d9 4c 6c 05 | eb 1d | 48 8b 5c 24 48
+  0xd7506e: 48 85 c0 | 74 0a | 48 8b cb | ff 15 c4 4c 6c 05
+  0xd7507c: 90 | 48 8b cb | e8 3b 0a be 03 | 90
+  0xd75086: 48 8d 4c 24 30 | e8 00 16 98 ff | eb 0e | 4d 8b cf
+  0xd75095: 4d 8b c6 | 48 8b d6 | e8 90 03 00 00 | 48 8b 4c 24 68
+  0xd750a5: 48 33 cc | e8 f3 f7 06 05 | 48 83 c4 70 | 41 5f
+  0xd750b3: 41 5e | 5f | 5e | 5b
+  0xd750b8: c3
 
   [XREF #2 Bytecode Hex 0xd6a1d0..0xd6a3ee]
   0xd6a1d0: 40 55 | 56 | 57 | 48 83 ec 40
@@ -2308,41 +2282,37 @@ Operação  : 0xd6a09d: cmp byte [flag], imm8 ; fn=0xd69fc0..0xd6a143
   0xd6a3c2: e8 29 71 29 ff | e9 ef fe ff ff | 48 8d 15 8d f7 45 06 | 48 8d 4c 24 20
   0xd6a3d8: e8 c3 d8 99 ff | 48 8d 15 dc 24 36 07 | 48 8d 4c 24 20 | e8 02 c3 09 05
 
-  [XREF #3 Bytecode Hex 0xd6a3f0..0xd6a5fb]
-  0xd6a3f0: 48 89 5c 24 08 | 57 | 48 83 ec 20 | 4c 8b 81 78 01 00 00
-  0xd6a401: 48 8b f9 | 80 3d 85 6e 3a 07 00 | b9 58 02 00 00 | b8 dc 01 00 00
-  0xd6a415: 0f 45 c1 | 48 8d 8f a8 00 00 00 | 41 8b 1c 00 | e8 d8 68 08 00
-  0xd6a428: 8b d3 | 48 8b cf | 48 8b 5c 24 30 | 48 83 c4 20
-  0xd6a436: 5f | e9 04 00 00 00 | cc cc | cc cc
+  [XREF #3 Bytecode Hex 0xd6a440..0xd6a5fb]
   0xd6a440: 89 54 24 10 | 55 | 53 | 57
   0xd6a447: 48 8b ec | 48 83 ec 40 | 48 8b d9 | 4c 8b 81 78 01 00 00
   0xd6a458: b8 dc 01 00 00 | b9 58 02 00 00 | 80 3d 27 6e 3a 07 00 | 0f 45 c1
-  0xd6a46c: 41 8b 04 00 | 89 45 20 | 3b d0 | 0f 84 78 01 00 00
-  0xd6a47b: 48 8b cb | e8 9d a9 2f 03 | 33 ff | 84 c0
-  0xd6a487: 0f 84 4f 01 00 00 | 40 38 3d 1c 78 3c 07 | 74 21 | 48 8b 83 78 01 00 00
-  0xd6a49d: 48 8b 88 e8 01 00 00 | 48 85 c9 | 74 0e | 48 89 b9 c0 01 00 00
-  0xd6a4b0: 48 89 b9 c8 01 00 00 | 48 8b cb | e8 91 ca 5a 02 | 48 8b d0
-  0xd6a4c2: 48 85 c0 | 0f 84 a5 00 00 00 | 48 8b 88 f8 03 00 00 | 40 38 b9 88 02 00 00
-  0xd6a4d9: 75 29 | 48 8b cf | 38 0d ac 9c 38 07 | 75 25
-  0xd6a4e6: b8 10 00 00 00 | 38 0d 47 a0 38 07 | 48 0f 45 c8 | 40 38 3d 54 a0 38 07
-  0xd6a4fc: 74 0d | 48 83 c9 20 | eb 07 | 48 8b 89 90 02 00 00
-  0xd6a50b: 40 38 3d 06 9c 38 07 | 75 18 | 0f b6 c1 | c0 e8 03
-  0xd6a51a: a8 01 | 75 0e | 40 38 3d eb a0 38 07 | 75 05
-  0xd6a527: f6 c1 01 | 74 44 | 40 38 3d ad 1e 3b 07 | 75 1f
-  0xd6a535: 40 38 3d 8c 1e 3b 07 | 75 16 | 48 8d 8a a0 06 00 00 | 48 89 5d 30
-  0xd6a549: 48 8d 55 30 | e8 ce b6 9e ff | eb 1c | 48 8d 8a a8 06 00 00
-  0xd6a55b: 48 89 5d 30 | 4c 8d 4d 20 | 4c 8d 45 28 | 48 8d 55 30
-  0xd6a56b: e8 d0 a9 00 00 | 8b 45 28 | 83 f8 02 | 75 2b
-  0xd6a578: 48 8d 05 f9 ec 17 06 | 48 89 45 e0 | 48 8d 05 a6 30 84 07 | 48 89 45 e8
-  0xd6a58e: 48 8d 55 e0 | 48 8b cb | e8 86 4c eb 00 | 90
-  0xd6a59b: 48 83 c4 40 | 5f | 5b | 5d
-  0xd6a5a2: c3 | 83 f8 01 | 74 1d | 48 8d 45 28
-  0xd6a5ac: 48 89 45 e0 | 89 7d e8 | 4c 8d 4d e0 | 41 b8 03 00 00 00
-  0xd6a5bd: 48 8b d3 | e8 1b 92 00 00 | 44 8b 45 20 | 41 8d 40 ff
-  0xd6a5cd: 83 f8 01 | 76 21 | 48 8d 45 20 | 48 89 45 f0
-  0xd6a5da: eb 08 | 48 89 7d f0 | 44 8b 45 20 | 89 7d f8
-  0xd6a5e7: 4c 8d 4d f0 | 48 8b d3 | e8 ed 91 00 00 | 48 83 c4 40
-  0xd6a5f7: 5f | 5b | 5d | c3
+  0xd6a46c: 41 8b 04 00 | 89 45 20 | 3b d0 | cc cc
+  0xd6a477: cc cc | cc cc | 48 8b cb | e8 9d a9 2f 03
+  0xd6a483: 33 ff | 84 c0 | 0f 84 4f 01 00 00 | 40 38 3d 1c 78 3c 07
+  0xd6a494: 74 21 | 48 8b 83 78 01 00 00 | 48 8b 88 e8 01 00 00 | 48 85 c9
+  0xd6a4a7: 74 0e | 48 89 b9 c0 01 00 00 | 48 89 b9 c8 01 00 00 | 48 8b cb
+  0xd6a4ba: e8 91 ca 5a 02 | 48 8b d0 | 48 85 c0 | 0f 84 a5 00 00 00
+  0xd6a4cb: 48 8b 88 f8 03 00 00 | 40 38 b9 88 02 00 00 | 75 29 | 48 8b cf
+  0xd6a4de: 38 0d ac 9c 38 07 | 75 25 | b8 10 00 00 00 | 38 0d 47 a0 38 07
+  0xd6a4f1: 48 0f 45 c8 | 40 38 3d 54 a0 38 07 | 74 0d | 48 83 c9 20
+  0xd6a502: eb 07 | 48 8b 89 90 02 00 00 | 40 38 3d 06 9c 38 07 | 75 18
+  0xd6a514: 0f b6 c1 | c0 e8 03 | a8 01 | 75 0e
+  0xd6a51e: 40 38 3d eb a0 38 07 | 75 05 | f6 c1 01 | 74 44
+  0xd6a52c: 40 38 3d ad 1e 3b 07 | 75 1f | 40 38 3d 8c 1e 3b 07 | 75 16
+  0xd6a53e: 48 8d 8a a0 06 00 00 | 48 89 5d 30 | 48 8d 55 30 | e8 ce b6 9e ff
+  0xd6a552: eb 1c | 48 8d 8a a8 06 00 00 | 48 89 5d 30 | 4c 8d 4d 20
+  0xd6a563: 4c 8d 45 28 | 48 8d 55 30 | e8 d0 a9 00 00 | 8b 45 28
+  0xd6a573: 83 f8 02 | 75 2b | 48 8d 05 f9 ec 17 06 | 48 89 45 e0
+  0xd6a583: 48 8d 05 a6 30 84 07 | 48 89 45 e8 | 48 8d 55 e0 | 48 8b cb
+  0xd6a595: e8 86 4c eb 00 | 90 | 48 83 c4 40 | 5f
+  0xd6a5a0: 5b | 5d | c3 | 83 f8 01
+  0xd6a5a6: 74 1d | 48 8d 45 28 | 48 89 45 e0 | 89 7d e8
+  0xd6a5b3: 4c 8d 4d e0 | 41 b8 03 00 00 00 | 48 8b d3 | e8 1b 92 00 00
+  0xd6a5c5: 44 8b 45 20 | 41 8d 40 ff | 83 f8 01 | 76 21
+  0xd6a5d2: 48 8d 45 20 | 48 89 45 f0 | eb 08 | 48 89 7d f0
+  0xd6a5e0: 44 8b 45 20 | 89 7d f8 | 4c 8d 4d f0 | 48 8b d3
+  0xd6a5ee: e8 ed 91 00 00 | 48 83 c4 40 | 5f | 5b
+  0xd6a5f9: 5d | c3
 
   [XREF #4 Bytecode Hex 0x39b7d70..0x39b7f3e]
   0x39b7d70: 48 89 5c 24 20 | 55 | 56 | 57
@@ -2542,7 +2512,7 @@ Operação  : 0xd6a09d: cmp byte [flag], imm8 ; fn=0xd69fc0..0xd6a143
   0x46c9a30: 48 89 5c 24 18 | 48 89 74 24 20 | 57 | 48 83 ec 60
   0x46c9a3f: 48 8b 05 9a ec a0 03 | 48 33 c4 | 48 89 44 24 50 | 48 8b 41 08
   0x46c9a52: 49 8b f0 | 48 8b fa | 48 8b d9 | 48 83 b8 00 02 00 00 00
-  0x46c9a63: 74 0b | 48 8b 01 | 48 8b 08 | e8 b0 db 12 00
+  0x46c9a63: cc cc | 48 8b 01 | 48 8b 08 | e8 b0 db 12 00
   0x46c9a70: 80 3d 51 29 a5 03 00 | 74 13 | 48 8b 0b | 48 8b d7
   0x46c9a7f: 48 8b 09 | e8 29 dc 12 00 | e9 d2 01 00 00 | 80 3d 4d 29 a5 03 00
   0x46c9a93: 0f 84 c5 01 00 00 | 48 8b d7 | 48 8d 4c 24 20 | e8 fa 5c 62 ff

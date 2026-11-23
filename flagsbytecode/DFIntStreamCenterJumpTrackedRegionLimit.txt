@@ -12,7 +12,7 @@ Operação  : 0x13c4fa4: mov/math reg, [flag] ; fn=0x13c4ef0..0x13c50d2 [via DFL
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : DisplayWakeLockGuard < 6
     Fórmula : DisplayWakeLockGuard >> 8 < 5
-    Altera  : this->field_0x10, this->field_0x18, this->field_0x8
+    Altera  : this->field_0x10, this->field_0x18, this->field_0x20, this->field_0x8
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x13c4ece (in fn_0x13c4eb0): jmp 0x13c4ef0  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
@@ -29,53 +29,51 @@ Operação  : 0x13c4fa4: mov/math reg, [flag] ; fn=0x13c4ef0..0x13c50d2 [via DFL
     
     // Flag defaults: DisplayWakeLockGuard = 0, EnableDisplayWakeLock2 = false
     void RBX::DisplayWake::func_0x13c4ef0(RBX::DisplayWake* this) {
-      L_0x13c4f20:
+      int32_t i_edi = 0;
       do { // L_0x13c4f20
-        L_0x13c4f20:
-        auto ret_0xc8a0_1 = call_0xc8a0(this);
+        auto ret_0xc8a0_1 = call_0xc8a0();
         if (this->field_0x8 == ret_0xc8a0_1) break;
         if (this->field_0x8 == 0) {
           auto ret_0xc8a0_2 = call_0xc8a0();
           if (atomic_cas(&this->field_0x8, 0, ret_0xc8a0_2) == 0) break;
-          if (0 >= 16) {
+          if (i_edi >= 16) {
             auto ret_0xc880_6 = call_0xc880(&local_0x60, 0, 0);
             if (ret_0xc880_6 != 0) {
               call_0xcb40(1);
+              i_edi++;
               continue;
             } else {
               L_0x13c4f6a:
+              i_edi++;
             }
+          } else {
+            i_edi++;
           }
-          auto ret_0xc8a0_1 = call_0xc8a0(this);
-          if (this->field_0x8 == ret_0xc8a0_1) break;
-        } else {
-          if (0 >= 16) {
-            auto ret_0xc880_6 = call_0xc880(&local_0x60, 0, 0);
-            if (ret_0xc880_6 != 0) {
-              call_0xcb40(1);
-              continue;
-            } else {
-              goto L_0x13c4f6a;
-            }
+        } else if (i_edi >= 16) {
+          auto ret_0xc880_6 = call_0xc880(&local_0x60, 0, 0);
+          if (ret_0xc880_6 != 0) {
+            call_0xcb40(1);
+            i_edi++;
+            continue;
           } else {
             goto L_0x13c4f6a;
           }
-          goto L_0x13c4f20;
+        } else {
+          goto L_0x13c4f6a;
         }
       } while (true); // loop -> L_0x13c4f20
-      this->field_0x10 = this->field_0x10 + 1;
-      auto expr_1 = atomic_cas(&this->field_0x20, -2147483648, -1073741824) == 0;
-      if expr_1 {
+      this->field_0x10++;
+      if (atomic_cas(&this->field_0x20, -2147483648, -1073741824) == 0) {
         if (this->field_0x18 != 0) {
           if (EnableDisplayWakeLock2) {
             if (DisplayWakeLockGuard >= 6 && DisplayWakeLockGuard >> 8 >= 5) {
               FLog::Log("[DFLog::DisplayWakeLockGuard] DisplayWakeLockGuard Subsystem shutting down");
             }
-            void* v_rcx_2 = this->field_0x18->field_0x10;
+            void* v_rcx_1 = this->field_0x18->field_0x10;
             if (this->field_0x18->field_0x10 != 0) {
-              v_rcx_2 = this->field_0x18->field_0x10->field_0x18;
+              v_rcx_1 = this->field_0x18->field_0x10->field_0x18;
             }
-            v_rcx_2->vfunc_0x28(v_rcx_2, 0) // -> RBX::AnimatedMechanicalJoint::fn_0x1447f20;
+            v_rcx_1->vfunc_0x28(v_rcx_1, 0) // -> RBX::AnimatedMechanicalJoint::fn_0x1447f20;
           }
           if (this->field_0x18->field_0x10 != 0) {
             this->field_0x18->field_0x10->vfunc_0x10() // -> RBX::VehicleSeat::fn_0x147a9d0;
@@ -83,8 +81,10 @@ Operação  : 0x13c4fa4: mov/math reg, [flag] ; fn=0x13c4ef0..0x13c50d2 [via DFL
           call_0x4955ac0(this->field_0x18);
         }
         this->field_0x18 = 0;
+        this->field_0x20 = this->field_0x20 & 0x3fffffff;
       }
-      if expr_1 {
+      this->field_0x10--;
+      if (this->field_0x10 == 1) {
         this->field_0x8 = 0;
       }
     }
@@ -151,7 +151,7 @@ Operação  : 0x13c4fa4: mov/math reg, [flag] ; fn=0x13c4ef0..0x13c50d2 [via DFL
     0x13c4fcb | 48 8b 4c 24 30           | mov rcx, qword ptr [rsp + 0x30]
     0x13c4fd0 | 48 81 c1 60 ce f7 ff     | add rcx, 0xfff7ce60
     0x13c4fd7 | 48 89 4c 24 50           | mov qword ptr [rsp + 0x50], rcx
-    0x13c4fdc | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x13c4fdc | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     L_0x13c4fe3:
     0x13c4fe3 | 48 ff c0                 | inc rax
     0x13c4fe6 | 80 3c 01 00              | cmp byte ptr [rcx + rax], 0x0

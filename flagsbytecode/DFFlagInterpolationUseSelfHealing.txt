@@ -1,6 +1,6 @@
 FFlag     : DFFlagInterpolationUseSelfHealing
 RVA .data : 0x80ec500
-XREFs     : 4 total (4 em runtime)
+XREFs     : 5 total (5 em runtime)
 Insn RVA  : 0x1468295
 Operação  : 0x1468295: cmp [flag], reg ; fn=0x1467d40..0x1468699
 
@@ -20,6 +20,8 @@ Operação  : 0x1468295: cmp [flag], reg ; fn=0x1467d40..0x1468699
     [Child @0x1470bc0] Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
     [Child @0x1470b50] Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
     [Child @0x1470a70] Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
+    [XREF #2 @0x45d4ebe] Classe  : RBX::InterpolationUse (RTTI Resolvido)
+    [XREF #2 @0x45d4ebe] Fórmula : InterpolationUseSelfHealing
   
   === [Decompilacao C++ da Funcao 0x1467d40..0x1468699] ===
     struct RBX::InterpolationSelf {
@@ -59,30 +61,20 @@ Operação  : 0x1468295: cmp [flag], reg ; fn=0x1467d40..0x1468699
           }
           if (this->field_0x1 != 0) {
             this->field_0xd8 = global_0x75a1440;
-            if (this->field_0x1 != 0) {
-              if (param_4->field_0x0 >= this->field_0xd8) {
-                L_0x1468328:
-                this->field_0x80 = 1;
-                this->field_0x90 = param_3->field_0x4;
-                this->field_0xa0 = param_3->field_0x14;
-                this->field_0xb0 = param_3->field_0x24;
-                this->field_0xc0 = local_0xf0;
-                this->field_0xd0 = param_3->field_0x44;
-              }
-            } else {
-              goto L_0x1468328;
+            if (this->field_0x1 == 0 || param_4->field_0x0 >= this->field_0xd8) {
+              L_0x1468328:
+              this->field_0x80 = 1;
+              this->field_0x90 = param_3->field_0x4;
+              this->field_0xa0 = param_3->field_0x14;
+              this->field_0xb0 = param_3->field_0x24;
+              this->field_0xc0 = local_0xf0;
+              this->field_0xd0 = param_3->field_0x44;
             }
           } else {
             goto L_0x1468328;
           }
-        } else {
-          if (this->field_0x1 != 0) {
-            if (param_4->field_0x0 >= this->field_0xd8) {
-              goto L_0x1468328;
-            }
-          } else {
-            goto L_0x1468328;
-          }
+        } else if (this->field_0x1 == 0 || param_4->field_0x0 >= this->field_0xd8) {
+          goto L_0x1468328;
         }
       } else {
         goto L_0x1468328;
@@ -91,131 +83,139 @@ Operação  : 0x1468295: cmp [flag], reg ; fn=0x1467d40..0x1468699
       auto expr_2 = (this->field_0x28 - this->field_0x20) / 96 >> 4;
       auto expr_1 = expr_2 >> 63;
       if (this->field_0x40 > 0) {
-        void* v_rax_6 = this->field_0x38;
+        void* v_rax_2 = this->field_0x38;
         if (this->field_0x38 == this->field_0x20) {
-          v_rax_6 = this->field_0x28;
+          v_rax_2 = this->field_0x28;
         }
-        if (0.0 > param_4->field_0x0 - v_rax_6->field_m0x8) {
-          if (InterpolationUseSelfHealing && this->field_0x14 < 65535) {
-            this->field_0x14 = this->field_0x14 + 1;
+        if (0.0 > param_4->field_0x0 - v_rax_2->field_m0x8) {
+          if (InterpolationUseSelfHealing) {
+            if (this->field_0x14 < 65535) {
+              this->field_0x14++;
+            }
           }
+        } else if (1e-06 >= param_4->field_0x0 - v_rax_2->field_m0x8) {
+          if (InterpolationUseSelfHealing && this->field_0x14 < 65535) {
+            this->field_0x14++;
+          }
+          void* v_rax_4 = this->field_0x38;
+          if (this->field_0x38 == this->field_0x20) {
+            v_rax_4 = this->field_0x28;
+          }
+          v_rax_4->field_m0x54 = param_3->field_0x0;
+          v_rax_4->field_m0x44 = param_3->field_0x10;
+          v_rax_4->field_m0x34 = param_3->field_0x20;
+          v_rax_4->field_m0x24 = param_3->field_0x30;
+          v_rax_4->field_m0x14 = param_3->field_0x40;
         } else {
-          if (1e-06 >= param_4->field_0x0 - v_rax_6->field_m0x8) {
-            if (InterpolationUseSelfHealing && this->field_0x14 < 65535) {
-              this->field_0x14 = this->field_0x14 + 1;
+          if (InterpolationUseSelfHealing) {
+            this->field_0x14 = 0;
+          }
+          float ftmp_1 = min((float)InterpolationMaxDelayMSec / 1000.0, (float)(param_4->field_0x0 - v_rax_2->field_m0x8));
+          this->field_0x10 = ftmp_1 * 0.1 + this->field_0x10 * 0.9;
+          if (this->field_0x40 == MaxFrameBufferSize) {
+            this->field_0x30 = this->field_0x30 + 0x60;
+            if (this->field_0x30 == this->field_0x28) {
+              this->field_0x30 = this->field_0x20;
             }
-            void* v_rax_9 = this->field_0x38;
-            if (this->field_0x38 == this->field_0x20) {
-              v_rax_9 = this->field_0x28;
-            }
-            v_rax_9->field_m0x54 = param_3->field_0x0;
-            v_rax_9->field_m0x44 = param_3->field_0x10;
-            v_rax_9->field_m0x34 = param_3->field_0x20;
-            v_rax_9->field_m0x24 = param_3->field_0x30;
-            v_rax_9->field_m0x14 = param_3->field_0x40;
-          } else {
-            if (InterpolationUseSelfHealing) {
-              this->field_0x14 = 0;
-            }
-            float ftmp_1 = min((float)InterpolationMaxDelayMSec / 1000.0, param_4->field_0x0 - v_rax_6->field_m0x8);
-            this->field_0x10 = ftmp_1 * 0.1 + this->field_0x10 * 0.9;
-            if (this->field_0x40 == MaxFrameBufferSize) {
+            this->field_0x40--;
+            call_0x1470c30(&this->field_0x20);
+          }
+          auto ret_0x146a680_3 = call_0x146a680(&this->field_0xf8, this->field_0x168);
+          if (ret_0x146a680_3 > NumFramesToKeepAfterInterpolation) {
+            int32_t i_esi = ret_0x146a680_3;
+            L_0x14684a0:
+            do { // L_0x14684a0
+              if (this->field_0x40 == 0) break;
+              this->field_0x30 = this->field_0x30 + 0x60;
               if (this->field_0x30 == this->field_0x28) {
                 this->field_0x30 = this->field_0x20;
               }
-              this->field_0x40 = this->field_0x40 - 1;
+              this->field_0x40--;
               call_0x1470c30(&this->field_0x20);
-            }
-            auto ret_0x146a680_3 = call_0x146a680(&this->field_0xf8, this->field_0x168);
-            if (ret_0x146a680_3 > NumFramesToKeepAfterInterpolation) {
-              L_0x14684a0:
-              do { // L_0x14684a0
-                L_0x14684a0:
-                if (this->field_0x40 == 0) break;
-                if (this->field_0x30 == this->field_0x28) {
-                  this->field_0x30 = this->field_0x20;
-                }
-                this->field_0x40 = this->field_0x40 - 1;
-                call_0x1470c30(&this->field_0x20);
-              } while ((ret_0x146a680_3 - 1) > NumFramesToKeepAfterInterpolation); // loop -> L_0x14684a0
-            }
-            call_0x1470cd0(&this->field_0x20);
-            if (expr_2 + expr_1 == this->field_0x40) {
-              if (this->field_0x40 != 0) {
-                this->field_0x38->field_0x0 = 1;
-                this->field_0x38->field_0x10 = param_3->field_0x4;
-                this->field_0x38->field_0x20 = param_3->field_0x14;
-                this->field_0x38->field_0x30 = param_3->field_0x24;
-                this->field_0x38->field_0x40 = local_0xf0;
-                this->field_0x38->field_0x50 = param_3->field_0x44;
-                void* v_rax_8 = this->field_0x38;
-                if (this->field_0x38 == this->field_0x28) {
-                  this->field_0x38 = this->field_0x20;
-                  v_rax_8 = this->field_0x20;
-                }
-                this->field_0x30 = v_rax_8;
-              }
-            } else {
-              if (this->field_0x38 != 0) {
-                this->field_0x38->field_0x0 = 1;
-                this->field_0x38->field_0x4 = local_0x258;
-                this->field_0x38->field_0xc = param_3->field_0x0;
-                this->field_0x38->field_0x1c = param_3->field_0x10;
-                this->field_0x38->field_0x2c = param_3->field_0x20;
-                this->field_0x38->field_0x3c = param_3->field_0x30;
-                this->field_0x38->field_0x48 = param_3->field_0x3c;
-                this->field_0x38->field_0x44 = param_3->field_0x38;
-                this->field_0x38->field_0x50 = param_3->field_0x44;
-                this->field_0x38->field_0x58 = param_4->field_0x0;
-              }
+              i_esi--;
+            } while (i_esi > NumFramesToKeepAfterInterpolation); // loop -> L_0x14684a0
+          }
+          call_0x1470cd0(&this->field_0x20);
+          if (expr_2 + expr_1 == this->field_0x40) {
+            if (this->field_0x40 != 0) {
+              this->field_0x38->field_0x0 = 1;
+              this->field_0x38->field_0x10 = param_3->field_0x4;
+              this->field_0x38->field_0x20 = param_3->field_0x14;
+              this->field_0x38->field_0x30 = param_3->field_0x24;
+              this->field_0x38->field_0x40 = local_0xf0;
+              this->field_0x38->field_0x50 = param_3->field_0x44;
+              this->field_0x38 = this->field_0x38 + 0x60;
+              void* v_rax_3 = this->field_0x38;
               if (this->field_0x38 == this->field_0x28) {
                 this->field_0x38 = this->field_0x20;
+                v_rax_3 = this->field_0x20;
               }
-              this->field_0x40 = this->field_0x40 + 1;
+              this->field_0x30 = v_rax_3;
             }
-            if (this->field_0x40 == 1) {
-              call_0x2937a50(&local_0x60);
-              call_0x1468830(&this->field_0xf8, &local_0xa0, &local_0x60);
-              void* sel_rbx_1 = param_2 == 0 ? 0 : param_2->field_0x68;
-              this->field_0x168 = rax->field_0x0;
-              call_0x14c2270(sel_rbx_1);
-              this->field_0x11c = sel_rbx_1->field_0x48;
-              this->field_0x12c = sel_rbx_1->field_0x58;
-              this->field_0x13c = sel_rbx_1->field_0x68;
-              this->field_0x14c = sel_rbx_1->field_0x78;
-              this->field_0x15c = sel_rbx_1->field_0x88;
+          } else {
+            if (this->field_0x38 != 0) {
+              this->field_0x38->field_0x0 = 1;
+              this->field_0x38->field_0x4 = local_0x258;
+              this->field_0x38->field_0xc = param_3->field_0x0;
+              this->field_0x38->field_0x1c = param_3->field_0x10;
+              this->field_0x38->field_0x2c = param_3->field_0x20;
+              this->field_0x38->field_0x3c = param_3->field_0x30;
+              this->field_0x38->field_0x48 = param_3->field_0x3c;
+              this->field_0x38->field_0x44 = param_3->field_0x38;
+              this->field_0x38->field_0x50 = param_3->field_0x44;
+              this->field_0x38->field_0x58 = param_4->field_0x0;
             }
+            this->field_0x38 = this->field_0x38 + 0x60;
+            if (this->field_0x38 == this->field_0x28) {
+              this->field_0x38 = this->field_0x20;
+            }
+            this->field_0x40++;
+          }
+          if (this->field_0x40 == 1) {
+            call_0x2937a50(&local_0x60);
+            auto ret_0x1468830_7 = call_0x1468830(&this->field_0xf8, &local_0xa0, &local_0x60);
+            void* sel_rbx_1 = param_2 == 0 ? 0 : param_2->field_0x68;
+            this->field_0x168 = ret_0x1468830_7->field_0x0;
+            call_0x14c2270(sel_rbx_1);
+            this->field_0x11c = sel_rbx_1->field_0x48;
+            this->field_0x12c = sel_rbx_1->field_0x58;
+            this->field_0x13c = sel_rbx_1->field_0x68;
+            this->field_0x14c = sel_rbx_1->field_0x78;
+            this->field_0x15c = sel_rbx_1->field_0x88;
           }
         }
-        return;
-      }
-      if (this->field_0x40 == MaxFrameBufferSize) {
-        if (this->field_0x30 == this->field_0x28) {
-          this->field_0x30 = this->field_0x20;
-        }
-        this->field_0x40 = this->field_0x40 - 1;
-        call_0x1470c30(&this->field_0x20);
-      }
-      auto ret_0x146a680_3 = call_0x146a680(&this->field_0xf8, this->field_0x168);
-      if (ret_0x146a680_3 > NumFramesToKeepAfterInterpolation) {
-        goto L_0x14684a0;
-      }
-      call_0x1470cd0(&this->field_0x20);
-      if (expr_2 + expr_1 == this->field_0x40) {
-        if (this->field_0x40 != 0) {
-          goto L_0x1468512;
-        }
       } else {
-        if (this->field_0x38 != 0) {
-          goto L_0x1468558;
+        if (this->field_0x40 == MaxFrameBufferSize) {
+          this->field_0x30 = this->field_0x30 + 0x60;
+          if (this->field_0x30 == this->field_0x28) {
+            this->field_0x30 = this->field_0x20;
+          }
+          this->field_0x40--;
+          call_0x1470c30(&this->field_0x20);
         }
-        if (this->field_0x38 == this->field_0x28) {
-          this->field_0x38 = this->field_0x20;
+        auto ret_0x146a680_3 = call_0x146a680(&this->field_0xf8, this->field_0x168);
+        if (ret_0x146a680_3 > NumFramesToKeepAfterInterpolation) {
+          int32_t i_esi = ret_0x146a680_3;
+          goto L_0x14684a0;
         }
-        this->field_0x40 = this->field_0x40 + 1;
-      }
-      if (this->field_0x40 == 1) {
-        goto L_0x14685b9;
+        call_0x1470cd0(&this->field_0x20);
+        if (expr_2 + expr_1 == this->field_0x40) {
+          if (this->field_0x40 != 0) {
+            goto L_0x1468512;
+          }
+        } else {
+          if (this->field_0x38 != 0) {
+            goto L_0x1468558;
+          }
+          this->field_0x38 = this->field_0x38 + 0x60;
+          if (this->field_0x38 == this->field_0x28) {
+            this->field_0x38 = this->field_0x20;
+          }
+          this->field_0x40++;
+        }
+        if (this->field_0x40 == 1) {
+          goto L_0x14685b9;
+        }
       }
     }
   
@@ -289,7 +289,7 @@ Operação  : 0x1468295: cmp [flag], reg ; fn=0x1467d40..0x1468699
     0x14681b0 | 0f 57 d2                 | xorps xmm2, xmm2
     L_0x14681b3:
     0x14681b3 | f2 41 0f 10 19           | movsd xmm3, qword ptr [r9]
-    0x14681b8 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x14681b8 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x14681bf | 8b 92 d8 01 00 00        | mov edx, dword ptr [rdx + 0x1d8]
     0x14681c5 | 48 89 4c 24 40           | mov qword ptr [rsp + 0x40], rcx
     0x14681ca | 66 0f 1f 44 00 00        | nop
@@ -770,8 +770,7 @@ Operação  : 0x1468295: cmp [flag], reg ; fn=0x1467d40..0x1468699
     // Flag defaults: InterpolationUseSelfHealing = true
     float RBX::InterpolationUse::func_0x1470a70(RBX::InterpolationUse* this) {
       auto local_0x30 = this;
-      call_0x1470d50(this, &local_0x40, &local_0x30, &local_0x20);
-      return ret_0x1470d50_1;
+      return call_0x1470d50(this, &local_0x40, &local_0x30, &local_0x20);
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x1470a70..0x1470aad)] ===
@@ -791,6 +790,345 @@ Operação  : 0x1468295: cmp [flag], reg ; fn=0x1467d40..0x1468699
     0x1470aa3 | e8 a8 02 00 00           | call 0x1470d50
     0x1470aa8 | 48 83 c4 58              | add rsp, 0x58
     0x1470aac | c3                       | ret
+  
+  === [Decompilacao C++ do XREF Runtime #2: 0x45d4c50..0x45d4f5c (insn @0x45d4ebe: cmp byte [flag], imm8)] ===
+    struct RBX::InterpolationUse {
+      /* +0x0 */ void*   field_0x0;
+      /* +0x8 */ void*   field_0x8;
+      /* +0x11 */ uint8_t field_0x11;
+      /* +0x28 */ uint8_t field_0x28;
+    };
+    
+    // Flag defaults: InterpolationUseSelfHealing = true
+    void RBX::InterpolationUse::func_0x45d4c50(RBX::InterpolationUse* this, int64_t param_2, void* param_3, void* param_4) {
+      auto ret_0x1c2ad90_1 = call_0x1c2ad90(param_2);
+      if (ret_0x1c2ad90_1 != 0) {
+        if (ret_0x1c2ad90_1 != 0) {
+          int32_t i_edi = local_0x48;
+          int32_t i_r12d = ret_0x1c2ad90_1;
+          do { // L_0x45d4d10
+            auto ret_0x1c2af50_2 = call_0x1c2af50(param_2);
+            auto ret_0x1c2a460_3 = call_0x1c2a460(param_2);
+            auto local_0x60 = 1.0;
+            auto local_0x64 = 0.0;
+            auto local_0x68 = 0.0;
+            auto local_0x6c = 0.0;
+            auto local_0x70 = 1.0;
+            auto local_0x74 = 0.0;
+            call_0x45d5470(this, param_2, &local_0x60, local_0x150);
+            auto ret_0x1c2a460_5 = call_0x1c2a460(param_2);
+            int32_t v_rdi_2 = i_edi;
+            int32_t v_rdi_4 = i_edi;
+            auto* f_0 = this->field_0x0;
+            if ((f_0->field_0x3fa8 >> 45 & 0x1) != 0) {
+              if (local_0x168 == 0) {
+                if (local_0x160 != 0) {
+                  L_0x45d4d7a:
+                  auto local_0x40 = i_edi;
+                  auto local_0x48 = ret_0x1c2a460_3 - ret_0x1c2a460_5;
+                  call_0x1c2a860(&local_0x40, param_2);
+                  if (local_0x40 == 0) {
+                    v_rdi_2 = -1;
+                  } else if (local_0x40 != f_0->field_0xa8 && local_0x40 == -1) {
+                    v_rdi_2 = local_0x40;
+                  } else {
+                    int32_t selected_edi_1 = local_0x40 != f_0->field_0xa8 ? local_0x40 : 0;
+                    local_0x40 = 0;
+                    call_0x1c2a300(param_2, &local_0x40, 4);
+                    v_rdi_2 = selected_edi_1;
+                  }
+                  L_0x45d4e41:
+                  if (local_0x158->field_0x8 == local_0x158->field_0x10) {
+                    call_0x45d66a0(local_0x158, local_0x158->field_0x8, &local_0x60);
+                  }
+                  if (this->field_0x11 == 0) {
+                    if ((param_3 != 0 ? param_3->field_0x178 : 0)->field_0x1e8 != 0 && !InterpolationUseSelfHealing) {
+                    if (param_4 - (double)ret_0x1c2af50_2 >= ((param_3 != 0 ? param_3->field_0x178 : 0)->field_0x1e8)->field_0xd8) {
+                    L_0x45d4ed1:
+                    auto local_0x58 = param_4 - (double)ret_0x1c2af50_2;
+                    call_0x144f6c0(param_3 != 0 ? param_3->field_0x178 : 0, &local_0x60, &local_0x58, this->field_0x8);
+                    call_0x45d20c0(this, param_3 != 0 ? param_3->field_0x178 : 0);
+                    v_rdi_4 = v_rdi_2;
+                    } else {
+                    v_rdi_4 = v_rdi_2;
+                    }
+                    } else {
+                    auto local_0x58 = param_4 - (double)ret_0x1c2af50_2;
+                    call_0x144f6c0(param_3 != 0 ? param_3->field_0x178 : 0, &local_0x60, &local_0x58, this->field_0x8);
+                    call_0x45d20c0(this, param_3 != 0 ? param_3->field_0x178 : 0);
+                    v_rdi_4 = v_rdi_2;
+                    }
+                  } else {
+                    v_rdi_4 = v_rdi_2;
+                  }
+                } else {
+                  auto ret_0x1c2ad90_6 = call_0x1c2ad90(param_2);
+                  if (ret_0x1c2ad90_6 < this->field_0x28) {
+                    auto ret_0x45d5350_7 = call_0x45d5350(this, local_0x158, ret_0x1c2ad90_6, &local_0x60);
+                    if (ret_0x45d5350_7 != 0) {
+                    L_0x45d4e3c:
+                    if (local_0x158->field_0x8 == local_0x158->field_0x10) {
+                    call_0x45d66a0(local_0x158, local_0x158->field_0x8, &local_0x60);
+                    }
+                    if (this->field_0x11 == 0) {
+                    if ((param_3 != 0 ? param_3->field_0x178 : 0)->field_0x1e8 != 0 && !InterpolationUseSelfHealing) {
+                    if (param_4 - (double)ret_0x1c2af50_2 >= ((param_3 != 0 ? param_3->field_0x178 : 0)->field_0x1e8)->field_0xd8) {
+                    goto L_0x45d4ed1;
+                    } else {
+                    v_rdi_4 = v_rdi_2;
+                    }
+                    } else {
+                    goto L_0x45d4ed1;
+                    }
+                    } else {
+                    v_rdi_4 = v_rdi_2;
+                    }
+                    }
+                  } else {
+                    goto L_0x45d4e41;
+                  }
+                }
+              } else {
+                auto local_0x40 = i_edi;
+                auto local_0x48 = ret_0x1c2a460_3 - ret_0x1c2a460_5;
+                call_0x1c2a860(&local_0x40, param_2);
+                if (local_0x40 == 0) {
+                  v_rdi_2 = -1;
+                } else if (local_0x40 != f_0->field_0xa8 && local_0x40 == -1) {
+                  v_rdi_2 = local_0x40;
+                } else {
+                  int32_t selected_edi_1 = local_0x40 != f_0->field_0xa8 ? local_0x40 : 0;
+                  local_0x40 = 0;
+                  call_0x1c2a300(param_2, &local_0x40, 4);
+                  v_rdi_2 = selected_edi_1;
+                }
+                goto L_0x45d4e41;
+              }
+            } else if (local_0x160 != 0) {
+              goto L_0x45d4d7a;
+            } else {
+              auto ret_0x1c2ad90_6 = call_0x1c2ad90(param_2);
+              if (ret_0x1c2ad90_6 < this->field_0x28) {
+                auto ret_0x45d5350_7 = call_0x45d5350(this, local_0x158, ret_0x1c2ad90_6, &local_0x60);
+                if (ret_0x45d5350_7 != 0) {
+                  goto L_0x45d4e3c;
+                }
+              } else {
+                goto L_0x45d4e3c;
+              }
+            }
+            i_r12d--;
+            i_edi = v_rdi_4;
+          } while (i_r12d != 0); // loop -> L_0x45d4d10
+        }
+      }
+    }
+  
+  === [Instrucoes x86-64 do XREF Runtime #2 (0x45d4c50..0x45d4f5c)] ===
+    0x45d4c50 | 48 8b c4                 | mov rax, rsp
+    0x45d4c53 | 55                       | push rbp
+    0x45d4c54 | 53                       | push rbx
+    0x45d4c55 | 56                       | push rsi
+    0x45d4c56 | 41 56                    | push r14
+    0x45d4c58 | 41 57                    | push r15
+    0x45d4c5a | 48 8d 68 c1              | lea rbp, [rax - 0x3f]
+    0x45d4c5e | 48 81 ec 00 01 00 00     | sub rsp, 0x100
+    0x45d4c65 | 0f 29 78 a8              | movaps xmmword ptr [rax - 0x58], xmm7
+    0x45d4c69 | 44 0f 29 40 98           | movaps xmmword ptr [rax - 0x68], xmm8
+    0x45d4c6e | 48 8b 05 6b 3a b0 03     | mov rax, qword ptr [rip + 0x3b03a6b]
+    0x45d4c75 | 48 33 c4                 | xor rax, rsp
+    0x45d4c78 | 48 89 45 c7              | mov qword ptr [rbp - 0x39], rax
+    0x45d4c7c | 0f 28 05 cd 76 fd 02     | movaps xmm0, xmmword ptr [rip + 0x2fd76cd] ; {1.0, 0.0, 0.0, 0.0}
+    0x45d4c83 | 4c 8b f1                 | mov r14, rcx
+    0x45d4c86 | 48 8b 75 6f              | mov rsi, qword ptr [rbp + 0x6f]
+    0x45d4c8a | 0f 28 c8                 | movaps xmm1, xmm0
+    0x45d4c8d | 0f 57 c9                 | xorps xmm1, xmm1
+    0x45d4c90 | 0f 29 44 24 60           | movaps xmmword ptr [rsp + 0x60], xmm0
+    0x45d4c95 | 48 8b ca                 | mov rcx, rdx
+    0x45d4c98 | 0f 29 4d a7              | movaps xmmword ptr [rbp - 0x59], xmm1
+    0x45d4c9c | 49 8b d8                 | mov rbx, r8
+    0x45d4c9f | 0f 29 45 87              | movaps xmmword ptr [rbp - 0x79], xmm0
+    0x45d4ca3 | 4c 8b fa                 | mov r15, rdx
+    0x45d4ca6 | 0f 29 45 97              | movaps xmmword ptr [rbp - 0x69], xmm0
+    0x45d4caa | 66 49 0f 6e f9           | movq xmm7, r9
+    0x45d4caf | 48 c7 45 b7 00 00 00 00  | mov qword ptr [rbp - 0x49], 0x0
+    0x45d4cb7 | 45 0f 57 c0              | xorps xmm8, xmm8
+    0x45d4cbb | e8 d0 60 65 fd           | call 0x1c2ad90
+    0x45d4cc0 | 84 c0                    | test al, al
+    0x45d4cc2 | 0f 84 68 02 00 00        | je 0x45d4f30
+    0x45d4cc8 | 4c 89 ac 24 f0 00 00 00  | mov qword ptr [rsp + 0xf0], r13
+    0x45d4cd0 | 48 85 db                 | test rbx, rbx
+    0x45d4cd3 | 74 09                    | je 0x45d4cde
+    0x45d4cd5 | 4c 8b ab 78 01 00 00     | mov r13, qword ptr [rbx + 0x178]
+    0x45d4cdc | eb 03                    | jmp 0x45d4ce1
+    L_0x45d4cde:
+    0x45d4cde | 45 33 ed                 | xor r13d, r13d
+    L_0x45d4ce1:
+    0x45d4ce1 | 0f b6 c0                 | movzx eax, al
+    0x45d4ce4 | 85 c0                    | test eax, eax
+    0x45d4ce6 | 0f 84 3c 02 00 00        | je 0x45d4f28
+    0x45d4cec | 48 89 bc 24 48 01 00 00  | mov qword ptr [rsp + 0x148], rdi
+    0x45d4cf4 | 8b 7c 24 48              | mov edi, dword ptr [rsp + 0x48]
+    0x45d4cf8 | 4c 89 a4 24 f8 00 00 00  | mov qword ptr [rsp + 0xf8], r12
+    0x45d4d00 | 44 8b e0                 | mov r12d, eax
+    0x45d4d03 | 0f 29 b4 24 e0 00 00 00  | movaps xmmword ptr [rsp + 0xe0], xmm6
+    0x45d4d0b | 0f 1f 44 00 00           | nop
+    L_0x45d4d10:
+    0x45d4d10 | 49 8b cf                 | mov rcx, r15
+    0x45d4d13 | e8 38 62 65 fd           | call 0x1c2af50
+    0x45d4d18 | 49 8b cf                 | mov rcx, r15
+    0x45d4d1b | 0f 28 f0                 | movaps xmm6, xmm0
+    0x45d4d1e | e8 3d 57 65 fd           | call 0x1c2a460
+    0x45d4d23 | 44 0f b6 4d 67           | movzx r9d, byte ptr [rbp + 0x67]
+    0x45d4d28 | 4c 8d 44 24 60           | lea r8, [rsp + 0x60]
+    0x45d4d2d | 49 8b d7                 | mov rdx, r15
+    0x45d4d30 | 49 8b ce                 | mov rcx, r14
+    0x45d4d33 | 8b d8                    | mov ebx, eax
+    0x45d4d35 | e8 36 07 00 00           | call 0x45d5470
+    0x45d4d3a | 49 8b cf                 | mov rcx, r15
+    0x45d4d3d | e8 1e 57 65 fd           | call 0x1c2a460
+    0x45d4d42 | 49 8b 0e                 | mov rcx, qword ptr [r14]
+    0x45d4d45 | 2b d8                    | sub ebx, eax
+    0x45d4d47 | 89 5c 24 48              | mov dword ptr [rsp + 0x48], ebx
+    0x45d4d4b | c7 44 24 40 ff ff ff ff  | mov dword ptr [rsp + 0x40], 0xffffffff
+    0x45d4d53 | c7 44 24 44 00 00 00 00  | mov dword ptr [rsp + 0x44], 0x0
+    0x45d4d5b | 48 8b 81 a8 3f 00 00     | mov rax, qword ptr [rcx + 0x3fa8]
+    0x45d4d62 | 48 c1 e8 2d              | shr rax, 0x2d
+    0x45d4d66 | a8 01                    | test al, 0x1
+    0x45d4d68 | 74 06                    | je 0x45d4d70
+    0x45d4d6a | 80 7d 7f 00              | cmp byte ptr [rbp + 0x7f], 0x0
+    0x45d4d6e | 75 0a                    | jne 0x45d4d7a
+    L_0x45d4d70:
+    0x45d4d70 | 80 7d 77 00              | cmp byte ptr [rbp + 0x77], 0x0
+    0x45d4d74 | 0f 84 9b 00 00 00        | je 0x45d4e15
+    L_0x45d4d7a:
+    0x45d4d7a | 8b 99 a8 00 00 00        | mov ebx, dword ptr [rcx + 0xa8]
+    0x45d4d80 | 49 8b d7                 | mov rdx, r15
+    0x45d4d83 | 8b c7                    | mov eax, edi
+    0x45d4d85 | 48 8d 4c 24 40           | lea rcx, [rsp + 0x40]
+    0x45d4d8a | 48 89 44 24 40           | mov qword ptr [rsp + 0x40], rax
+    0x45d4d8f | e8 cc 5a 65 fd           | call 0x1c2a860
+    0x45d4d94 | 8b 7c 24 40              | mov edi, dword ptr [rsp + 0x40]
+    0x45d4d98 | 8b c7                    | mov eax, edi
+    0x45d4d9a | 85 ff                    | test edi, edi
+    0x45d4d9c | 75 1c                    | jne 0x45d4dba
+    0x45d4d9e | bf ff ff ff ff           | mov edi, 0xffffffff
+    0x45d4da3 | 89 44 24 50              | mov dword ptr [rsp + 0x50], eax
+    0x45d4da7 | 89 7c 24 4c              | mov dword ptr [rsp + 0x4c], edi
+    0x45d4dab | 48 8b 5c 24 4c           | mov rbx, qword ptr [rsp + 0x4c]
+    0x45d4db0 | 48 89 5c 24 40           | mov qword ptr [rsp + 0x40], rbx
+    0x45d4db5 | e9 87 00 00 00           | jmp 0x45d4e41
+    L_0x45d4dba:
+    0x45d4dba | 3b c3                    | cmp eax, ebx
+    0x45d4dbc | 74 1d                    | je 0x45d4ddb
+    0x45d4dbe | 83 f8 ff                 | cmp eax, -0x1
+    0x45d4dc1 | 75 18                    | jne 0x45d4ddb
+    0x45d4dc3 | 89 44 24 4c              | mov dword ptr [rsp + 0x4c], eax
+    0x45d4dc7 | c7 44 24 50 00 00 00 00  | mov dword ptr [rsp + 0x50], 0x0
+    0x45d4dcf | 48 8b 5c 24 4c           | mov rbx, qword ptr [rsp + 0x4c]
+    0x45d4dd4 | 48 89 5c 24 40           | mov qword ptr [rsp + 0x40], rbx
+    0x45d4dd9 | eb 66                    | jmp 0x45d4e41
+    L_0x45d4ddb:
+    0x45d4ddb | 33 ff                    | xor edi, edi
+    0x45d4ddd | c7 44 24 40 00 00 00 00  | mov dword ptr [rsp + 0x40], 0x0
+    0x45d4de5 | 3b c3                    | cmp eax, ebx
+    0x45d4de7 | 48 8d 54 24 40           | lea rdx, [rsp + 0x40]
+    0x45d4dec | 41 b8 04 00 00 00        | mov r8d, 0x4
+    0x45d4df2 | 49 8b cf                 | mov rcx, r15
+    0x45d4df5 | 0f 45 f8                 | cmovnz edi, eax
+    0x45d4df8 | e8 03 55 65 fd           | call 0x1c2a300
+    0x45d4dfd | 8b 44 24 40              | mov eax, dword ptr [rsp + 0x40]
+    0x45d4e01 | 89 44 24 50              | mov dword ptr [rsp + 0x50], eax
+    0x45d4e05 | 89 7c 24 4c              | mov dword ptr [rsp + 0x4c], edi
+    0x45d4e09 | 48 8b 5c 24 4c           | mov rbx, qword ptr [rsp + 0x4c]
+    0x45d4e0e | 48 89 5c 24 40           | mov qword ptr [rsp + 0x40], rbx
+    0x45d4e13 | eb 2c                    | jmp 0x45d4e41
+    L_0x45d4e15:
+    0x45d4e15 | 49 8b cf                 | mov rcx, r15
+    0x45d4e18 | e8 73 5f 65 fd           | call 0x1c2ad90
+    0x45d4e1d | 41 3a 46 28              | cmp al, byte ptr [r14 + 0x28]
+    0x45d4e21 | 73 19                    | jae 0x45d4e3c
+    0x45d4e23 | 4c 8d 4c 24 60           | lea r9, [rsp + 0x60]
+    0x45d4e28 | 44 0f b6 c0              | movzx r8d, al
+    0x45d4e2c | 48 8b d6                 | mov rdx, rsi
+    0x45d4e2f | e8 1c 05 00 00           | call 0x45d5350
+    0x45d4e34 | 84 c0                    | test al, al
+    0x45d4e36 | 0f 84 ca 00 00 00        | je 0x45d4f06
+    L_0x45d4e3c:
+    0x45d4e3c | 48 8b 5c 24 40           | mov rbx, qword ptr [rsp + 0x40]
+    L_0x45d4e41:
+    0x45d4e41 | 48 8b 56 08              | mov rdx, qword ptr [rsi + 0x8]
+    0x45d4e45 | 48 3b 56 10              | cmp rdx, qword ptr [rsi + 0x10]
+    0x45d4e49 | 74 3f                    | je 0x45d4e8a
+    0x45d4e4b | 0f 28 44 24 60           | movaps xmm0, xmmword ptr [rsp + 0x60]
+    0x45d4e50 | 8b 45 af                 | mov eax, dword ptr [rbp - 0x51]
+    0x45d4e53 | 0f 28 4d 87              | movaps xmm1, xmmword ptr [rbp - 0x79]
+    0x45d4e57 | 0f 11 02                 | movups xmmword ptr [rdx], xmm0
+    0x45d4e5a | 0f 28 45 97              | movaps xmm0, xmmword ptr [rbp - 0x69]
+    0x45d4e5e | 0f 11 4a 10              | movups xmmword ptr [rdx + 0x10], xmm1
+    0x45d4e62 | 0f 11 42 20              | movups xmmword ptr [rdx + 0x20], xmm0
+    0x45d4e66 | f2 0f 10 45 a7           | movsd xmm0, qword ptr [rbp - 0x59]
+    0x45d4e6b | f2 0f 11 42 30           | movsd qword ptr [rdx + 0x30], xmm0
+    0x45d4e70 | f2 0f 10 45 b3           | movsd xmm0, qword ptr [rbp - 0x4d]
+    0x45d4e75 | 89 42 38                 | mov dword ptr [rdx + 0x38], eax
+    0x45d4e78 | 8b 45 bb                 | mov eax, dword ptr [rbp - 0x45]
+    0x45d4e7b | f2 0f 11 42 3c           | movsd qword ptr [rdx + 0x3c], xmm0
+    0x45d4e80 | 89 42 44                 | mov dword ptr [rdx + 0x44], eax
+    0x45d4e83 | 48 83 46 08 48           | add qword ptr [rsi + 0x8], 0x48
+    0x45d4e88 | eb 0d                    | jmp 0x45d4e97
+    L_0x45d4e8a:
+    0x45d4e8a | 4c 8d 44 24 60           | lea r8, [rsp + 0x60]
+    0x45d4e8f | 48 8b ce                 | mov rcx, rsi
+    0x45d4e92 | e8 09 18 00 00           | call 0x45d66a0
+    L_0x45d4e97:
+    0x45d4e97 | 41 80 7e 11 00           | cmp byte ptr [r14 + 0x11], 0x0
+    0x45d4e9c | 0f 57 c0                 | xorps xmm0, xmm0
+    0x45d4e9f | f3 0f 5a c6              | cvtss2sd xmm0, xmm6
+    0x45d4ea3 | 0f 28 cf                 | movaps xmm1, xmm7
+    0x45d4ea6 | f2 0f 5c c8              | subsd xmm1, xmm0
+    0x45d4eaa | f2 0f 11 4c 24 58        | movsd qword ptr [rsp + 0x58], xmm1
+    0x45d4eb0 | 75 54                    | jne 0x45d4f06
+    0x45d4eb2 | 49 8b 85 e8 01 00 00     | mov rax, qword ptr [r13 + 0x1e8]
+    0x45d4eb9 | 48 85 c0                 | test rax, rax
+    0x45d4ebc | 74 13                    | je 0x45d4ed1
+    0x45d4ebe | 80 3d 3b 76 b1 03 00     | cmp byte ptr [rip + 0x3b1763b], 0x0 ; DFFlagInterpolationUseSelfHealing
+    0x45d4ec5 | 75 0a                    | jne 0x45d4ed1
+    0x45d4ec7 | 66 0f 2f 88 d8 00 00 00  | comisd xmm1, qword ptr [rax + 0xd8]
+    0x45d4ecf | 72 35                    | jb 0x45d4f06
+    L_0x45d4ed1:
+    0x45d4ed1 | 8b 44 24 48              | mov eax, dword ptr [rsp + 0x48]
+    0x45d4ed5 | 4c 8d 44 24 58           | lea r8, [rsp + 0x58]
+    0x45d4eda | 4d 8b 4e 08              | mov r9, qword ptr [r14 + 0x8]
+    0x45d4ede | 48 8d 54 24 60           | lea rdx, [rsp + 0x60]
+    0x45d4ee3 | 89 44 24 30              | mov dword ptr [rsp + 0x30], eax
+    0x45d4ee7 | 49 8b cd                 | mov rcx, r13
+    0x45d4eea | 48 89 5c 24 28           | mov qword ptr [rsp + 0x28], rbx
+    0x45d4eef | f3 44 0f 11 44 24 20     | movss dword ptr [rsp + 0x20], xmm8
+    0x45d4ef6 | e8 c5 a7 e7 fc           | call 0x144f6c0
+    0x45d4efb | 49 8b d5                 | mov rdx, r13
+    0x45d4efe | 49 8b ce                 | mov rcx, r14
+    0x45d4f01 | e8 ba d1 ff ff           | call 0x45d20c0
+    L_0x45d4f06:
+    0x45d4f06 | 49 83 ec 01              | sub r12, 0x1
+    0x45d4f0a | 0f 85 00 fe ff ff        | jne 0x45d4d10
+    0x45d4f10 | 0f 28 b4 24 e0 00 00 00  | movaps xmm6, xmmword ptr [rsp + 0xe0]
+    0x45d4f18 | 4c 8b a4 24 f8 00 00 00  | mov r12, qword ptr [rsp + 0xf8]
+    0x45d4f20 | 48 8b bc 24 48 01 00 00  | mov rdi, qword ptr [rsp + 0x148]
+    L_0x45d4f28:
+    0x45d4f28 | 4c 8b ac 24 f0 00 00 00  | mov r13, qword ptr [rsp + 0xf0]
+    L_0x45d4f30:
+    0x45d4f30 | 48 8b 4d c7              | mov rcx, qword ptr [rbp - 0x39]
+    0x45d4f34 | 48 33 cc                 | xor rcx, rsp
+    0x45d4f37 | e8 64 f9 80 01           | call 0x5de48a0
+    0x45d4f3c | 0f 28 bc 24 d0 00 00 00  | movaps xmm7, xmmword ptr [rsp + 0xd0]
+    0x45d4f44 | 44 0f 28 84 24 c0 00 00.. | movaps xmm8, xmmword ptr [rsp + 0xc0]
+    0x45d4f4d | 48 81 c4 00 01 00 00     | add rsp, 0x100
+    0x45d4f54 | 41 5f                    | pop r15
+    0x45d4f56 | 41 5e                    | pop r14
+    0x45d4f58 | 5e                       | pop rsi
+    0x45d4f59 | 5b                       | pop rbx
+    0x45d4f5a | 5d                       | pop rbp
+    0x45d4f5b | c3                       | ret
 
 [Bytecode Hex]
   0x1467d40: 48 89 5c 24 10 | 48 89 4c 24 08 | 55 | 56
@@ -957,6 +1295,55 @@ Operação  : 0x1468295: cmp [flag], reg ; fn=0x1467d40..0x1468699
   0x1470a80: 48 39 41 20 | 74 04 | 48 8b 41 10 | 4c 8d 4c 24 20
   0x1470a8f: 48 89 4c 24 30 | 4c 8d 44 24 30 | 48 89 44 24 38 | 48 8d 54 24 40
   0x1470aa3: e8 a8 02 00 00 | 48 83 c4 58 | c3
+
+  [XREF #2 Bytecode Hex 0x45d4c50..0x45d4f5c]
+  0x45d4c50: 48 8b c4 | 55 | 53 | 56
+  0x45d4c56: 41 56 | 41 57 | 48 8d 68 c1 | 48 81 ec 00 01 00 00
+  0x45d4c65: 0f 29 78 a8 | 44 0f 29 40 98 | 48 8b 05 6b 3a b0 03 | 48 33 c4
+  0x45d4c78: 48 89 45 c7 | 0f 28 05 cd 76 fd 02 | 4c 8b f1 | 48 8b 75 6f
+  0x45d4c8a: 0f 28 c8 | 0f 57 c9 | 0f 29 44 24 60 | 48 8b ca
+  0x45d4c98: 0f 29 4d a7 | 49 8b d8 | 0f 29 45 87 | 4c 8b fa
+  0x45d4ca6: 0f 29 45 97 | 66 49 0f 6e f9 | 48 c7 45 b7 00 00 00 00 | 45 0f 57 c0
+  0x45d4cbb: e8 d0 60 65 fd | 84 c0 | 0f 84 68 02 00 00 | 4c 89 ac 24 f0 00 00 00
+  0x45d4cd0: 48 85 db | 74 09 | 4c 8b ab 78 01 00 00 | eb 03
+  0x45d4cde: 45 33 ed | 0f b6 c0 | 85 c0 | 0f 84 3c 02 00 00
+  0x45d4cec: 48 89 bc 24 48 01 00 00 | 8b 7c 24 48 | 4c 89 a4 24 f8 00 00 00 | 44 8b e0
+  0x45d4d03: 0f 29 b4 24 e0 00 00 00 | 0f 1f 44 00 00 | 49 8b cf | e8 38 62 65 fd
+  0x45d4d18: 49 8b cf | 0f 28 f0 | e8 3d 57 65 fd | 44 0f b6 4d 67
+  0x45d4d28: 4c 8d 44 24 60 | 49 8b d7 | 49 8b ce | 8b d8
+  0x45d4d35: e8 36 07 00 00 | 49 8b cf | e8 1e 57 65 fd | 49 8b 0e
+  0x45d4d45: 2b d8 | 89 5c 24 48 | c7 44 24 40 ff ff ff ff | c7 44 24 44 00 00 00 00
+  0x45d4d5b: 48 8b 81 a8 3f 00 00 | 48 c1 e8 2d | a8 01 | 74 06
+  0x45d4d6a: 80 7d 7f 00 | 75 0a | 80 7d 77 00 | 0f 84 9b 00 00 00
+  0x45d4d7a: 8b 99 a8 00 00 00 | 49 8b d7 | 8b c7 | 48 8d 4c 24 40
+  0x45d4d8a: 48 89 44 24 40 | e8 cc 5a 65 fd | 8b 7c 24 40 | 8b c7
+  0x45d4d9a: 85 ff | 75 1c | bf ff ff ff ff | 89 44 24 50
+  0x45d4da7: 89 7c 24 4c | 48 8b 5c 24 4c | 48 89 5c 24 40 | e9 87 00 00 00
+  0x45d4dba: 3b c3 | 74 1d | 83 f8 ff | 75 18
+  0x45d4dc3: 89 44 24 4c | c7 44 24 50 00 00 00 00 | 48 8b 5c 24 4c | 48 89 5c 24 40
+  0x45d4dd9: eb 66 | 33 ff | c7 44 24 40 00 00 00 00 | 3b c3
+  0x45d4de7: 48 8d 54 24 40 | 41 b8 04 00 00 00 | 49 8b cf | 0f 45 f8
+  0x45d4df8: e8 03 55 65 fd | 8b 44 24 40 | 89 44 24 50 | 89 7c 24 4c
+  0x45d4e09: 48 8b 5c 24 4c | 48 89 5c 24 40 | eb 2c | 49 8b cf
+  0x45d4e18: e8 73 5f 65 fd | 41 3a 46 28 | 73 19 | 4c 8d 4c 24 60
+  0x45d4e28: 44 0f b6 c0 | 48 8b d6 | e8 1c 05 00 00 | 84 c0
+  0x45d4e36: 0f 84 ca 00 00 00 | 48 8b 5c 24 40 | 48 8b 56 08 | 48 3b 56 10
+  0x45d4e49: 74 3f | 0f 28 44 24 60 | 8b 45 af | 0f 28 4d 87
+  0x45d4e57: 0f 11 02 | 0f 28 45 97 | 0f 11 4a 10 | 0f 11 42 20
+  0x45d4e66: f2 0f 10 45 a7 | f2 0f 11 42 30 | f2 0f 10 45 b3 | 89 42 38
+  0x45d4e78: 8b 45 bb | f2 0f 11 42 3c | 89 42 44 | 48 83 46 08 48
+  0x45d4e88: eb 0d | 4c 8d 44 24 60 | 48 8b ce | e8 09 18 00 00
+  0x45d4e97: 41 80 7e 11 00 | 0f 57 c0 | f3 0f 5a c6 | 0f 28 cf
+  0x45d4ea6: f2 0f 5c c8 | f2 0f 11 4c 24 58 | 75 54 | 49 8b 85 e8 01 00 00
+  0x45d4eb9: 48 85 c0 | 74 13 | 80 3d 3b 76 b1 03 00 | 75 0a
+  0x45d4ec7: 66 0f 2f 88 d8 00 00 00 | 72 35 | 8b 44 24 48 | 4c 8d 44 24 58
+  0x45d4eda: 4d 8b 4e 08 | 48 8d 54 24 60 | 89 44 24 30 | 49 8b cd
+  0x45d4eea: 48 89 5c 24 28 | f3 44 0f 11 44 24 20 | e8 c5 a7 e7 fc | 49 8b d5
+  0x45d4efe: 49 8b ce | e8 ba d1 ff ff | 49 83 ec 01 | 0f 85 00 fe ff ff
+  0x45d4f10: 0f 28 b4 24 e0 00 00 00 | 4c 8b a4 24 f8 00 00 00 | 48 8b bc 24 48 01 00 00 | 4c 8b ac 24 f0 00 00 00
+  0x45d4f30: 48 8b 4d c7 | 48 33 cc | e8 64 f9 80 01 | 0f 28 bc 24 d0 00 00 00
+  0x45d4f44: 44 0f 28 84 24 c0 00 00 00 | 48 81 c4 00 01 00 00 | 41 5f | 41 5e
+  0x45d4f58: 5e | 5b | 5d | c3
 
 [Strings .rdata na função]
   * [FLog::IncomingDataLog] putFrameInBuffer called on Guid: {} t: {} - lastTime: {}

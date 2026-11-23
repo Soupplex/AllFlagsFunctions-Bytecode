@@ -10,7 +10,7 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
     Padrão  : DFIntExternalHttpRequestSizeLimitKB = 1024 (default) [int, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : ret_0x110c480_5->field_0x8 + ret_0x110c480_5->field_0x0 < ExternalHttpRequestSizeLimitKB * 1000
-    Fórmula : call_0x49738e0(&local_0x38, "Post data too large. Limit: %d KB. Post size: %d KB", ExternalHttpRequestSizeLimitKB, (rdx + rbx) >> 9)
+    Fórmula : call_0x49738e0(&local_0x38, "Post data too large. Limit: %d KB. Post size: %d KB", ExternalHttpRequestSizeLimitKB, (rdx + idx_4) >> 9)
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x2ba052a (in fn_0x2ba03f0): call 0x2ba2fd0  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
@@ -20,7 +20,7 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
     [Child @0x2baa380] Papel   : Parâmetro de configuração lido diretamente pela rotina
     [XREF #2 @0x3b5a552] Classe  : RBX::HttpService (RTTI Resolvido)
     [XREF #2 @0x3b5a552] Fórmula : param_3->field_0x10 >= ExternalHttpRequestSizeLimitKB * 1000
-    [XREF #2 @0x3b5a552] Fórmula : call_0x4973b00(&local_0x120, expr_2, ExternalHttpRequestSizeLimitKB, (rdx + r8) >> 9)
+    [XREF #2 @0x3b5a552] Fórmula : call_0x4973b00(&local_0x120, "Post data too large. Limit: %d KB. Post size: %d KB", ExternalHttpRequestSizeLimitKB, expr_1)
   
   === [Decompilacao C++ da Funcao 0x2ba2fd0..0x2ba3b8d] ===
     struct RBX::exception {
@@ -46,17 +46,17 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
         }
         auto ret_0x2ba2980_3 = call_0x2ba2980(v_rcx_1, local_0x2e8, 0, 0);
         if (ret_0x2ba2980_3 == 0) {
-          void* v_rbx_29 = &this->field_0x10;
+          void* v_rbx_26 = &this->field_0x10;
           if (this->field_0x28 >= 16) {
-            v_rbx_29 = this->field_0x10;
+            v_rbx_26 = this->field_0x10;
           }
-          call_0x49738e0(&local_0x38, "%s: %s", v_rbx_29, "Trust check failed");
+          call_0x49738e0(&local_0x38, "%s: %s", v_rbx_26, "Trust check failed");
           if ((local_0x2e0->field_0x18 & 0xfffffffc & 0xfffffff8) != 0) {
-            void* v_r9_30 = local_0x2e0;
+            void* v_r9_27 = local_0x2e0;
             if ((local_0x2e0->field_0x18 >> 1 & 0x1) == 0) {
-              v_r9_30 = local_0x2e0->field_0x0;
+              v_r9_27 = local_0x2e0->field_0x0;
             }
-            v_r9_30->vfunc(v_r9_30, 0, &local_0x38);
+            ((local_0x2e0->field_0x18 & 0xfffffff8))->vfunc_0x0(v_r9_27, 0, &local_0x38) // -> RBX::istreambuf_iterator::fn_0x2bf50a0;
             call_0x5e04a40(&local_0x40);
             call_0x4954e70(ret_0x4954e70_1);
             L_0x2ba3b06:
@@ -72,40 +72,45 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
           call_0x5e066f0(&local_0x80, &sym_0x80cbfc8);
           L_0x2ba3b82:
           call_0x5e14580();
-        } else {
-          if (local_0x2e8 != 0 && param_4->field_0x0 != 0) {
-            call_0xe38290(param_4->field_0x0, 0, 2);
-            auto ret_0x110c480_5 = call_0x110c480(param_4->field_0x0, &local_0x1c0);
-            call_0xe38290(param_4->field_0x0, 0, 0);
-            if (ret_0x110c480_5->field_0x8 + ret_0x110c480_5->field_0x0 >= ExternalHttpRequestSizeLimitKB * 1000) {
-              call_0x49738e0(&local_0x38, "Post data too large. Limit: %d KB. Post size: %d KB", ExternalHttpRequestSizeLimitKB, (rdx + rbx) >> 9);
-              if ((local_0x2e0->field_0x18 & 0xfffffffc & 0xfffffff8) != 0) {
-                void* v_r9_28 = local_0x2e0;
-                if ((local_0x2e0->field_0x18 >> 1 & 0x1) == 0) {
-                  v_r9_28 = local_0x2e0->field_0x0;
-                }
-                v_r9_28->vfunc(v_r9_28, 0, &local_0x38);
-                call_0x5e04a40(&local_0x40);
-                call_0x4954e70(ret_0x4954e70_1);
-                if (param_4->field_0x8 != 0) {
-                  call_0x6daf40(param_4->field_0x8);
-                }
-                call_0x6db7e0(local_0x2e0);
-                return;
+        } else if (local_0x2e8 != 0 && param_4->field_0x0 != 0) {
+          call_0xe38290(param_4->field_0x0, 0, 2);
+          auto ret_0x110c480_5 = call_0x110c480(param_4->field_0x0, &local_0x1c0);
+          call_0xe38290(param_4->field_0x0, 0, 0);
+          if (ret_0x110c480_5->field_0x8 + ret_0x110c480_5->field_0x0 >= ExternalHttpRequestSizeLimitKB * 1000) {
+            int64_t idx_4 = (ret_0x110c480_5->field_0x8 + ret_0x110c480_5->field_0x0 - rdx) >> 1;
+            call_0x49738e0(&local_0x38, "Post data too large. Limit: %d KB. Post size: %d KB", ExternalHttpRequestSizeLimitKB, (rdx + idx_4) >> 9);
+            if ((local_0x2e0->field_0x18 & 0xfffffffc & 0xfffffff8) != 0) {
+              void* v_r9_25 = local_0x2e0;
+              if ((local_0x2e0->field_0x18 >> 1 & 0x1) == 0) {
+                v_r9_25 = local_0x2e0->field_0x0;
               }
-              call_0x6db790(&local_0x80);
-              call_0x5e066f0(&local_0x80, &sym_0x80cbfc8);
-              call_0x5e14580();
+              ((local_0x2e0->field_0x18 & 0xfffffff8))->vfunc_0x0(v_r9_25, 0, &local_0x38) // -> RBX::istreambuf_iterator::fn_0x2bf50a0;
+              call_0x5e04a40(&local_0x40);
+              call_0x4954e70(ret_0x4954e70_1);
+              if (param_4->field_0x8 != 0) {
+                call_0x6daf40(param_4->field_0x8);
+              }
+              call_0x6db7e0(local_0x2e0);
+              return;
             }
+            call_0x6db790(&local_0x80);
+            call_0x5e066f0(&local_0x80, &sym_0x80cbfc8);
+            call_0x5e14580();
           }
         }
       }
       auto* f_58 = this->field_0x58;
       if (local_0x2e8 == 0) {
+        int32_t i_ecx;
+        uint64_t i_r9d;
         if (global_0x8177878 > 0) {
           if (global_0x8177898 != 0) {
+            i_r9d = 0xcbf29ce484222325;
+            i_ecx = 0;
             do { // L_0x2ba3250
-            } while ((ecx + 1) < global_0x8177898); // loop -> L_0x2ba3250
+              i_ecx++;
+              i_r9d = (i_r9d ^ i_ecx[global_0x8177888.c_str()]) * 0x100000001b3;
+            } while (i_ecx < global_0x8177898); // loop -> L_0x2ba3250
           }
           auto ret_0x6fcb50_7 = call_0x6fcb50(&this->field_0x50, &local_0x150, &sym_0x8177888);
           void* v_rcx_3 = ret_0x6fcb50_7->field_0x8;
@@ -120,7 +125,6 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
             }
           }
         }
-        auto expr_1 = atomic_fetch_add(&rax->field_0x8[global_0x84deba8], rcx) == 1;
         if (global_0x84a44d6 != 0 && UseContextInfoForRccHttpHeaders4) {
           void* v_rcx_7;
           if (StudioAddStandaloneNameToContextInfo) {
@@ -180,8 +184,9 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
             if (global_0x8177498 != 0) {
               L_0x2ba3530:
               do { // L_0x2ba3530
-                L_0x2ba3530:
-              } while ((ecx + 1) < global_0x8177498); // loop -> L_0x2ba3530
+                i_ecx++;
+                i_r9d = (i_r9d ^ i_ecx[global_0x8177488.c_str()]) * 0x100000001b3;
+              } while (i_ecx < global_0x8177498); // loop -> L_0x2ba3530
             }
             auto ret_0x6fcb50_22 = call_0x6fcb50(&this->field_0x50, &local_0x38, &sym_0x8177488);
             void* v_rcx_10 = ret_0x6fcb50_22->field_0x8;
@@ -200,10 +205,10 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
               }
               auto ret_0x1047d10_27 = call_0x1047d10(&this->field_0x50, &local_0x170, &sym_0x8177488);
               call_0x6f7330(&ret_0x1047d10_27->field_0x0->field_0x30, &local_0x200);
-              std::string::_Tidy_deallocate(v_rcx_11);
+              std::string::_Tidy_deallocate(local_0x200);
               if (global_0x84deba8 != 0) {
-                call_0x49928b0();
-                if expr_1 {
+                auto ret_0x49928b0_30 = call_0x49928b0();
+                if (atomic_fetch_sub(&ret_0x49928b0_30->field_0x8[global_0x84deba8], 1) == 1) {
                   call_0x49928b0();
                   call_0x49928b0();
                   call_0x49928b0();
@@ -215,12 +220,13 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
           if (global_0x81776f8 != 0) {
             int64_t v_rsi_12 = 0xcbf29ce484222325;
             if (global_0x8177718 != 0) {
-              int32_t i_esi = 0xcbf29ce484222325;
+              uint64_t i_esi = 0xcbf29ce484222325;
               L_0x2ba36b0:
               do { // L_0x2ba36b0
-                L_0x2ba36b0:
-              } while ((ecx + 1) < global_0x8177718); // loop -> L_0x2ba36b0
-              v_rsi_12 = (i_esi ^ rcx[global_0x8177708.c_str()]) * 0x100000001b3;
+                i_ecx++;
+                i_esi = (i_esi ^ i_ecx[global_0x8177708.c_str()]) * 0x100000001b3;
+              } while (i_ecx < global_0x8177718); // loop -> L_0x2ba36b0
+              v_rsi_12 = (i_esi ^ i_ecx[global_0x8177708.c_str()]) * 0x100000001b3;
             }
             auto ret_0x6fcb50_35 = call_0x6fcb50(&this->field_0x50, &local_0x180, &sym_0x8177708, v_rsi_12);
             void* v_rcx_13 = ret_0x6fcb50_35->field_0x8;
@@ -239,7 +245,9 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
           if (global_0x8177478 > 0) {
             if (global_0x81778d8 != 0) {
               do { // L_0x2ba3470
-              } while ((ecx + 1) < global_0x81778d8); // loop -> L_0x2ba3470
+                i_ecx++;
+                i_r9d = (i_r9d ^ i_ecx[global_0x81778c8.c_str()]) * 0x100000001b3;
+              } while (i_ecx < global_0x81778d8); // loop -> L_0x2ba3470
             }
             auto ret_0x6fcb50_10 = call_0x6fcb50(&this->field_0x50, &local_0x80, &sym_0x81778c8);
             void* v_rcx_6 = ret_0x6fcb50_10->field_0x8;
@@ -275,10 +283,10 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
               }
               auto ret_0x1047d10_27 = call_0x1047d10(&this->field_0x50, &local_0x170, &sym_0x8177488);
               call_0x6f7330(&ret_0x1047d10_27->field_0x0->field_0x30, &local_0x200);
-              std::string::_Tidy_deallocate(v_rcx_11);
+              std::string::_Tidy_deallocate(local_0x200);
               if (global_0x84deba8 != 0) {
-                call_0x49928b0();
-                if expr_1 {
+                auto ret_0x49928b0_30 = call_0x49928b0();
+                if (atomic_fetch_sub(&ret_0x49928b0_30->field_0x8[global_0x84deba8], 1) == 1) {
                   goto L_0x2ba3653;
                 }
               }
@@ -287,7 +295,7 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
           if (global_0x81776f8 != 0) {
             int64_t v_rsi_12 = 0xcbf29ce484222325;
             if (global_0x8177718 != 0) {
-              int32_t i_esi = 0xcbf29ce484222325;
+              uint64_t i_esi = 0xcbf29ce484222325;
               goto L_0x2ba36b0;
             }
             auto ret_0x6fcb50_35 = call_0x6fcb50(&this->field_0x50, &local_0x180, &sym_0x8177708, v_rsi_12);
@@ -311,25 +319,25 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
         if (&local_0x70->field_0x4b0 != ret_0x6f7510_39) {
           call_0x6f8fb0(&local_0x70->field_0x4b0);
         }
-        std::string::_Tidy_deallocate(&local_0x80);
-        call_0x4955ac0(v_rcx_14);
+        std::string::_Tidy_deallocate(ret_0x6f7510_39->field_0x0);
       }
       call_0x2ba94b0(local_0x70, &local_0xa0);
-      void* v_rax_17;
+      void* v_rax_16;
       if (local_0x50->field_0x10 != 0) {
-        v_rax_17 = local_0x50;
+        v_rax_16 = local_0x50;
         if (local_0x50->field_0x18 >= 16) {
-          v_rax_17 = local_0x50->field_0x0;
+          v_rax_16 = local_0x50->field_0x0;
         }
-        call_0x6f7000(&local_0x70->field_0x158, v_rax_17, local_0x50->field_0x10);
+        call_0x6f7000(&local_0x70->field_0x158, v_rax_16, local_0x50->field_0x10);
       } else if (param_4->field_0x0 != 0) {
-        call_0x6f7000(&local_0x70->field_0x158, v_rax_17, local_0x50->field_0x10);
+        call_0x6f7000(&local_0x70->field_0x158, v_rax_16, local_0x50->field_0x10);
       }
-      auto* f_58_0 = f_58->field_0x0;
-      if (f_58_0 != f_58) {
+      if (f_58->field_0x0 != f_58) {
+        void* i_ebx = f_58->field_0x0;
         do { // L_0x2ba38a0
           call_0x2ba9aa0(local_0x70, &local_0x120, &local_0x110);
-        } while (f_58_0->field_0x0 != f_58); // loop -> L_0x2ba38a0
+          i_ebx = i_ebx->field_0x0;
+        } while (i_ebx->field_0x0 != f_58); // loop -> L_0x2ba38a0
       }
       if (local_0x2d0->field_0x10 != 0) {
         call_0x2ba9aa0(local_0x70, &local_0x140, &local_0x130);
@@ -338,7 +346,7 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
         call_0x2baa380(local_0x70, param_4->field_0x0, local_0x2d8);
       }
       if (param_2->field_0x8 != 0) {
-        param_2->field_0x8->field_0x8 = param_2->field_0x8->field_0x8 + 1;
+        param_2->field_0x8->field_0x8++;
       }
       call_0x6db860(&local_0x230, local_0x2e0);
       auto local_0x220 = param_2->field_0x0;
@@ -350,11 +358,11 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
       if ((local_0x1f8 & 0xfffffffc & 0xfffffff8) != 0) {
         if ((local_0x1f8 >> 1 & 0x1) != 0) {
           if ((~((local_0x1f8 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x1f8 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-            &local_0x1e0->vfunc(&local_0x1e0);
+            ((~((local_0x1f8 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x1f8 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0x1e0) // -> RBX::GroundCastShape::fn_0x25283c0;
           }
         } else {
           if ((~((local_0x1f8 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x1f8 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-            local_0x1e0->vfunc(local_0x1e0);
+            ((~((local_0x1f8 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x1f8 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(local_0x1e0) // -> RBX::GroundCastShape::fn_0x25283c0;
           }
           call_0x4955ac0(local_0x1e0);
         }
@@ -777,7 +785,7 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
     0x2ba3635 | 48 85 db                 | test rbx, rbx
     0x2ba3638 | 74 39                    | je 0x2ba3673
     0x2ba363a | e8 71 f2 de 01           | call 0x49928b0
-    0x2ba363f | 48 c7 c1 ff ff ff ff     | mov rcx, 0xffffffff
+    0x2ba363f | 48 c7 c1 ff ff ff ff     | mov rcx, -0x1
     0x2ba3646 | f0 48 0f c1 4c 18 08     | lock xadd qword ptr [rax + rbx + 0x8], rcx
     0x2ba364d | 48 83 f9 01              | cmp rcx, 0x1
     0x2ba3651 | 75 20                    | jne 0x2ba3673
@@ -1144,31 +1152,30 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
     // Flag defaults: ExternalHttpRequestSizeLimitKB = 1024
     auto RBX::ExternalHttp::func_0x2ba2980(RBX::ExternalHttp* this, int64_t param_2, void* param_3, void* param_4) {
       if (this != 0) {
-        int32_t i_eax = -1;
+        uint64_t i_eax = -1;
         do { // L_0x2ba29d0
-        } while (this->field_0x0[(i_eax + 1)] != 0); // loop -> L_0x2ba29d0
+          i_eax++;
+        } while (this->field_0x0[i_eax] != 0); // loop -> L_0x2ba29d0
       }
       call_0x2904cb0(&local_0x40, &local_0x30);
+      uint8_t v_bl_15 = 0;
       if (param_2 != 0) {
         if (local_0x50 == 4) {
           int32_t v_rax_11;
           do { // L_0x2ba2a40
-            if (local_0x40[ecx] != "http"->field_m0x1[(ecx + 1)]) break;
-            v_rax_11 = 0;
-            break;
-          } while ((ecx + 1) != 4); // loop -> L_0x2ba2a40
-          v_rax_11 = 1;
+            i_ecx++;
+            if (local_0x40[i_ecx] != "http"->field_m0x1[i_ecx]) break;
+          } while (i_ecx != 4); // loop -> L_0x2ba2a40
+          v_rax_11 = 0;
           if (v_rax_11 != 0) {
             if (local_0x50 == 5) {
               L_0x2ba2a82:
               int32_t v_rbx_12;
               do { // L_0x2ba2a82
-                L_0x2ba2a82:
+                i_ecx++;
                 v_rbx_12 = 0;
-                if (local_0x40[ecx] != "https"->field_m0x1[(ecx + 1)]) break;
-                break;
-              } while ((ecx + 1) != 5); // loop -> L_0x2ba2a82
-              v_rbx_12 = 1;
+                if (local_0x40[i_ecx] != "https"->field_m0x1[i_ecx]) break;
+              } while (i_ecx != 5); // loop -> L_0x2ba2a82
               if (v_rbx_12 == 0) {
                 auto ret_0x2906b60_12 = call_0x2906b60(&local_0x40, "roblox.com");
                 if (ret_0x2906b60_12 == 0) {
@@ -1183,50 +1190,63 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
                     auto ret_0x2906b60_17 = call_0x2906b60(&local_0x40, "rblx.org");
                     if (ret_0x2906b60_17 == 0) {
                     L_0x2ba2d6a:
+                    v_bl_15 = 1;
                     }
                     } else {
                     L_0x2ba2d66:
                     }
-                    L_0x2ba2d6c:
-                    call_0x6f8fb0(&local_0xc0);
-                    call_0x6f8fb0(&local_0xa0);
-                    call_0x6f8fb0(&local_0x80);
-                    call_0x6f8fb0(&local_0x60);
-                    call_0x6f8fb0(&local_0x40);
-                    return v_bl_15;
                     }
+                    } else {
+                    goto L_0x2ba2d66;
                     }
-                  }
-                }
-              }
-            }
-            goto L_0x2ba2d6c;
-          }
-          auto ret_0x2906b60_12 = call_0x2906b60(&local_0x40, "roblox.com");
-          if (ret_0x2906b60_12 == 0) {
-            auto ret_0x2906b60_13 = call_0x2906b60(&local_0x40, "robloxlabs.com");
-            if (ret_0x2906b60_13 == 0) {
-              auto ret_0x2906b60_14 = call_0x2906b60(&local_0x40, "robloxapp.vnggames.com");
-              if (ret_0x2906b60_14 == 0) {
-                auto ret_0x2906b60_15 = call_0x2906b60(&local_0x40, "roblox.vn");
-                if (ret_0x2906b60_15 == 0) {
-                  auto ret_0x2ba0a60_16 = call_0x2ba0a60(&local_0x40);
-                  if (ret_0x2ba0a60_16 == 0) {
-                    auto ret_0x2906b60_17 = call_0x2906b60(&local_0x40, "rblx.org");
                   } else {
                     goto L_0x2ba2d66;
                   }
-                  goto L_0x2ba2d6c;
+                } else {
+                  goto L_0x2ba2d66;
                 }
+              } else {
+                goto L_0x2ba2d66;
               }
+            } else {
+              goto L_0x2ba2d66;
+            }
+          } else {
+            auto ret_0x2906b60_12 = call_0x2906b60(&local_0x40, "roblox.com");
+            if (ret_0x2906b60_12 == 0) {
+              auto ret_0x2906b60_13 = call_0x2906b60(&local_0x40, "robloxlabs.com");
+              if (ret_0x2906b60_13 == 0) {
+                auto ret_0x2906b60_14 = call_0x2906b60(&local_0x40, "robloxapp.vnggames.com");
+                if (ret_0x2906b60_14 == 0) {
+                  auto ret_0x2906b60_15 = call_0x2906b60(&local_0x40, "roblox.vn");
+                  if (ret_0x2906b60_15 == 0) {
+                    auto ret_0x2ba0a60_16 = call_0x2ba0a60(&local_0x40);
+                    if (ret_0x2ba0a60_16 == 0) {
+                    auto ret_0x2906b60_17 = call_0x2906b60(&local_0x40, "rblx.org");
+                    if (ret_0x2906b60_17 == 0) {
+                    v_bl_15 = 1;
+                    }
+                    } else {
+                    goto L_0x2ba2d66;
+                    }
+                  } else {
+                    goto L_0x2ba2d66;
+                  }
+                } else {
+                  goto L_0x2ba2d66;
+                }
+              } else {
+                goto L_0x2ba2d66;
+              }
+            } else {
+              goto L_0x2ba2d66;
             }
           }
+        } else if (local_0x50 == 5) {
+          goto L_0x2ba2a82;
+        } else {
           goto L_0x2ba2d66;
         }
-        if (local_0x50 == 5) {
-          goto L_0x2ba2a82;
-        }
-        goto L_0x2ba2d66;
       } else {
         auto ret_0x609dd60_2 = call_0x609dd60(this, "about:blank");
         if (ret_0x609dd60_2 != 0) {
@@ -1240,27 +1260,24 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
                   auto ret_0x2ba0b60_6 = call_0x2ba0b60(&local_0x40);
                   if (ret_0x2ba0b60_6 == 0) {
                     if (local_0x50 == 4) {
+                    int32_t i_ecx = 0;
                     L_0x2ba2bf0:
                     int32_t v_rax_3;
                     do { // L_0x2ba2bf0
-                    L_0x2ba2bf0:
-                    if (local_0x40[ecx] != "http"->field_m0x1[(ecx + 1)]) break;
+                    i_ecx++;
+                    if (local_0x40[i_ecx] != "http"->field_m0x1[i_ecx]) break;
+                    } while (i_ecx != 4); // loop -> L_0x2ba2bf0
                     v_rax_3 = 0;
-                    break;
-                    } while ((ecx + 1) != 4); // loop -> L_0x2ba2bf0
-                    v_rax_3 = 1;
                     if (v_rax_3 != 0) {
                     L_0x2ba2c15:
                     if (local_0x50 == 5) {
                     L_0x2ba2c32:
                     int32_t v_rax_5;
                     do { // L_0x2ba2c32
-                    L_0x2ba2c32:
-                    if (local_0x40[ecx] != "https"->field_m0x1[(ecx + 1)]) break;
+                    i_ecx++;
+                    if (local_0x40[i_ecx] != "https"->field_m0x1[i_ecx]) break;
+                    } while (i_ecx != 5); // loop -> L_0x2ba2c32
                     v_rax_5 = 0;
-                    break;
-                    } while ((ecx + 1) != 5); // loop -> L_0x2ba2c32
-                    v_rax_5 = 1;
                     if (v_rax_5 != 0) {
                     L_0x2ba2c57:
                     if (local_0x70 == 10) {
@@ -1278,28 +1295,26 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
                     auto vret_10 = 0->vfunc(0, &local_0xf0, 260);
                     if (vret_10 != 0 && local_0x50 == 3) {
                     int32_t v_rbx_10 = 0;
-                    if (!(local_0x40.c_str()->field_0x0 == 114 && local_0x40.c_str()->field_0x1 == 101)) {
-                    L_0x2ba2d24:
-                    v_rbx_10 = 1;
+                    if (local_0x40.c_str()->field_0x0 != 114 || local_0x40.c_str()->field_0x1 != 101 || local_0x40.c_str()->field_0x2 != 115) {
+                    v_rbx_10 = local_0x40.c_str()->field_0x0 < 114 ? -1 : 1;
                     }
                     if (v_rbx_10 == 0) {
                     auto ret_0x6fcc20_11 = call_0x6fcc20(local_0x60.c_str(), local_0x70, 0, &local_0xf0);
-                    goto L_0x2ba2d6c;
-                    }
-                    }
+                    } else {
                     goto L_0x2ba2d66;
                     }
+                    } else {
+                    goto L_0x2ba2d66;
+                    }
+                    } else {
                     goto L_0x2ba2d6a;
                     }
+                    } else {
                     auto vret_10 = 0->vfunc(0, &local_0xf0, 260);
                     if (vret_10 != 0 && local_0x50 == 3) {
                     int32_t v_rbx_10 = 0;
-                    if (local_0x40.c_str()->field_0x0 == 114 && local_0x40.c_str()->field_0x1 == 101) {
-                    if (local_0x40.c_str()->field_0x2 != 115) {
-                    v_rbx_10 = 1;
-                    }
-                    } else {
-                    goto L_0x2ba2d24;
+                    if (local_0x40.c_str()->field_0x0 != 114 || local_0x40.c_str()->field_0x1 != 101 || local_0x40.c_str()->field_0x2 != 115) {
+                    v_rbx_10 = local_0x40.c_str()->field_0x0 < 114 ? -1 : 1;
                     }
                     if (v_rbx_10 == 0) {
                     auto ret_0x6fcc20_11 = call_0x6fcc20(local_0x60.c_str(), local_0x70, 0, &local_0xf0);
@@ -1308,64 +1323,98 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
                     } else {
                     goto L_0x2ba2d6a;
                     }
-                    goto L_0x2ba2d6c;
-                    }
-                    }
+                    } else {
                     goto L_0x2ba2d66;
                     }
+                    } else {
+                    goto L_0x2ba2d66;
+                    }
+                    }
+                    } else {
                     goto L_0x2ba2d6a;
                     }
+                    } else {
                     if (local_0x70 == 11) {
                     auto ret_0x5e06820_9 = memcmp(local_0x60, "shdoclc.dll", local_0x70);
                     if (ret_0x5e06820_9 != 0) {
                     goto L_0x2ba2ce4;
-                    }
+                    } else {
                     goto L_0x2ba2d6a;
                     }
+                    } else {
                     goto L_0x2ba2ce4;
                     }
+                    }
+                    } else {
                     goto L_0x2ba2d6a;
                     }
+                    } else {
                     if (local_0x70 == 11) {
                     auto ret_0x5e06820_8 = memcmp(local_0x60, "ieframe.dll", local_0x70);
                     if (ret_0x5e06820_8 != 0) {
                     goto L_0x2ba2cba;
-                    }
+                    } else {
                     goto L_0x2ba2d6a;
                     }
+                    } else {
                     goto L_0x2ba2cba;
                     }
+                    }
+                    } else {
                     goto L_0x2ba2d66;
                     }
+                    } else {
                     if (local_0x70 == 10) {
                     auto ret_0x5e06820_7 = memcmp(local_0x60, "mshtml.dll", local_0x70);
                     if (ret_0x5e06820_7 != 0) {
                     goto L_0x2ba2c90;
-                    }
+                    } else {
                     goto L_0x2ba2d6a;
                     }
+                    } else {
                     goto L_0x2ba2c90;
                     }
+                    }
+                    } else {
                     goto L_0x2ba2d66;
                     }
+                    } else {
                     if (local_0x50 == 5) {
                     goto L_0x2ba2c32;
-                    }
+                    } else {
                     goto L_0x2ba2c57;
+                    }
+                    }
+                  } else {
+                    goto L_0x2ba2d6a;
                   }
-                  goto L_0x2ba2d6a;
+                } else {
+                  if (local_0x50 == 4) {
+                    int32_t i_ecx = 0;
+                    goto L_0x2ba2bf0;
+                  } else {
+                    goto L_0x2ba2c15;
+                  }
                 }
-                if (local_0x50 == 4) {
-                  goto L_0x2ba2bf0;
-                }
-                goto L_0x2ba2c15;
+              } else {
+                goto L_0x2ba2d6a;
               }
+            } else {
+              goto L_0x2ba2d6a;
             }
+          } else {
+            goto L_0x2ba2d6a;
           }
+        } else {
+          goto L_0x2ba2d6a;
         }
-        goto L_0x2ba2d6a;
       }
-      goto L_0x2ba2d6c;
+      call_0x6f8fb0(&local_0xc0);
+      call_0x6f8fb0(&local_0xa0);
+      call_0x6f8fb0(&local_0x80);
+      call_0x6f8fb0(&local_0x60);
+      call_0x6f8fb0(&local_0x40);
+      return v_bl_15;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x2ba2980..0x2ba2dc9)] ===
@@ -1684,24 +1733,28 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
     auto RBX::ExternalHttp::func_0x29aa310(RBX::ExternalHttp* this, int64_t param_2, void* param_3) {
       call_0xe1e0(&this->field_0x20, 1);
       if (this->field_0x10 != 0) {
-        int32_t i_eax = (this->field_0x0 + rcx * 8)->field_0x0;
-        auto expr_1 = param_3 != (this->field_0x0 + rcx * 8)->field_0x0;
-        if expr_1 {
+        int64_t idx_1 = (param_3 * 37 & this->field_0x10 - 1) + (param_3 * 37 & this->field_0x10 - 1) * 4;
+        int32_t i_eax = (this->field_0x0 + idx_1 * 8)->field_0x0;
+        int32_t i_edx = param_3 * 37 & this->field_0x10 - 1;
+        int32_t i_r9d = 1;
+        void* v_r8_1 = this->field_0x0 + idx_1 * 8;
+        if (param_3 != (this->field_0x0 + idx_1 * 8)->field_0x0) {
+          int64_t idx_2;
           do { // L_0x29aa372
             if (i_eax == -1) break;
-            call_0x6f7510(param_2, this->field_0x0 + rcx * 8 + 8);
-            call_0xe3f0(&this->field_0x20, 1);
-            return param_2;
-          } while expr_1; // loop -> L_0x29aa372
-          L_0x29aa3b2:
-          call_0xe3f0(&this->field_0x20, 1);
-          return param_2;
+            int32_t prev_i_r9d_1 = i_r9d;
+            i_r9d++;
+            idx_2 = (i_edx + prev_i_r9d_1 & this->field_0x10 - 1) + (i_edx + prev_i_r9d_1 & this->field_0x10 - 1) * 4;
+            i_eax = (this->field_0x0 + idx_2 * 8)->field_0x0;
+            i_edx = i_edx + prev_i_r9d_1 & this->field_0x10 - 1;
+          } while (param_3 != (this->field_0x0 + idx_2 * 8)->field_0x0); // loop -> L_0x29aa372
+          call_0x6f7510(param_2, &v_r8_1->field_0x8);
+        } else {
+          call_0x6f7510(param_2, &v_r8_1->field_0x8);
         }
-        call_0x6f7510(param_2, this->field_0x0 + rcx * 8 + 8);
-        call_0xe3f0(&this->field_0x20, 1);
-        return param_2;
       }
-      goto L_0x29aa3b2;
+      call_0xe3f0(&this->field_0x20, 1);
+      return param_2;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x29aa310..0x29aa3d8)] ===
@@ -1789,27 +1842,32 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
         call_0x6f9a40(&local_0x50, ret_0x110c480_2->field_0x8 + ret_0x110c480_2->field_0x0, 0);
       }
       call_0x108c7a0(param_2, local_0x50.c_str(), ret_0x110c480_2->field_0x8 + ret_0x110c480_2->field_0x0);
+      void* v_rax_4;
       void* v_rbx_5;
       int64_t local_0x30;
       if (param_3 != 0) {
         local_0x30 = local_0x50;
-        call_0x2baa5b0(this, &local_0x30, param_3);
+        v_rax_4 = call_0x2baa5b0(this, &local_0x30, param_3);
         v_rbx_5 = local_0x68;
       } else {
+        void* v_rax_1 = &local_0x50;
         void* v_rbx_2 = 15;
         if (&this->field_0x178 != &local_0x50) {
-          call_0x6f8fb0(&this->field_0x178);
+          auto ret_0x6f8fb0_6 = call_0x6f8fb0(&this->field_0x178);
           this->field_0x178 = local_0x50;
           this->field_0x188 = local_0x60;
+          v_rax_1 = ret_0x6f8fb0_6;
         } else {
           v_rbx_2 = local_0x68;
         }
         this->field_0x1fe = 1;
+        v_rax_4 = v_rax_1;
         v_rbx_5 = v_rbx_2;
       }
+      void* v_rax_8 = v_rax_4;
       if (v_rbx_5 >= 16) {
         void* v_rcx_7 = local_0x50;
-        call_0x4955ac0(v_rcx_7);
+        v_rax_8 = call_0x4955ac0(v_rcx_7);
       }
       return v_rax_8;
     }
@@ -1939,13 +1997,12 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
     void RBX::HttpService::func_0x3b59870(RBX::HttpService* this, int64_t param_2, void* param_3, void* param_4) {
       int64_t local_0x250;
       if (param_2->field_0x8 != 0) {
-        &param_2->field_0x10->vfunc(&param_2->field_0x10, &local_0x260);
+        param_2->field_0x8->vfunc_0x0(&param_2->field_0x10, &local_0x260) // -> RBX::BevelMesh::CylinderMesh::fn_0x3acff30;
         local_0x250 = param_2->field_0x0;
         call_0x3b59530(this, &local_0x318, &local_0x250);
       }
       int64_t local_0x338;
       int64_t local_0x378;
-      auto expr_3 = !DeprecateLegacyHttpServiceAnalyticsCounters;
       if (HttpServiceInsightsImprovedTelemetry5) {
         auto ret_0x2904cb0_15 = call_0x2904cb0(&local_0x3e0, &local_0x1a0);
         call_0x6f7510(&local_0x378, &ret_0x2904cb0_15->field_0x20);
@@ -1959,11 +2016,11 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
         if ((local_0x3d0 & 0xfffffffc & 0xfffffff8) != 0) {
           if ((local_0x3d0 >> 1 & 0x1) != 0) {
             if ((~((local_0x3d0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x3d0 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-              &local_0x3b8->vfunc(&local_0x3b8);
+              ((~((local_0x3d0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x3d0 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0x3b8) // -> RBX::Path2D::fn_0x3ee3920;
             }
           } else {
             if ((~((local_0x3d0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x3d0 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-              local_0x3b8->vfunc(local_0x3b8);
+              ((~((local_0x3d0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x3d0 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(local_0x3b8) // -> RBX::Path2D::fn_0x3ee3920;
             }
             call_0x4955ac0(local_0x3b8);
           }
@@ -1973,11 +2030,11 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
         if ((local_0x3b0 & 0xfffffffc & 0xfffffff8) != 0) {
           if ((local_0x3b0 >> 1 & 0x1) != 0) {
             if ((~((local_0x3b0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x3b0 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-              &local_0x398->vfunc(&local_0x398);
+              ((~((local_0x3b0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x3b0 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0x398) // -> RBX::Path2D::fn_0x3ee3920;
             }
           } else {
             if ((~((local_0x3b0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x3b0 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-              local_0x398->vfunc(local_0x398);
+              ((~((local_0x3b0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x3b0 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(local_0x398) // -> RBX::Path2D::fn_0x3ee3920;
             }
             call_0x4955ac0(local_0x398);
           }
@@ -1988,11 +2045,11 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
           if ((local_0x350 & 0xfffffffc & 0xfffffff8) != 0) {
             if ((local_0x350 >> 1 & 0x1) != 0) {
               if ((~((local_0x350 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x350 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-                &local_0x338->vfunc(&local_0x338);
+                ((~((local_0x350 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x350 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0x338) // -> RBX::Path2D::fn_0x3ee3920;
               }
             } else {
               if ((~((local_0x350 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x350 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-                local_0x338->vfunc(local_0x338);
+                ((~((local_0x350 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x350 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(local_0x338) // -> RBX::Path2D::fn_0x3ee3920;
               }
               call_0x4955ac0(local_0x338);
             }
@@ -2013,23 +2070,22 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
           call_0x6f7000(&local_0x338, "HttpService is currently unavailable.", 37);
           call_0x77d0b0(local_0x838, &local_0x338);
           if (local_0x330 >= 16) {
-            void* v_rcx_46 = local_0x318;
+            void* v_rcx_37 = local_0x318;
             if (local_0x330 + 1 >= 0x1000) {
               if (local_0x318 - local_0x318->field_m0x8 < 8 || local_0x318 - local_0x318->field_m0x8 > 39) {
-                L_0x3b5aa13:
                 call_0x5e14580();
                 call_0x5e14580();
               }
             }
-            call_0x4955ac0(v_rcx_46);
+            call_0x4955ac0(v_rcx_37);
           }
           if (param_2->field_0x8 != 0) {
-            &param_2->field_0x10->vfunc(&param_2->field_0x10);
+            param_2->field_0x8->vfunc_0x10(&param_2->field_0x10) // -> RBX::Path2D::fn_0x3ee38d0;
           }
           call_0x6f8fb0(param_3);
           L_0x3b5a2a8:
           if (local_0x828->field_0x8 != 0) {
-            &local_0x828->field_0x10->vfunc(&local_0x828->field_0x10);
+            local_0x828->field_0x8->vfunc_0x10(&local_0x828->field_0x10) // -> RBX::Path2D::fn_0x3ee38d0;
           }
           L_0x3b5a2c4:
           L_0x3b5a469:
@@ -2040,27 +2096,27 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
         auto ret_0x30167f0_38 = call_0x30167f0(HttpServiceWriteDisabled, local_0x838);
         if (ret_0x30167f0_38 != 0) {
           if (local_0x330 >= 16) {
-            void* v_rcx_38 = local_0x318;
+            void* v_rcx_30 = local_0x318;
             if (local_0x330 + 1 >= 0x1000) {
               if (local_0x318 - local_0x318->field_m0x8 < 8 || local_0x318 - local_0x318->field_m0x8 > 39) {
                 call_0x5e14580();
                 goto L_0x3b5aa19;
               }
             }
-            call_0x4955ac0(v_rcx_38);
+            call_0x4955ac0(v_rcx_30);
           }
           if (param_2->field_0x8 != 0) {
-            &param_2->field_0x10->vfunc(&param_2->field_0x10);
+            param_2->field_0x8->vfunc_0x10(&param_2->field_0x10) // -> RBX::Path2D::fn_0x3ee38d0;
           }
           call_0x6f8fb0(param_3);
           if (local_0x828->field_0x8 != 0) {
-            &local_0x828->field_0x10->vfunc(&local_0x828->field_0x10);
+            local_0x828->field_0x8->vfunc_0x10(&local_0x828->field_0x10) // -> RBX::Path2D::fn_0x3ee38d0;
           }
           call_0x6db7e0(local_0x830);
           call_0x6db7e0(local_0x838);
           return;
         }
-        if expr_3 {
+        if (!DeprecateLegacyHttpServiceAnalyticsCounters) {
           call_0x2ac4450(&local_0x140);
           if (local_0x140 != 0) {
             call_0x2ac34f0(local_0x140, &sym_0x81891e0, 1, 0);
@@ -2073,7 +2129,7 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
         call_0x6e43b0(&local_0x490, &sym_0x8189090);
         auto ret_0x4954e70_43 = call_0x4954e70(global_0x84bc6dc);
         auto local_0x160 = "post";
-        (local_0x500->field_0x4 + &local_0x500)->vfunc(local_0x500->field_0x4 + &local_0x500, &local_0x1c0, &local_0x160, 1);
+        (((local_0x500->field_0x4 + &local_0x500)->field_0x0))->vfunc_0x10((local_0x500->field_0x4 + &local_0x500), &local_0x1c0, &local_0x160, 1) // -> RBX::Path2D::fn_0x3ee38d0;
         call_0x4954e70(ret_0x4954e70_43);
         call_0x2daef40(&local_0x778);
         if (ModStudioBlockAllHttpCallsEnabled) {
@@ -2087,21 +2143,13 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
               call_0x77d0b0(local_0x830, &local_0x338);
               call_0x6e41c0(&local_0x770);
               call_0x6f8fb0(&local_0x4b8);
-              if (local_0x330 >= 16) {
-                void* v_rcx_36 = local_0x318;
-                if (local_0x330 + 1 >= 0x1000) {
-                  if (local_0x318 - local_0x318->field_m0x8 < 8 || local_0x318 - local_0x318->field_m0x8 > 39) {
-                    goto L_0x3b5aa13;
-                  }
-                }
-                call_0x4955ac0(v_rcx_36);
-              }
+              std::string::_Tidy_deallocate(local_0x318);
               if (param_2->field_0x8 != 0) {
-                &param_2->field_0x10->vfunc(&param_2->field_0x10);
+                param_2->field_0x8->vfunc_0x10(&param_2->field_0x10) // -> RBX::Path2D::fn_0x3ee38d0;
               }
               call_0x6f8fb0(param_3);
               if (local_0x828->field_0x8 != 0) {
-                &local_0x828->field_0x10->vfunc(&local_0x828->field_0x10);
+                local_0x828->field_0x8->vfunc_0x10(&local_0x828->field_0x10) // -> RBX::Path2D::fn_0x3ee38d0;
               }
               goto L_0x3b5a2c4;
             }
@@ -2113,231 +2161,155 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
         if (ret_0x3b51940_51 == 0) {
           call_0x6e41c0(&local_0x770);
           call_0x6f8fb0(&local_0x4b8);
-          if (local_0x330 >= 16) {
-            void* v_rcx_34 = local_0x318;
-            if (local_0x330 + 1 >= 0x1000) {
-              if (local_0x318 - local_0x318->field_m0x8 < 8 || local_0x318 - local_0x318->field_m0x8 > 39) {
-                goto L_0x3b5aa13;
-              }
-            }
-            call_0x4955ac0(v_rcx_34);
-          }
+          std::string::_Tidy_deallocate(local_0x318);
           if (param_2->field_0x8 != 0) {
-            &param_2->field_0x10->vfunc(&param_2->field_0x10);
+            param_2->field_0x8->vfunc_0x10(&param_2->field_0x10) // -> RBX::Path2D::fn_0x3ee38d0;
           }
           call_0x6f8fb0(param_3);
           goto L_0x3b5a2a8;
         } else {
-          if (param_4 != 0) {
-            if (param_4 != 1) {
-              if (param_4 - 1 != 1) {
-                if (param_4 - 1 - 1 != 1) {
-                  if (param_4 - 1 - 1 != 2) {
-                    auto ret_0x6fd950_81 = call_0x6fd950(32);
-                    ret_0x6fd950_81->field_0x0 = "Unsupported content type";
-                    ret_0x6fd950_81->field_0x10 = "ent type";
-                    local_0x378 = ret_0x6fd950_81;
-                    call_0x77d0b0(local_0x838, &local_0x378);
-                    if (15 >= 16) {
-                    void* v_rcx_28 = 0;
-                    call_0x4955ac0(v_rcx_28);
-                    }
-                    call_0x6e41c0(&local_0x770);
-                    call_0x6f8fb0(&local_0x4b8);
-                    if (local_0x330 >= 16) {
-                    void* v_rcx_30 = local_0x318;
-                    if (local_0x330 + 1 >= 0x1000) {
-                    if (local_0x318 - local_0x318->field_m0x8 < 8 || local_0x318 - local_0x318->field_m0x8 > 39) {
-                    goto L_0x3b5aa13;
-                    }
-                    }
-                    call_0x4955ac0(v_rcx_30);
-                    }
-                    L_0x3b5a430:
-                    L_0x3b5a435:
-                    call_0x77e980(param_2);
-                    call_0x6f8fb0(param_3);
-                    call_0x77e980(local_0x828);
-                    goto L_0x3b5a469;
-                    auto expr_1 = param_3->field_0x10 >= ExternalHttpRequestSizeLimitKB * 1000;
-                    auto expr_2 = "Post data too large. Limit: %d KB. Post size: %d KB";
-                  } else {
-                    L_0x3b5a542:
-                    auto local_0x358 = 0;
-                    call_0x6f7000(&local_0x358, global_0x8177270.c_str(), global_0x8177280);
-                    if expr_1 {
-                    auto ret_0x4973b00_75 = call_0x4973b00(&local_0x120, expr_2, ExternalHttpRequestSizeLimitKB, (rdx + r8) >> 9);
-                    call_0x77d0b0(local_0x838, ret_0x4973b00_75);
-                    if (local_0x370 >= 16) {
-                    void* v_rcx_25 = local_0x358;
-                    call_0x4955ac0(v_rcx_25);
-                    }
-                    call_0x6e41c0(&local_0x770);
-                    call_0x6f8fb0(&local_0x4b8);
-                    if (local_0x330 >= 16) {
-                    void* v_rcx_27 = local_0x318;
-                    if (local_0x330 + 1 >= 0x1000) {
-                    if (local_0x318 - local_0x318->field_m0x8 < 8 || local_0x318 - local_0x318->field_m0x8 > 39) {
-                    goto L_0x3b5aa13;
-                    }
-                    }
-                    call_0x4955ac0(v_rcx_27);
-                    }
-                    call_0x77e980(param_2);
-                    call_0x6f8fb0(param_3);
-                    call_0x77e980(local_0x828);
-                    goto L_0x3b5a469;
-                    } else {
-                    call_0x2ba80a0(&local_0x50, 3);
-                    call_0x106b7d0();
-                    call_0x2ba94b0(local_0x50, &local_0x1e0);
-                    call_0x6f7000(&local_0x50->field_0x158, "POST", 4);
-                    call_0x2ba9aa0(local_0x50, &local_0x200, &local_0x1f0);
-                    void* fstk_11;
-                    if (EnableDetailedHttpServiceInvocationEvent) {
-                    auto ret_0x3b4d3a0_58 = call_0x3b4d3a0(&local_0x220, &local_0x210);
-                    if (local_0x228 != 0) {
+          switch (param_4) {
+            case 0:
+              goto L_0x3b5a542;
+            case 1:
+              goto L_0x3b5a542;
+            case 2:
+              goto L_0x3b5a542;
+            case 3:
+              auto local_0x358 = 0;
+              call_0x6f7000(&local_0x358, global_0x8177270.c_str(), global_0x8177280);
+              auto expr_1 = (rdx + ((param_3->field_0x10 - rdx) >> 1)) >> 9;
+              if (param_3->field_0x10 >= ExternalHttpRequestSizeLimitKB * 1000) {
+                auto ret_0x4973b00_75 = call_0x4973b00(&local_0x120, "Post data too large. Limit: %d KB. Post size: %d KB", ExternalHttpRequestSizeLimitKB, expr_1);
+                call_0x77d0b0(local_0x838, ret_0x4973b00_75);
+                std::string::_Tidy_deallocate(local_0x358);
+                call_0x6e41c0(&local_0x770);
+                call_0x6f8fb0(&local_0x4b8);
+                std::string::_Tidy_deallocate(local_0x318);
+                goto L_0x3b5a430;
+              } else {
+                call_0x2ba80a0(&local_0x50, 3);
+                call_0x106b7d0();
+                call_0x2ba94b0(local_0x50, &local_0x1e0);
+                call_0x6f7000(&local_0x50->field_0x158, "POST", 4);
+                call_0x2ba9aa0(local_0x50, &local_0x200, &local_0x1f0);
+                void* fstk_10;
+                if (EnableDetailedHttpServiceInvocationEvent) {
+                  auto ret_0x3b4d3a0_58 = call_0x3b4d3a0(&local_0x220, &local_0x210);
+                  if (local_0x228 != 0) {
                     call_0x6daf40(local_0x228);
-                    fstk_11 = ret_0x3b4d3a0_58->field_0x8;
-                    } else {
-                    fstk_11 = ret_0x3b4d3a0_58->field_0x8;
-                    }
-                    } else {
-                    fstk_11 = 0.0;
-                    }
-                    call_0x2baaa70(local_0x50, param_3, local_0x820);
-                    void* v_rbx_12;
-                    float fstk_18;
-                    if (EnableDetailedHttpServiceInvocationEvent) {
-                    call_0x6db970(&local_0xc0, local_0x838);
-                    call_0x6db970(&local_0x338, local_0x830);
-                    auto ret_0x78e4d0_67 = call_0x78e4d0(&local_0x250, local_0x828);
-                    call_0x3b57e80(this, &local_0xa0, &local_0xb0, ret_0x78e4d0_67);
-                    v_rbx_12 = 0.0;
-                    fstk_18 = 0.0;
-                    } else {
-                    call_0x6db860(&local_0x230, local_0x838);
-                    call_0x6db860(&local_0x120, local_0x830);
-                    auto ret_0x784710_63 = call_0x784710(&local_0x2a0, local_0x828);
-                    if (local_0x58 != 0) {
-                    local_0x58->field_0x8 = local_0x58->field_0x8 + 1;
-                    }
-                    call_0x3b56a60(this, &local_0x100, ret_0x784710_63, &local_0x120);
-                    v_rbx_12 = local_0x58;
-                    fstk_18 = fstk_11;
-                    }
-                    if (fstk_18 != 0) {
-                    call_0x6daf40(fstk_18);
-                    }
-                    if (v_rbx_12 != 0) {
-                    call_0x6daf40(v_rbx_12);
-                    }
-                    if (local_0x370 >= 16) {
-                    void* v_rcx_22 = local_0x358;
-                    call_0x4955ac0(v_rcx_22);
-                    }
-                    call_0x6e41c0(&local_0x770);
-                    call_0x6f8fb0(&local_0x4b8);
-                    if (local_0x330 >= 16) {
-                    void* v_rcx_24 = local_0x318;
-                    if (local_0x330 + 1 >= 0x1000) {
-                    if (local_0x318 - local_0x318->field_m0x8 < 8 || local_0x318 - local_0x318->field_m0x8 > 39) {
-                    goto L_0x3b5aa13;
-                    }
-                    }
-                    call_0x4955ac0(v_rcx_24);
-                    }
-                    goto L_0x3b5a435;
-                    }
+                    fstk_10 = ret_0x3b4d3a0_58->field_0x8;
                   } else {
-                    auto local_0x358 = 0;
-                    call_0x6f7000(&local_0x358, global_0x8177270.c_str(), global_0x8177280);
-                    if expr_1 {
-                    auto ret_0x4973b00_75 = call_0x4973b00(&local_0x120, expr_2, ExternalHttpRequestSizeLimitKB, (rdx + r8) >> 9);
-                    call_0x77d0b0(local_0x838, ret_0x4973b00_75);
-                    if (local_0x370 >= 16) {
-                    void* v_rcx_25 = local_0x358;
-                    call_0x4955ac0(v_rcx_25);
-                    }
-                    call_0x6e41c0(&local_0x770);
-                    call_0x6f8fb0(&local_0x4b8);
-                    if (local_0x330 >= 16) {
-                    void* v_rcx_27 = local_0x318;
-                    if (local_0x330 + 1 >= 0x1000) {
-                    if (local_0x318 - local_0x318->field_m0x8 < 8 || local_0x318 - local_0x318->field_m0x8 > 39) {
-                    goto L_0x3b5aa13;
-                    }
-                    }
-                    call_0x4955ac0(v_rcx_27);
-                    }
-                    goto L_0x3b5a430;
-                    } else {
-                    call_0x2ba80a0(&local_0x50, 3);
-                    call_0x106b7d0();
-                    call_0x2ba94b0(local_0x50, &local_0x1e0);
-                    call_0x6f7000(&local_0x50->field_0x158, "POST", 4);
-                    call_0x2ba9aa0(local_0x50, &local_0x200, &local_0x1f0);
-                    void* fstk_11;
-                    if (EnableDetailedHttpServiceInvocationEvent) {
-                    auto ret_0x3b4d3a0_58 = call_0x3b4d3a0(&local_0x220, &local_0x210);
-                    if (local_0x228 != 0) {
-                    call_0x6daf40(local_0x228);
-                    fstk_11 = ret_0x3b4d3a0_58->field_0x8;
-                    } else {
-                    fstk_11 = ret_0x3b4d3a0_58->field_0x8;
-                    }
-                    } else {
-                    fstk_11 = 0.0;
-                    call_0x2baaa70(local_0x50, param_3, local_0x820);
-                    void* v_rbx_12;
-                    float fstk_18;
-                    if (EnableDetailedHttpServiceInvocationEvent) {
-                    goto L_0x3b5a80d;
-                    } else {
-                    call_0x6db860(&local_0x230, local_0x838);
-                    call_0x6db860(&local_0x120, local_0x830);
-                    auto ret_0x784710_63 = call_0x784710(&local_0x2a0, local_0x828);
-                    if (local_0x58 != 0) {
-                    local_0x58->field_0x8 = local_0x58->field_0x8 + 1;
-                    }
-                    call_0x3b56a60(this, &local_0x100, ret_0x784710_63, &local_0x120);
-                    v_rbx_12 = local_0x58;
-                    fstk_18 = fstk_11;
-                    }
-                    if (fstk_18 != 0) {
-                    call_0x6daf40(fstk_18);
-                    }
-                    if (v_rbx_12 != 0) {
-                    call_0x6daf40(v_rbx_12);
-                    }
-                    if (local_0x370 >= 16) {
-                    void* v_rcx_22 = local_0x358;
-                    call_0x4955ac0(v_rcx_22);
-                    }
-                    call_0x6e41c0(&local_0x770);
-                    call_0x6f8fb0(&local_0x4b8);
-                    if (local_0x330 >= 16) {
-                    void* v_rcx_24 = local_0x318;
-                    if (local_0x330 + 1 >= 0x1000) {
-                    if (local_0x318 - local_0x318->field_m0x8 < 8 || local_0x318 - local_0x318->field_m0x8 > 39) {
-                    goto L_0x3b5aa13;
-                    }
-                    }
-                    call_0x4955ac0(v_rcx_24);
-                    }
-                    goto L_0x3b5a435;
-                    }
-                    }
-                  } else {
-                    goto L_0x3b5a542;
+                    fstk_10 = ret_0x3b4d3a0_58->field_0x8;
                   }
                 } else {
-                  goto L_0x3b5a542;
+                  fstk_10 = 0.0;
                 }
-              } else {
-                goto L_0x3b5a542;
+                call_0x2baaa70(local_0x50, param_3, local_0x820);
+                void* v_rbx_11;
+                float fstk_17;
+                if (EnableDetailedHttpServiceInvocationEvent) {
+                  goto L_0x3b5a80d;
+                } else {
+                  call_0x6db860(&local_0x230, local_0x838);
+                  call_0x6db860(&local_0x120, local_0x830);
+                  auto ret_0x784710_63 = call_0x784710(&local_0x2a0, local_0x828);
+                  call_0x3b56a60(this, &local_0x100, ret_0x784710_63, &local_0x120);
+                  v_rbx_11 = local_0x58;
+                  fstk_17 = fstk_10;
+                }
+                if (fstk_17 != 0) {
+                  call_0x6daf40(fstk_17);
+                }
+                if (v_rbx_11 != 0) {
+                  call_0x6daf40(v_rbx_11);
+                }
+                std::string::_Tidy_deallocate(local_0x358);
+                call_0x6e41c0(&local_0x770);
+                call_0x6f8fb0(&local_0x4b8);
+                std::string::_Tidy_deallocate(local_0x318);
+                goto L_0x3b5a435;
               }
-            }
+              break;
+            case 4:
+              L_0x3b5a542:
+              auto local_0x358 = 0;
+              call_0x6f7000(&local_0x358, global_0x8177270.c_str(), global_0x8177280);
+              if (param_3->field_0x10 >= ExternalHttpRequestSizeLimitKB * 1000) {
+                auto ret_0x4973b00_75 = call_0x4973b00(&local_0x120, "Post data too large. Limit: %d KB. Post size: %d KB", ExternalHttpRequestSizeLimitKB, expr_1);
+                call_0x77d0b0(local_0x838, ret_0x4973b00_75);
+                std::string::_Tidy_deallocate(local_0x358);
+                call_0x6e41c0(&local_0x770);
+                call_0x6f8fb0(&local_0x4b8);
+                std::string::_Tidy_deallocate(local_0x318);
+                call_0x77e980(param_2);
+                call_0x6f8fb0(param_3);
+                call_0x77e980(local_0x828);
+                goto L_0x3b5a469;
+              } else {
+                call_0x2ba80a0(&local_0x50, 3);
+                call_0x106b7d0();
+                call_0x2ba94b0(local_0x50, &local_0x1e0);
+                call_0x6f7000(&local_0x50->field_0x158, "POST", 4);
+                call_0x2ba9aa0(local_0x50, &local_0x200, &local_0x1f0);
+                void* fstk_10;
+                if (EnableDetailedHttpServiceInvocationEvent) {
+                  auto ret_0x3b4d3a0_58 = call_0x3b4d3a0(&local_0x220, &local_0x210);
+                  if (local_0x228 != 0) {
+                    call_0x6daf40(local_0x228);
+                    fstk_10 = ret_0x3b4d3a0_58->field_0x8;
+                  } else {
+                    fstk_10 = ret_0x3b4d3a0_58->field_0x8;
+                  }
+                } else {
+                  fstk_10 = 0.0;
+                }
+                call_0x2baaa70(local_0x50, param_3, local_0x820);
+                void* v_rbx_11;
+                float fstk_17;
+                if (EnableDetailedHttpServiceInvocationEvent) {
+                  call_0x6db970(&local_0xc0, local_0x838);
+                  call_0x6db970(&local_0x338, local_0x830);
+                  auto ret_0x78e4d0_67 = call_0x78e4d0(&local_0x250, local_0x828);
+                  call_0x3b57e80(this, &local_0xa0, &local_0xb0, ret_0x78e4d0_67);
+                  v_rbx_11 = 0.0;
+                  fstk_17 = 0.0;
+                } else {
+                  call_0x6db860(&local_0x230, local_0x838);
+                  call_0x6db860(&local_0x120, local_0x830);
+                  auto ret_0x784710_63 = call_0x784710(&local_0x2a0, local_0x828);
+                  call_0x3b56a60(this, &local_0x100, ret_0x784710_63, &local_0x120);
+                  v_rbx_11 = local_0x58;
+                  fstk_17 = fstk_10;
+                }
+                if (fstk_17 != 0) {
+                  call_0x6daf40(fstk_17);
+                }
+                if (v_rbx_11 != 0) {
+                  call_0x6daf40(v_rbx_11);
+                }
+                std::string::_Tidy_deallocate(local_0x358);
+                call_0x6e41c0(&local_0x770);
+                call_0x6f8fb0(&local_0x4b8);
+                std::string::_Tidy_deallocate(local_0x318);
+                goto L_0x3b5a435;
+              }
+              break;
+            default:
+              auto ret_0x6fd950_81 = call_0x6fd950(32);
+              memcpy(ret_0x6fd950_81, "Unsupported content type", 24);
+              local_0x378 = ret_0x6fd950_81;
+              call_0x77d0b0(local_0x838, &local_0x378);
+              std::string::_Tidy_deallocate(0);
+              call_0x6e41c0(&local_0x770);
+              call_0x6f8fb0(&local_0x4b8);
+              std::string::_Tidy_deallocate(local_0x318);
+              L_0x3b5a430:
+              L_0x3b5a435:
+              call_0x77e980(param_2);
+              call_0x6f8fb0(param_3);
+              call_0x77e980(local_0x828);
+              goto L_0x3b5a469;
           }
         }
       } else {
@@ -2347,11 +2319,11 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
         if ((local_0x350 & 0xfffffffc & 0xfffffff8) != 0) {
           if ((local_0x350 >> 1 & 0x1) != 0) {
             if ((~((local_0x350 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x350 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-              &local_0x338->vfunc(&local_0x338);
+              ((~((local_0x350 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x350 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0x338) // -> RBX::Path2D::fn_0x3ee3920;
             }
           } else {
             if ((~((local_0x350 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x350 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-              local_0x338->vfunc(local_0x338);
+              ((~((local_0x350 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x350 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(local_0x338) // -> RBX::Path2D::fn_0x3ee3920;
             }
             call_0x4955ac0(local_0x338);
           }
@@ -2362,11 +2334,11 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
         if ((local_0x3b0 & 0xfffffffc & 0xfffffff8) != 0) {
           if ((local_0x3b0 >> 1 & 0x1) != 0) {
             if ((~((local_0x3b0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x3b0 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-              &local_0x398->vfunc(&local_0x398);
+              ((~((local_0x3b0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x3b0 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0x398) // -> RBX::Path2D::fn_0x3ee3920;
             }
           } else {
             if ((~((local_0x3b0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x3b0 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-              local_0x398->vfunc(local_0x398);
+              ((~((local_0x3b0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x3b0 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(local_0x398) // -> RBX::Path2D::fn_0x3ee3920;
             }
             call_0x4955ac0(local_0x398);
           }
@@ -2375,39 +2347,23 @@ Operação  : 0x2ba314c: mov/math reg, [flag] ; fn=0x2ba2fd0..0x2ba3b8d
           local_0x338 = 0;
           call_0x6f7000(&local_0x338, "HttpService is currently unavailable.", 37);
           call_0x77d0b0(local_0x838, &local_0x338);
-          if (local_0x330 >= 16) {
-            void* v_rcx_46 = local_0x318;
-            if (local_0x330 + 1 >= 0x1000) {
-              if (local_0x318 - local_0x318->field_m0x8 < 8 || local_0x318 - local_0x318->field_m0x8 > 39) {
-                goto L_0x3b5aa13;
-              }
-            }
-            call_0x4955ac0(v_rcx_46);
-          }
+          std::string::_Tidy_deallocate(local_0x318);
           if (param_2->field_0x8 != 0) {
-            &param_2->field_0x10->vfunc(&param_2->field_0x10);
+            param_2->field_0x8->vfunc_0x10(&param_2->field_0x10) // -> RBX::Path2D::fn_0x3ee38d0;
           }
           call_0x6f8fb0(param_3);
           goto L_0x3b5a2a8;
         } else {
           auto ret_0x30167f0_38 = call_0x30167f0(HttpServiceWriteDisabled, local_0x838);
           if (ret_0x30167f0_38 != 0) {
-            if (local_0x330 >= 16) {
-              void* v_rcx_38 = local_0x318;
-              if (local_0x330 + 1 >= 0x1000) {
-                if (local_0x318 - local_0x318->field_m0x8 < 8 || local_0x318 - local_0x318->field_m0x8 > 39) {
-                  goto L_0x3b5aa13;
-                }
-              }
-              call_0x4955ac0(v_rcx_38);
-            }
+            std::string::_Tidy_deallocate(local_0x318);
             if (param_2->field_0x8 != 0) {
-              &param_2->field_0x10->vfunc(&param_2->field_0x10);
+              param_2->field_0x8->vfunc_0x10(&param_2->field_0x10) // -> RBX::Path2D::fn_0x3ee38d0;
             }
             call_0x6f8fb0(param_3);
             goto L_0x3b5a2a8;
           } else {
-            if expr_3 {
+            if (!DeprecateLegacyHttpServiceAnalyticsCounters) {
               call_0x2ac4450(&local_0x140);
               if (local_0x140 != 0) {
                 call_0x2ac34f0(local_0x140, &sym_0x81891e0, 1, 0);

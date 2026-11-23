@@ -8,10 +8,10 @@ Operação  : 0x47e7296: mov/math reg, [flag] ; fn=0x47e7220..0x47e7750
   === [Resumo do Efeito da FFlag no Engine (RBX::MaxHalted)] ===
     Classe  : RBX::MaxHalted (RTTI Resolvido)
     Padrão  : DFIntMaxHaltedPacketBytesToReport = 10000 (default) [int, mode=2]
-    Papel   : Parâmetro de configuração lido diretamente pela rotina
+    Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : min(MaxHaltedPacketBytesToReport, this->field_0x0->field_0x30)
-    Fórmula : call_0x6f9a40(&local_0x120, min(MaxHaltedPacketBytesToReport, this->field_0x0->field_0x30)->field_0x0 + min(MaxHaltedPacketBytesToReport, this->field_0x0->field_0x30)->field_0x0, 0)
-    Fórmula : min(MaxHaltedPacketBytesToReport, this->field_0x0->field_0x30)->field_0x0 + min(MaxHaltedPacketBytesToReport, this->field_0x0->field_0x30)->field_0x0
+    Fórmula : min(MaxHaltedPacketBytesToReport, this->field_0x0->field_0x30) <= 0
+    Fórmula : i_r8d < min(MaxHaltedPacketBytesToReport, this->field_0x0->field_0x30)
     Altera  : this->field_0x8, this->field_0x0, this->field_0xc
     Wasm    : .data=0x11a1264 [via DFIntNetworkDataSenderHaltThresholdMs]
     [Wasm]  : (atomic_load(&NetworkDataSenderHaltThresholdMs + 0x0) & 1)
@@ -31,39 +31,43 @@ Operação  : 0x47e7296: mov/math reg, [flag] ; fn=0x47e7220..0x47e7750
     // Flag defaults: MaxHaltedPacketBytesToReport = 10000, PPJProgressHalt = 6, TrackDPJProgress = false
     void RBX::MaxHalted::func_0x47e7220(RBX::MaxHalted* this, int64_t param_2) {
       if (param_2 != 0 && this->field_0x0 == param_2) {
-        this->field_0x8 = this->field_0x8 + 1;
+        this->field_0x8++;
         auto* f_10 = this->field_0x10;
-        if (this->field_0xc == 0 && this->field_0x8 + 1 > f_10->field_0x0) {
-          void* sel_rcx_1 = min(MaxHaltedPacketBytesToReport, this->field_0x0->field_0x30);
+        if (this->field_0xc == 0 && this->field_0x8 > f_10->field_0x0) {
+          float fstk_21;
           if (this->field_0x0->field_0x38 != 0 && this->field_0x0->field_0x30 > 0) {
-            auto expr_1 = "[DFLog::PPJProgressHalt] {}: Stuck {} packet with id {} for {} frames";
             if (TrackDPJProgress) {
               if (PPJProgressHalt >= 6 && PPJProgressHalt >> 8 >= 2) {
-                expr_1;
-                expr_1;
-                FLog::Log(expr_1);
+                "[DFLog::PPJProgressHalt] {}: Stuck {} packet with id {} for {} frames";
+                "[DFLog::PPJProgressHalt] {}: Stuck {} packet with id {} for {} frames";
+                FLog::Log("[DFLog::PPJProgressHalt] {}: Stuck {} packet with id {} for {} frames");
               }
             } else if (PPJProgressHalt >= 6 && PPJProgressHalt >> 8 >= 2) {
               "[DFLog::PPJProgressHalt] Stuck processing packet with id {} for {} frames";
               "[DFLog::PPJProgressHalt] Stuck processing packet with id {} for {} frames";
-              FLog::Log(expr_1);
+              FLog::Log("[DFLog::PPJProgressHalt] {}: Stuck {} packet with id {} for {} frames");
             }
+            int64_t idx_1 = min(MaxHaltedPacketBytesToReport, this->field_0x0->field_0x30);
             int64_t local_0x120;
-            if (sel_rcx_1->field_0x0 * 2 == 0) {
-              (sel_rcx_1->field_0x0 + sel_rcx_1->field_0x0)->field_0x20[rbp] = sel_rcx_1->field_0x0 * 2;
-            } else {
+            if (r14 + idx_1 != 0) {
               local_0x120 = 0;
-              call_0x6f9a40(&local_0x120, sel_rcx_1->field_0x0 * 2, 0);
+              call_0x6f9a40(&local_0x120, r14 + idx_1, 0);
             }
-            if (sel_rcx_1->field_0x0 > 0) {
-              auto i_edx = local_0x120.c_str();
+            if (min(MaxHaltedPacketBytesToReport, this->field_0x0->field_0x30) > 0) {
+              void* i_edx = local_0x120.c_str();
+              int32_t i_r8d = 0;
               do { // L_0x47e74c0
-                i_edx->field_0x0 = (this->field_0x0->field_0x38->field_0x0[r8d] >> 4)["0123456789abcdef"];
-                i_edx->field_0x1 = (this->field_0x0->field_0x38->field_0x0[r8d] & 0xf)["0123456789abcdef"];
-              } while ((r8d + 1) < sel_rcx_1->field_0x0); // loop -> L_0x47e74c0
+                i_edx->field_0x0 = (this->field_0x0->field_0x38->field_0x0[i_r8d] >> 4)["0123456789abcdef"];
+                i_edx->field_0x1 = (this->field_0x0->field_0x38->field_0x0[i_r8d] & 0xf)["0123456789abcdef"];
+                i_r8d++;
+                i_edx = i_edx + 2;
+              } while (i_r8d < min(MaxHaltedPacketBytesToReport, this->field_0x0->field_0x30)); // loop -> L_0x47e74c0
             }
             auto local_0x100 = 0;
             call_0x6f8fb0(&local_0x100);
+            fstk_21 = local_0x120;
+          } else {
+            fstk_21 = 0;
           }
           auto ret_0x295e5e0_3 = call_0x295e5e0(f_10->field_0x10);
           if (ret_0x295e5e0_3 != 0) {
@@ -71,7 +75,7 @@ Operação  : 0x47e7296: mov/math reg, [flag] ; fn=0x47e7220..0x47e7750
             call_0x2dc1640(&local_0x480);
             auto ret_0x4954e70_6 = call_0x4954e70(global_0x84bc6dc);
             auto local_0xb0 = this->field_0x18;
-            (local_0x210->field_0x4 + &local_0x210)->vfunc(local_0x210->field_0x4 + &local_0x210, &local_0x30, &local_0xb0, 1);
+            (((local_0x210->field_0x4 + &local_0x210)->field_0x0))->vfunc_0x10((local_0x210->field_0x4 + &local_0x210), &local_0x30, &local_0xb0, 1) // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
             call_0x4954e70(ret_0x4954e70_6);
             call_0x2dbdab0(&local_0x480, &local_0x50, &local_0x30, 1);
             if (this->field_0x0->field_0x38 != 0 && this->field_0x0->field_0x30 > 0) {
@@ -85,7 +89,7 @@ Operação  : 0x47e7296: mov/math reg, [flag] ; fn=0x47e7220..0x47e7750
             call_0x6f8fb0(&local_0x1c8);
           }
           this->field_0xc = 1;
-          std::string::_Tidy_deallocate(v_rcx_27);
+          std::string::_Tidy_deallocate(fstk_21);
         }
       } else {
         this->field_0x8 = 0;

@@ -8,7 +8,8 @@ Operação  : 0x41ace3f: mov/math reg, [flag] ; fn=0x41acc40..0x41acf48
   === [Resumo do Efeito da FFlag no Engine (RBX::LuaGc)] ===
     Classe  : RBX::LuaGc (RTTI Resolvido)
     Padrão  : DFIntLuaGcBoost = 1 (default) [int, mode=2]
-    Papel   : Parâmetro de configuração lido diretamente pela rotina
+    Papel   : Multiplicador / Escala aplicado sobre limites ou métricas da função
+    Fórmula : (int32_t)((double)LuaGcBoost * this->field_0x10)
     Altera  : this->field_0x80
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
@@ -41,7 +42,7 @@ Operação  : 0x41ace3f: mov/math reg, [flag] ; fn=0x41acc40..0x41acf48
               if (tmp_6 >= 0) {
                 fxmm0_3 = (double)tmp_6 / ftmp_3;
               } else {
-                fxmm0_3 = ((double)(tmp_6 >> 1 | tmp_6 & 0x1) + (double)(tmp_6 >> 1 | tmp_6 & 0x1)) / ftmp_3;
+                fxmm0_3 = ((double)(tmp_6 >> 1 | tmp_6 & 0x1) * 2) / ftmp_3;
               }
               auto expr_1 = expr_2->field_0x38 - expr_2->field_0x5560;
             } else if (expr_2->field_0x38 - expr_2->field_0x5560 >= 0) {
@@ -50,10 +51,10 @@ Operação  : 0x41ace3f: mov/math reg, [flag] ; fn=0x41acc40..0x41acf48
             } else {
               int32_t tmp_4 = expr_2->field_0x38 - expr_2->field_0x5560 & 0x1;
               int64_t tmp_5 = expr_1 >> 1;
-              fxmm0_3 = ((double)(tmp_5 | tmp_4) + (double)(tmp_5 | tmp_4)) / ftmp_3;
+              fxmm0_3 = ((double)(tmp_5 | tmp_4) * 2) / ftmp_3;
             }
-            if ((uint64_t)fxmm0_3 >= 0) {
-              double ftmp_5 = (double)(uint64_t)fxmm0_3 * (ret_0x4959ee0_1 - this->field_0x80);
+            if ((int64_t)fxmm0_3 >= 0) {
+              double ftmp_5 = (double)(int64_t)fxmm0_3 * (ret_0x4959ee0_1 - this->field_0x80);
               call_0x1143a40(this, ftmp_5 * 0.000976562);
             }
           }
@@ -68,7 +69,7 @@ Operação  : 0x41ace3f: mov/math reg, [flag] ; fn=0x41acc40..0x41acf48
                 fxmm0_2 = (double)tmp_3;
               } else {
                 v_rax_1 = tmp_3 >> 1 | tmp_3 & 0x1;
-                fxmm0_2 = (double)v_rax_1 + (double)v_rax_1;
+                fxmm0_2 = (double)v_rax_1 * 2;
               }
             } else if (expr_2->field_0x5558 - expr_2->field_0x5560 >= 0) {
               double ftmp_2 = (double)expr_2->field_0x5558 - expr_2->field_0x5560;
@@ -77,46 +78,37 @@ Operação  : 0x41ace3f: mov/math reg, [flag] ; fn=0x41acc40..0x41acf48
               int32_t tmp_1 = expr_2->field_0x5558 - expr_2->field_0x5560 & 0x1;
               int64_t tmp_2 = expr_2->field_0x5558 - expr_2->field_0x5560 >> 1;
               v_rax_1 = tmp_2 | tmp_1;
-              fxmm0_2 = (double)v_rax_1 + (double)v_rax_1;
+              fxmm0_2 = (double)v_rax_1 * 2;
             }
             fxmm0_3 = fxmm0_2 / ftmp_1;
-            if ((uint64_t)fxmm0_3 >= 0) {
-              double ftmp_5 = (double)(uint64_t)fxmm0_3 * (ret_0x4959ee0_1 - this->field_0x80);
+            if ((int64_t)fxmm0_3 >= 0) {
+              double ftmp_5 = (double)(int64_t)fxmm0_3 * (ret_0x4959ee0_1 - this->field_0x80);
               call_0x1143a40(this, ftmp_5 * 0.000976562);
             }
           }
         }
       }
       if (expr_2->field_0x5a == 0) {
-        double fxmm0_4;
-        if (expr_2->field_0x38 >= 0) {
-          fxmm0_4 = (double)expr_2->field_0x38;
-        } else {
-          int64_t tmp_7 = expr_2->field_0x38 >> 1 | expr_2->field_0x38 & 0x1;
-          fxmm0_4 = (double)tmp_7 + (double)tmp_7;
-        }
-        double fxmm1_5;
-        if (expr_2->field_0x30 >= 0) {
-          fxmm1_5 = (double)expr_2->field_0x30;
-        } else {
-          int64_t tmp_8 = expr_2->field_0x30 >> 1 | expr_2->field_0x30 & 0x1;
-          fxmm1_5 = (double)tmp_8 + (double)tmp_8;
-        }
+        double fxmm0_4 = (double)(uint64_t)expr_2->field_0x38;
+        double fxmm1_5 = (double)(uint64_t)expr_2->field_0x30;
         double ftmp_6 = fxmm0_4 + this->field_0x10 * 1024.0;
+        auto expr_3 = (int32_t)((double)LuaGcBoost * this->field_0x10);
         if (ftmp_6 <= fxmm1_5) {
-          if (this->field_0x68 != 0 && this->field_0x280 > this->field_0x290) {
-            auto local_0x20 = &this->field_0x288 ^ this->field_0x288;
-            auto local_0x24 = &this->field_0x288 ^ this->field_0x28c;
-            call_0x495a220(&local_0x20);
-            if (local_0x20 - this->field_0x280 <= LuauGcActorProgressDelaySeconds) {
-              return 0;
-            }
-            return std::clamp(LuaGcMaxKb, 1, (int32_t)(LuaGcBoost * this->field_0x10));
+          if (this->field_0x68 == 0 || this->field_0x280 <= this->field_0x290) {
+            return 0;
           }
-          return 0;
+          auto local_0x20 = &this->field_0x288 ^ this->field_0x288;
+          auto local_0x24 = &this->field_0x288 ^ this->field_0x28c;
+          call_0x495a220(&local_0x20);
+          if (local_0x20 - this->field_0x280 <= (double)LuauGcActorProgressDelaySeconds) {
+            return 0;
+          }
+          L_0x41acf2c:
+          return std::clamp(expr_3, 1, LuaGcMaxKb);
         }
+        return std::clamp(expr_3, 1, LuaGcMaxKb);
       }
-      return std::clamp(LuaGcMaxKb, 1, (int32_t)(LuaGcBoost * this->field_0x10));
+      goto L_0x41acf2c;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===

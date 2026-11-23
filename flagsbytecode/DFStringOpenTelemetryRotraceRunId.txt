@@ -10,7 +10,7 @@ Operação  : 0x4deb152: mov/math reg, [flag] ; fn=0x4deb130..0x4deb297
     Padrão  : DFStringOpenTelemetryRotraceRunId = "" (default) [string, mode=2]
     Papel   : Parâmetro de configuração lido diretamente pela rotina
     Fórmula : atomic_fetch_add(&OpenTelemetryRotraceRunId, 1)
-    Altera  : this->field_0x88->field_0x0[((rdx + rdx * 2) * 8)]
+    Altera  : this->field_0x88->field_0x0[((rdx + idx_1 * 2) * 8)]
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x4deabc3 (in fn_0x4dea510): call 0x4deb130  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
@@ -32,12 +32,12 @@ Operação  : 0x4deb152: mov/math reg, [flag] ; fn=0x4deb130..0x4deb297
     // Flag defaults: OpenTelemetryRotraceRunId = "", SplitHashNoRehashOnExistingKey = true
     auto RBX::OpenTelemetry::func_0x4deb130(RBX::OpenTelemetry* this, int64_t param_2, void* param_3) {
       call_0x2e12fd0(&this->field_0x70);
-      auto expr_1 = this->field_0x78 + rdx * 4 >= 1 << this->field_0x94;
+      auto* f_80 = this->field_0x80;
       if (global_0x84a44d6 != 0 && SplitHashNoRehashOnExistingKey) {
         if (this->field_0x7c == 0) {
           call_0xff5c60(&this->field_0x78, 16);
         } else {
-          if expr_1 {
+          if (this->field_0x78 + f_80->field_0x8[(1 << this->field_0x94) * 4] * 4 >= 1 << this->field_0x94) {
             call_0xfee680(&this->field_0x78);
           }
         }
@@ -49,7 +49,7 @@ Operação  : 0x4deb152: mov/math reg, [flag] ; fn=0x4deb130..0x4deb297
           }
           call_0xff5c60(&this->field_0x78, this->field_0x7c + v_rcx_1);
         } else if (this->field_0x7c != 0) {
-          if expr_1 {
+          if (this->field_0x78 + f_80->field_0x8[(1 << this->field_0x94) * 4] * 4 >= 1 << this->field_0x94) {
             call_0xfee680(&this->field_0x78);
           }
         }
@@ -57,23 +57,20 @@ Operação  : 0x4deb152: mov/math reg, [flag] ; fn=0x4deb130..0x4deb297
       auto local_0x50 = atomic_fetch_add(&OpenTelemetryRotraceRunId, 1);
       call_0xff58f0(&this->field_0x78, &local_0x58, &local_0x50, 1);
       if (local_0x5c != 0) {
+        int64_t idx_1 = f_80->field_0x0[local_0x58 * 4] & this->field_0x90;
         auto* f_88 = this->field_0x88;
-        f_88->field_0x0[((rdx + rdx * 2) * 8)] = local_0x50;
-        (f_88 + ((rdx + rdx * 2) * 8))->field_0x8 = 0;
-        (f_88 + ((rdx + rdx * 2) * 8))->field_0x10 = 0;
-        (f_88 + ((rdx + rdx * 2) * 8))->field_0x8 = param_3->field_0x0;
-        (f_88 + ((rdx + rdx * 2) * 8))->field_0x10 = param_3->field_0x8;
+        f_88->field_0x0[((rdx + idx_1 * 2) * 8)] = local_0x50;
+        (f_88 + ((rdx + idx_1 * 2) * 8))->field_0x8 = 0;
+        (f_88 + ((rdx + idx_1 * 2) * 8))->field_0x10 = 0;
+        (f_88 + ((rdx + idx_1 * 2) * 8))->field_0x8 = param_3->field_0x0;
+        (f_88 + ((rdx + idx_1 * 2) * 8))->field_0x10 = param_3->field_0x8;
         param_3->field_0x0 = 0;
         param_3->field_0x8 = 0;
       }
       param_2->field_0x0 = local_0x50;
-      if (this->field_0x70 == 3) {
-        if (atomic_cas(&this->field_0x70, this->field_0x70, 1) != 0) {
-          call_0xdac0(&this->field_0x70);
-        }
-        return param_2;
+      if (this->field_0x70 != 3 || atomic_cas(&this->field_0x70, this->field_0x70, 1) != 0) {
+        call_0xdac0(&this->field_0x70);
       }
-      call_0xdac0(&this->field_0x70);
       return param_2;
     }
   
@@ -202,21 +199,16 @@ Operação  : 0x4deb152: mov/math reg, [flag] ; fn=0x4deb130..0x4deb297
     // Flag defaults: OpenTelemetryRotraceRunId = "", HttpOpenTelemetryTracing = 6, OpenTelemetryLuauApiAllowlist = ""
     void RBX::OpenTelemetryTracing::OpenTelemetryCarrier::func_0x4deb5f0(RBX::OpenTelemetryTracing::OpenTelemetryCarrier* this, int64_t param_2) {
       if (HttpOpenTelemetryTracing >= 6 && HttpOpenTelemetryTracing >> 8 >= 4) {
-        int32_t i_eax = rbx;
+        uint64_t i_eax = -1;
         do { // L_0x4deb680
-        } while ("[FLog::HttpOpenTelemetryTracing] Carrier Constructed"[(i_eax + 1)] != 0); // loop -> L_0x4deb680
+          i_eax++;
+        } while ("[FLog::HttpOpenTelemetryTracing] Carrier Constructed"[i_eax] != 0); // loop -> L_0x4deb680
         FLog::Log("[FLog::HttpOpenTelemetryTracing] Carrier Constructed");
       }
       this->vfunc_0x8(this, &local_0x200, &local_0x1f0) // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66540;
-      if (15 >= 16) {
-        void* v_rcx_1 = "Win32";
-        call_0x4955ac0(v_rcx_1);
-      }
+      std::string::_Tidy_deallocate("Win32");
       this->vfunc_0x8(this, &local_0x220, &local_0x210) // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66540;
-      if (15 >= 16) {
-        void* v_rcx_3 = 17232;
-        call_0x4955ac0(v_rcx_3);
-      }
+      std::string::_Tidy_deallocate(17232);
       this->vfunc_0x8(this, &local_0x240, &local_0x230) // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66540;
       this->vfunc_0x8(this, &local_0x260, &local_0x250) // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66540;
       this->vfunc_0x8(this, &local_0x280, &local_0x270) // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66540;
@@ -230,7 +222,7 @@ Operação  : 0x4deb152: mov/math reg, [flag] ; fn=0x4deb130..0x4deb297
       auto* f_8 = this->field_0x8;
       auto* f_8_8 = f_8->field_0x8;
       if (f_8_8 != 0) {
-        f_8_8->field_0x8 = f_8_8->field_0x8 + 1;
+        f_8_8->field_0x8++;
       }
       auto local_0x1c0 = 0.0;
       auto local_0x1c4 = 0.0;
@@ -242,16 +234,11 @@ Operação  : 0x4deb152: mov/math reg, [flag] ; fn=0x4deb130..0x4deb297
       if (local_0x358 != 0) {
         call_0x6daf40(local_0x358);
       }
-      if (local_0x360 == 0) {
-        if (local_0x368 != 0.0) {
-          if (local_0x370 != global_0x74d6d30) {
-            auto local_0x1a0 = &sym_0x7159440;
-            call_0x4de9610(&local_0x1a0, &local_0x360);
-          }
+      if (local_0x360 != 0 || local_0x368 != 0.0) {
+        if (local_0x370 != global_0x74d6d30) {
+          auto local_0x1a0 = &sym_0x7159440;
+          call_0x4de9610(&local_0x1a0, &local_0x360);
         }
-      } else if (local_0x370 != global_0x74d6d30) {
-        auto local_0x1a0 = &sym_0x7159440;
-        call_0x4de9610(&local_0x1a0, &local_0x360);
       }
       if (local_0x388 != 0) {
         call_0x6daf40(local_0x388);
@@ -281,7 +268,7 @@ Operação  : 0x4deb152: mov/math reg, [flag] ; fn=0x4deb130..0x4deb297
     0x4deb622 | 48 8d 05 17 de 36 02     | lea rax, [rip + 0x236de17]
     0x4deb629 | 48 89 85 a0 00 00 00     | mov qword ptr [rbp + 0xa0], rax
     0x4deb630 | 48 89 95 a8 00 00 00     | mov qword ptr [rbp + 0xa8], rdx
-    0x4deb637 | 48 c7 c3 ff ff ff ff     | mov rbx, 0xffffffff
+    0x4deb637 | 48 c7 c3 ff ff ff ff     | mov rbx, -0x1
     0x4deb63e | 33 f6                    | xor esi, esi
     0x4deb640 | 48 8b 05 c1 6b 35 03     | mov rax, qword ptr [rip + 0x3356bc1] ; FLogHttpOpenTelemetryTracing
     0x4deb647 | 3c 06                    | cmp al, 0x6

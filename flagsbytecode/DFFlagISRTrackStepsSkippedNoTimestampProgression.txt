@@ -10,7 +10,7 @@ Operação  : 0x39d0a9a: cmp [flag], reg ; fn=0x39d0740..0x39d0ee6
     Padrão  : DFFlagISRTrackStepsSkippedNoTimestampProgression = false (default) [bool, mode=2]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
     Fórmula : !ISRTrackStepsSkippedNoTimestampProgression
-    Altera  : this->field_0x880, this->field_0x881, this->field_0x883, this->field_0xa50, this->field_0xa52, this->field_0xa51
+    Altera  : this->field_0x880, this->field_0x881, this->field_0x883, this->field_0xa50, this->field_0xa52, this->field_0xaac
   
   === [Mapeamento de Campos da Struct (RTTI & Cross-Function Linker)] ===
     this->field_0x881 (offset +0x881) <- FFlagSupportISRSubChannels = false (@0x39d0796)
@@ -58,13 +58,15 @@ Operação  : 0x39d0a9a: cmp [flag], reg ; fn=0x39d0740..0x39d0ee6
     // Flag defaults: ISRTrackStepsSkippedNoTimestampProgression = false, ReportBandwidthCapHit = true, SupportISRSubChannels = false, ISRDebugMicroprofilerData = false, ISRSkipRedundantTimestampSend = true, DebugHashTableMetrics = false, NextGenReplicatorEnabledWrite4 = false, ISRTimestampHeartbeat = true
     auto RBX::ISRTrackSteps::func_0x39d0740(RBX::ISRTrackSteps* this, int64_t param_2, void* param_3, void* param_4) {
       auto ret_0x4954e70_1 = call_0x4954e70(global_0x84ca09c);
-      if (ReportBandwidthCapHit && SupportISRSubChannels) {
-        this->field_0x881 = 0;
-        this->field_0x883 = 0;
-      } else {
-        this->field_0x880 = 0;
+      if (ReportBandwidthCapHit) {
+        if (SupportISRSubChannels) {
+          this->field_0x881 = 0;
+          this->field_0x883 = 0;
+        } else {
+          this->field_0x880 = 0;
+        }
       }
-      int32_t i_eax;
+      uint64_t i_ecx;
       if (ISRDebugMicroprofilerData) {
         if (global_0x8de7d00 > rbp->field_0x58->field_0x0->field_0x0[40]) {
           call_0x12e0(&sym_0x8de7d00);
@@ -73,11 +75,14 @@ Operação  : 0x39d0a9a: cmp [flag], reg ; fn=0x39d0740..0x39d0ee6
             call_0x14f0(&sym_0x8de7d00);
           }
         }
-        auto ret_0x2925220_5 = call_0x2925220(global_0x8de7d08, "Replicator: %p", this);
+        call_0x2925220(global_0x8de7d08, "Replicator: %p", this);
         if (SupportISRSubChannels) {
-          i_eax = ret_0x2925220_5;
+          i_ecx = 0;
+          int32_t i_ebx = 0;
+          int32_t v_rbx_3;
           do { // L_0x39d0860
-            if (param_4->field_0x0[0] > 0) {
+            v_rbx_3 = i_ebx;
+            if (param_4->field_0x0[i_ebx * 4] > 0) {
               if (global_0x8de7d10 > (("ubscription from studio")->field_0x58)->field_0x0[40]) {
                 call_0x12e0(&sym_0x8de7d10);
                 if (global_0x8de7d10 == -1) {
@@ -85,9 +90,36 @@ Operação  : 0x39d0a9a: cmp [flag], reg ; fn=0x39d0740..0x39d0ee6
                   call_0x14f0(&sym_0x8de7d10);
                 }
               }
-              call_0x2925220(global_0x8de7d18, "Bytes Allowed Channel %s: %u", "Unknown", param_4->field_0x0[0]);
+              int32_t v_rbx_1 = i_ebx;
+              int32_t v_rsi_2 = i_ebx;
+              if (i_ebx != 0) {
+                int32_t prev_i_ebx_1 = i_ebx;
+                int32_t prev_i_ebx_2 = i_ebx;
+                i_ebx--;
+                if (i_ebx != 0) {
+                  i_ebx--;
+                  if (i_ebx != 0) {
+                    if (i_ebx != 1) {
+                    v_rbx_1 = prev_i_ebx_1;
+                    v_rsi_2 = prev_i_ebx_2;
+                    } else {
+                    v_rbx_1 = prev_i_ebx_1;
+                    v_rsi_2 = prev_i_ebx_2;
+                    }
+                  } else {
+                    v_rbx_1 = prev_i_ebx_1;
+                    v_rsi_2 = prev_i_ebx_2;
+                  }
+                } else {
+                  v_rbx_1 = prev_i_ebx_1;
+                  v_rsi_2 = prev_i_ebx_2;
+                }
+              }
+              call_0x2925220(global_0x8de7d18, "Bytes Allowed Channel %s: %u", "Unknown", param_4->field_0x0[v_rsi_2 * 4]);
+              v_rbx_3 = v_rbx_1;
             }
-          } while ((ebx + 1) < 3); // loop -> L_0x39d0860
+            i_ebx = v_rbx_3 + 1;
+          } while (v_rbx_3 + 1 < 3); // loop -> L_0x39d0860
         } else {
           if (global_0x8de7d20 > rbp->field_0x58->field_0x0->field_0x0[40]) {
             call_0x12e0(&sym_0x8de7d20);
@@ -100,69 +132,78 @@ Operação  : 0x39d0a9a: cmp [flag], reg ; fn=0x39d0740..0x39d0ee6
         }
       }
       if (ISRSkipRedundantTimestampSend) {
-        uint8_t v_sil_8 = 1;
+        uint8_t v_sil_11 = 1;
+        void* i_r8d;
+        void* i_edx;
         if (SupportISRSubChannels) {
           this->field_0xa50 = 0;
           this->field_0xa52 = 0;
+          void* i_r9d = &this->field_0xa50;
+          int32_t i_r10d = 0;
+          i_edx = &this->field_0xa4c;
           int32_t i_esi = 1;
-          uint8_t v_sil_7;
+          i_r8d = &this->field_0xa52;
+          uint8_t v_sil_9;
           do { // L_0x39d0a00
-            uint8_t v_al_2;
-            if (this->field_0xa44 != 2147483647 && param_3 <= this->field_0xa44) {
-              v_al_2 = 1;
-            } else {
-              v_al_2 = 0;
-            }
-            this->field_0xa50 = v_al_2;
-            uint8_t v_cl_3;
-            if (i_esi != 0 && v_al_2 != 0) {
-              v_cl_3 = 1;
-            } else {
-              v_cl_3 = 0;
-            }
             uint8_t v_al_4;
-            if (this->field_0xa48 != 2147483647 && param_3 <= this->field_0xa48) {
+            if (i_edx->field_m0x8 != 2147483647 && param_3 <= i_edx->field_m0x8) {
               v_al_4 = 1;
             } else {
               v_al_4 = 0;
             }
-            this->field_0xa51 = v_al_4;
+            i_r9d->field_0x0 = v_al_4;
             uint8_t v_cl_5;
-            if (v_cl_3 != 0 && v_al_4 != 0) {
+            if (i_esi != 0 && v_al_4 != 0) {
               v_cl_5 = 1;
             } else {
               v_cl_5 = 0;
             }
             uint8_t v_al_6;
-            if (this->field_0xa4c != 2147483647 && param_3 <= this->field_0xa4c) {
+            if (i_edx->field_m0x4 != 2147483647 && param_3 <= i_edx->field_m0x4) {
               v_al_6 = 1;
             } else {
               v_al_6 = 0;
             }
-            this->field_0xa52 = v_al_6;
+            i_r8d->field_m0x1 = v_al_6;
+            uint8_t v_cl_7;
             if (v_cl_5 != 0 && v_al_6 != 0) {
-              v_sil_7 = 1;
+              v_cl_7 = 1;
             } else {
-              v_sil_7 = 0;
+              v_cl_7 = 0;
             }
-          } while ((0 + 3) < 3); // loop -> L_0x39d0a00
-          v_sil_8 = v_sil_7;
-        } else if (this->field_0xa40 != 2147483647) {
-          if (param_3 > this->field_0xa40) {
-            v_sil_8 = 0;
-          }
-        } else {
-          v_sil_8 = 0;
+            uint8_t v_al_8;
+            if (i_edx->field_0x0 != 2147483647 && param_3 <= i_edx->field_0x0) {
+              v_al_8 = 1;
+            } else {
+              v_al_8 = 0;
+            }
+            i_r8d->field_0x0 = v_al_8;
+            if (v_cl_7 != 0 && v_al_8 != 0) {
+              v_sil_9 = 1;
+            } else {
+              v_sil_9 = 0;
+            }
+            i_r10d += 3;
+            i_r9d += 3;
+            i_edx += 12;
+            i_r8d += 3;
+            i_ecx = v_cl_7;
+            i_esi = v_sil_9;
+          } while (i_r10d < 3); // loop -> L_0x39d0a00
+          v_sil_11 = v_sil_9;
+        } else if (this->field_0xa40 == 2147483647 || param_3 > this->field_0xa40) {
+          v_sil_11 = 0;
         }
         if (ISRTrackStepsSkippedNoTimestampProgression) {
           call_0x202b2b0(&this->field_0x360, 1.0);
         }
-        if (v_sil_8 != 0) {
+        if (v_sil_11 != 0) {
           if (ret_0x4954e70_1 >= 1024) {
             call_0x494e780();
           } else {
             auto ret_0x4954c10_38 = call_0x4954c10();
             if (ret_0x4954c10_38 != 0) {
+              ret_0x4954c10_38->field_0x0 = ret_0x4954c10_38->field_0x0 ^ (ret_0x4954c10_38->field_0x0 ^ ret_0x4954e70_1) & 0x3ff;
             } else {
               call_0x4954d30(ret_0x4954e70_1, 1023);
             }
@@ -183,14 +224,17 @@ Operação  : 0x39d0a9a: cmp [flag], reg ; fn=0x39d0740..0x39d0ee6
               if (this->field_0xbe0 != 0) {
                 auto ret_0x39bc7b0_20 = call_0x39bc7b0(this, &local_0x60, param_4, param_3);
                 if (ISRTimestampHeartbeat) {
+                  void* i_eax = &local_0x70;
                   do { // L_0x39d0c20
                     if (ret_0x39bc7b0_20->field_0x0 > 0) break;
-                    this->field_0xb68 = this->field_0xb68 + 1;
-                    if (this->field_0xb68 < this->field_0xb6c) break;
+                    i_eax += 4;
+                    i_ecx = &local_0x7c;
+                  } while (i_eax != &local_0x7c); // loop -> L_0x39d0c20
+                  this->field_0xb68++;
+                  if (this->field_0xb68 >= this->field_0xb6c) {
                     call_0x39d0ef0(this, param_3);
-                    break;
-                  } while ((i_eax + 4) != &local_0x7c); // loop -> L_0x39d0c20
-                  this->field_0xb68 = 0;
+                    this->field_0xb68 = 0;
+                  }
                 }
               }
               auto ret_0x4959ee0_22 = call_0x4959ee0();
@@ -205,8 +249,8 @@ Operação  : 0x39d0a9a: cmp [flag], reg ; fn=0x39d0740..0x39d0ee6
                 }
                 call_0x2925220(global_0x8de7d38, "Obj Sent: %u, Groups Sent: %u, Packets Sent: %u, Bytes Used: %u", this->field_0xc, this->field_0x10);
               }
-              call_0x495a220(&local_0x58);
-              double ftmp_1 = rax->field_0x0 - this->field_0xa10;
+              auto ret_0x495a220_27 = call_0x495a220(&local_0x58);
+              double ftmp_1 = ret_0x495a220_27->field_0x0 - this->field_0xa10;
               call_0x39d43b0(this->field_0xa20, ftmp_1);
               auto* f_a28 = this->field_0xa28;
               call_0x202b2b0(&f_a28->field_0x10, (double)f_a28->field_0x8 / ftmp_1);
@@ -222,17 +266,22 @@ Operação  : 0x39d0a9a: cmp [flag], reg ; fn=0x39d0740..0x39d0ee6
               call_0x39d4f40(&this->field_0xa10);
               if (ISRSkipRedundantTimestampSend) {
                 if (SupportISRSubChannels) {
+                  int32_t i_r12d = 0;
                   do { // L_0x39d0e06
-                    if (this->field_0xa50 == 0 && param_4->field_0x0 > 0) {
-                    param_4->field_0xa4c[(this + (r9 - param_4))] = param_3;
+                    if (i_r8d->field_0x0 == 0 && i_ecx->field_m0x8 > 0) {
+                    (this + (-8 - param_4))->field_0xa44[i_ecx] = param_3;
                     }
-                    if (this->field_0xa51 == 0 && param_4->field_0x4 > 0) {
-                    param_4->field_0xa50[(this + (r9 - param_4))] = param_3;
+                    if (i_edx->field_m0x1 == 0 && i_ecx->field_m0x4 > 0) {
+                    (this + (-8 - param_4))->field_0xa48[i_ecx] = param_3;
                     }
-                    if (this->field_0xa52 == 0 && param_4->field_0x8 > 0) {
-                    (&param_4->field_0x8 - param_4)->field_0xa44[this] = param_3;
+                    if (i_edx->field_0x0 == 0 && i_ecx->field_0x0 > 0) {
+                    (i_ecx - param_4)->field_0xa44[this] = param_3;
                     }
-                  } while ((0 + 3) < 3); // loop -> L_0x39d0e06
+                    i_r12d += 3;
+                    i_r8d += 3;
+                    i_ecx += 12;
+                    i_edx += 3;
+                  } while (i_r12d < 3); // loop -> L_0x39d0e06
                 } else {
                   this->field_0xa40 = param_3;
                 }
@@ -248,31 +297,33 @@ Operação  : 0x39d0a9a: cmp [flag], reg ; fn=0x39d0740..0x39d0ee6
           } else {
             auto ret_0x4954c10_35 = call_0x4954c10();
             if (ret_0x4954c10_35 != 0) {
+              ret_0x4954c10_35->field_0x0 = ret_0x4954c10_35->field_0x0 ^ (ret_0x4954c10_35->field_0x0 ^ ret_0x4954e70_1) & 0x3ff;
             } else {
               call_0x4954d30(ret_0x4954e70_1, 1023);
             }
           }
         }
-        return param_2;
-      }
-      call_0x39abef0(&this->field_0xa98);
-      this->field_0xaac = param_3;
-      if (!DebugHashTableMetrics && (this->field_0x828 >> 3 & 0x1) == 0 && !NextGenReplicatorEnabledWrite4) {
-        if ((this->field_0x828 & 0x1) != 0) {
+      } else {
+        call_0x39abef0(&this->field_0xa98);
+        this->field_0xaac = param_3;
+        if (!DebugHashTableMetrics && (this->field_0x828 >> 3 & 0x1) == 0 && !NextGenReplicatorEnabledWrite4) {
+          if ((this->field_0x828 & 0x1) != 0) {
+            goto L_0x39d0b6a;
+          }
+        } else {
           goto L_0x39d0b6a;
         }
-      } else {
-        goto L_0x39d0b6a;
-      }
-      param_2->field_0x0 = local_0x70;
-      param_2->field_0x8 = local_0x78;
-      if (ret_0x4954e70_1 >= 1024) {
-        call_0x494e780();
-      } else {
-        auto ret_0x4954c10_35 = call_0x4954c10();
-        if (ret_0x4954c10_35 != 0) {
+        param_2->field_0x0 = local_0x70;
+        param_2->field_0x8 = local_0x78;
+        if (ret_0x4954e70_1 >= 1024) {
+          call_0x494e780();
         } else {
-          call_0x4954d30(ret_0x4954e70_1, 1023);
+          auto ret_0x4954c10_35 = call_0x4954c10();
+          if (ret_0x4954c10_35 != 0) {
+            ret_0x4954c10_35->field_0x0 = ret_0x4954c10_35->field_0x0 ^ (ret_0x4954c10_35->field_0x0 ^ ret_0x4954e70_1) & 0x3ff;
+          } else {
+            call_0x4954d30(ret_0x4954e70_1, 1023);
+          }
         }
       }
       return param_2;
@@ -719,7 +770,7 @@ Operação  : 0x39d0a9a: cmp [flag], reg ; fn=0x39d0740..0x39d0ee6
     0x39d0dea | 48 8d 97 52 0a 00 00     | lea rdx, [rdi + 0xa52]
     0x39d0df1 | 4c 8d 87 50 0a 00 00     | lea r8, [rdi + 0xa50]
     0x39d0df8 | 49 8d 4d 08              | lea rcx, [r13 + 0x8]
-    0x39d0dfc | 49 c7 c1 f8 ff ff ff     | mov r9, 0xfffffff8
+    0x39d0dfc | 49 c7 c1 f8 ff ff ff     | mov r9, -0x8
     0x39d0e03 | 4d 2b cd                 | sub r9, r13
     L_0x39d0e06:
     0x39d0e06 | 41 80 38 00              | cmp byte ptr [r8], 0x0
@@ -824,61 +875,58 @@ Operação  : 0x39d0a9a: cmp [flag], reg ; fn=0x39d0740..0x39d0ee6
             this->field_0xc = (float)(this->field_0x1c - this->field_0x18);
           }
           L_0x39ac648:
-          auto expr_2 = "[DFLog::ISRTimestampOffsets] ISR Remote to Local Offsets Stabilized after {} steps;
           if (this->field_0x3 == 0) {
             if (this->field_0x4 >= NumOffsetUpdatesBeforeWeTrust) {
               this->field_0x3 = 1;
               this->numOffsetUpdatesBeforeWeTrust_0x8 = this->field_0x1c - this->field_0x14;
               if (ISRTimestampOffsets >= 6 && ISRTimestampOffsets >> 8 >= 5) {
-                FLog::Log(expr_2, Overriding S");
+                FLog::Log("[DFLog::ISRTimestampOffsets] ISR Remote to Local Offsets Stabilized after {} steps, Overriding S");
               }
             } else {
-              this->field_0x4 = this->field_0x4 + 1;
+              this->field_0x4++;
             }
-          } else {
-          } else {
-            float fxmm6_12;
-            auto expr_4 = (float)IsrTimestampOffsetSmoothingHundredths / 100.0;
-            if (ISRTrackSmoothTimestampOffsets) {
-              float fxmm3_1;
-              float fxmm4_2;
-              if (fabsf((float)this->numOffsetUpdatesBeforeWeTrust_0x8 - this->field_0xc) > 1.0) {
-                this->field_0xc = (float)this->numOffsetUpdatesBeforeWeTrust_0x8;
-                fxmm3_1 = (float)this->numOffsetUpdatesBeforeWeTrust_0x8;
-                fxmm4_2 = (float)this->numOffsetUpdatesBeforeWeTrust_0x8;
-              } else {
-                fxmm3_1 = this->field_0xc;
-                fxmm4_2 = this->field_0xc;
-              }
-              float ftmp_3 = 1.0 - (float)IsrTimestampOffsetSmoothingHundredths / 100.0;
-              float ftmp_4 = (float)(this->field_0x1c - this->field_0x18);
-              float ftmp_5 = ftmp_4 * expr_4;
-              int32_t v_r12_9 = 0;
-              float fxmm6_10;
-              float fxmm6_11;
-              if (ISRTimestampStallDetection) {
-                if (!DebugISRDisableTimeCappedOffsetDrift) {
-                  float ftmp_6 = ftmp_3 * fxmm3_1 + ftmp_5 - fxmm3_1;
-                  int32_t v_r12_6 = 0;
-                  float fxmm6_7;
-                  int32_t i_eax;
-                  auto expr_1 = "[DFLog::ISRTimestampOffsets] ISR: Short client stall - bypassing cap. StallAccumulator: {};
-                  auto expr_3 = "[DFLog::ISRTimestampOffsets] ISR: Remote to Local Offsets updated: remote {};
-                  if (ftmp_6 > 1e-05 && this->field_0x10 != 0x7fffffff) {
-                    void* sel_rcx_1 = max(1, ISRTimeCappedOffsetRatio);
-                    float ftmp_10 = (float)(this->field_0x18 - this->field_0x10) / (float)sel_rcx_1;
-                    int32_t v_rax_4;
-                    if (fabsf(ftmp_6) > ftmp_10) {
-                    this->iSRTimeCappedOffsetRatio_0x20 = this->iSRTimeCappedOffsetRatio_0x20 + 1;
-                    v_rax_4 = this->iSRTimeCappedOffsetRatio_0x20 + 1;
-                    } else {
+          }
+        } else {
+          float fxmm6_11;
+          auto expr_1 = (float)IsrTimestampOffsetSmoothingHundredths / 100.0;
+          if (ISRTrackSmoothTimestampOffsets) {
+            float fxmm3_1;
+            float fxmm4_2;
+            if (fabsf((float)this->numOffsetUpdatesBeforeWeTrust_0x8 - this->field_0xc) > 1.0) {
+              this->field_0xc = (float)this->numOffsetUpdatesBeforeWeTrust_0x8;
+              fxmm3_1 = (float)this->numOffsetUpdatesBeforeWeTrust_0x8;
+              fxmm4_2 = (float)this->numOffsetUpdatesBeforeWeTrust_0x8;
+            } else {
+              fxmm3_1 = this->field_0xc;
+              fxmm4_2 = this->field_0xc;
+            }
+            float ftmp_3 = 1.0 - (float)IsrTimestampOffsetSmoothingHundredths / 100.0;
+            float ftmp_4 = (float)(this->field_0x1c - this->field_0x18);
+            float ftmp_5 = ftmp_4 * expr_1;
+            uint8_t v_r12b_8 = 0;
+            float fxmm6_9;
+            float fxmm6_10;
+            if (ISRTimestampStallDetection) {
+              if (!DebugISRDisableTimeCappedOffsetDrift) {
+                float ftmp_6 = ftmp_3 * fxmm3_1 + ftmp_5 - fxmm3_1;
+                uint8_t v_r12b_5 = 0;
+                float fxmm6_6;
+                uint64_t i_edi;
+                if (ftmp_6 > 1e-05 && this->field_0x10 != 0x7fffffff) {
+                  float ftmp_10 = (float)(this->field_0x18 - this->field_0x10) / (float)max(1, ISRTimeCappedOffsetRatio);
+                  int32_t v_rax_3;
+                  if (fabsf(ftmp_6) > ftmp_10) {
+                    this->iSRTimeCappedOffsetRatio_0x20++;
+                    v_rax_3 = this->iSRTimeCappedOffsetRatio_0x20;
+                  } else {
                     this->iSRTimeCappedOffsetRatio_0x20 = 0;
-                    v_rax_4 = 0;
-                    }
-                    if (v_rax_4 >= ISRStallLongThreshold) {
+                    v_rax_3 = 0;
+                  }
+                  if (v_rax_3 >= ISRStallLongThreshold) {
                     if (ISRTimestampOffsets >= 6 && ISRTimestampOffsets >> 8 >= 3) {
                     do { // L_0x39ac130
-                    } while (i_eax[(rdi + 1)] != 0); // loop -> L_0x39ac130
+                    i_edi++;
+                    } while (rax[i_edi] != 0); // loop -> L_0x39ac130
                     FLog::Log("[DFLog::ISRTimestampOffsets] ISR: Client stall detected - hard resetting offset from {} to raw {");
                     }
                     this->field_0x10 = this->field_0x18;
@@ -886,58 +934,63 @@ Operação  : 0x39d0a9a: cmp [flag], reg ; fn=0x39d0740..0x39d0ee6
                     this->numOffsetUpdatesBeforeWeTrust_0x8 = this->field_0x1c - this->field_0x18;
                     this->iSRTimeCappedOffsetRatio_0x20 = 0;
                     this->field_0x3 = 1;
+                  } else {
+                    if (v_rax_3 >= ISRStallShortThreshold) {
+                    if (ISRTimestampOffsets >= 6 && ISRTimestampOffsets >> 8 >= 5) {
+                    v_r12b_5 = 1;
+                    fxmm6_6 = ftmp_6;
+                    "[DFLog::ISRTimestampOffsets] ISR: Short client stall - bypassing cap. StallAccumulator: {}, desi";
+                    FLog::Log("[DFLog::ISRTimestampOffsets] ISR: Short client stall - bypassing cap. StallAccumulator: {}, desi");
+                    v_r12b_8 = v_r12b_5;
+                    fxmm6_9 = fxmm6_6;
                     } else {
-                    if (v_rax_4 >= ISRStallShortThreshold && ISRTimestampOffsets >= 6 && ISRTimestampOffsets >> 8 >= 5) {
-                    v_r12_6 = 1;
-                    fxmm6_7 = ftmp_6;
-                    expr_1, desi";
-                    FLog::Log(expr_1, desi");
-                    v_r12_9 = v_r12_6;
-                    fxmm6_10 = fxmm6_7;
+                    v_r12b_8 = 1;
+                    fxmm6_9 = ftmp_6;
+                    }
                     } else {
-                    v_r12_9 = 1;
-                    fxmm6_10 = ftmp_6;
+                    fxmm6_9 = ftmp_6;
                     }
                     L_0x39ac49d:
-                    if (!DebugISRDisableTimeCappedOffsetDrift && v_r12_9 == 0 && fxmm6_10 > 1e-05 && this->field_0x10 != 2147483647) {
-                    void* sel_r15_2 = max(1, ISRTimeCappedOffsetRatio);
-                    float ftmp_11 = (float)(this->field_0x18 - this->field_0x10) / (float)sel_r15_2;
-                    if (ftmp_11 / fabsf(fxmm6_10) < 1.0) {
-                    fxmm6_11 = fxmm6_10 * (ftmp_11 / fabsf(fxmm6_10));
+                    if (!DebugISRDisableTimeCappedOffsetDrift && v_r12b_8 == 0 && fxmm6_9 > 1e-05 && this->field_0x10 != 2147483647) {
+                    float ftmp_11 = (float)(this->field_0x18 - this->field_0x10) / (float)max(1, ISRTimeCappedOffsetRatio);
+                    if (ftmp_11 / fabsf(fxmm6_9) < 1.0) {
+                    fxmm6_10 = fxmm6_9 * (ftmp_11 / fabsf(fxmm6_9));
                     } else {
-                    fxmm6_11 = fxmm6_10;
+                    fxmm6_10 = fxmm6_9;
                     }
                     } else {
-                    fxmm6_11 = fxmm6_10;
+                    fxmm6_10 = fxmm6_9;
                     }
                     L_0x39ac4f8:
                     this->field_0x10 = this->field_0x18;
-                    this->field_0xc = fxmm6_11 + this->field_0xc;
-                    fxmm6_12 = fxmm6_11 + this->field_0xc;
+                    this->field_0xc = fxmm6_10 + this->field_0xc;
+                    fxmm6_11 = fxmm6_10 + this->field_0xc;
                     L_0x39ac52a:
-                    this->numOffsetUpdatesBeforeWeTrust_0x8 = (int32_t)fxmm6_12;
+                    this->numOffsetUpdatesBeforeWeTrust_0x8 = (int32_t)fxmm6_11;
                     if (ISRTimestampOffsets >= 6 && ISRTimestampOffsets >> 8 >= 5) {
-                    FLog::Log(expr_3, local {}, rawOffse");
+                    FLog::Log("[DFLog::ISRTimestampOffsets] ISR: Remote to Local Offsets updated: remote {}, local {}, rawOffse");
                     }
                     if (this->field_0x3 == 0) {
                     if (this->field_0x4 >= NumOffsetUpdatesBeforeWeTrust) {
                     this->field_0x3 = 1;
                     this->numOffsetUpdatesBeforeWeTrust_0x8 = this->field_0x1c - this->field_0x14;
                     if (ISRTimestampOffsets >= 6 && ISRTimestampOffsets >> 8 >= 5) {
-                    FLog::Log(expr_2, Overriding S");
+                    FLog::Log("[DFLog::ISRTimestampOffsets] ISR Remote to Local Offsets Stabilized after {} steps, Overriding S");
                     }
                     } else {
-                    this->field_0x4 = this->field_0x4 + 1;
+                    this->field_0x4++;
                     }
                     }
-                    }
-                  } else {
-                    this->iSRTimeCappedOffsetRatio_0x20 = 0;
-                    if (-1e-05 > ftmp_6) {
+                  }
+                } else {
+                  this->iSRTimeCappedOffsetRatio_0x20 = 0;
+                  if (-1e-05 > ftmp_6) {
                     if ((this->field_0x1c - this->field_0x18 - this->numOffsetUpdatesBeforeWeTrust_0x8 ^ param_2) - param_2 >= ISRStallLongDivergenceThreshold) {
                     if (ISRTimestampOffsets >= 6 && ISRTimestampOffsets >> 8 >= 3) {
+                    i_edi = -1;
                     do { // L_0x39ac300
-                    } while (i_eax[(rdi + 1)] != 0); // loop -> L_0x39ac300
+                    i_edi++;
+                    } while (rax[i_edi] != 0); // loop -> L_0x39ac300
                     FLog::Log("[DFLog::ISRTimestampOffsets] ISR: Server stall detected - hard resetting offset from {} to raw {");
                     }
                     this->field_0x10 = this->field_0x18;
@@ -949,64 +1002,62 @@ Operação  : 0x39d0a9a: cmp [flag], reg ; fn=0x39d0740..0x39d0ee6
                     float ftmp_7 = 1.0 - (float)ISRStallBoostSmoothingHundredths / 100.0;
                     float ftmp_8 = ftmp_4 * ((float)ISRStallBoostSmoothingHundredths / 100.0);
                     if (ISRTimestampOffsets >= 6 && ISRTimestampOffsets >> 8 >= 5) {
-                    i_eax = rdi;
+                    uint64_t i_eax = -1;
                     do { // L_0x39ac420
-                    } while (rcx[(i_eax + 1)] != 0); // loop -> L_0x39ac420
+                    i_eax++;
+                    } while (rcx[i_eax] != 0); // loop -> L_0x39ac420
                     float ftmp_9 = ftmp_7 * fxmm4_2 + ftmp_8 - fxmm4_2;
-                    fxmm6_7 = ftmp_9;
+                    fxmm6_6 = ftmp_9;
                     "[DFLog::ISRTimestampOffsets] ISR: Short server stall - boosting convergence. Divergence: {}, boo";
-                    FLog::Log(expr_1, desi");
-                    v_r12_9 = v_r12_6;
-                    fxmm6_10 = fxmm6_7;
+                    FLog::Log("[DFLog::ISRTimestampOffsets] ISR: Short client stall - bypassing cap. StallAccumulator: {}, desi");
+                    v_r12b_8 = v_r12b_5;
+                    fxmm6_9 = fxmm6_6;
                     } else {
-                    fxmm6_10 = ftmp_7 * fxmm4_2 + ftmp_8 - fxmm4_2;
+                    fxmm6_9 = ftmp_7 * fxmm4_2 + ftmp_8 - fxmm4_2;
                     }
                     } else {
-                    fxmm6_10 = ftmp_6;
+                    fxmm6_9 = ftmp_6;
                     }
-                    if (!DebugISRDisableTimeCappedOffsetDrift && v_r12_9 == 0 && fxmm6_10 > 1e-05 && this->field_0x10 != 2147483647) {
-                    void* sel_r15_2 = max(1, ISRTimeCappedOffsetRatio);
-                    float ftmp_11 = (float)(this->field_0x18 - this->field_0x10) / (float)sel_r15_2;
-                    if (ftmp_11 / fabsf(fxmm6_10) < 1.0) {
-                    fxmm6_11 = fxmm6_10 * (ftmp_11 / fabsf(fxmm6_10));
+                    if (!DebugISRDisableTimeCappedOffsetDrift && v_r12b_8 == 0 && fxmm6_9 > 1e-05 && this->field_0x10 != 2147483647) {
+                    float ftmp_11 = (float)(this->field_0x18 - this->field_0x10) / (float)max(1, ISRTimeCappedOffsetRatio);
+                    if (ftmp_11 / fabsf(fxmm6_9) < 1.0) {
+                    fxmm6_10 = fxmm6_9 * (ftmp_11 / fabsf(fxmm6_9));
                     } else {
-                    fxmm6_11 = fxmm6_10;
+                    fxmm6_10 = fxmm6_9;
                     }
                     } else {
-                    fxmm6_11 = fxmm6_10;
+                    fxmm6_10 = fxmm6_9;
                     }
                     this->field_0x10 = this->field_0x18;
-                    this->field_0xc = fxmm6_11 + this->field_0xc;
-                    fxmm6_12 = fxmm6_11 + this->field_0xc;
-                    this->numOffsetUpdatesBeforeWeTrust_0x8 = (int32_t)fxmm6_12;
+                    this->field_0xc = fxmm6_10 + this->field_0xc;
+                    fxmm6_11 = fxmm6_10 + this->field_0xc;
+                    this->numOffsetUpdatesBeforeWeTrust_0x8 = (int32_t)fxmm6_11;
                     if (ISRTimestampOffsets >= 6 && ISRTimestampOffsets >> 8 >= 5) {
-                    FLog::Log(expr_3, local {}, rawOffse");
+                    FLog::Log("[DFLog::ISRTimestampOffsets] ISR: Remote to Local Offsets updated: remote {}, local {}, rawOffse");
                     }
                     goto L_0x39ac648;
                     }
-                    } else {
-                    fxmm6_10 = ftmp_6;
+                  } else {
+                    fxmm6_9 = ftmp_6;
                     goto L_0x39ac49d;
-                    }
                   }
-                } else {
-                  fxmm6_11 = ftmp_3 * fxmm3_1 + ftmp_5 - fxmm3_1;
-                  goto L_0x39ac4f8;
                 }
               } else {
                 fxmm6_10 = ftmp_3 * fxmm3_1 + ftmp_5 - fxmm3_1;
-                goto L_0x39ac49d;
+                goto L_0x39ac4f8;
               }
             } else {
-              float ftmp_1 = 1.0 - (float)IsrTimestampOffsetSmoothingHundredths / 100.0;
-              float ftmp_2 = (float)(this->field_0x1c - this->field_0x18) * expr_4;
-              fxmm6_12 = ftmp_1 * (float)this->numOffsetUpdatesBeforeWeTrust_0x8 + ftmp_2;
-              goto L_0x39ac52a;
+              fxmm6_9 = ftmp_3 * fxmm3_1 + ftmp_5 - fxmm3_1;
+              goto L_0x39ac49d;
             }
+          } else {
+            float ftmp_1 = 1.0 - (float)IsrTimestampOffsetSmoothingHundredths / 100.0;
+            float ftmp_2 = (float)(this->field_0x1c - this->field_0x18) * expr_1;
+            fxmm6_11 = ftmp_1 * (float)this->numOffsetUpdatesBeforeWeTrust_0x8 + ftmp_2;
+            goto L_0x39ac52a;
           }
-          this->field_0x0 = 0;
-          return;
         }
+        this->field_0x0 = 0;
       }
     }
   
@@ -1030,7 +1081,7 @@ Operação  : 0x39d0a9a: cmp [flag], reg ; fn=0x39d0740..0x39d0ee6
     0x39abf32 | 0f 84 49 08 00 00        | je 0x39ac781
     0x39abf38 | 8b 49 08                 | mov ecx, dword ptr [rcx + 0x8]
     0x39abf3b | 48 89 bc 24 58 03 00 00  | mov qword ptr [rsp + 0x358], rdi
-    0x39abf43 | 48 c7 c7 ff ff ff ff     | mov rdi, 0xffffffff
+    0x39abf43 | 48 c7 c7 ff ff ff ff     | mov rdi, -0x1
     0x39abf4a | 4c 89 a4 24 60 03 00 00  | mov qword ptr [rsp + 0x360], r12
     0x39abf52 | 4c 89 b4 24 68 03 00 00  | mov qword ptr [rsp + 0x368], r14
     0x39abf5a | 4c 89 bc 24 30 03 00 00  | mov qword ptr [rsp + 0x330], r15
@@ -1508,7 +1559,6 @@ Operação  : 0x39d0a9a: cmp [flag], reg ; fn=0x39d0740..0x39d0ee6
     
     // Flag defaults: ISRTrackStepsSkippedNoTimestampProgression = false
     auto RBX::ISRTrackSteps::func_0x39adbd0(RBX::ISRTrackSteps* this, int64_t param_2) {
-      auto* f_0 = this->field_0x0;
       auto expr_1 = (this->field_0x10 + this->field_0x10 * 2) << 4;
       if (param_2 == 1 && this->field_0x8 * 4 < this->field_0x10 && this->field_0x10 > 64) {
         int32_t v_rdi_2 = 0;
@@ -1517,37 +1567,31 @@ Operação  : 0x39d0a9a: cmp [flag], reg ; fn=0x39d0740..0x39d0ee6
         }
         if (v_rdi_2 == this->field_0x10) {
           this->field_0x8 = 0;
-          if (f_0 != expr_1 + f_0) {
+          if (this->field_0x0 != expr_1 + this->field_0x0) {
             do { // L_0x39adc60
-              f_0->field_0x0 = -1;
-            } while (&f_0->field_0x30 != (expr_1 + f_0)); // loop -> L_0x39adc60
-            return;
-          }
-        } else {
-          call_0x4955ac0(f_0);
-          return tailcall_0x39ade20(this, v_rdi_2);
-        }
-      } else {
-        if (this->field_0x8 == 0) {
-          if (this->field_0xc != 0) {
-            if (f_0 != expr_1 + f_0) {
-              L_0x39adcc0:
-              do { // L_0x39adcc0
-                L_0x39adcc0:
-                f_0->field_0x0 = -1;
-              } while (&f_0->field_0x30 != (expr_1 + f_0)); // loop -> L_0x39adcc0
-            }
-            this->field_0x8 = 0;
+              i_ecx->field_0x0 = -1;
+              i_ecx += 0x30;
+            } while (i_ecx != expr_1 + this->field_0x0); // loop -> L_0x39adc60
             return;
           }
           return;
         }
-        if (f_0 != expr_1 + f_0) {
-          goto L_0x39adcc0;
+        call_0x4955ac0(this->field_0x0);
+        return tailcall_0x39ade20(this, v_rdi_2);
+      }
+      void* i_ecx;
+      if (this->field_0x8 != 0 || this->field_0xc != 0) {
+        if (this->field_0x0 != expr_1 + this->field_0x0) {
+          i_ecx = this->field_0x0;
+          do { // L_0x39adcc0
+            i_ecx->field_0x0 = -1;
+            i_ecx += 0x30;
+          } while (i_ecx != expr_1 + this->field_0x0); // loop -> L_0x39adcc0
         }
         this->field_0x8 = 0;
         return;
       }
+      return;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x39adbd0..0x39adce2)] ===
@@ -1596,7 +1640,7 @@ Operação  : 0x39d0a9a: cmp [flag], reg ; fn=0x39d0740..0x39d0ee6
     0x39adc55 | 0f 84 7c 00 00 00        | je 0x39adcd7
     0x39adc5b | 0f 1f 44 00 00           | nop
     L_0x39adc60:
-    0x39adc60 | 48 c7 01 ff ff ff ff     | mov qword ptr [rcx], 0xffffffff
+    0x39adc60 | 48 c7 01 ff ff ff ff     | mov qword ptr [rcx], -0x1
     0x39adc67 | 48 83 c1 30              | add rcx, 0x30
     0x39adc6b | 48 3b ca                 | cmp rcx, rdx
     0x39adc6e | 75 f0                    | jne 0x39adc60
@@ -1628,7 +1672,7 @@ Operação  : 0x39d0a9a: cmp [flag], reg ; fn=0x39d0740..0x39d0ee6
     0x39adcb5 | 74 19                    | je 0x39adcd0
     0x39adcb7 | 66 0f 1f 84 00 00 00 00.. | nop
     L_0x39adcc0:
-    0x39adcc0 | 48 c7 01 ff ff ff ff     | mov qword ptr [rcx], 0xffffffff
+    0x39adcc0 | 48 c7 01 ff ff ff ff     | mov qword ptr [rcx], -0x1
     0x39adcc7 | 48 83 c1 30              | add rcx, 0x30
     0x39adccb | 48 3b ca                 | cmp rcx, rdx
     0x39adcce | 75 f0                    | jne 0x39adcc0
@@ -1660,199 +1704,294 @@ Operação  : 0x39d0a9a: cmp [flag], reg ; fn=0x39d0740..0x39d0ee6
     
     // Flag defaults: ISRTrackStepsSkippedNoTimestampProgression = false, MaxISRHistoryBuffer = 10, MaxISRSentBuffer = 200, InstanceStateReplicatorRecycleDirtyState = false
     void RBX::ISRTrackSteps::func_0x39ad420(RBX::ISRTrackSteps* this) {
-      int32_t v_r15_22 = 0;
+      int32_t v_r15_13 = 0;
       auto* f_70 = this->field_0x70;
       if (f_70 != this->field_0x78) {
-        auto i_eax = this->field_0x78;
+        void* i_eax = this->field_0x78;
+        void* i_r9d = f_70;
         int32_t i_r15d = 0;
-        int32_t v_r15_21;
-        void* v_rax_18;
+        int32_t v_r15_12;
+        void* v_rax_11;
         do { // L_0x39ad490
-          v_rax_18 = i_eax;
-          v_r15_21 = i_r15d;
+          v_rax_11 = i_eax;
+          v_r15_12 = i_r15d;
           if (this->field_0x18 != 0) {
-            int32_t v_r15_17 = i_r15d;
-            int32_t i_edx;
+            int64_t idx_1 = ((this->field_0x18 - 1 & i_r9d->field_0x0 * 37) + (this->field_0x18 - 1 & i_r9d->field_0x0 * 37) * 2) * 2;
+            int32_t v_r15_10 = i_r15d;
             auto* f_8 = this->field_0x8;
-            if (f_70->field_0x0 != f_8->field_0x0[rcx * 8]) {
-              i_edx = this->field_0x18 - 1 & f_70->field_0x0 * 37;
+            if (i_r9d->field_0x0 != f_8->field_0x0[idx_1 * 8]) {
+              int32_t i_r8d = 1;
+              int32_t i_edx = this->field_0x18 - 1 & i_r9d->field_0x0 * 37;
+              int64_t idx_2;
               do { // L_0x39ad4d0
                 if (i_eax == -1) break;
-                void* v_rbx_6;
-                int32_t v_r15_7 = i_r15d;
-                void* v_rbx_14;
-                int32_t v_r15_15;
-                if (this->field_0x50 != 0) break;
-                v_rbx_6 = i_r15d;
-                break;
-              } while (f_70->field_0x0 != f_8->field_0x0[rcx * 8]); // loop -> L_0x39ad4d0
-            } else {
-              void* v_rbx_6;
-              int32_t v_r15_7 = i_r15d;
-              void* v_rbx_14;
-              int32_t v_r15_15;
-              int64_t i_ebx;
+                int32_t prev_i_r8d_1 = i_r8d;
+                i_r8d++;
+                idx_2 = ((i_edx + prev_i_r8d_1 & this->field_0x18 - 1) + (i_edx + prev_i_r8d_1 & this->field_0x18 - 1) * 2) * 2;
+                i_eax = f_8->field_0x0[idx_2 * 8];
+                i_edx = i_edx + prev_i_r8d_1 & this->field_0x18 - 1;
+              } while (i_r9d->field_0x0 != f_8->field_0x0[idx_2 * 8]); // loop -> L_0x39ad4d0
+              void* v_rbx_3;
+              int32_t v_r15_4 = i_r15d;
+              void* v_rbx_8;
+              int32_t v_r15_9;
               if (this->field_0x50 == 0) {
-                v_rbx_6 = i_r15d;
-                void* v_rbx_12 = v_rbx_6;
+                v_rbx_3 = i_r15d;
+                void* v_rbx_7 = v_rbx_3;
                 if ((this->field_0x48 + 1) * 4 >= this->field_0x50 + this->field_0x50 * 2) {
                   call_0x39ae4c0(&this->field_0x40, this->field_0x50 * 2);
                   if (this->field_0x50 == 0) {
-                    v_rbx_12 = v_r15_7;
-                  } else if (f_70->field_0x0 != (this->field_0x40 + (r8 + r8 * 4) * 8)->field_0x0) {
-                    L_0x39ad651:
-                    do { // L_0x39ad651
-                    L_0x39ad651:
-                    if (i_eax == -1) break;
-                    v_rbx_12 = this->field_0x40 + rcx * 8;
-                    break;
-                    } while (f_70->field_0x0 != (this->field_0x40 + rcx * 8)->field_0x0); // loop -> L_0x39ad651
-                    void* sel_rbx_4 = i_edx != 0 ? i_edx : i_ebx;
-                    v_rbx_12 = sel_rbx_4;
+                    v_rbx_7 = v_r15_4;
                   } else {
-                    v_rbx_12 = this->field_0x40 + (r8 + r8 * 4) * 8;
+                    int64_t idx_10 = (this->field_0x50 - 1 & i_r9d->field_0x0 * 37) + (this->field_0x50 - 1 & i_r9d->field_0x0 * 37) * 4;
+                    if (i_r9d->field_0x0 != (this->field_0x40 + idx_10 * 8)->field_0x0) {
+                    L_0x39ad651:
+                    int64_t idx_13;
+                    do { // L_0x39ad651
+                    if (i_eax == -1) break;
+                    void* v_rdx_6 = i_edx;
+                    if (i_eax == -2) {
+                    void* sel_rdx_12 = i_edx == 0 ? i_ebx : i_edx;
+                    v_rdx_6 = sel_rdx_12;
+                    }
+                    int32_t prev_i_r9d_4 = i_r9d;
+                    i_r9d++;
+                    idx_13 = (i_r8d + prev_i_r9d_4 & this->field_0x50 - 1) + (i_r8d + prev_i_r9d_4 & this->field_0x50 - 1) * 4;
+                    i_r8d = i_r8d + prev_i_r9d_4 & this->field_0x50 - 1;
+                    i_eax = (this->field_0x40 + idx_13 * 8)->field_0x0;
+                    i_edx = v_rdx_6;
+                    i_ebx = this->field_0x40 + idx_13 * 8;
+                    } while (i_r9d->field_0x0 != (this->field_0x40 + idx_13 * 8)->field_0x0); // loop -> L_0x39ad651
+                    v_rbx_7 = this->field_0x40 + idx_13 * 8;
+                    } else {
+                    v_rbx_7 = this->field_0x40 + idx_10 * 8;
+                    }
                   }
                 } else if (this->field_0x50 - this->field_0x4c - (this->field_0x48 + 1) <= this->field_0x50 >> 3) {
                   call_0x39ae4c0(&this->field_0x40, this->field_0x50);
                   if (this->field_0x50 == 0) {
-                    v_rbx_12 = v_r15_7;
+                    v_rbx_7 = v_r15_4;
                   } else {
-                    if (f_70->field_0x0 != (this->field_0x40 + (r8 + r8 * 4) * 8)->field_0x0) {
+                    int64_t idx_7 = (this->field_0x50 - 1 & i_r9d->field_0x0 * 37) + (this->field_0x50 - 1 & i_r9d->field_0x0 * 37) * 4;
+                    if (i_r9d->field_0x0 != (this->field_0x40 + idx_7 * 8)->field_0x0) {
                     L_0x39ad6e0:
+                    int64_t idx_9;
                     do { // L_0x39ad6e0
-                    L_0x39ad6e0:
                     if (i_eax == -1) break;
-                    v_rbx_12 = this->field_0x40 + rcx * 8;
-                    break;
-                    } while (f_70->field_0x0 != (this->field_0x40 + rcx * 8)->field_0x0); // loop -> L_0x39ad6e0
-                    void* sel_rbx_4 = i_edx != 0 ? i_edx : i_ebx;
-                    v_rbx_12 = sel_rbx_4;
+                    void* v_rdx_5 = i_edx;
+                    if (i_eax == -2) {
+                    void* sel_rdx_8 = i_edx == 0 ? i_ebx : i_edx;
+                    v_rdx_5 = sel_rdx_8;
+                    }
+                    int32_t prev_i_r9d_3 = i_r9d;
+                    i_r9d++;
+                    idx_9 = (i_r8d + prev_i_r9d_3 & this->field_0x50 - 1) + (i_r8d + prev_i_r9d_3 & this->field_0x50 - 1) * 4;
+                    i_r8d = i_r8d + prev_i_r9d_3 & this->field_0x50 - 1;
+                    i_eax = (this->field_0x40 + idx_9 * 8)->field_0x0;
+                    i_edx = v_rdx_5;
+                    i_ebx = this->field_0x40 + idx_9 * 8;
+                    } while (i_r9d->field_0x0 != (this->field_0x40 + idx_9 * 8)->field_0x0); // loop -> L_0x39ad6e0
+                    v_rbx_7 = this->field_0x40 + idx_9 * 8;
                     } else {
-                    v_rbx_12 = this->field_0x40 + (r8 + r8 * 4) * 8;
+                    v_rbx_7 = this->field_0x40 + idx_7 * 8;
                     }
                   }
                 }
-                this->field_0x48 = this->field_0x48 + 1;
-                if (v_rbx_12->field_0x0 != -1) {
-                  this->field_0x4c = this->field_0x4c - 1;
+                this->field_0x48++;
+                if (v_rbx_7->field_0x0 != -1) {
+                  this->field_0x4c--;
                 }
-                v_rbx_12->field_0x0 = f_70->field_0x0;
-                v_rbx_12->field_0x8 = call_0x4956040(384);
-                v_rbx_12->field_0x10 = 8;
-                v_rbx_12->field_0x18 = v_r15_7;
-                v_rbx_12->field_0x20 = v_r15_7;
-                v_rbx_14 = v_rbx_12;
-                v_r15_15 = v_r15_7;
+                v_rbx_7->field_0x0 = i_r9d->field_0x0;
+                v_rbx_7->field_0x8 = call_0x4956040(384);
+                v_rbx_7->field_0x10 = 8;
+                v_rbx_7->field_0x18 = v_r15_4;
+                v_rbx_7->field_0x20 = v_r15_4;
+                v_rbx_8 = v_rbx_7;
+                v_r15_9 = v_r15_4;
               } else {
-                i_ebx = this->field_0x40 + (r8 + r8 * 4) * 8;
-                void* v_rbx_4 = this->field_0x40 + (r8 + r8 * 4) * 8;
-                if (f_70->field_0x0 != (this->field_0x40 + (r8 + r8 * 4) * 8)->field_0x0) {
+                int64_t idx_3 = (this->field_0x50 - 1 & i_r9d->field_0x0 * 37) + (this->field_0x50 - 1 & i_r9d->field_0x0 * 37) * 4;
+                void* i_ebx = this->field_0x40 + idx_3 * 8;
+                void* v_rbx_2 = this->field_0x40 + idx_3 * 8;
+                if (i_r9d->field_0x0 != (this->field_0x40 + idx_3 * 8)->field_0x0) {
+                  L_0x39ad532:
+                  int64_t idx_6;
                   do { // L_0x39ad532
                     if (i_eax == -1) break;
-                    v_rbx_4 = this->field_0x40 + rcx * 8;
-                    v_rbx_14 = v_rbx_4;
-                    v_r15_15 = 0;
-                    break;
-                  } while (f_70->field_0x0 != (this->field_0x40 + rcx * 8)->field_0x0); // loop -> L_0x39ad532
-                  void* sel_rbx_1 = i_edx != 0 ? i_edx : i_ebx;
-                  v_rbx_6 = sel_rbx_1;
-                  v_r15_7 = 0;
-                  void* v_rbx_12 = v_rbx_6;
-                  if ((this->field_0x48 + 1) * 4 >= this->field_0x50 + this->field_0x50 * 2) {
-                    call_0x39ae4c0(&this->field_0x40, this->field_0x50 * 2);
-                    if (this->field_0x50 == 0) {
-                    v_rbx_12 = v_r15_7;
-                    } else if (f_70->field_0x0 != (this->field_0x40 + (r8 + r8 * 4) * 8)->field_0x0) {
+                    void* v_rdx_1 = i_edx;
+                    if (i_eax == -2) {
+                    void* sel_rdx_5 = i_edx == 0 ? i_ebx : i_edx;
+                    v_rdx_1 = sel_rdx_5;
+                    }
+                    int32_t prev_i_r9d_2 = i_r9d;
+                    i_r9d++;
+                    idx_6 = (i_r8d + prev_i_r9d_2 & this->field_0x50 - 1) + (i_r8d + prev_i_r9d_2 & this->field_0x50 - 1) * 4;
+                    i_r8d = i_r8d + prev_i_r9d_2 & this->field_0x50 - 1;
+                    i_eax = (this->field_0x40 + idx_6 * 8)->field_0x0;
+                    i_edx = v_rdx_1;
+                    i_ebx = this->field_0x40 + idx_6 * 8;
+                  } while (i_r9d->field_0x0 != (this->field_0x40 + idx_6 * 8)->field_0x0); // loop -> L_0x39ad532
+                  L_0x39ad565:
+                  v_rbx_8 = v_rbx_2;
+                  v_r15_9 = 0;
+                } else {
+                  v_rbx_8 = v_rbx_2;
+                  v_r15_9 = 0;
+                }
+              }
+              if (v_rbx_8->field_0x20 == 0) {
+                if (MaxISRHistoryBuffer > v_rbx_8->field_0x10) {
+                  call_0x39add40(&v_rbx_8->field_0x8, MaxISRHistoryBuffer, this->field_0x50 - 1 & i_r9d->field_0x0 * 37, v_rbx_8->field_0x20);
+                }
+                if (v_rbx_8->field_0x20 + 1 > v_rbx_8->field_0x10) {
+                  L_0x39ad5d0:
+                  do { // L_0x39ad5d0
+                    i_edx = i_edx > 2 ? (i_edx + i_edx * 2) >> 1 : 4;
+                  } while (i_edx > 2 ? (i_edx + i_edx * 2) >> 1 : 4 < v_rbx_8->field_0x20 + 1); // loop -> L_0x39ad5d0
+                  call_0x39add40(&v_rbx_8->field_0x8, i_edx > 2 ? (i_edx + i_edx * 2) >> 1 : 4);
+                }
+                L_0x39ad76b:
+                int64_t idx_18 = (v_rbx_8->field_0x18 + v_rbx_8->field_0x20) % v_rbx_8->field_0x10;
+                (((rdx + idx_18 * 2) << 4) + v_rbx_8->field_0x8)->field_0x0 = f_70->field_0x8;
+                (((rdx + idx_18 * 2) << 4) + v_rbx_8->field_0x8)->field_0x10 = f_70->field_0x18;
+                (((rdx + idx_18 * 2) << 4) + v_rbx_8->field_0x8)->field_0x20 = f_70->field_0x28;
+                v_rbx_8->field_0x20++;
+                v_r15_10 = v_r15_9;
+              } else {
+                int64_t idx_14 = (&v_rbx_8->field_0x20->field_m0x1 + v_rbx_8->field_0x18) % v_rbx_8->field_0x10;
+                if (v_rbx_8->field_0x8->field_0x28[((rdx + idx_14 * 2) * 2) * 8] == this->field_0x0) {
+                  int64_t idx_17 = (&v_rbx_8->field_0x20->field_m0x1 + v_rbx_8->field_0x18) % v_rbx_8->field_0x10;
+                  if ((((rdx + idx_17 * 2) << 4) + v_rbx_8->field_0x8)->field_0x20 < f_70->field_0x28) {
+                    call_0x526bbe0(((rdx + idx_17 * 2) << 4) + v_rbx_8->field_0x8, f_70->field_0x28);
+                  }
+                  call_0x1969040(((rdx + idx_17 * 2) << 4) + v_rbx_8->field_0x8, &f_70->field_0x8, 256);
+                  v_r15_10 = v_r15_9;
+                } else {
+                  if (v_rbx_8->field_0x20 >= MaxISRHistoryBuffer) {
+                    v_rbx_8->field_0x18 = &v_rbx_8->field_0x18->field_0x1 % v_rbx_8->field_0x10;
+                    int64_t idx_15 = (v_rbx_8->field_0x18 % v_rbx_8->field_0x10 + v_rbx_8->field_0x18 % v_rbx_8->field_0x10 * 2) * 2;
+                    v_rbx_8->field_0x20 = &v_rbx_8->field_0x20->field_m0x1;
+                    int64_t idx_16 = &v_rbx_8->field_0x18->field_0x1 % v_rbx_8->field_0x10 % v_rbx_8->field_0x10;
+                    if ((((rdx + idx_16 * 2) << 4) + v_rbx_8->field_0x8)->field_0x20 < v_rbx_8->field_0x8->field_0x20[idx_15 * 8]) {
+                    call_0x526bbe0(((rdx + idx_16 * 2) << 4) + v_rbx_8->field_0x8, v_rbx_8->field_0x8->field_0x20[idx_15 * 8]);
+                    }
+                    auto local_0xd0 = v_rbx_8->field_0x8->field_0x0[idx_15 * 8];
+                    auto local_0xd4 = v_rbx_8->field_0x8->field_0x0[idx_15 * 8];
+                    auto local_0xd8 = v_rbx_8->field_0x8->field_0x0[idx_15 * 8];
+                    auto local_0xdc = v_rbx_8->field_0x8->field_0x0[idx_15 * 8];
+                    auto local_0xe0 = v_rbx_8->field_0x8->field_0x10[idx_15 * 8];
+                    auto local_0xe4 = v_rbx_8->field_0x8->field_0x10[idx_15 * 8];
+                    call_0x1969040(((rdx + idx_16 * 2) << 4) + v_rbx_8->field_0x8, &local_0xd0, 256);
+                  }
+                  call_0x39ada10(&v_rbx_8->field_0x8, &local_0xa0);
+                  v_r15_10 = v_r15_9;
+                }
+              }
+            } else {
+              void* v_rbx_3;
+              int32_t v_r15_4 = i_r15d;
+              void* v_rbx_8;
+              int32_t v_r15_9;
+              if (this->field_0x50 == 0) {
+                v_rbx_3 = i_r15d;
+                void* v_rbx_7 = v_rbx_3;
+                if ((this->field_0x48 + 1) * 4 >= this->field_0x50 + this->field_0x50 * 2) {
+                  call_0x39ae4c0(&this->field_0x40, this->field_0x50 * 2);
+                  if (this->field_0x50 == 0) {
+                    v_rbx_7 = v_r15_4;
+                  } else {
+                    int64_t idx_10 = (this->field_0x50 - 1 & i_r9d->field_0x0 * 37) + (this->field_0x50 - 1 & i_r9d->field_0x0 * 37) * 4;
+                    if (i_r9d->field_0x0 != (this->field_0x40 + idx_10 * 8)->field_0x0) {
                     goto L_0x39ad651;
                     } else {
-                    v_rbx_12 = this->field_0x40 + (r8 + r8 * 4) * 8;
+                    v_rbx_7 = this->field_0x40 + idx_10 * 8;
                     }
-                  } else if (this->field_0x50 - this->field_0x4c - (this->field_0x48 + 1) <= this->field_0x50 >> 3) {
-                    call_0x39ae4c0(&this->field_0x40, this->field_0x50);
-                    if (this->field_0x50 == 0) {
-                    v_rbx_12 = v_r15_7;
-                    } else {
-                    if (f_70->field_0x0 != (this->field_0x40 + (r8 + r8 * 4) * 8)->field_0x0) {
+                  }
+                } else if (this->field_0x50 - this->field_0x4c - (this->field_0x48 + 1) <= this->field_0x50 >> 3) {
+                  call_0x39ae4c0(&this->field_0x40, this->field_0x50);
+                  if (this->field_0x50 == 0) {
+                    v_rbx_7 = v_r15_4;
+                  } else {
+                    int64_t idx_7 = (this->field_0x50 - 1 & i_r9d->field_0x0 * 37) + (this->field_0x50 - 1 & i_r9d->field_0x0 * 37) * 4;
+                    if (i_r9d->field_0x0 != (this->field_0x40 + idx_7 * 8)->field_0x0) {
                     goto L_0x39ad6e0;
                     } else {
-                    v_rbx_12 = this->field_0x40 + (r8 + r8 * 4) * 8;
-                    }
+                    v_rbx_7 = this->field_0x40 + idx_7 * 8;
                     }
                   }
-                  this->field_0x48 = this->field_0x48 + 1;
-                  if (v_rbx_12->field_0x0 != -1) {
-                    this->field_0x4c = this->field_0x4c - 1;
-                  }
-                  v_rbx_12->field_0x0 = f_70->field_0x0;
-                  call_0x4956040(384);
-                  goto L_0x39ad73c;
+                }
+                this->field_0x48++;
+                if (v_rbx_7->field_0x0 != -1) {
+                  this->field_0x4c--;
+                }
+                v_rbx_7->field_0x0 = i_r9d->field_0x0;
+                call_0x4956040(384);
+                goto L_0x39ad73c;
+              } else {
+                int64_t idx_3 = (this->field_0x50 - 1 & i_r9d->field_0x0 * 37) + (this->field_0x50 - 1 & i_r9d->field_0x0 * 37) * 4;
+                void* i_ebx = this->field_0x40 + idx_3 * 8;
+                void* v_rbx_2 = this->field_0x40 + idx_3 * 8;
+                if (i_r9d->field_0x0 != (this->field_0x40 + idx_3 * 8)->field_0x0) {
+                  goto L_0x39ad532;
                 } else {
-                  v_rbx_14 = v_rbx_4;
-                  v_r15_15 = 0;
+                  goto L_0x39ad565;
                 }
               }
-              if (v_rbx_14->field_0x20 == 0) {
-                if (MaxISRHistoryBuffer > v_rbx_14->field_0x10) {
-                  call_0x39add40(&v_rbx_14->field_0x8, MaxISRHistoryBuffer, this->field_0x50 - 1 & f_70->field_0x0 * 37, v_rbx_14->field_0x20);
+              if (v_rbx_8->field_0x20 == 0) {
+                if (MaxISRHistoryBuffer > v_rbx_8->field_0x10) {
+                  call_0x39add40(&v_rbx_8->field_0x8, MaxISRHistoryBuffer, this->field_0x50 - 1 & i_r9d->field_0x0 * 37, v_rbx_8->field_0x20);
                 }
-                if (v_rbx_14->field_0x20 + 1 > v_rbx_14->field_0x10) {
-                  do { // L_0x39ad5d0
-                  } while (i_edx > 2 ? (i_edx + i_edx * 2) >> 1 : 4 < (v_rbx_14->field_0x20 + 1)); // loop -> L_0x39ad5d0
-                  call_0x39add40(&v_rbx_14->field_0x8, i_edx > 2 ? (i_edx + i_edx * 2) >> 1 : 4);
+                if (v_rbx_8->field_0x20 + 1 > v_rbx_8->field_0x10) {
+                  goto L_0x39ad5d0;
                 }
-                (((rdx + rdx * 2) << 4) + v_rbx_14->field_0x8)->field_0x0 = f_70->field_0x8;
-                (((rdx + rdx * 2) << 4) + v_rbx_14->field_0x8)->field_0x10 = f_70->field_0x18;
-                (((rdx + rdx * 2) << 4) + v_rbx_14->field_0x8)->field_0x20 = f_70->field_0x28;
-                v_rbx_14->field_0x20 = v_rbx_14->field_0x20 + 1;
-                v_r15_17 = v_r15_15;
-              } else if (v_rbx_14->field_0x8->field_0x28[rcx * 8] == this->field_0x0) {
-                if ((((rdx + rdx * 2) << 4) + v_rbx_14->field_0x8)->field_0x20 < f_70->field_0x28) {
-                  call_0x526bbe0(((rdx + rdx * 2) << 4) + v_rbx_14->field_0x8, f_70->field_0x28);
-                }
-                call_0x1969040(((rdx + rdx * 2) << 4) + v_rbx_14->field_0x8, &f_70->field_0x8, 256);
-                v_r15_17 = v_r15_15;
+                goto L_0x39ad76b;
               } else {
-                if (v_rbx_14->field_0x20 >= MaxISRHistoryBuffer) {
-                  v_rbx_14->field_0x18 = &v_rbx_14->field_0x18->field_0x1 % v_rbx_14->field_0x10;
-                  v_rbx_14->field_0x20 = &v_rbx_14->field_0x20->field_m0x1;
-                  if ((((rdx + rdx * 2) << 4) + v_rbx_14->field_0x8)->field_0x20 < v_rbx_14->field_0x8->field_0x20[r8 * 8]) {
-                    call_0x526bbe0(((rdx + rdx * 2) << 4) + v_rbx_14->field_0x8, v_rbx_14->field_0x8->field_0x20[r8 * 8]);
+                int64_t idx_14 = (&v_rbx_8->field_0x20->field_m0x1 + v_rbx_8->field_0x18) % v_rbx_8->field_0x10;
+                if (v_rbx_8->field_0x8->field_0x28[((rdx + idx_14 * 2) * 2) * 8] == this->field_0x0) {
+                  int64_t idx_17 = (&v_rbx_8->field_0x20->field_m0x1 + v_rbx_8->field_0x18) % v_rbx_8->field_0x10;
+                  if ((((rdx + idx_17 * 2) << 4) + v_rbx_8->field_0x8)->field_0x20 < f_70->field_0x28) {
+                    call_0x526bbe0(((rdx + idx_17 * 2) << 4) + v_rbx_8->field_0x8, f_70->field_0x28);
                   }
-                  auto local_0xd0 = v_rbx_14->field_0x8->field_0x0[r8 * 8];
-                  auto local_0xd4 = v_rbx_14->field_0x8->field_0x0[r8 * 8];
-                  auto local_0xd8 = v_rbx_14->field_0x8->field_0x0[r8 * 8];
-                  auto local_0xdc = v_rbx_14->field_0x8->field_0x0[r8 * 8];
-                  auto local_0xe0 = v_rbx_14->field_0x8->field_0x10[r8 * 8];
-                  auto local_0xe4 = v_rbx_14->field_0x8->field_0x10[r8 * 8];
-                  call_0x1969040(((rdx + rdx * 2) << 4) + v_rbx_14->field_0x8, &local_0xd0, 256);
+                  call_0x1969040(((rdx + idx_17 * 2) << 4) + v_rbx_8->field_0x8, &f_70->field_0x8, 256);
+                  v_r15_10 = v_r15_9;
+                } else {
+                  if (v_rbx_8->field_0x20 >= MaxISRHistoryBuffer) {
+                    goto L_0x39ad813;
+                  }
+                  call_0x39ada10(&v_rbx_8->field_0x8, &local_0xa0);
+                  v_r15_10 = v_r15_9;
                 }
-                call_0x39ada10(&v_rbx_14->field_0x8, &local_0xa0);
-                v_r15_17 = v_r15_15;
               }
             }
-            v_rax_18 = this->field_0x78;
-            v_r15_21 = v_r15_17;
+            v_rax_11 = this->field_0x78;
+            v_r15_12 = v_r15_10;
           }
-        } while (&f_70->field_0x30 != v_rax_18); // loop -> L_0x39ad490
-        v_r15_22 = v_r15_21;
+          i_eax = v_rax_11;
+          i_r9d = &f_70->field_0x30;
+          i_r15d = v_r15_12;
+        } while (&f_70->field_0x30 != v_rax_11); // loop -> L_0x39ad490
+        v_r15_13 = v_r15_12;
       }
       this->field_0x78 = f_70;
       this->field_0x0 = 2147483647;
       if (this->field_0x38 > MaxISRSentBuffer) {
+        int32_t i_edi = 0;
         do { // L_0x39ad910
+          int32_t v_rdi_15 = i_edi;
           if (InstanceStateReplicatorRecycleDirtyState) {
             call_0x39ac850(this);
           } else {
             this->field_0x30 = &this->field_0x30->field_0x1 % this->field_0x28;
-            void* prev_0x0_6 = (((this->field_0x30 % this->field_0x28) << 5) + this->field_0x20)->field_0x0;
-            (((this->field_0x30 % this->field_0x28) << 5) + this->field_0x20)->field_0x0 = v_r15_22;
-            (((this->field_0x30 % this->field_0x28) << 5) + this->field_0x20)->field_0x8 = v_r15_22;
-            (((this->field_0x30 % this->field_0x28) << 5) + this->field_0x20)->field_0xc = v_r15_22;
-            (((this->field_0x30 % this->field_0x28) << 5) + this->field_0x20)->field_0x10 = v_r15_22;
+            void* prev_0x0_10 = (((this->field_0x30 % this->field_0x28) << 5) + this->field_0x20)->field_0x0;
+            (((this->field_0x30 % this->field_0x28) << 5) + this->field_0x20)->field_0x0 = v_r15_13;
+            (((this->field_0x30 % this->field_0x28) << 5) + this->field_0x20)->field_0x8 = v_r15_13;
+            (((this->field_0x30 % this->field_0x28) << 5) + this->field_0x20)->field_0xc = v_r15_13;
+            (((this->field_0x30 % this->field_0x28) << 5) + this->field_0x20)->field_0x10 = v_r15_13;
             call_0x4955ac0(0);
-            this->field_0x38 = this->field_0x38 - 1;
-            call_0x4955ac0(prev_0x0_6);
+            this->field_0x38--;
+            call_0x4955ac0(prev_0x0_10);
+            v_rdi_15 = (i_edi | 0x1) & 0xfffffffe;
           }
+          i_edi = v_rdi_15;
         } while (this->field_0x38 > MaxISRSentBuffer); // loop -> L_0x39ad910
       }
     }
@@ -2308,80 +2447,89 @@ Operação  : 0x39d0a9a: cmp [flag], reg ; fn=0x39d0740..0x39d0ee6
     
     // Flag defaults: ISRTrackStepsSkippedNoTimestampProgression = false, ISRPacketAckMetrics = false
     void RBX::ISRTrackSteps::func_0x39d04b0(RBX::ISRTrackSteps* this, int64_t param_2) {
-      int32_t v_rsi_5;
+      int32_t v_rsi_4;
       int32_t i_esi;
-      auto* f_ba8 = this->field_0xba8;
+      void* i_edi;
       if (ISRPacketAckMetrics) {
         auto vret_2 = this->field_0x830->vfunc_0x88() // -> RBX::Instance::StateMachineTransitionDefinition::fn_0x1c49aa0;
-        int32_t v_rsi_3 = 2147483647;
+        int32_t v_rsi_2 = 2147483647;
         auto* f_b50 = this->field_0xb50;
-        if (f_ba8 != this->field_0xbb0) {
+        if (this->field_0xba8 != this->field_0xbb0) {
           int64_t ret_0x39ac920_3;
           do { // L_0x39d0521
-            ret_0x39ac920_3 = call_0x39ac920(&this->field_0xac8, f_ba8->field_0x0);
+            ret_0x39ac920_3 = call_0x39ac920(&this->field_0xac8, i_edi->field_0x0);
             if ((vret_2 == 0) != 0) {
-              call_0x39ac7a0(&f_b50, &local_0x70, f_ba8->field_0x0, param_4);
+              call_0x39ac7a0(&f_b50, &local_0x70, i_edi->field_0x0, param_4);
               if (local_0x74 != 0) {
-                this->field_0x558 = this->field_0x558 + 1;
+                this->field_0x558++;
                 if (ret_0x39ac920_3 == 2147483647) {
-                  this->field_0x568 = this->field_0x568 + 1;
+                  this->field_0x568++;
                 }
-                call_0x202b2b0(&this->field_0x510, param_2 - local_0x70);
+                call_0x202b2b0(&this->field_0x510, (double)(param_2 - local_0x70));
               }
             }
-          } while (&f_ba8->field_0x4 != this->field_0xbb0); // loop -> L_0x39d0521
-          v_rsi_3 = i_esi != 2147483647 ? i_esi : ret_0x39ac920_3;
+            i_edi += 4;
+            i_esi = i_esi != 2147483647 ? i_esi : ret_0x39ac920_3;
+          } while (i_edi != this->field_0xbb0); // loop -> L_0x39d0521
+          v_rsi_2 = i_esi != 2147483647 ? i_esi : ret_0x39ac920_3;
         }
-        this->field_0xbb0 = f_ba8;
-        auto* f_bc0 = this->field_0xbc0;
-        if ((vret_2 == 0) != 0 && f_bc0 != this->field_0xbc8) {
+        this->field_0xbb0 = this->field_0xba8;
+        if ((vret_2 == 0) != 0 && this->field_0xbc0 != this->field_0xbc8) {
           do { // L_0x39d05e0
-            call_0x39acdb0(&this->field_0xac8, f_bc0->field_0x0);
-            if (this->field_0xb60 != 0 && f_bc0->field_0x0 != f_b50->field_0x0[rcx * 8]) {
-              int32_t i_eax = f_b50->field_0x0[rcx * 8];
-              do { // L_0x39d0620
-                if (i_eax == -1) break;
-                if ((f_b50 + rcx * 8) == (f_b50 + this->field_0xb60 * 8)) break;
-                (f_b50 + rcx * 8)->field_0x0 = -2;
-                this->field_0xb58 = this->field_0xb58 - 1;
-                this->field_0xb5c = this->field_0xb5c + 1;
-                this->field_0x560 = this->field_0x560 + 1;
-                break;
-              } while (f_bc0->field_0x0 != f_b50->field_0x0[rcx * 8]); // loop -> L_0x39d0620
-            } else if (f_b50 + rcx * 8 != f_b50 + this->field_0xb60 * 8) {
-              goto L_0x39d0645;
+            call_0x39acdb0(&this->field_0xac8, i_edi->field_0x0);
+            if (this->field_0xb60 != 0) {
+              void* v_rdx_3 = f_b50 + (i_edi->field_0x0 * 37 & this->field_0xb60 - 1) * 8;
+              if (i_edi->field_0x0 != f_b50->field_0x0[(i_edi->field_0x0 * 37 & this->field_0xb60 - 1) * 8]) {
+                int32_t i_r8d = 1;
+                int32_t i_eax = f_b50->field_0x0[(i_edi->field_0x0 * 37 & this->field_0xb60 - 1) * 8];
+                int32_t i_ecx = i_edi->field_0x0 * 37 & this->field_0xb60 - 1;
+                int32_t prev_i_r8d_2;
+                do { // L_0x39d0620
+                  if (i_eax == -1) break;
+                  prev_i_r8d_2 = i_r8d;
+                  i_r8d++;
+                  i_eax = f_b50->field_0x0[(i_ecx + prev_i_r8d_2 & this->field_0xb60 - 1) * 8];
+                  i_ecx = i_ecx + prev_i_r8d_2 & this->field_0xb60 - 1;
+                } while (i_edi->field_0x0 != f_b50->field_0x0[(i_ecx + prev_i_r8d_2 & this->field_0xb60 - 1) * 8]); // loop -> L_0x39d0620
+                if (v_rdx_3 != f_b50 + this->field_0xb60 * 8) {
+                  v_rdx_3->field_0x0 = -2;
+                  this->field_0xb58--;
+                  this->field_0xb5c++;
+                  this->field_0x560++;
+                }
+              } else if (v_rdx_3 != f_b50 + this->field_0xb60 * 8) {
+                goto L_0x39d0645;
+              }
             }
-          } while (&f_bc0->field_0x4 != this->field_0xbc8); // loop -> L_0x39d05e0
+            i_edi += 4;
+          } while (i_edi != this->field_0xbc8); // loop -> L_0x39d05e0
         }
-        this->field_0xbc8 = f_bc0;
-        v_rsi_5 = v_rsi_3;
+        this->field_0xbc8 = this->field_0xbc0;
+        v_rsi_4 = v_rsi_2;
       } else {
         int32_t v_rsi_1 = 2147483647;
-        if (f_ba8 != this->field_0xbb0) {
+        if (this->field_0xba8 != this->field_0xbb0) {
           i_esi = 2147483647;
+          i_edi = this->field_0xba8;
           do { // L_0x39d06a0
-            auto ret_0x39ac920_1 = call_0x39ac920(&this->field_0xac8, f_ba8->field_0x0);
-            v_rsi_1 = i_esi != 2147483647 ? i_esi : ret_0x39ac920_1;
-          } while (&f_ba8->field_0x4 != this->field_0xbb0); // loop -> L_0x39d06a0
+            auto ret_0x39ac920_1 = call_0x39ac920(&this->field_0xac8, i_edi->field_0x0);
+            i_edi += 4;
+            i_esi = i_esi != 2147483647 ? i_esi : ret_0x39ac920_1;
+          } while (i_edi != this->field_0xbb0); // loop -> L_0x39d06a0
         }
-        this->field_0xbb0 = f_ba8;
-        v_rsi_5 = v_rsi_1;
+        this->field_0xbb0 = this->field_0xba8;
+        v_rsi_4 = v_rsi_1;
       }
-      if (v_rsi_5 != 2147483647) {
-        if (this->field_0xab0 != 0x7fffffff) {
-          if (this->field_0xab0 < v_rsi_5) {
-            this->field_0xa98 = 1;
-            this->field_0xab0 = v_rsi_5;
-          }
-        } else {
+      if (v_rsi_4 != 2147483647) {
+        if (this->field_0xab0 == 0x7fffffff || this->field_0xab0 < v_rsi_4) {
           this->field_0xa98 = 1;
-          this->field_0xab0 = v_rsi_5;
+          this->field_0xab0 = v_rsi_4;
         }
-        void* v_rcx_6 = &this->field_0x4c8;
+        void* v_rcx_5 = &this->field_0x4c8;
         if (!ISRPacketAckMetrics) {
-          v_rcx_6 = &this->field_0x9c0;
+          v_rcx_5 = &this->field_0x9c0;
         }
-        call_0x202b2b0(v_rcx_6, param_2 - v_rsi_5);
+        call_0x202b2b0(v_rcx_5, (double)(param_2 - v_rsi_4));
       }
     }
   
@@ -2569,8 +2717,8 @@ Operação  : 0x39d0a9a: cmp [flag], reg ; fn=0x39d0740..0x39d0ee6
     
     // Flag defaults: ISRTrackStepsSkippedNoTimestampProgression = false, ReportIsrMetricsAggregateEveryNSeconds = 300, ISRPacketAckMetrics = false, IsrMetricsAggregateEventThrottleHP = 10
     void RBX::ISRTrackSteps::func_0x39d4f40(RBX::ISRTrackSteps* this) {
-      call_0x495a220(&local_0x70);
-      if (ReportIsrMetricsAggregateEveryNSeconds <= rax->field_0x0 - this->field_0x8) {
+      auto ret_0x495a220_1 = call_0x495a220(&local_0x70);
+      if ((double)ReportIsrMetricsAggregateEveryNSeconds <= ret_0x495a220_1->field_0x0 - this->field_0x8) {
         call_0x495a220(&local_0x70);
         this->field_0x8 = local_0x70;
         auto local_0x20 = rdi;
@@ -2578,8 +2726,7 @@ Operação  : 0x39d0a9a: cmp [flag], reg ; fn=0x39d0740..0x39d0ee6
         call_0x39d4910(&sym_0x8186c40, &local_0x20);
         call_0x39d4910(&sym_0x8186c88, &local_0x20);
         call_0x39d4910(&sym_0x8186ca0, &local_0x20);
-        auto expr_1 = ISRTrackStepsSkippedNoTimestampProgression;
-        if expr_1 {
+        if (ISRTrackStepsSkippedNoTimestampProgression) {
           call_0x39d4910(&sym_0x8186cb8, &local_0x20);
         }
         call_0x39d4910(&sym_0x8186c70, &local_0x20);
@@ -2594,63 +2741,39 @@ Operação  : 0x39d0a9a: cmp [flag], reg ; fn=0x39d0740..0x39d0ee6
         }
         call_0x39d4910(&sym_0x8186c28, &local_0x20);
         call_0x39d4910(&sym_0x8186c58, &local_0x20);
-        uint8_t v_sil_39;
+        uint8_t v_sil_38;
         if (ISRPacketAckMetrics && f_10->field_0x558 + f_10->field_0x550 != 0) {
-          v_sil_39 = 1;
+          v_sil_38 = 1;
         } else {
-          v_sil_39 = 0;
+          v_sil_38 = 0;
         }
         call_0x39d4910(&sym_0x8186d60, &local_0x20);
-        if (v_sil_39 != 0) {
+        if (v_sil_38 != 0) {
           call_0x39d4910(&sym_0x8186d78, &local_0x20);
           call_0x6e45a0(&local_0x7f0, &sym_0x8186d90);
           auto local_0x100 = 0;
           call_0x2dc0a10(&local_0xad0, &local_0x100);
           if (local_0x118 >= 16) {
-            void* v_rcx_53 = local_0x100;
+            void* v_rcx_52 = local_0x100;
             if (local_0x118 + 1 >= 0x1000) {
               if (local_0x100 - local_0x100->field_m0x8 < 8 || local_0x100 - local_0x100->field_m0x8 > 39) {
                 call_0x5e14580();
               }
             }
-            call_0x4955ac0(v_rcx_53);
+            call_0x4955ac0(v_rcx_52);
           }
-          double fxmm1_54;
-          if (f_10->field_0x558 >= 0) {
-            fxmm1_54 = (double)f_10->field_0x558;
-          } else {
-            double ftmp_1 = (double)(f_10->field_0x558 >> 1 | f_10->field_0x558 & 0x1);
-            fxmm1_54 = ftmp_1 * 2;
-          }
-          double fxmm0_55;
-          if (f_10->field_0x558 + f_10->field_0x550 >= 0) {
-            fxmm0_55 = (double)(f_10->field_0x558 + f_10->field_0x550);
-          } else {
-            double ftmp_2 = (double)(f_10->field_0x558 + f_10->field_0x550) >> 1 | f_10->field_0x558 + f_10->field_0x550 & 0x1;
-            fxmm0_55 = ftmp_2 * 2;
-          }
-          call_0x2db1560(&local_0xb10, fxmm1_54 * 100.0 / fxmm0_55);
+          double fxmm1_53 = (double)(uint64_t)f_10->field_0x558;
+          double fxmm0_54 = (double)(uint64_t)(f_10->field_0x558 + f_10->field_0x550);
+          call_0x2db1560(&local_0xb10, fxmm1_53 * 100.0 / fxmm0_54);
           call_0x2db1900(&local_0xaf0);
           if (f_10->field_0x550 > 0) {
             call_0x6e45a0(&local_0x4c0, &sym_0x8186da8);
             local_0x100 = 0;
             call_0x2dc0a10(&local_0x7a0, &local_0x100);
-            std::string::_Tidy_deallocate(v_rcx_56);
-            double fxmm1_57;
-            if (f_10->field_0x560 >= 0) {
-              fxmm1_57 = (double)f_10->field_0x560;
-            } else {
-              double ftmp_3 = (double)(f_10->field_0x560 >> 1 | f_10->field_0x560 & 0x1);
-              fxmm1_57 = ftmp_3 * 2;
-            }
-            double fxmm0_58;
-            if (f_10->field_0x550 >= 0) {
-              fxmm0_58 = (double)f_10->field_0x550;
-            } else {
-              double ftmp_4 = (double)(f_10->field_0x550 >> 1 | f_10->field_0x550 & 0x1);
-              fxmm0_58 = ftmp_4 * 2;
-            }
-            call_0x2db1560(&local_0x7e0, fxmm1_57 * 100.0 / fxmm0_58);
+            std::string::_Tidy_deallocate(local_0x100);
+            double fxmm1_56 = (double)(uint64_t)f_10->field_0x560;
+            double fxmm0_57 = (double)(uint64_t)f_10->field_0x550;
+            call_0x2db1560(&local_0x7e0, fxmm1_56 * 100.0 / fxmm0_57);
             call_0x2db1900(&local_0x7c0);
             if (local_0x7a8 != 0) {
               call_0x6f7bf0(&local_0x7a0, local_0x7a8);
@@ -2664,13 +2787,13 @@ Operação  : 0x39d0a9a: cmp [flag], reg ; fn=0x39d0740..0x39d0ee6
           call_0x6e41c0(&local_0xad0);
           call_0x6f8fb0(&local_0x818);
         }
-        int32_t v_r8_77 = global_0x81a88d4;
+        int32_t v_r8_75 = global_0x81a88d4;
         if (global_0x81a88d4 == -1) {
           auto ret_0x4975550_35 = call_0x4975550();
           global_0x81a88d4 = ret_0x4975550_35 - (rdx >> 13) * 10000;
-          v_r8_77 = ret_0x4975550_35 - (rdx >> 13) * 10000;
+          v_r8_75 = ret_0x4975550_35 - (rdx >> 13) * 10000;
         }
-        if (v_r8_77 < IsrMetricsAggregateEventThrottleHP) {
+        if (v_r8_75 < IsrMetricsAggregateEventThrottleHP) {
           call_0x6fb060(&local_0x160, &sym_0x8186dc0, 1);
           call_0x39d4a20(&local_0x160, "PacketsSentPerFrame", &local_0x20);
           call_0x39d4a20(&local_0x160, "PacketsSentPerSecond", &local_0x20);
@@ -2681,7 +2804,7 @@ Operação  : 0x39d0a9a: cmp [flag], reg ; fn=0x39d0740..0x39d0ee6
           call_0x39d4a20(&local_0x160, "GroupsSentPerSecond", &local_0x20);
           call_0x39d4a20(&local_0x160, "ObjectsPerGroup", &local_0x20);
           call_0x39d4a20(&local_0x160, "AvgTimeBetweenSend", &local_0x20);
-          if expr_1 {
+          if (ISRTrackStepsSkippedNoTimestampProgression) {
             call_0x39d4a20(&local_0x160, "StepsSkippedNoTimestampProgression", &local_0x20);
           }
           call_0x39d4a20(&local_0x160, "AvgTimePerPacketMs", &local_0x20);
@@ -2689,59 +2812,32 @@ Operação  : 0x39d0a9a: cmp [flag], reg ; fn=0x39d0740..0x39d0ee6
           call_0x39d4a20(&local_0x160, "AvgTimePerObjectMs", &local_0x20);
           call_0x39d4a20(&local_0x160, "AvgTimePerGroupMs", &local_0x20);
           call_0x39d4a20(&local_0x160, "WorldStepsUntilAck", &local_0x20);
-          if (v_sil_39 != 0) {
+          if (v_sil_38 != 0) {
             call_0x39d4a20(&local_0x160, "PacketAckLatencyWorldSteps", &local_0x20);
             call_0x2dbd340(&local_0x440, &local_0xd0, f_10->field_0x550, 1);
             call_0x2dbd340(&local_0x440, &local_0xd0, f_10->field_0x558, 1);
             call_0x2dbd340(&local_0x440, &local_0xd0, f_10->field_0x560, 1);
             if (f_10->field_0x550 != 0) {
-              double fxmm2_109;
-              if (f_10->field_0x560 >= 0) {
-                fxmm2_109 = (double)f_10->field_0x560;
-              } else {
-                double ftmp_5 = (double)(f_10->field_0x560 >> 1 | f_10->field_0x560 & 0x1);
-                fxmm2_109 = ftmp_5 * 2;
-              }
-              double fxmm0_110;
-              if (f_10->field_0x550 >= 0) {
-                fxmm0_110 = (double)f_10->field_0x550;
-              } else {
-                double ftmp_6 = (double)(f_10->field_0x550 >> 1 | f_10->field_0x550 & 0x1);
-                fxmm0_110 = ftmp_6 * 2;
-              }
-              call_0x2dbd800(&local_0x440, &local_0xd0, fxmm2_109 * 100.0 / fxmm0_110, 1);
+              double fxmm2_106 = (double)(uint64_t)f_10->field_0x560;
+              double fxmm0_107 = (double)(uint64_t)f_10->field_0x550;
+              call_0x2dbd800(&local_0x440, &local_0xd0, fxmm2_106 * 100.0 / fxmm0_107, 1);
             }
-            double fxmm2_113;
-            if (f_10->field_0x558 >= 0) {
-              fxmm2_113 = (double)f_10->field_0x558;
-            } else {
-              double ftmp_7 = (double)(f_10->field_0x558 >> 1 | f_10->field_0x558 & 0x1);
-              fxmm2_113 = ftmp_7 * 2;
-            }
-            double fxmm0_114;
-            if (f_10->field_0x558 + f_10->field_0x550 >= 0) {
-              fxmm0_114 = (double)(f_10->field_0x558 + f_10->field_0x550);
-            } else {
-              double ftmp_8 = (double)(f_10->field_0x558 + f_10->field_0x550) >> 1 | f_10->field_0x558 + f_10->field_0x550 & 0x1;
-              fxmm0_114 = ftmp_8 * 2;
-            }
-            call_0x2dbd800(&local_0x440, &local_0xd0, fxmm2_113 * 100.0 / fxmm0_114, 1);
+            double fxmm2_110 = (double)(uint64_t)f_10->field_0x558;
+            double fxmm0_111 = (double)(uint64_t)(f_10->field_0x558 + f_10->field_0x550);
+            call_0x2dbd800(&local_0x440, &local_0xd0, fxmm2_110 * 100.0 / fxmm0_111, 1);
           }
           if (f_10->field_0x0 != 0) {
+            int32_t i_esi = 0;
             do { // L_0x39d6180
               call_0x1d48fe0(&local_0x120, &local_0x150, &local_0xe0);
               call_0x39d4a20(&local_0x160, local_0x120.c_str(), &local_0x20);
-              std::string::_Tidy_deallocate(v_rcx_134);
+              std::string::_Tidy_deallocate(local_0x120);
               call_0x1d48fe0(&local_0x120, &local_0x140, &local_0xe0);
               call_0x39d4a20(&local_0x160, local_0x120.c_str(), &local_0x80);
-              if (local_0x138 >= 16) {
-                void* v_rcx_167 = local_0x120;
-                if (local_0x138 + 1 >= 0x1000) {
-                  if ((local_0x120 - local_0x120->field_m0x8) < 8 || (local_0x120 - local_0x120->field_m0x8) > 39) break;
-                }
-                call_0x4955ac0(v_rcx_167);
-              }
-            } while ((esi + 1) < 3); // loop -> L_0x39d6180
+              std::string::_Tidy_deallocate(local_0x120);
+              i_esi++;
+              i_ebx += 0xd0;
+            } while (i_esi < 3); // loop -> L_0x39d6180
           }
           call_0x39d4a20(&local_0x160, "PacketsReceivedPerSecond", &local_0x80);
           call_0x39d4a20(&local_0x160, "BytesReceivedPerSecond", &local_0x80);

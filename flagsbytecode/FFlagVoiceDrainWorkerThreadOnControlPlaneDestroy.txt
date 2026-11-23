@@ -44,11 +44,7 @@ Operação  : 0x4be71d9: cmp byte [flag], imm8 ; fn=0x4be7180..0x4be7320
       }
       auto* f_98 = this->field_0x98;
       call_0x4968fd0(&f_98);
-      if (f_70->field_0x0 == 3) {
-        if (atomic_cas(&f_70->field_0x0, f_70->field_0x0, 1) != 0) {
-          call_0xdac0(f_70);
-        }
-      } else {
+      if (f_70->field_0x0 != 3 || atomic_cas(&f_70->field_0x0, f_70->field_0x0, 1) != 0) {
         call_0xdac0(f_70);
       }
       if (VoiceDrainWorkerThreadOnControlPlaneDestroy && this->field_0x30 != 0) {
@@ -375,22 +371,23 @@ Operação  : 0x4be71d9: cmp byte [flag], imm8 ; fn=0x4be7180..0x4be7320
     };
     
     // Flag defaults: VoiceDrainWorkerThreadOnControlPlaneDestroy = false
-    void RBX::VoiceDrain::func_0x4bed350(RBX::VoiceDrain* this, int64_t param_2) {
+    void RBX::VoiceDrain::func_0x4bed350(RBX::VoiceDrain* this) {
       if (this->field_0x0 != 0) {
+        void* i_ebx = this->field_0x0;
         if (this->field_0x0 != this->field_0x8) {
           do { // L_0x4bed377
-            if (this->field_0x0->field_0x18 != 0 && atomic_fetch_sub(&this->field_0x0->field_0x18->field_0xc, 1) == 1) {
-              this->field_0x0->field_0x18->vfunc_0x8() // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66540;
-            } else {
-              atomic_fetch_sub(&this->field_0x0->field_0x18->field_0xc, 1);
+            if (i_ebx->field_0x18 != 0 && atomic_fetch_sub(&i_ebx->field_0x18->field_0xc, 1) == 1) {
+              i_ebx->field_0x18->vfunc_0x8() // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66540;
             }
-          } while (&this->field_0x0->field_0x28 != this->field_0x8); // loop -> L_0x4bed377
+            i_ebx += 0x28;
+          } while (i_ebx != this->field_0x8); // loop -> L_0x4bed377
         }
-        void* v_r8_2 = this->field_0x0;
-        if ((rdx + rdx * 4) << 3 >= 0x1000) {
-          v_r8_2 = this->field_0x0->field_m0x8;
+        int64_t idx_1 = ((this->field_0x10 - this->field_0x0) / 40 >> 4) + (((this->field_0x10 - this->field_0x0) / 40 >> 4) >> 63);
+        void* v_r8_1 = this->field_0x0;
+        if ((rdx + idx_1 * 4) << 3 >= 0x1000) {
+          v_r8_1 = this->field_0x0->field_m0x8;
         }
-        call_0x4955ac0(v_r8_2);
+        call_0x4955ac0(v_r8_1);
         this->field_0x0 = 0;
         this->field_0x8 = 0;
         this->field_0x10 = 0;

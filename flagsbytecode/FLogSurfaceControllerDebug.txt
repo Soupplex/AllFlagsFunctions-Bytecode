@@ -48,11 +48,9 @@ Operação  : 0x13b0098: mov/math reg, [flag] ; fn=0x13afdf0..0x13b017d
       if (f_40 != 0 && f_40->field_0x8 != 0) {
         do { // L_0x13afe40
           atomic_try_incref(&f_40->field_0x8);
-          if (atomic_cas(&f_40->field_0x8, f_40->field_0x8, (f_40->field_0x8 + 1)) == 0) break;
-          stk_1 = 0.0;
-          break;
+          if (atomic_cas(&f_40->field_0x8, f_40->field_0x8, f_40->field_0x8 + 1) == 0) break;
         } while (f_40->field_0x8 != 0); // loop -> L_0x13afe40
-        stk_1 = this->field_0x38;
+        stk_1 = 0.0;
       } else {
         stk_1 = 0.0;
       }
@@ -63,7 +61,6 @@ Operação  : 0x13b0098: mov/math reg, [flag] ; fn=0x13afdf0..0x13b017d
       } else {
         if (SurfaceController >= 6 && SurfaceController >> 8 >= 3) {
           FLog::Log("[FLog::SurfaceController] SurfaceController[%s:%d]::run dataModel(%p)");
-          "[FLog::SurfaceController] SurfaceController[%s:%d]::run dataModel(%p)";
         }
         auto* f_50 = this->field_0x50;
         if (EnableRunRenderJobCheck && f_50 == 0) {
@@ -75,16 +72,14 @@ Operação  : 0x13b0098: mov/math reg, [flag] ; fn=0x13afdf0..0x13b017d
             f_50->vfunc_0x48(f_50) // -> RBX::Solver::ConstraintSingleAxisSpring::fn_0x14085d0;
           }
           call_0x2e13a20(&local_0xe0, &f_50->field_0x200, 0);
-          if ((local_0xe0 & 0x1) != 0 && (local_0xe0 & 0xfffffffe)->field_0x0 == 3) {
-            if (atomic_cas(&(local_0xe0 & 0xfffffffe)->field_0x0, (local_0xe0 & 0xfffffffe)->field_0x0, 1) != 0) {
+          if ((local_0xe0 & 0x1) != 0) {
+            if ((local_0xe0 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0xe0 & 0xfffffffe)->field_0x0, (local_0xe0 & 0xfffffffe)->field_0x0, 1) != 0) {
               call_0xdac0(local_0xe0 & 0xfffffffe);
             }
-          } else {
-            call_0xdac0(local_0xe0 & 0xfffffffe);
           }
           if (f_50->field_0x218 != 0) {
             if (f_50->field_0x220 != 0) {
-              f_50->field_0x220->field_0x8 = f_50->field_0x220->field_0x8 + 1;
+              f_50->field_0x220->field_0x8++;
             }
             auto local_0x90 = f_50->field_0x218;
             call_0x2937390(&local_0x90);
@@ -97,7 +92,7 @@ Operação  : 0x13b0098: mov/math reg, [flag] ; fn=0x13afdf0..0x13b017d
           }
           auto* f_58 = this->field_0x58;
           if (f_58 != 0) {
-            f_58->field_0x8 = f_58->field_0x8 + 1;
+            f_58->field_0x8++;
           }
           auto local_0x50 = f_50;
           call_0x2937390(&local_0x50);
@@ -163,7 +158,7 @@ Operação  : 0x13b0098: mov/math reg, [flag] ; fn=0x13afdf0..0x13b017d
     0x13afe96 | 48 8b 4c 24 50           | mov rcx, qword ptr [rsp + 0x50]
     0x13afe9b | 48 81 c1 06 41 22 ff     | add rcx, 0xff224106
     0x13afea2 | 48 89 4d 80              | mov qword ptr [rbp - 0x80], rcx
-    0x13afea6 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x13afea6 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x13afead | 0f 1f 00                 | nop
     L_0x13afeb0:
     0x13afeb0 | 48 ff c0                 | inc rax
@@ -371,35 +366,37 @@ Operação  : 0x13b0098: mov/math reg, [flag] ; fn=0x13afdf0..0x13b017d
       if (SurfaceController >= 6 && SurfaceController >> 8 >= 3) {
         FLog::Log("[FLog::SurfaceController] SurfaceController[{}:{}]::pause destroyView:{}.");
       }
-      if (this->field_0x20 != 4 && this->field_0x50 != 0) {
-        if (param_2 != 0) {
-          call_0x13b1ea0(this);
-          if (this->field_0x28 != 0) {
-            auto vret_5 = this->field_0x28->vfunc_0x178() // -> RBX::SingleSurfaceApp::fn_0x13b50a0;
-            auto ret_0x819f30_6 = call_0x819f30(&local_0x100, vret_5);
-            call_0x34bf780(&local_0x150, ret_0x819f30_6, param_3, 0);
-            this->field_0x28->vfunc_0x60(this->field_0x28, &local_0x90) // -> RBX::SurfaceController::fn_0x13b0c70;
-            this->field_0x28 = 0;
-            void* prev_0x30_1 = this->field_0x30;
-            this->field_0x30 = 0;
-            if (prev_0x30_1 != 0) {
-              call_0x6daf40(prev_0x30_1);
+      if (this->field_0x20 != 4) {
+        if (this->field_0x50 != 0) {
+          if (param_2 != 0) {
+            call_0x13b1ea0(this);
+            if (this->field_0x28 != 0) {
+              auto vret_5 = this->field_0x28->vfunc_0x178() // -> RBX::SingleSurfaceApp::fn_0x13b50a0;
+              auto ret_0x819f30_6 = call_0x819f30(&local_0x100, vret_5);
+              call_0x34bf780(&local_0x150, ret_0x819f30_6, param_3, 0);
+              this->field_0x28->vfunc_0x60(this->field_0x28, &local_0x90) // -> RBX::SurfaceController::fn_0x13b0c70;
+              this->field_0x28 = 0;
+              void* prev_0x30_1 = this->field_0x30;
+              this->field_0x30 = 0;
+              if (prev_0x30_1 != 0) {
+                call_0x6daf40(prev_0x30_1);
+              }
+              call_0x34bfbb0(&local_0x150);
             }
-            call_0x34bfbb0(&local_0x150);
-          }
-        } else {
-          call_0x13acad0(this->field_0x50);
-          if (SurfaceControllerDebug >= 6 && SurfaceControllerDebug >> 8 >= 3) {
-            FLog::Log("[FLog::SurfaceControllerDebug] pause ... remove render job from task scheduler.");
-          }
-          auto* f_58 = this->field_0x58;
-          if (f_58 != 0) {
-            f_58->field_0x8 = f_58->field_0x8 + 1;
-          }
-          auto local_0x60 = this->field_0x50;
-          call_0xc9a660(&local_0x60);
-          if (local_0x68 != 0) {
-            call_0x6daf40(local_0x68);
+          } else {
+            call_0x13acad0(this->field_0x50);
+            if (SurfaceControllerDebug >= 6 && SurfaceControllerDebug >> 8 >= 3) {
+              FLog::Log("[FLog::SurfaceControllerDebug] pause ... remove render job from task scheduler.");
+            }
+            auto* f_58 = this->field_0x58;
+            if (f_58 != 0) {
+              f_58->field_0x8++;
+            }
+            auto local_0x60 = this->field_0x50;
+            call_0xc9a660(&local_0x60);
+            if (local_0x68 != 0) {
+              call_0x6daf40(local_0x68);
+            }
           }
         }
         if (ResetGuiStatesOnDMPause) {
@@ -408,13 +405,10 @@ Operação  : 0x13b0098: mov/math reg, [flag] ; fn=0x13afdf0..0x13b017d
           auto* f_40 = this->field_0x40;
           if (f_40 != 0 && f_40->field_0x8 != 0) {
             do { // L_0x13b03d0
-              if (atomic_cas(&f_40->field_0x8, f_40->field_0x8, (f_40->field_0x8 + 1)) == 0) break;
-              v_rax_1 = 0.0;
-              v_rdi_2 = 0.0;
-              break;
+              if (atomic_cas(&f_40->field_0x8, f_40->field_0x8, f_40->field_0x8 + 1) == 0) break;
             } while (f_40->field_0x8 != 0); // loop -> L_0x13b03d0
-            v_rax_1 = this->field_0x38;
-            v_rdi_2 = f_40;
+            v_rax_1 = 0.0;
+            v_rdi_2 = 0.0;
           } else {
             v_rax_1 = 0.0;
             v_rdi_2 = 0.0;
@@ -460,7 +454,7 @@ Operação  : 0x13b0098: mov/math reg, [flag] ; fn=0x13afdf0..0x13b017d
     0x13b01dd | 48 8b 4c 24 40           | mov rcx, qword ptr [rsp + 0x40]
     0x13b01e2 | 48 81 c1 8f 63 1d ff     | add rcx, 0xff1d638f
     0x13b01e9 | 48 89 4d 80              | mov qword ptr [rbp - 0x80], rcx
-    0x13b01ed | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x13b01ed | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     L_0x13b01f4:
     0x13b01f4 | 48 ff c0                 | inc rax
     0x13b01f7 | 80 3c 01 00              | cmp byte ptr [rcx + rax], 0x0
@@ -664,7 +658,7 @@ Operação  : 0x13b0098: mov/math reg, [flag] ; fn=0x13afdf0..0x13b017d
         if (vret_2 != 0) {
           do { // L_0x13b0ad0
             atomic_try_incref(&vret_2->field_0x200->field_0x8);
-            if (atomic_cas(&vret_2->field_0x200->field_0x8, vret_2->field_0x200->field_0x8, (vret_2->field_0x200->field_0x8 + 1)) == 0) break;
+            if (atomic_cas(&vret_2->field_0x200->field_0x8, vret_2->field_0x200->field_0x8, vret_2->field_0x200->field_0x8 + 1) == 0) break;
           } while (true); // loop -> L_0x13b0ad0
           void* sel_rax_1 = vret_2->field_0x1f8 == 0 ? 0 : vret_2->field_0x1f8->field_m0x1f0;
           stk_1 = sel_rax_1;
@@ -685,12 +679,10 @@ Operação  : 0x13b0098: mov/math reg, [flag] ; fn=0x13afdf0..0x13b017d
         if (local_0xd0 != 0) {
           call_0x6daf40(local_0xd0);
         }
-        if ((local_0xc0 & 0x1) != 0 && (local_0xc0 & 0xfffffffe)->field_0x0 == 3) {
-          if (atomic_cas(&(local_0xc0 & 0xfffffffe)->field_0x0, (local_0xc0 & 0xfffffffe)->field_0x0, 1) != 0) {
+        if ((local_0xc0 & 0x1) != 0) {
+          if ((local_0xc0 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0xc0 & 0xfffffffe)->field_0x0, (local_0xc0 & 0xfffffffe)->field_0x0, 1) != 0) {
             call_0xdac0(local_0xc0 & 0xfffffffe);
           }
-        } else {
-          call_0xdac0(local_0xc0 & 0xfffffffe);
         }
       }
       if (this->field_0x20 != 5) {
@@ -873,12 +865,11 @@ Operação  : 0x13b0098: mov/math reg, [flag] ; fn=0x13afdf0..0x13b017d
       }
       if (this->field_0x50 != 0) {
         call_0x13ace20(this->field_0x50);
-        auto expr_1 = "[FLog::SurfaceControllerDebug] drainRenderingJobs ... remove all rendering jobs from task schedu";
         if (SurfaceControllerDebug >= 6 && SurfaceControllerDebug >> 8 >= 3) {
-          FLog::Log(expr_1);
+          FLog::Log("[FLog::SurfaceControllerDebug] drainRenderingJobs ... remove all rendering jobs from task schedu");
         }
         if (this->field_0x58 != 0) {
-          this->field_0x58->field_0x8 = this->field_0x58->field_0x8 + 1;
+          this->field_0x58->field_0x8++;
         }
         if (global_0x8da5d90 > rbp->field_0x58->field_0x0->field_0x0[40]) {
           do { // L_0x13b2282
@@ -895,69 +886,50 @@ Operação  : 0x13b0098: mov/math reg, [flag] ; fn=0x13afdf0..0x13b017d
             }
           } while (true); // loop -> L_0x13b2282
         }
-        expr_1;
         if (this->field_0x50 != 0) {
-          expr_1;
           if (atomic_exchange(&this->field_0x50->field_0x16a, 0) != 0) {
             call_0x2e13a20(&local_0x80, &global_0x8da5d98->field_0x90, 0);
-            void* v_rbx_5 = global_0x8da5d98->field_0xc8;
+            void* v_rbx_2 = global_0x8da5d98->field_0xc8;
+            void* i_ebx;
             if ((global_0x8da5d98->field_0xd0 - global_0x8da5d98->field_0xc8) >> 4 > 0) {
-              auto i_ebx = global_0x8da5d98->field_0xc8;
-              int64_t v_rcx_2;
+              uint64_t i_ecx = (global_0x8da5d98->field_0xd0 - global_0x8da5d98->field_0xc8) >> 4;
+              i_ebx = global_0x8da5d98->field_0xc8;
               do { // L_0x13b2030
-                int64_t tmp_1 = (((global_0x8da5d98->field_0xd0 - global_0x8da5d98->field_0xc8) >> 4) >> 1) + (((global_0x8da5d98->field_0xd0 - global_0x8da5d98->field_0xc8) >> 4) >> 1);
-                void* v_rbx_3 = i_ebx;
-                if (global_0x8da5d98->field_0xc8->field_0x0[tmp_1 * 8] < this->field_0x50) {
-                  int64_t tmp_2 = ((global_0x8da5d98->field_0xd0 - global_0x8da5d98->field_0xc8) >> 4) + (tmp_1 - (((global_0x8da5d98->field_0xd0 - global_0x8da5d98->field_0xc8) >> 4) >> 1));
-                  v_rcx_2 = tmp_2;
-                  v_rbx_3 = i_ebx + tmp_1 * 8 + 0x10;
-                } else {
-                  v_rcx_2 = ((global_0x8da5d98->field_0xd0 - global_0x8da5d98->field_0xc8) >> 4) >> 1;
-                }
-                v_rbx_5 = v_rbx_3;
-              } while (v_rcx_2 > 0); // loop -> L_0x13b2030
+                i_ecx = i_ebx[(i_ecx >> 1) * 2 * 8] < this->field_0x50 ? i_ecx + (-1 - (i_ecx >> 1)) : i_ecx >> 1;
+                i_ebx = i_ebx[(i_ecx >> 1) * 2 * 8] < this->field_0x50 ? i_ebx + (i_ecx >> 1) * 2 * 8 + 0x10 : i_ebx;
+              } while (i_ebx[(i_ecx >> 1) * 2 * 8] < this->field_0x50 ? i_ecx + (-1 - (i_ecx >> 1)) : i_ecx >> 1 > 0); // loop -> L_0x13b2030
             }
-            if (v_rbx_5 != global_0x8da5d98->field_0xd0 && this->field_0x50 >= v_rbx_5->field_0x0) {
-              if (&v_rbx_5->field_0x10 != global_0x8da5d98->field_0xd0) {
+            if (v_rbx_2 != global_0x8da5d98->field_0xd0 && this->field_0x50 >= v_rbx_2->field_0x0) {
+              if (&v_rbx_2->field_0x10 != global_0x8da5d98->field_0xd0) {
                 do { // L_0x13b2080
-                  void* prev_0x10_3 = v_rbx_5->field_0x10;
-                  v_rbx_5->field_0x10 = 0;
-                  void* prev_0x18_4 = v_rbx_5->field_0x18;
-                  v_rbx_5->field_0x18 = 0;
-                  v_rbx_5->field_0x0 = prev_0x10_3;
-                  void* prev_0x8_5 = v_rbx_5->field_0x8;
-                  v_rbx_5->field_0x8 = prev_0x18_4;
-                  if (prev_0x8_5 != 0 && atomic_fetch_sub(&v_rbx_5->field_0x8->field_0x8, 1) == 1) {
-                    v_rbx_5->field_0x8->vfunc_0x0(prev_0x8_5) // -> RBX::PoseBase::VCFramePose::fn_0x1625fe0;
-                    if (atomic_fetch_sub(&v_rbx_5->field_0x8->field_0xc, 1) == 1) {
-                    v_rbx_5->field_0x8->vfunc_0x8(prev_0x8_5) // -> RBX::VehicleSeat::fn_0x147a960;
-                    } else {
-                    atomic_fetch_sub(&v_rbx_5->field_0x8->field_0xc, 1);
+                  void* prev_0x0_1 = i_ebx->field_0x0;
+                  i_ebx->field_0x0 = 0;
+                  void* prev_0x8_2 = i_ebx->field_0x8;
+                  i_ebx->field_0x8 = 0;
+                  i_ebx->field_m0x10 = prev_0x0_1;
+                  void* mem_3_3 = i_ebx->field_m0x8;
+                  i_ebx->field_m0x8 = prev_0x8_2;
+                  if (mem_3_3 != 0 && atomic_fetch_sub(&i_ebx->field_m0x8->field_0x8, 1) == 1) {
+                    i_ebx->field_m0x8->vfunc_0x0(mem_3_3) // -> RBX::PoseBase::VCFramePose::fn_0x1625fe0;
+                    if (atomic_fetch_sub(&i_ebx->field_m0x8->field_0xc, 1) == 1) {
+                    i_ebx->field_m0x8->vfunc_0x8(mem_3_3) // -> RBX::VehicleSeat::fn_0x147a960;
                     }
-                  } else {
-                    atomic_fetch_sub(&v_rbx_5->field_0x8->field_0x8, 1);
                   }
-                } while (&v_rbx_5->field_0x20 != global_0x8da5d98->field_0xd0); // loop -> L_0x13b2080
+                  i_ebx += 0x10;
+                } while (i_ebx != global_0x8da5d98->field_0xd0); // loop -> L_0x13b2080
               }
               if (global_0x8da5d98->field_0xd0->field_m0x8 != 0) {
                 call_0x6daf40(global_0x8da5d98->field_0xd0->field_m0x8);
               }
+              global_0x8da5d98->field_0xd0 = global_0x8da5d98->field_0xd0 - 0x10;
             }
             if ((local_0x80 & 0x1) != 0) {
-              if ((local_0x80 & 0xfffffffe)->field_0x0 == 3) {
-                if (atomic_cas(&(local_0x80 & 0xfffffffe)->field_0x0, (local_0x80 & 0xfffffffe)->field_0x0, 1) != 0) {
-                  call_0xdac0(local_0x80 & 0xfffffffe);
-                }
-              } else {
+              if ((local_0x80 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x80 & 0xfffffffe)->field_0x0, (local_0x80 & 0xfffffffe)->field_0x0, 1) != 0) {
                 call_0xdac0(local_0x80 & 0xfffffffe);
               }
             }
             call_0x2e12fd0(&this->field_0x50->field_0x158);
-            if (this->field_0x50->field_0x158 == 3) {
-              if (atomic_cas(&this->field_0x50->field_0x158, this->field_0x50->field_0x158, 1) != 0) {
-                call_0xdac0(&this->field_0x50->field_0x158);
-              }
-            } else {
+            if (this->field_0x50->field_0x158 != 3 || atomic_cas(&this->field_0x50->field_0x158, this->field_0x50->field_0x158, 1) != 0) {
               call_0xdac0(&this->field_0x50->field_0x158);
             }
           }
@@ -968,7 +940,7 @@ Operação  : 0x13b0098: mov/math reg, [flag] ; fn=0x13afdf0..0x13b017d
         if ((local_0xa0 & 0xfffffffc & 0xfffffff8) != 0) {
           if ((~((local_0xa0 & 0xfffffffc) >> 2) & 0x1) == 0) {
             void* sel_rcx_1 = (local_0xa0 >> 1 & 0x1) == 0 ? local_0x88 : &sym_0x4c5b1d0;
-            sel_rcx_1->vfunc(sel_rcx_1);
+            (((local_0xa0 & 0xfffffffc) & 0xfffffff8))->vfunc_0x10(sel_rcx_1) // -> RBX::VehicleSeat::fn_0x147a9d0;
           }
           if ((local_0xa0 >> 1 & 0x1) == 0) {
             call_0x4955ac0(local_0x88);
@@ -976,14 +948,14 @@ Operação  : 0x13b0098: mov/math reg, [flag] ; fn=0x13afdf0..0x13b017d
         }
         this->field_0x50->vfunc_0x48() // -> RBX::Solver::ConstraintSingleAxisSpring::fn_0x14085d0;
         if (SurfaceControllerDebug >= 6 && SurfaceControllerDebug >> 8 >= 3) {
-          FLog::Log(expr_1);
+          FLog::Log("[FLog::SurfaceControllerDebug] drainRenderingJobs ... remove all rendering jobs from task schedu");
         }
         call_0x4c5b1d0(this->field_0x48, 1);
         this->field_0x50 = 0;
-        void* prev_0x58_7 = this->field_0x58;
+        void* prev_0x58_6 = this->field_0x58;
         this->field_0x58 = 0;
-        if (prev_0x58_7 != 0) {
-          call_0x6daf40(prev_0x58_7);
+        if (prev_0x58_6 != 0) {
+          call_0x6daf40(prev_0x58_6);
         }
       }
     }
@@ -1093,7 +1065,7 @@ Operação  : 0x13b0098: mov/math reg, [flag] ; fn=0x13afdf0..0x13b017d
     0x13b2040 | 73 17                    | jae 0x13b2059
     0x13b2042 | 48 8d 1c c3              | lea rbx, [rbx + rax*8]
     0x13b2046 | 48 83 c3 10              | add rbx, 0x10
-    0x13b204a | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x13b204a | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x13b2051 | 48 2b c2                 | sub rax, rdx
     0x13b2054 | 48 03 c8                 | add rcx, rax
     0x13b2057 | eb 03                    | jmp 0x13b205c

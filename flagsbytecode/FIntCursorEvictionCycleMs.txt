@@ -9,8 +9,8 @@ Operação  : 0x3b293bf: mov/math reg, [flag] ; fn=0x3b29380..0x3b295fc
     Classe  : RBX::CursorTime (RTTI Resolvido)
     Padrão  : FIntCursorEvictionCycleMs = 2000 (default) [int, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : ftmp_1 * 1000.0 > CursorEvictionCycleMs
-    Altera  : this->field_0x50, this->field_0x28->field_0x0[rcx * 8], this->field_0x28->field_0x8[rcx * 8], this->field_0x20, this->field_0x18->field_0x0->field_0x8->field_0x0, this->field_0x18->field_0x0->field_0x0->field_0x8
+    Fórmula : ftmp_1 * 1000.0 > (double)CursorEvictionCycleMs
+    Altera  : this->field_0x50, this->field_0x28->field_0x0[(this->field_0x40 & ret_0xb582d0_6) * 2 * 8], this->field_0x28->field_0x8[(this->field_0x40 & ret_0xb582d0_6) * 2 * 8], this->field_0x20
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x3b28846 (in fn_0x3b28700): call 0x3b29380  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
@@ -27,56 +27,67 @@ Operação  : 0x3b293bf: mov/math reg, [flag] ; fn=0x3b29380..0x3b295fc
     };
     
     // Flag defaults: CursorTimeToLiveMs = 5000, CursorEvictionCycleMs = 2000, CursorCache = 0
-    void RBX::CursorTime::func_0x3b29380(RBX::CursorTime* this, int64_t param_2, float param_4) {
+    void RBX::CursorTime::func_0x3b29380(RBX::CursorTime* this) {
       auto vret_1 = this->vfunc(this);
       double ftmp_1 = (double)vret_1 / 1000.0 - this->field_0x50;
-      if (ftmp_1 * 1000.0 > CursorEvictionCycleMs) {
-        if (CursorCache >= 6 && CursorCache >> 8 >= 3) {
-          FLog::Log("[FLog::CursorCache] Performing eviction cycle");
+      if (ftmp_1 * 1000.0 > (double)CursorEvictionCycleMs) {
+        if (CursorCache >= 6) {
+          if (CursorCache >> 8 >= 3) {
+            FLog::Log("[FLog::CursorCache] Performing eviction cycle");
+          }
         }
         auto vret_2 = this->vfunc();
         this->field_0x50 = (double)vret_2 / 1000.0;
         auto* f_18 = this->field_0x18;
-        auto* f_18_0 = f_18->field_0x0;
-        if (f_18_0 != f_18) {
-          auto i_ebx = f_18_0;
+        if (f_18->field_0x0 != f_18) {
+          void* i_eax = f_18;
+          void* i_ebx = f_18->field_0x0;
           do { // L_0x3b29463
-            if (f_18_0->field_0x50 != 0) {
+            void* v_rax_2 = i_eax;
+            void* v_rax_3;
+            if (i_ebx->field_0x50 != 0) {
               auto vret_3 = this->vfunc();
-              double ftmp_2 = (double)vret_3 / 1000.0 - f_18_0->field_0x48;
-              if (ftmp_2 * 1000.0 > CursorTimeToLiveMs) {
+              double ftmp_2 = (double)vret_3 / 1000.0 - i_ebx->field_0x48;
+              if (ftmp_2 * 1000.0 > (double)CursorTimeToLiveMs) {
                 if (CursorCache >= 6 && CursorCache >> 8 >= 3) {
                   auto vret_4 = this->vfunc();
-                  call_0x4971a90(&local_0x50, &&sym_0x7789885->field_m0x399ced, &f_18_0->field_0x18, (double)vret_4 / 1000.0 - f_18_0->field_0x48);
+                  call_0x4971a90(&local_0x50, &&sym_0x7789885->field_m0x399ced, i_ebx + 0x18, (double)(float)((double)vret_4 / 1000.0 - i_ebx->field_0x48));
                 }
-                call_0xb582d0(&f_18_0->field_0x18);
+                auto ret_0xb582d0_6 = call_0xb582d0(i_ebx + 0x18);
                 auto* f_28 = this->field_0x28;
-                if (f_28->field_0x8[rcx * 8] == i_ebx) {
-                  if (f_28->field_0x0[rcx * 8] == i_ebx) {
-                    auto prev_0x0[rcx * 8]_2 = f_28->field_0x0[rcx * 8];
-                    f_28->field_0x0[rcx * 8] = f_18;
-                    f_28->field_0x8[rcx * 8] = f_18;
+                if (f_28->field_0x8[(this->field_0x40 & ret_0xb582d0_6) * 2 * 8] == i_ebx) {
+                  if (f_28->field_0x0[(this->field_0x40 & ret_0xb582d0_6) * 2 * 8] == i_ebx) {
+                    auto prev_0x40 & ret_0xb582d0_6) * 2 * 8]_2 = f_28->field_0x0[(this->field_0x40 & ret_0xb582d0_6) * 2 * 8];
+                    f_28->field_0x0[(this->field_0x40 & ret_0xb582d0_6) * 2 * 8] = f_18;
+                    f_28->field_0x8[(this->field_0x40 & ret_0xb582d0_6) * 2 * 8] = f_18;
                   } else {
-                    f_28->field_0x8[rcx * 8] = f_18_0->field_0x8;
+                    f_28->field_0x8[(this->field_0x40 & ret_0xb582d0_6) * 2 * 8] = i_ebx->field_0x8;
                   }
-                } else if (f_28->field_0x0[rcx * 8] == i_ebx) {
-                  auto prev_0x0[rcx * 8]_1 = f_28->field_0x0[rcx * 8];
-                  f_28->field_0x0[rcx * 8] = f_18_0->field_0x0;
+                } else if (f_28->field_0x0[(this->field_0x40 & ret_0xb582d0_6) * 2 * 8] == i_ebx) {
+                  auto prev_0x40 & ret_0xb582d0_6) * 2 * 8]_1 = f_28->field_0x0[(this->field_0x40 & ret_0xb582d0_6) * 2 * 8];
+                  f_28->field_0x0[(this->field_0x40 & ret_0xb582d0_6) * 2 * 8] = i_ebx->field_0x0;
                 }
-                this->field_0x20 = this->field_0x20 - 1;
-                f_18_0->field_0x8->field_0x0 = f_18_0->field_0x0;
-                f_18_0->field_0x0->field_0x8 = f_18_0->field_0x8;
-                if (f_18_0->field_0x58 != 0 && atomic_fetch_sub(&f_18_0->field_0x58->field_0x8, 1) == 1) {
-                  f_18_0->field_0x58->vfunc_0x0(f_18_0->field_0x58) // -> RBX::BevelMesh::CylinderMesh::fn_0x3acff30;
-                  if (atomic_fetch_sub(&f_18_0->field_0x58->field_0xc, 1) == 1) {
-                    f_18_0->field_0x58->vfunc_0x8(f_18_0->field_0x58) // -> RBX::Path2D::fn_0x3ee38a0;
+                this->field_0x20--;
+                i_ebx->field_0x8->field_0x0 = i_ebx->field_0x0;
+                i_ebx->field_0x0->field_0x8 = i_ebx->field_0x8;
+                if (i_ebx->field_0x58 != 0 && atomic_fetch_sub(&i_ebx->field_0x58->field_0x8, 1) == 1) {
+                  i_ebx->field_0x58->vfunc_0x0(i_ebx->field_0x58) // -> RBX::BevelMesh::CylinderMesh::fn_0x3acff30;
+                  if (atomic_fetch_sub(&i_ebx->field_0x58->field_0xc, 1) == 1) {
+                    i_ebx->field_0x58->vfunc_0x8(i_ebx->field_0x58) // -> RBX::Path2D::fn_0x3ee38a0;
                   }
                 }
-                call_0x6f8fb0(&f_18_0->field_0x18);
-                call_0x4955ac0(i_ebx);
+                call_0x6f8fb0(i_ebx + 0x18);
+                v_rax_3 = call_0x4955ac0(i_ebx);
+              } else {
+                v_rax_2 = vret_3;
+                v_rax_3 = v_rax_2;
               }
+            } else {
+              v_rax_3 = v_rax_2;
             }
-          } while (f_18_0->field_0x0 != f_18); // loop -> L_0x3b29463
+            i_eax = v_rax_3;
+            i_ebx = i_ebx->field_0x0;
+          } while (i_ebx->field_0x0 != f_18); // loop -> L_0x3b29463
         }
       }
     }

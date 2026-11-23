@@ -10,7 +10,7 @@ Operação  : 0x2643e79: cmp dword [flag], imm ; fn=0x2643e40..0x2643fdd
     Padrão  : DFIntSQLiteSlowMallocThresholdUs = 0 (default) [int, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : SQLiteSlowMallocThresholdUs <= 0
-    Fórmula : (local_0x40 - local_0x70) * 1000.0 * 1000.0 < SQLiteSlowMallocThresholdUs
+    Fórmula : (local_0x40 - local_0x70) * 1000.0 * 1000.0 < (double)SQLiteSlowMallocThresholdUs
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x26440e1 (in fn_0x26440a0): call 0x2643e40  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
@@ -20,35 +20,37 @@ Operação  : 0x2643e79: cmp dword [flag], imm ; fn=0x2643e40..0x2643fdd
     // Flag defaults: SQLiteSlowMallocThresholdUs = 0, SQLite = 6
     auto RBX::SQLiteSlow::func_0x2643e40(RBX::SQLiteSlow* this) {
       auto ret_0x4954e70_1 = call_0x4954e70(global_0x84b687c);
+      void* v_rbx_2;
       if (this > 0) {
-        void* v_rbx_2;
+        void* v_rbx_1;
         if (SQLiteSlowMallocThresholdUs > 0) {
           call_0x495a220(&local_0x70);
           auto ret_0x4956380_4 = call_0x4956380(&this->field_0x8, 8);
           call_0x495a220(&local_0x40);
           double ftmp_1 = (local_0x40 - local_0x70) * 1000.0;
-          if (ftmp_1 * 1000.0 >= SQLiteSlowMallocThresholdUs) {
-            global_0x8c66570 = global_0x8c66570 + 1;
-            v_rbx_2 = ret_0x4956380_4;
+          if (ftmp_1 * 1000.0 >= (double)SQLiteSlowMallocThresholdUs) {
+            global_0x8c66570++;
+            v_rbx_1 = ret_0x4956380_4;
           } else {
-            v_rbx_2 = ret_0x4956380_4;
+            v_rbx_1 = ret_0x4956380_4;
           }
         } else {
-          v_rbx_2 = call_0x4956380(&this->field_0x8, 8);
+          v_rbx_1 = call_0x4956380(&this->field_0x8, 8);
         }
-        if (v_rbx_2 == 0) {
+        if (v_rbx_1 == 0) {
           if (SQLite >= 6 && SQLite >> 8 >= 1) {
             FLog::Log("[DFLog::SQLite] mem_methods_malloc: out of memory {}");
           }
+          v_rbx_2 = 0;
         } else {
-          v_rbx_2->field_0x0 = this;
-          return v_rbx_3;
+          v_rbx_1->field_0x0 = this;
+          return v_rbx_2;
         }
-        call_0x4954e70(ret_0x4954e70_1);
-        return v_rbx_3;
+      } else {
+        v_rbx_2 = 0;
       }
       call_0x4954e70(ret_0x4954e70_1);
-      return v_rbx_3;
+      return v_rbx_2;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -103,7 +105,7 @@ Operação  : 0x2643e79: cmp dword [flag], imm ; fn=0x2643e40..0x2643fdd
     0x2643f1f | 48 8b 4c 24 70           | mov rcx, qword ptr [rsp + 0x70]
     0x2643f24 | 48 81 c1 e9 f0 f2 ff     | add rcx, 0xfff2f0e9
     0x2643f2b | 48 89 4c 24 50           | mov qword ptr [rsp + 0x50], rcx
-    0x2643f30 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x2643f30 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     L_0x2643f37:
     0x2643f37 | 48 ff c0                 | inc rax
     0x2643f3a | 80 3c 01 00              | cmp byte ptr [rcx + rax], 0x0

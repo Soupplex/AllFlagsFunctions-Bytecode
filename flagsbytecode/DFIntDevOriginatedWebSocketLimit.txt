@@ -22,47 +22,44 @@ Operação  : 0x2bd930f: cmp [flag], reg ; fn=0x2bd92c0..0x2bd9582
     // Flag defaults: DevOriginatedWebSocketLimit = 100, WebSocketTraceLight = 0
     void RBX::DevOriginated::func_0x2bd92c0(RBX::DevOriginated* this, int64_t param_2) {
       call_0x2e13a20(&local_0x130, &this->field_0x98, 0);
-      if (param_2->field_0x49 != 0 && this->field_0xa4 >= DevOriginatedWebSocketLimit) {
-        if (WebSocketTraceLight >= 6 && WebSocketTraceLight >> 8 >= 3) {
-          FLog::Log("[DFLog::WebSocketTraceLight] could not add ws {} as dev-originated limit is already reached");
-        }
-        if ((local_0x130 & 0x1) != 0) {
-          if ((local_0x130 & 0xfffffffe)->field_0x0 == 3) {
-            if (atomic_cas(&(local_0x130 & 0xfffffffe)->field_0x0, (local_0x130 & 0xfffffffe)->field_0x0, 1) != 0) {
+      if (param_2->field_0x49 != 0) {
+        if (this->field_0xa4 >= DevOriginatedWebSocketLimit) {
+          if (WebSocketTraceLight >= 6 && WebSocketTraceLight >> 8 >= 3) {
+            FLog::Log("[DFLog::WebSocketTraceLight] could not add ws {} as dev-originated limit is already reached");
+          }
+          if ((local_0x130 & 0x1) != 0) {
+            if ((local_0x130 & 0xfffffffe)->field_0x0 == 3) {
+              if (atomic_cas(&(local_0x130 & 0xfffffffe)->field_0x0, (local_0x130 & 0xfffffffe)->field_0x0, 1) != 0) {
+                call_0xdac0(local_0x130 & 0xfffffffe);
+              }
+            } else {
               call_0xdac0(local_0x130 & 0xfffffffe);
             }
-          } else {
-            call_0xdac0(local_0x130 & 0xfffffffe);
           }
         } else {
-          this->field_0xa4 = this->field_0xa4 + 1;
+          this->field_0xa4++;
           L_0x2bd94f0:
           do { // L_0x2bd94f0
-            L_0x2bd94f0:
             atomic_try_incref(&param_2->field_0x10->field_0x8);
-            if (atomic_cas(&param_2->field_0x10->field_0x8, param_2->field_0x10->field_0x8, (param_2->field_0x10->field_0x8 + 1)) == 0) break;
+            if (atomic_cas(&param_2->field_0x10->field_0x8, param_2->field_0x10->field_0x8, param_2->field_0x10->field_0x8 + 1) == 0) break;
           } while (true); // loop -> L_0x2bd94f0
           auto local_0x50 = param_2->field_0x8;
           call_0x1a536f0(this, &local_0x120, &local_0x50);
           if (this->field_0xa2 == 0) {
             this->field_0xa2 = 1;
           }
-          if ((local_0x130 & 0x1) != 0 && (local_0x130 & 0xfffffffe)->field_0x0 == 3) {
-            if (atomic_cas(&(local_0x130 & 0xfffffffe)->field_0x0, (local_0x130 & 0xfffffffe)->field_0x0, 1) != 0) {
+          if ((local_0x130 & 0x1) != 0) {
+            if ((local_0x130 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x130 & 0xfffffffe)->field_0x0, (local_0x130 & 0xfffffffe)->field_0x0, 1) != 0) {
               call_0xdac0(local_0x130 & 0xfffffffe);
               call_0x2bd8e80(this);
               return;
             }
-          } else {
-            call_0xdac0(local_0x130 & 0xfffffffe);
-            call_0x2bd8e80(this);
-            return;
           }
           call_0x2bd8e80(this);
         }
-        return;
+      } else {
+        goto L_0x2bd94f0;
       }
-      goto L_0x2bd94f0;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -97,7 +94,7 @@ Operação  : 0x2bd930f: cmp [flag], reg ; fn=0x2bd92c0..0x2bd9582
     0x2bd9342 | 48 8b 4c 24 40           | mov rcx, qword ptr [rsp + 0x40]
     0x2bd9347 | 48 81 c1 4c 33 de ff     | add rcx, 0xffde334c
     0x2bd934e | 48 89 4c 24 70           | mov qword ptr [rsp + 0x70], rcx
-    0x2bd9353 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x2bd9353 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x2bd935a | 66 0f 1f 44 00 00        | nop
     L_0x2bd9360:
     0x2bd9360 | 48 ff c0                 | inc rax
@@ -167,7 +164,7 @@ Operação  : 0x2bd930f: cmp [flag], reg ; fn=0x2bd92c0..0x2bd9582
     0x2bd9446 | 48 8b 4c 24 40           | mov rcx, qword ptr [rsp + 0x40]
     0x2bd944b | 48 81 c1 8b eb dc ff     | add rcx, 0xffdceb8b
     0x2bd9452 | 48 89 4d 90              | mov qword ptr [rbp - 0x70], rcx
-    0x2bd9456 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x2bd9456 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x2bd945d | 0f 1f 00                 | nop
     L_0x2bd9460:
     0x2bd9460 | 48 ff c0                 | inc rax
@@ -285,14 +282,9 @@ Operação  : 0x2bd930f: cmp [flag], reg ; fn=0x2bd92c0..0x2bd9582
         }
         goto L_0x2bd8efd;
       }
-      if (f_90->field_0x20 == 3) {
-        if (atomic_cas(&f_90->field_0x20, f_90->field_0x20, 1) != 0) {
-          call_0xdac0(&f_90->field_0x20);
-          return;
-        }
-        return;
+      if (f_90->field_0x20 != 3 || atomic_cas(&f_90->field_0x20, f_90->field_0x20, 1) != 0) {
+        call_0xdac0(&f_90->field_0x20);
       }
-      call_0xdac0(&f_90->field_0x20);
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x2bd8e80..0x2bd8f34)] ===

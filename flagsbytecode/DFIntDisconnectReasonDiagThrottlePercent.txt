@@ -20,8 +20,8 @@ Operação  : 0x462174c: cmp [flag], reg ; fn=0x462154c..0x4621a28
       call_0x6f8fb0(&frame_0x390);
       call_0x7117f0(&frame_0x418);
       if (rsi->field_0xfc == 0) {
-        call_0x7678c0(rsi + 0x4b90, &frame_0xe8);
-        call_0x461d8a0(rsi, 0, rax->field_0x0);
+        auto ret_0x7678c0_3 = call_0x7678c0(rsi + 0x4b90, &frame_0xe8);
+        call_0x461d8a0(rsi, 0, ret_0x7678c0_3->field_0x0);
         if (rsi->field_0xfc == 0) {
           call_0x746610(&frame_0x9d8, &sym_0x818edc8);
           auto ret_0x2db5740_6 = call_0x2db5740(&frame_0xd20);
@@ -449,11 +449,7 @@ Operação  : 0x462174c: cmp [flag], reg ; fn=0x462154c..0x4621a28
       auto* f_4cd8 = this->field_0x4cd8;
       if (f_4cd8 != 0) {
         call_0x2e12fd0(&f_4cd8->field_0x1a8);
-        if (f_4cd8->field_0x1a8 == 3) {
-          if (atomic_cas(&f_4cd8->field_0x1a8, f_4cd8->field_0x1a8, 1) != 0) {
-            call_0xdac0(&f_4cd8->field_0x1a8);
-          }
-        } else {
+        if (f_4cd8->field_0x1a8 != 3 || atomic_cas(&f_4cd8->field_0x1a8, f_4cd8->field_0x1a8, 1) != 0) {
           call_0xdac0(&f_4cd8->field_0x1a8);
         }
         v_r15_1 = f_4cd8->field_0x1c8;
@@ -526,14 +522,15 @@ Operação  : 0x462174c: cmp [flag], reg ; fn=0x462154c..0x4621a28
           }
           call_0x2963740(&local_0xc0, "PhysicsSmoothFps", fxmm0_5);
           auto ret_0x4062570_46 = call_0x4062570(ret_0x30fe7c0_39);
-          float fxmm6_6;
+          double fxmm6_6;
           if (ret_0x4062570_46 != 0) {
             void* sel_rcx_3 = &ret_0x4062570_46->field_0x2d0 != 0 ? ret_0x4062570_46 : 0;
             if (sel_rcx_3->field_0x358 != 0) {
               void* sel_rax_4 = &ret_0x4062570_46->field_0x2d0 != 0 ? ret_0x4062570_46 : 0;
               if (sel_rax_4->field_0x358->field_0x3f8 != 0) {
                 void* sel_rcx_5 = &ret_0x4062570_46->field_0x2d0 != 0 ? ret_0x4062570_46 : 0;
-                fxmm6_6 = call_0x13d79e0(sel_rcx_5->field_0x358->field_0x3f8, ret_0x4062570_46, &ret_0x4062570_46->field_0x2d0);
+                auto ret_0x13d79e0_47 = call_0x13d79e0(sel_rcx_5->field_0x358->field_0x3f8, ret_0x4062570_46, &ret_0x4062570_46->field_0x2d0);
+                fxmm6_6 = (double)ret_0x13d79e0_47;
               } else {
                 fxmm6_6 = 0.0;
               }
@@ -546,13 +543,12 @@ Operação  : 0x462174c: cmp [flag], reg ; fn=0x462154c..0x4621a28
           call_0x2963740(&local_0xc0, "PhysicsEnvironmentSpeed", fxmm6_6);
         }
       }
-      call_0x2938150();
-      call_0x2963740(&local_0xc0, "CalculatedFpsInReportingPeriod", (double)(rax - this->field_0x4b98) / param_3);
+      auto ret_0x2938150_49 = call_0x2938150();
+      call_0x2963740(&local_0xc0, "CalculatedFpsInReportingPeriod", (double)(ret_0x2938150_49 - this->field_0x4b98) / param_3);
       call_0x2963740(&local_0xc0, "AverageFrameBufferDiff", this->field_0x57b0);
-      call_0x2963740(&local_0xc0, "LargestFrameBufferDiff", this->field_0x57c8);
+      call_0x2963740(&local_0xc0, "LargestFrameBufferDiff", (double)this->field_0x57c8);
       auto ret_0x6fd950_53 = call_0x6fd950(32);
-      ret_0x6fd950_53->field_0x0 = "LimiterTradeoffReporting";
-      ret_0x6fd950_53->field_0x10 = "eporting";
+      memcpy(ret_0x6fd950_53, "LimiterTradeoffReporting", 24);
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x461d8a0..0x461dffe)] ===
@@ -1122,27 +1118,16 @@ Operação  : 0x462174c: cmp [flag], reg ; fn=0x462154c..0x4621a28
     
     // Flag defaults: DisconnectReasonDiagThrottlePercent = 100
     void RBX::Network::Replicator::func_0x462def0(RBX::Network::Replicator* this, int64_t param_2, void* param_3) {
-      auto* f_4bb8 = this->field_0x4bb8;
-      if (param_2 <= 18) {
-        if ((262752 & 1ULL << param_2) >= 0) {
-          if (param_2 < 48) {
-            f_4bb8->field_0x0[param_2 * 4] = f_4bb8->field_0x0[param_2 * 4] + param_3;
-            this->field_0x4bd0 = this->field_0x4bd0 + param_3;
-          }
-          if (param_2 == 22) {
-            this->field_0x40d0 = this->field_0x40d0 + 1;
-            return;
-          }
+      if (param_2 > 18 || (262752 & 1ULL << param_2) >= 0) {
+        if (param_2 < 48) {
+          auto* f_4bb8 = this->field_0x4bb8;
+          f_4bb8->field_0x0[param_2 * 4] = f_4bb8->field_0x0[param_2 * 4] + param_3;
+          this->field_0x4bd0 = this->field_0x4bd0 + param_3;
+        }
+        if (param_2 == 22) {
+          this->field_0x40d0++;
           return;
         }
-        return;
-      }
-      if (param_2 < 48) {
-        f_4bb8->field_0x0[param_2 * 4] = f_4bb8->field_0x0[param_2 * 4] + param_3;
-        this->field_0x4bd0 = this->field_0x4bd0 + param_3;
-      }
-      if (param_2 == 22) {
-        this->field_0x40d0 = this->field_0x40d0 + 1;
       }
     }
   

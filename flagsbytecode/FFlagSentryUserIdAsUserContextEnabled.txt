@@ -15,7 +15,7 @@ Operação  : 0x507d45e: cmp byte [flag], imm8 ; fn=0x507d300..0x507d633
     [Child @0x507d120] Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
     [XREF #2 @0x507e240] Classe  : RBX::SentryUser (RTTI Resolvido)
     [XREF #2 @0x507e240] Fórmula : !SentryUserIdAsUserContextEnabled
-    [XREF #2 @0x507e240] Fórmula : "SentryUserIdAsUserContextEnabled"[rbx + 1] != 0
+    [XREF #2 @0x507e240] Fórmula : "SentryUserIdAsUserContextEnabled"[0] != 0
     [XREF #2 @0x507e240] Fórmula : call_0x507f260("SentryUserIdAsUserContextEnabled", &local_0x80, &local_0x70)
   
   === [Decompilacao C++ da Funcao 0x507d300..0x507d633] ===
@@ -40,11 +40,7 @@ Operação  : 0x507d45e: cmp byte [flag], imm8 ; fn=0x507d300..0x507d633
           call_0x507f260("SentryUserIdAsUserContextEnabled", &local_0x80, &local_0x70);
         }
         auto ret_0x507f400_8 = call_0x507f400();
-        if (global_0x8196838 == 3) {
-          if (atomic_cas(&global_0x8196838, 3, 1) != 0) {
-            call_0xdac0(&sym_0x8196838);
-          }
-        } else {
+        if (global_0x8196838 != 3 || atomic_cas(&global_0x8196838, 3, 1) != 0) {
           call_0xdac0(&sym_0x8196838);
         }
         if (ret_0x507f400_8 >= 128 - global_0x84a6900 && CrashReportLog >= 6 && CrashReportLog >> 8 >= 2) {
@@ -99,7 +95,7 @@ Operação  : 0x507d45e: cmp byte [flag], imm8 ; fn=0x507d300..0x507d633
     0x507d392 | 49 8b ce                 | mov rcx, r14
     0x507d395 | e8 36 5c d9 fd           | call 0x2e12fd0
     0x507d39a | 90                       | nop
-    0x507d39b | 48 c7 c3 ff ff ff ff     | mov rbx, 0xffffffff
+    0x507d39b | 48 c7 c3 ff ff ff ff     | mov rbx, -0x1
     0x507d3a2 | 80 3d 2f 8f 0c 03 00     | cmp byte ptr [rip + 0x30c8f2f], 0x0 ; FFlagSentryEnvironmentTaggingEnabled
     0x507d3a9 | 74 51                    | je 0x507d3fc
     0x507d3ab | 48 8d 05 36 91 27 02     | lea rax, [rip + 0x2279136] ; "production"
@@ -272,34 +268,37 @@ Operação  : 0x507d45e: cmp byte [flag], imm8 ; fn=0x507d300..0x507d633
     void RBX::SentryUser::func_0x507f260(RBX::SentryUser* this, int64_t param_2, void* param_3) {
       if (param_3->field_0x0 == 0) {
         if (param_2->field_0x0 != 0 && param_2->field_0x8 != 0) {
-          auto i_edi = global_0x84a68f8;
+          void* i_edi = global_0x84a68f8;
           do { // L_0x507f2c0
             if (param_2->field_0x8 < 256 && param_2->field_0x8->field_0x0[i_edi] == 0) {
               auto ret_0x5e1d000_4 = memcmp(param_2->field_0x0, i_edi, param_2->field_0x8);
               if (ret_0x5e1d000_4 == 0) break;
+              i_ebx++;
+              i_edi += 0x200;
+              return;
             }
-          } while ((ebx + 1) < 128); // loop -> L_0x507f2c0
-          return;
+            i_ebx++;
+            i_edi += 0x200;
+            return;
+          } while (i_ebx < 128); // loop -> L_0x507f2c0
+          goto L_0x507f2f4;
         }
         return;
       }
+      int32_t i_ebx;
       if (param_2->field_0x0 != 0 && param_2->field_0x8 != 0 && param_2->field_0x0->field_0x0 != 0) {
         auto ret_0x507fb80_1 = call_0x507fb80(global_0x84a68f8, &local_0x20);
         void* v_rsi_1 = ret_0x507fb80_1;
-        auto expr_1 = min(param_3->field_0x8, min(255, param_3->field_0x8));
         if (ret_0x507fb80_1 == 0) {
-          auto i_esi = global_0x84a68f8;
+          i_ebx = 0;
+          void* i_esi = global_0x84a68f8;
           do { // L_0x507f360
-            if (global_0x84a68f8->field_0x0 == 0) break;
-            break;
-          } while ((ebx + 1) < 128); // loop -> L_0x507f360
-          call_0x5e05370(i_esi, param_2->field_0x0, min(param_2->field_0x8, min(255, param_2->field_0x8)));
-          min(255, param_2->field_0x8)[i_esi] = 0;
-          v_rsi_1 = i_esi;
-          call_0x5e05370(&v_rsi_1->field_0x100, param_3->field_0x0, expr_1);
-          (min(255, param_3->field_0x8))->field_0x100[v_rsi_1] = 0;
+            if (i_esi->field_0x0 == 0) break;
+            i_ebx++;
+            i_esi += 0x200;
+          } while (i_ebx < 128); // loop -> L_0x507f360
         } else {
-          call_0x5e05370(&v_rsi_1->field_0x100, param_3->field_0x0, expr_1);
+          call_0x5e05370(&v_rsi_1->field_0x100, param_3->field_0x0, min(param_3->field_0x8, min(255, param_3->field_0x8)));
           (min(255, param_3->field_0x8))->field_0x100[v_rsi_1] = 0;
         }
       }
@@ -422,56 +421,77 @@ Operação  : 0x507d45e: cmp byte [flag], imm8 ; fn=0x507d300..0x507d633
   === [Sub-Rotina Chamada: 0x507f400..0x507f7f1 via call @0x507d4c1 (rcx = this (Direct Engine Sub-Call))] ===
     // Flag defaults: SentryUserIdAsUserContextEnabled = true
     auto RBX::SentryUser::func_0x507f400(RBX::SentryUser* this) {
+      int32_t i_r9d = 2;
+      void* i_ecx = &global_0x84a68f8->field_0x400;
       int32_t i_edx = 0;
       do { // L_0x507f420
-        int64_t selected_rdx_1 = global_0x84a68f8->field_0x200 == 0 ? (global_0x84a68f8->field_0x0 == 0 ? i_edx : i_edx + 1) : (global_0x84a68f8->field_0x0 == 0 ? i_edx : i_edx + 1) + 1;
-        int64_t selected_rax_2 = global_0x84a68f8->field_0x400 == 0 ? selected_rdx_1 : selected_rdx_1 + 1;
-        int64_t selected_rdx_3 = global_0x84a68f8->field_0x600 == 0 ? selected_rax_2 : selected_rax_2 + 1;
-        int64_t selected_rax_4 = global_0x84a68f8->field_0x800 == 0 ? selected_rdx_3 : selected_rdx_3 + 1;
-        int64_t selected_rdx_5 = global_0x84a68f8->field_0xa00 == 0 ? selected_rax_4 : selected_rax_4 + 1;
-        int64_t selected_rax_6 = global_0x84a68f8->field_0xc00 == 0 ? selected_rdx_5 : selected_rdx_5 + 1;
-        int64_t selected_rdx_7 = global_0x84a68f8->field_0xe00 == 0 ? selected_rax_6 : selected_rax_6 + 1;
-        int64_t selected_rax_8 = global_0x84a68f8->field_0x1000 == 0 ? selected_rdx_7 : selected_rdx_7 + 1;
-        int64_t selected_rdx_9 = global_0x84a68f8->field_0x1200 == 0 ? selected_rax_8 : selected_rax_8 + 1;
-        int64_t selected_rax_10 = global_0x84a68f8->field_0x1400 == 0 ? selected_rdx_9 : selected_rdx_9 + 1;
-        int64_t selected_rdx_11 = global_0x84a68f8->field_0x1600 == 0 ? selected_rax_10 : selected_rax_10 + 1;
-        int64_t selected_rax_12 = global_0x84a68f8->field_0x1800 == 0 ? selected_rdx_11 : selected_rdx_11 + 1;
-        int64_t selected_rdx_13 = global_0x84a68f8->field_0x1a00 == 0 ? selected_rax_12 : selected_rax_12 + 1;
-        int64_t selected_rax_14 = global_0x84a68f8->field_0x1c00 == 0 ? selected_rdx_13 : selected_rdx_13 + 1;
-        int64_t selected_rdx_15 = global_0x84a68f8->field_0x1e00 == 0 ? selected_rax_14 : selected_rax_14 + 1;
-        int64_t selected_rax_16 = global_0x84a68f8->field_0x2000 == 0 ? selected_rdx_15 : selected_rdx_15 + 1;
-        int64_t selected_rdx_17 = global_0x84a68f8->field_0x2200 == 0 ? selected_rax_16 : selected_rax_16 + 1;
-        int64_t selected_rax_18 = global_0x84a68f8->field_0x2400 == 0 ? selected_rdx_17 : selected_rdx_17 + 1;
-        int64_t selected_rdx_19 = global_0x84a68f8->field_0x2600 == 0 ? selected_rax_18 : selected_rax_18 + 1;
-        int64_t selected_rax_20 = global_0x84a68f8->field_0x2800 == 0 ? selected_rdx_19 : selected_rdx_19 + 1;
-        int64_t selected_rdx_21 = global_0x84a68f8->field_0x2a00 == 0 ? selected_rax_20 : selected_rax_20 + 1;
-        int64_t selected_rax_22 = global_0x84a68f8->field_0x2c00 == 0 ? selected_rdx_21 : selected_rdx_21 + 1;
-        int64_t selected_rdx_23 = global_0x84a68f8->field_0x2e00 == 0 ? selected_rax_22 : selected_rax_22 + 1;
-        int64_t selected_rax_24 = global_0x84a68f8->field_0x3000 == 0 ? selected_rdx_23 : selected_rdx_23 + 1;
-        int64_t selected_rdx_25 = global_0x84a68f8->field_0x3200 == 0 ? selected_rax_24 : selected_rax_24 + 1;
-        int64_t selected_rax_26 = global_0x84a68f8->field_0x3400 == 0 ? selected_rdx_25 : selected_rdx_25 + 1;
-        int64_t selected_rdx_27 = global_0x84a68f8->field_0x3600 == 0 ? selected_rax_26 : selected_rax_26 + 1;
-        int64_t selected_rax_28 = global_0x84a68f8->field_0x3800 == 0 ? selected_rdx_27 : selected_rdx_27 + 1;
-        int64_t selected_rdx_29 = global_0x84a68f8->field_0x3a00 == 0 ? selected_rax_28 : selected_rax_28 + 1;
-        int64_t selected_rax_30 = global_0x84a68f8->field_0x3c00 == 0 ? selected_rdx_29 : selected_rdx_29 + 1;
-        int64_t selected_rdx_31 = global_0x84a68f8->field_0x3e00 == 0 ? selected_rax_30 : selected_rax_30 + 1;
-        int64_t selected_rax_32 = global_0x84a68f8->field_0x4000 == 0 ? selected_rdx_31 : selected_rdx_31 + 1;
-        int64_t selected_rdx_33 = global_0x84a68f8->field_0x4200 == 0 ? selected_rax_32 : selected_rax_32 + 1;
-        int64_t selected_rax_34 = global_0x84a68f8->field_0x4400 == 0 ? selected_rdx_33 : selected_rdx_33 + 1;
-        int64_t selected_rdx_35 = global_0x84a68f8->field_0x4600 == 0 ? selected_rax_34 : selected_rax_34 + 1;
-        int64_t selected_rax_36 = global_0x84a68f8->field_0x4800 == 0 ? selected_rdx_35 : selected_rdx_35 + 1;
-        int64_t selected_rdx_37 = global_0x84a68f8->field_0x4a00 == 0 ? selected_rax_36 : selected_rax_36 + 1;
-        int64_t selected_rax_38 = global_0x84a68f8->field_0x4c00 == 0 ? selected_rdx_37 : selected_rdx_37 + 1;
-        int64_t selected_rdx_39 = global_0x84a68f8->field_0x4e00 == 0 ? selected_rax_38 : selected_rax_38 + 1;
-        int64_t selected_rax_40 = global_0x84a68f8->field_0x5000 == 0 ? selected_rdx_39 : selected_rdx_39 + 1;
-        int64_t selected_rdx_41 = global_0x84a68f8->field_0x5200 == 0 ? selected_rax_40 : selected_rax_40 + 1;
-        int64_t selected_rax_42 = global_0x84a68f8->field_0x5400 == 0 ? selected_rdx_41 : selected_rdx_41 + 1;
-        int64_t selected_rdx_43 = global_0x84a68f8->field_0x5600 == 0 ? selected_rax_42 : selected_rax_42 + 1;
-        int64_t selected_rax_44 = global_0x84a68f8->field_0x5800 == 0 ? selected_rdx_43 : selected_rdx_43 + 1;
-        int64_t selected_rdx_45 = global_0x84a68f8->field_0x5a00 == 0 ? selected_rax_44 : selected_rax_44 + 1;
-        int64_t selected_rax_46 = global_0x84a68f8->field_0x5c00 == 0 ? selected_rdx_45 : selected_rdx_45 + 1;
-        int64_t selected_rdx_47 = global_0x84a68f8->field_0x5e00 == 0 ? selected_rax_46 : selected_rax_46 + 1;
-      } while (((0 + 2) - 1) != 0); // loop -> L_0x507f420
+        int64_t selected_rdx_1 = i_ecx->field_m0x200 == 0 ? (i_ecx->field_m0x400 == 0 ? i_edx : i_edx + 1) : (i_ecx->field_m0x400 == 0 ? i_edx : i_edx + 1) + 1;
+        int64_t selected_rax_2 = i_ecx->field_0x0 == 0 ? selected_rdx_1 : selected_rdx_1 + 1;
+        int64_t selected_rdx_3 = i_ecx->field_0x200 == 0 ? selected_rax_2 : selected_rax_2 + 1;
+        int64_t selected_rax_4 = i_ecx->field_0x400 == 0 ? selected_rdx_3 : selected_rdx_3 + 1;
+        int64_t selected_rdx_5 = i_ecx->field_0x600 == 0 ? selected_rax_4 : selected_rax_4 + 1;
+        int64_t selected_rax_6 = i_ecx->field_0x800 == 0 ? selected_rdx_5 : selected_rdx_5 + 1;
+        int64_t selected_rdx_7 = i_ecx->field_0xa00 == 0 ? selected_rax_6 : selected_rax_6 + 1;
+        int64_t selected_rax_8 = i_ecx->field_0xc00 == 0 ? selected_rdx_7 : selected_rdx_7 + 1;
+        int64_t selected_rdx_9 = i_ecx->field_0xe00 == 0 ? selected_rax_8 : selected_rax_8 + 1;
+        int64_t selected_rax_10 = i_ecx->field_0x1000 == 0 ? selected_rdx_9 : selected_rdx_9 + 1;
+        int64_t selected_rdx_11 = i_ecx->field_0x1200 == 0 ? selected_rax_10 : selected_rax_10 + 1;
+        int64_t selected_rax_12 = i_ecx->field_0x1400 == 0 ? selected_rdx_11 : selected_rdx_11 + 1;
+        int64_t selected_rdx_13 = i_ecx->field_0x1600 == 0 ? selected_rax_12 : selected_rax_12 + 1;
+        int64_t selected_rax_14 = i_ecx->field_0x1800 == 0 ? selected_rdx_13 : selected_rdx_13 + 1;
+        int64_t selected_rdx_15 = i_ecx->field_0x1a00 == 0 ? selected_rax_14 : selected_rax_14 + 1;
+        int64_t selected_rax_16 = i_ecx->field_0x1c00 == 0 ? selected_rdx_15 : selected_rdx_15 + 1;
+        int64_t selected_rdx_17 = i_ecx->field_0x1e00 == 0 ? selected_rax_16 : selected_rax_16 + 1;
+        int64_t selected_rax_18 = i_ecx->field_0x2000 == 0 ? selected_rdx_17 : selected_rdx_17 + 1;
+        int64_t selected_rdx_19 = i_ecx->field_0x2200 == 0 ? selected_rax_18 : selected_rax_18 + 1;
+        int64_t selected_rax_20 = i_ecx->field_0x2400 == 0 ? selected_rdx_19 : selected_rdx_19 + 1;
+        int64_t selected_rdx_21 = i_ecx->field_0x2600 == 0 ? selected_rax_20 : selected_rax_20 + 1;
+        int64_t selected_rax_22 = i_ecx->field_0x2800 == 0 ? selected_rdx_21 : selected_rdx_21 + 1;
+        int64_t selected_rdx_23 = i_ecx->field_0x2a00 == 0 ? selected_rax_22 : selected_rax_22 + 1;
+        int64_t selected_rax_24 = i_ecx->field_0x2c00 == 0 ? selected_rdx_23 : selected_rdx_23 + 1;
+        int64_t selected_rdx_25 = i_ecx->field_0x2e00 == 0 ? selected_rax_24 : selected_rax_24 + 1;
+        int64_t selected_rax_26 = i_ecx->field_0x3000 == 0 ? selected_rdx_25 : selected_rdx_25 + 1;
+        int64_t selected_rdx_27 = i_ecx->field_0x3200 == 0 ? selected_rax_26 : selected_rax_26 + 1;
+        int64_t selected_rax_28 = i_ecx->field_0x3400 == 0 ? selected_rdx_27 : selected_rdx_27 + 1;
+        int64_t selected_rdx_29 = i_ecx->field_0x3600 == 0 ? selected_rax_28 : selected_rax_28 + 1;
+        int64_t selected_rax_30 = i_ecx->field_0x3800 == 0 ? selected_rdx_29 : selected_rdx_29 + 1;
+        int64_t selected_rdx_31 = i_ecx->field_0x3a00 == 0 ? selected_rax_30 : selected_rax_30 + 1;
+        int64_t selected_rax_32 = i_ecx->field_0x3c00 == 0 ? selected_rdx_31 : selected_rdx_31 + 1;
+        int64_t selected_rdx_33 = i_ecx->field_0x3e00 == 0 ? selected_rax_32 : selected_rax_32 + 1;
+        int64_t selected_rax_34 = i_ecx->field_0x4000 == 0 ? selected_rdx_33 : selected_rdx_33 + 1;
+        int64_t selected_rdx_35 = i_ecx->field_0x4200 == 0 ? selected_rax_34 : selected_rax_34 + 1;
+        int64_t selected_rax_36 = i_ecx->field_0x4400 == 0 ? selected_rdx_35 : selected_rdx_35 + 1;
+        int64_t selected_rdx_37 = i_ecx->field_0x4600 == 0 ? selected_rax_36 : selected_rax_36 + 1;
+        int64_t selected_rax_38 = i_ecx->field_0x4800 == 0 ? selected_rdx_37 : selected_rdx_37 + 1;
+        int64_t selected_rdx_39 = i_ecx->field_0x4a00 == 0 ? selected_rax_38 : selected_rax_38 + 1;
+        int64_t selected_rax_40 = i_ecx->field_0x4c00 == 0 ? selected_rdx_39 : selected_rdx_39 + 1;
+        int64_t selected_rdx_41 = i_ecx->field_0x4e00 == 0 ? selected_rax_40 : selected_rax_40 + 1;
+        int64_t selected_rax_42 = i_ecx->field_0x5000 == 0 ? selected_rdx_41 : selected_rdx_41 + 1;
+        int64_t selected_rdx_43 = i_ecx->field_0x5200 == 0 ? selected_rax_42 : selected_rax_42 + 1;
+        int64_t selected_rax_44 = i_ecx->field_0x5400 == 0 ? selected_rdx_43 : selected_rdx_43 + 1;
+        int64_t selected_rdx_45 = i_ecx->field_0x5600 == 0 ? selected_rax_44 : selected_rax_44 + 1;
+        int64_t selected_rax_46 = i_ecx->field_0x5800 == 0 ? selected_rdx_45 : selected_rdx_45 + 1;
+        int64_t selected_rdx_47 = i_ecx->field_0x5a00 == 0 ? selected_rax_46 : selected_rax_46 + 1;
+        int64_t selected_rax_48 = i_ecx->field_0x5c00 == 0 ? selected_rdx_47 : selected_rdx_47 + 1;
+        int64_t selected_rdx_49 = i_ecx->field_0x5e00 == 0 ? selected_rax_48 : selected_rax_48 + 1;
+        int64_t selected_rax_50 = i_ecx->field_0x6000 == 0 ? selected_rdx_49 : selected_rdx_49 + 1;
+        int64_t selected_rdx_51 = i_ecx->field_0x6200 == 0 ? selected_rax_50 : selected_rax_50 + 1;
+        int64_t selected_rax_52 = i_ecx->field_0x6400 == 0 ? selected_rdx_51 : selected_rdx_51 + 1;
+        int64_t selected_rdx_53 = i_ecx->field_0x6600 == 0 ? selected_rax_52 : selected_rax_52 + 1;
+        int64_t selected_rax_54 = i_ecx->field_0x6800 == 0 ? selected_rdx_53 : selected_rdx_53 + 1;
+        int64_t selected_rdx_55 = (i_ecx + 0x8000)->field_m0x1600 == 0 ? selected_rax_54 : selected_rax_54 + 1;
+        int64_t selected_rax_56 = (i_ecx + 0x8000)->field_m0x1400 == 0 ? selected_rdx_55 : selected_rdx_55 + 1;
+        int64_t selected_rdx_57 = (i_ecx + 0x8000)->field_m0x1200 == 0 ? selected_rax_56 : selected_rax_56 + 1;
+        int64_t selected_rax_58 = (i_ecx + 0x8000)->field_m0x1000 == 0 ? selected_rdx_57 : selected_rdx_57 + 1;
+        int64_t selected_rdx_59 = (i_ecx + 0x8000)->field_m0xe00 == 0 ? selected_rax_58 : selected_rax_58 + 1;
+        int64_t selected_rax_60 = (i_ecx + 0x8000)->field_m0xc00 == 0 ? selected_rdx_59 : selected_rdx_59 + 1;
+        int64_t selected_rdx_61 = (i_ecx + 0x8000)->field_m0xa00 == 0 ? selected_rax_60 : selected_rax_60 + 1;
+        int64_t selected_r8_62 = (i_ecx + 0x8000)->field_m0x800 == 0 ? selected_rdx_61 : selected_rdx_61 + 1;
+        int64_t selected_rdx_63 = (i_ecx + 0x8000)->field_m0x600 == 0 ? selected_r8_62 : selected_r8_62 + 1;
+        i_r9d--;
+        i_ecx = i_ecx + 0x8000;
+        i_edx = selected_rdx_63;
+      } while (i_r9d != 0); // loop -> L_0x507f420
       return selected_rdx_63;
     }
   
@@ -688,19 +708,36 @@ Operação  : 0x507d45e: cmp byte [flag], imm8 ; fn=0x507d300..0x507d633
     
     // Flag defaults: SentryUserIdAsUserContextEnabled = true, CrashReportLog = 6
     auto RBX::SentryUser::func_0x507d120(RBX::SentryUser* this) {
+      void* v_rax_3;
       if (global_0x84a68f8 != 0) {
         call_0x2e12fd0(&sym_0x8196838);
         call_0x507f260("True", &local_0x80, &local_0x70);
         auto ret_0x507f400_3 = call_0x507f400();
+        void* v_rax_2;
         if (global_0x8196838 == 3) {
           if (atomic_cas(&global_0x8196838, 3, 1) != 0) {
-            call_0xdac0(&sym_0x8196838);
+            auto ret_0xdac0_4 = call_0xdac0(&sym_0x8196838);
+            v_rax_2 = ret_0xdac0_4;
+          } else {
+            v_rax_2 = 3;
           }
         } else {
-          call_0xdac0(&sym_0x8196838);
+          auto ret_0xdac0_4 = call_0xdac0(&sym_0x8196838);
+          v_rax_2 = ret_0xdac0_4;
         }
-        if (ret_0x507f400_3 >= 128 - global_0x84a6900 && CrashReportLog >= 6 && CrashReportLog >> 8 >= 2) {
-          FLog::Log("[FLog::CrashReportLog] Backtrace attribute storage overflow: Too many attributes are reported to");
+        if (ret_0x507f400_3 >= 128 - global_0x84a6900) {
+          if (CrashReportLog >= 6) {
+            if (CrashReportLog >> 8 >= 2) {
+              FLog::Log("[FLog::CrashReportLog] Backtrace attribute storage overflow: Too many attributes are reported to");
+              v_rax_3 = &local_0xa0;
+            } else {
+              v_rax_3 = CrashReportLog >> 8;
+            }
+          } else {
+            v_rax_3 = CrashReportLog;
+          }
+        } else {
+          v_rax_3 = v_rax_2;
         }
       }
       return v_rax_3;
@@ -726,7 +763,7 @@ Operação  : 0x507d45e: cmp byte [flag], imm8 ; fn=0x507d300..0x507d633
     0x507d173 | 90                       | nop
     0x507d174 | 48 8d 0d fd 2c 46 02     | lea rcx, [rip + 0x2462cfd] ; "True"
     0x507d17b | 48 89 4c 24 30           | mov qword ptr [rsp + 0x30], rcx
-    0x507d180 | 48 c7 c3 ff ff ff ff     | mov rbx, 0xffffffff
+    0x507d180 | 48 c7 c3 ff ff ff ff     | mov rbx, -0x1
     0x507d187 | 48 8b c3                 | mov rax, rbx
     0x507d18a | 66 0f 1f 44 00 00        | nop
     L_0x507d190:
@@ -836,11 +873,7 @@ Operação  : 0x507d45e: cmp byte [flag], imm8 ; fn=0x507d300..0x507d633
         auto ret_0x507f400_5 = call_0x507f400();
         v_dil_1 = ret_0x507f400_5 >= 128 - global_0x84a6900;
       }
-      if (global_0x8196838 == 3) {
-        if (atomic_cas(&global_0x8196838, global_0x8196838, 1) != 0) {
-          call_0xdac0(&sym_0x8196838);
-        }
-      } else {
+      if (global_0x8196838 != 3 || atomic_cas(&global_0x8196838, global_0x8196838, 1) != 0) {
         call_0xdac0(&sym_0x8196838);
       }
       if (v_dil_1 != 0 && CrashReportLog >= 6 && CrashReportLog >> 8 >= 2) {
@@ -879,7 +912,7 @@ Operação  : 0x507d45e: cmp byte [flag], imm8 ; fn=0x507d300..0x507d633
     0x507e16c | 48 8b ce                 | mov rcx, rsi
     0x507e16f | e8 5c 4e d9 fd           | call 0x2e12fd0
     0x507e174 | 90                       | nop
-    0x507e175 | 48 c7 c3 ff ff ff ff     | mov rbx, 0xffffffff
+    0x507e175 | 48 c7 c3 ff ff ff ff     | mov rbx, -0x1
     0x507e17c | 48 83 3d 74 87 42 03 00  | cmp qword ptr [rip + 0x3428774], 0x0
     0x507e184 | 0f 84 2f 01 00 00        | je 0x507e2b9
     0x507e18a | 40 38 3d 47 81 0c 03     | cmp byte ptr [rip + 0x30c8147], dil ; FFlagSentryEnvironmentTaggingEnabled

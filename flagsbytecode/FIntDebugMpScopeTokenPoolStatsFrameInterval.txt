@@ -11,7 +11,7 @@ Operação  : 0x599a717: mov/math reg, [flag] ; fn=0x599a670..0x599aa85
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : DebugMpScopeTokenPoolStatsFrameInterval <= 0
     Fórmula : this->field_0xd0 < DebugMpScopeTokenPoolStatsFrameInterval
-    Altera  : this->field_0x90, this->field_0x95, this->field_0xd0, this->field_0x8c, this->field_0x88
+    Altera  : this->field_0x90, this->field_0x95, this->field_0xd0, this->field_0xa0, this->field_0x8c, this->field_0x88
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x5998f40 (in fn_0x5998f30): jmp 0x599a670  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
@@ -58,11 +58,11 @@ Operação  : 0x599a717: mov/math reg, [flag] ; fn=0x599a670..0x599aa85
           this->field_0x95 = 0;
         }
         if (DebugMpScopeTokenPoolStats && DebugMpScopeTokenPoolStatsFrameInterval > 0) {
-          this->field_0xd0 = this->field_0xd0 + 1;
+          this->field_0xd0++;
           if (this->field_0xd0 >= DebugMpScopeTokenPoolStatsFrameInterval) {
             this->field_0xd0 = 0;
-            if (atomic_exchange(&this->field_0xb8, 0) + rax != 0) {
-              auto expr_1 = atomic_exchange(&this->field_0xb8, 0) + rax;
+            if (atomic_exchange(&this->field_0xb8, 0) + atomic_exchange(&this->field_0xb0, 0) != 0) {
+              auto expr_1 = atomic_exchange(&this->field_0xb8, 0) + atomic_exchange(&this->field_0xb0, 0);
               atomic_exchange(&this->field_0xb8, 0) * 100 / expr_1;
               atomic_exchange(&this->field_0xb0, 0) * 100 / expr_1;
             }
@@ -75,36 +75,38 @@ Operação  : 0x599a717: mov/math reg, [flag] ; fn=0x599a670..0x599aa85
           }
         }
         if (this->field_0x8c != 0) {
-          int32_t v_rdx_4 = 0;
+          uint8_t v_dl_4 = 0;
           auto* f_98 = this->field_0x98;
           if (((this->field_0xa0 - f_98) >> 3) - 1 >= 0) {
             int32_t i_edx = 0;
+            void* i_r14d = (((this->field_0xa0 - f_98) >> 3) - 1) * 8;
+            void* i_esi = (((this->field_0xa0 - f_98) >> 3) - 1) * 8;
             int32_t i_edi = ((this->field_0xa0 - f_98) >> 3) - 1;
             do { // L_0x599a9c0
-              int32_t v_rdx_3 = i_edx;
-              if (global_0x816d648->field_0x192490 - f_98->field_0x4[rax * 8] >= 0x200) {
-                call_0x599aa90(this, f_98->field_0x0[rax * 8]);
-                call_0x5e05370(f_98 + rax * 8, f_98 + rax * 8 + 8, this->field_0xa0 - (f_98 + rax * 8 + 8));
-                v_rdx_3 = 1;
+              uint8_t v_dl_3 = i_edx;
+              if (global_0x816d648->field_0x192490 - f_98->field_0x4[i_esi] >= 0x200) {
+                call_0x599aa90(this, f_98->field_0x0[i_esi]);
+                call_0x5e05370(f_98 + i_r14d, f_98 + i_r14d + 8, this->field_0xa0 - (f_98 + i_r14d + 8));
+                this->field_0xa0 = this->field_0xa0 - 8;
+                v_dl_3 = 1;
               }
-              v_rdx_4 = v_rdx_3;
-            } while ((i_edi - 1) >= 0); // loop -> L_0x599a9c0
+              i_r14d -= 8;
+              i_esi -= 8;
+              i_edx = v_dl_3;
+              i_edi = i_edi - 1;
+            } while (i_edi - 1 >= 0); // loop -> L_0x599a9c0
           }
           if (f_98 == this->field_0xa0) {
             this->field_0x8c = 0;
-            if (v_rdx_4 != 0) {
+            if (v_dl_4 != 0) {
               this->field_0x88 = 0;
             }
           }
         }
       }
-      if (this->field_0x0 == 3) {
-        if (atomic_cas(&this->field_0x0, this->field_0x0, 1) != 0) {
-          call_0xdac0(this);
-        }
-        return;
+      if (this->field_0x0 != 3 || atomic_cas(&this->field_0x0, this->field_0x0, 1) != 0) {
+        call_0xdac0(this);
       }
-      call_0xdac0(this);
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -226,7 +228,7 @@ Operação  : 0x599a717: mov/math reg, [flag] ; fn=0x599a670..0x599aa85
     0x599a84b | 48 8b 4d d0              | mov rcx, qword ptr [rbp - 0x30]
     0x599a84f | 48 81 c1 3a 47 23 ff     | add rcx, 0xff23473a
     0x599a856 | 48 89 4d 10              | mov qword ptr [rbp + 0x10], rcx
-    0x599a85a | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x599a85a | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     L_0x599a861:
     0x599a861 | 48 ff c0                 | inc rax
     0x599a864 | 80 3c 01 00              | cmp byte ptr [rcx + rax], 0x0
@@ -385,16 +387,26 @@ Operação  : 0x599a717: mov/math reg, [flag] ; fn=0x599a670..0x599aa85
     // Flag defaults: DebugMpScopeTokenPoolStatsFrameInterval = 1000
     void RBX::DebugMp::func_0x599acc0(RBX::DebugMp* this) {
       int32_t v_rdx_8 = 1;
+      void* i_ecx;
       auto* f_10 = this->field_0x10;
       if ((this->field_0x18 - f_10) >> 3 > 0) {
+        i_ecx = &sym_0x7037918;
         int32_t i_edx = 1;
+        int32_t i_r14d = 0;
+        int32_t i_esi = 0;
+        void* i_r8d = "$UserToken_{}";
+        int32_t i_r12d = 0;
+        int32_t i_r15d = 0;
         do { // L_0x599ad34
+          void* v_rcx_3 = i_ecx;
           int32_t v_rdx_4 = i_edx;
+          void* v_r8_5 = i_r8d;
+          int32_t v_r15_6 = i_r15d;
           auto* f_28 = this->field_0x28;
-          if (f_28->field_0x8[esi] == 0) {
-            if (f_28->field_0xb[esi] != 0) {
+          if (f_28->field_0x8[i_esi] == 0) {
+            if (f_28->field_0xb[i_esi] != 0) {
               L_0x599ad4a:
-              auto local_0xb0 = &sym_0x7037918;
+              auto local_0xb0 = i_ecx;
               call_0x1d49560(&local_0xb0, &local_0x70, &local_0x60, 0);
               auto local_0x80 = 0;
               call_0x6f7000(&local_0x80, local_0xb8, local_0xc0);
@@ -402,33 +414,35 @@ Operação  : 0x599a717: mov/math reg, [flag] ; fn=0x599a670..0x599aa85
                 void* v_rcx_1 = local_0xb8;
                 call_0x4955ac0(v_rcx_1);
               }
-              call_0x2925120(f_10->field_0x0[r14d * 8], local_0x80.c_str());
-              if (local_0x98 >= 16) {
-                void* v_rcx_2 = local_0x80;
-                if (local_0x98 + 1 >= 0x1000) {
-                  if ((local_0x80 - local_0x80->field_m0x8) < 8 || (local_0x80 - local_0x80->field_m0x8) > 39) break;
-                }
-                call_0x4955ac0(v_rcx_2);
-              }
-              f_28->field_0x8[esi] = 0;
-              f_28->field_0x9[esi] = 0;
-              f_28->field_0xb[esi] = 0;
-              f_28->field_0x10[esi] = 0;
-              f_28->field_0xc[esi] = 0;
+              call_0x2925120(f_10->field_0x0[i_r14d * 8], local_0x80.c_str());
+              std::string::_Tidy_deallocate(local_0x80);
+              f_28->field_0x8[i_esi] = 0;
+              f_28->field_0x9[i_esi] = 0;
+              f_28->field_0xb[i_esi] = 0;
+              f_28->field_0x10[i_esi] = 0;
+              f_28->field_0xc[i_esi] = 0;
+              v_rcx_3 = &sym_0x7037918;
               v_rdx_4 = 1;
+              v_r8_5 = "$UserToken_{}";
+              v_r15_6 = (i_r15d | 0xc) & 0xfffffffb | 0x3;
             }
-            v_rdx_8 = v_rdx_4;
+            i_r12d++;
+            i_r14d++;
+            i_esi += 0x18;
+            i_ecx = v_rcx_3;
+            i_edx = v_rdx_4;
+            i_r8d = v_r8_5;
+            i_r15d = v_r15_6;
           } else {
             goto L_0x599ad4a;
           }
-        } while ((r14d + 1) < ((this->field_0x18 - f_10) >> 3)); // loop -> L_0x599ad34
+        } while (i_r14d < (this->field_0x18 - f_10) >> 3); // loop -> L_0x599ad34
       }
       this->field_0x44 = 0;
       this->field_0x48 = 0;
       this->field_0x4c = 0;
       this->field_0x50 = 0;
       this->field_0x40 = 0;
-      auto* f_58 = this->field_0x58;
       if (this->field_0x60 * 4 < this->field_0x68 && this->field_0x68 > 64) {
         int32_t v_r14_10 = 0;
         if (this->field_0x60 != 0) {
@@ -436,42 +450,32 @@ Operação  : 0x599a717: mov/math reg, [flag] ; fn=0x599a670..0x599aa85
         }
         if (v_r14_10 == this->field_0x68) {
           this->field_0x60 = 0;
-          if (f_58 != (this->field_0x68 << 4) + f_58) {
+          if (this->field_0x58 != (this->field_0x68 << 4) + this->field_0x58) {
             do { // L_0x599af70
-              f_58->field_0x0 = -1;
-            } while (&f_58->field_0x10 != i_eax); // loop -> L_0x599af70
+              i_ecx->field_0x0 = -1;
+              i_ecx += 0x10;
+            } while (i_ecx != (this->field_0x68 << 4) + this->field_0x58); // loop -> L_0x599af70
           }
         } else {
-          call_0x4955ac0(f_58);
-          call_0x164f5a0(&f_58, v_r14_10);
+          call_0x4955ac0(this->field_0x58);
+          call_0x164f5a0(&this->field_0x58, v_r14_10);
         }
       } else {
-        if (this->field_0x60 == 0) {
-          if (this->field_0x64 != this->field_0x60) {
-            if (f_58 != (this->field_0x68 << 4) + f_58) {
-              auto i_eax = f_58;
-              L_0x599afc0:
-              do { // L_0x599afc0
-                L_0x599afc0:
-                f_58->field_0x0 = -1;
-              } while (&f_58->field_0x10 != ((this->field_0x68 << 4) + f_58)); // loop -> L_0x599afc0
-            }
-            this->field_0x60 = 0;
+        if (this->field_0x60 != 0 || this->field_0x64 != this->field_0x60) {
+          if (this->field_0x58 != (this->field_0x68 << 4) + this->field_0x58) {
+            void* i_eax = this->field_0x58;
+            do { // L_0x599afc0
+              i_eax->field_0x0 = -1;
+              i_eax += 0x10;
+            } while (i_eax != (this->field_0x68 << 4) + this->field_0x58); // loop -> L_0x599afc0
           }
-          L_0x599afd4:
-          this->field_0xa0 = this->field_0x98;
-          this->field_0x8c = 0;
-          this->field_0x88 = 0;
-          call_0x29a48b0(atomic_fetch_add(&this->field_0x84, 1));
-          return;
+          this->field_0x60 = 0;
         }
-        if (f_58 != (this->field_0x68 << 4) + f_58) {
-          auto i_eax = f_58;
-          goto L_0x599afc0;
-        }
-        this->field_0x60 = 0;
       }
-      goto L_0x599afd4;
+      this->field_0xa0 = this->field_0x98;
+      this->field_0x8c = 0;
+      this->field_0x88 = 0;
+      call_0x29a48b0(atomic_fetch_add(&this->field_0x84, 1));
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x599acc0..0x599b048)] ===
@@ -653,7 +657,7 @@ Operação  : 0x599a717: mov/math reg, [flag] ; fn=0x599a670..0x599aa85
     0x599af68 | 74 6a                    | je 0x599afd4
     0x599af6a | 66 0f 1f 44 00 00        | nop
     L_0x599af70:
-    0x599af70 | 48 c7 01 ff ff ff ff     | mov qword ptr [rcx], 0xffffffff
+    0x599af70 | 48 c7 01 ff ff ff ff     | mov qword ptr [rcx], -0x1
     0x599af77 | 48 83 c1 10              | add rcx, 0x10
     0x599af7b | 48 3b c8                 | cmp rcx, rax
     0x599af7e | 75 f0                    | jne 0x599af70
@@ -680,7 +684,7 @@ Operação  : 0x599a717: mov/math reg, [flag] ; fn=0x599a670..0x599aa85
     0x599afb2 | 0f 1f 40 00              | nop
     0x599afb6 | 66 66 0f 1f 84 00 00 00.. | nop
     L_0x599afc0:
-    0x599afc0 | 48 c7 00 ff ff ff ff     | mov qword ptr [rax], 0xffffffff
+    0x599afc0 | 48 c7 00 ff ff ff ff     | mov qword ptr [rax], -0x1
     0x599afc7 | 48 83 c0 10              | add rax, 0x10
     0x599afcb | 48 3b c1                 | cmp rax, rcx
     0x599afce | 75 f0                    | jne 0x599afc0
@@ -735,13 +739,10 @@ Operação  : 0x599a717: mov/math reg, [flag] ; fn=0x599a670..0x599aa85
         int64_t tmp_1 = ((MpMaxScriptScopes * MpStudioScopeSlotPercent / 100 + MpMaxScriptScopes * MpStudioScopeSlotPercent) >> 6) + (((MpMaxScriptScopes * MpStudioScopeSlotPercent / 100 + MpMaxScriptScopes * MpStudioScopeSlotPercent) >> 6) >> 63);
         v_rdx_1 = tmp_1;
       }
-      if (v_rdx_1 > 0) {
-        if (v_rdx_1 > (this->field_0x18 - this->field_0x10) >> 3) {
-          return (this->field_0x18 - this->field_0x10) >> 3;
-        }
-        return v_rdx_1;
+      if (v_rdx_1 <= 0 || v_rdx_1 > (this->field_0x18 - this->field_0x10) >> 3) {
+        return (this->field_0x18 - this->field_0x10) >> 3;
       }
-      return (this->field_0x18 - this->field_0x10) >> 3;
+      return v_rdx_1;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x5999890..0x59998f9)] ===
@@ -797,13 +798,10 @@ Operação  : 0x599a717: mov/math reg, [flag] ; fn=0x599a670..0x599aa85
         int64_t tmp_1 = ((MpMaxProfileBeginScopes * MpStudioScopeSlotPercent / 100 + MpMaxProfileBeginScopes * MpStudioScopeSlotPercent) >> 6) + (((MpMaxProfileBeginScopes * MpStudioScopeSlotPercent / 100 + MpMaxProfileBeginScopes * MpStudioScopeSlotPercent) >> 6) >> 63);
         v_rdx_1 = tmp_1;
       }
-      if (v_rdx_1 > 0) {
-        if (v_rdx_1 > (this->field_0x18 - this->field_0x10) >> 3) {
-          return (this->field_0x18 - this->field_0x10) >> 3;
-        }
-        return v_rdx_1;
+      if (v_rdx_1 <= 0 || v_rdx_1 > (this->field_0x18 - this->field_0x10) >> 3) {
+        return (this->field_0x18 - this->field_0x10) >> 3;
       }
-      return (this->field_0x18 - this->field_0x10) >> 3;
+      return v_rdx_1;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x5999900..0x5999969)] ===

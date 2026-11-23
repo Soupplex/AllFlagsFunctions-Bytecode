@@ -79,8 +79,8 @@ Operação  : 0xe2ad52: cmp byte [flag], imm8 ; fn=0xe2ad40..0xe2ad90
           v_rdi_2 = this;
         }
         if (v_rdi_2 != 0) {
-          call_0x27c5150();
-          void* sel_rcx_1 = v_rdi_2->field_0x18->field_0x1c0 - rax->field_0x1c0 <= rax->field_0x1c2 ? v_rdi_2 : 0;
+          auto ret_0x27c5150_2 = call_0x27c5150();
+          void* sel_rcx_1 = v_rdi_2->field_0x18->field_0x1c0 - ret_0x27c5150_2->field_0x1c0 <= ret_0x27c5150_2->field_0x1c2 ? v_rdi_2 : 0;
           if (sel_rcx_1 != 0) {
             auto ret_0xe30660_3 = call_0xe30660(sel_rcx_1);
             if (ret_0xe30660_3->field_0x0 != 0) {
@@ -146,13 +146,13 @@ Operação  : 0xe2ad52: cmp byte [flag], imm8 ; fn=0xe2ad40..0xe2ad90
     // Flag defaults: ExperienceStateCaptureDisableSound = true
     void RBX::ExperienceState::func_0xe358e0(RBX::ExperienceState* this, int64_t param_2) {
       void* sel_rsi_1 = this == 0 ? 0 : this->field_m0xa8;
-      sel_rsi_1->vfunc(sel_rsi_1);
+      (*global_0x80f4c78)(sel_rsi_1);
       if (this->field_0x5 != param_2) {
         auto ret_0x77e9b0_2 = call_0x77e9b0();
         if (ret_0x77e9b0_2 != 0) {
-          &this->field_m0xa8->vfunc(&this->field_m0xa8, &sym_0x85b4140, 1);
+          (&this->field_m0xa8)->vfunc_0x90(&this->field_m0xa8, &sym_0x85b4140, 1) // -> Input::Consumer::ExperienceStateCapture::fn_0xe27010;
           if (this->field_m0x1a == 0) {
-            auto vret_4 = &this->field_m0xa8->vfunc(&this->field_m0xa8);
+            auto vret_4 = (*global_0x80f4c08)(&this->field_m0xa8);
             if (vret_4 != 0) {
               call_0x1c5aab0(vret_4, sel_rsi_1, &sym_0x85b4140, &this->field_0x5);
             }
@@ -233,11 +233,11 @@ Operação  : 0xe2ad52: cmp byte [flag], imm8 ; fn=0xe2ad40..0xe2ad90
     
     // Flag defaults: ExperienceStateCaptureDisableSound = true, ExperienceStateCaptureController = 6
     void RBX::ExperienceState::func_0x4cf7170(RBX::ExperienceState* this, int64_t param_2) {
-      int32_t i_eax;
       if (ExperienceStateCaptureController >= 6 && ExperienceStateCaptureController >> 8 >= 4) {
-        i_eax = rdi;
+        uint64_t i_eax = -1;
         do { // L_0x4cf71e0
-        } while ("[FLog::ExperienceStateCaptureController] start onSwitch"[(i_eax + 1)] != 0); // loop -> L_0x4cf71e0
+          i_eax++;
+        } while ("[FLog::ExperienceStateCaptureController] start onSwitch"[i_eax] != 0); // loop -> L_0x4cf71e0
         FLog::Log("[FLog::ExperienceStateCaptureController] start onSwitch");
       }
       call_0x2e12fd0(&this->field_0x68);
@@ -261,11 +261,7 @@ Operação  : 0xe2ad52: cmp byte [flag], imm8 ; fn=0xe2ad40..0xe2ad90
         call_0xe2f0b0(prev_0x60_2);
         call_0x4955ac0(prev_0x60_2);
       }
-      if (this->field_0x68 == 3) {
-        if (atomic_cas(&this->field_0x68, this->field_0x68, 1) != 0) {
-          call_0xdac0(&this->field_0x68);
-        }
-      } else {
+      if (this->field_0x68 != 3 || atomic_cas(&this->field_0x68, this->field_0x68, 1) != 0) {
         call_0xdac0(&this->field_0x68);
       }
       void* v_rbx_2 = stk_1;
@@ -278,8 +274,10 @@ Operação  : 0xe2ad52: cmp byte [flag], imm8 ; fn=0xe2ad40..0xe2ad90
           call_0xe2a380(ret_0x4cb6240_11, 0);
         }
         if (ExperienceStateCaptureController >= 6 && ExperienceStateCaptureController >> 8 >= 4) {
+          uint64_t i_edi = -1;
           do { // L_0x4cf7370
-          } while (i_eax[(rdi + 1)] != 0); // loop -> L_0x4cf7370
+            i_edi++;
+          } while (rax[i_edi] != 0); // loop -> L_0x4cf7370
           FLog::Log("[FLog::ExperienceStateCaptureController] finished onSwitch");
           v_rbx_2 = 0;
         } else {
@@ -317,7 +315,7 @@ Operação  : 0xe2ad52: cmp byte [flag], imm8 ; fn=0xe2ad40..0xe2ad90
     0x4cf7198 | 48 89 45 10              | mov qword ptr [rbp + 0x10], rax
     0x4cf719c | 4c 8b fa                 | mov r15, rdx
     0x4cf719f | 48 8b d9                 | mov rbx, rcx
-    0x4cf71a2 | 48 c7 c7 ff ff ff ff     | mov rdi, 0xffffffff
+    0x4cf71a2 | 48 c7 c7 ff ff ff ff     | mov rdi, -0x1
     0x4cf71a9 | 45 33 e4                 | xor r12d, r12d
     0x4cf71ac | 48 8b 05 cd a2 44 03     | mov rax, qword ptr [rip + 0x344a2cd] ; FLogExperienceStateCaptureController
     0x4cf71b3 | 3c 06                    | cmp al, 0x6
@@ -543,25 +541,26 @@ Operação  : 0xe2ad52: cmp byte [flag], imm8 ; fn=0xe2ad40..0xe2ad90
   === [Decompilacao C++ do XREF Runtime #3: 0x4cf7510..0x4cf777e (insn @0x4cf76b3: cmp [flag], reg)] ===
     // Flag defaults: ExperienceStateCaptureDisableSound = true, ExperienceStateCaptureController = 6
     void RBX::ExperienceState::func_0x4cf7510(RBX::ExperienceState* this, int64_t param_2) {
-      int32_t i_eax;
       if (ExperienceStateCaptureController >= 6 && ExperienceStateCaptureController >> 8 >= 4) {
-        i_eax = rbx;
+        uint64_t i_eax = -1;
         do { // L_0x4cf7580
-        } while ("[FLog::ExperienceStateCaptureController] start onSwitchBack"[(i_eax + 1)] != 0); // loop -> L_0x4cf7580
+          i_eax++;
+        } while ("[FLog::ExperienceStateCaptureController] start onSwitchBack"[i_eax] != 0); // loop -> L_0x4cf7580
         FLog::Log("[FLog::ExperienceStateCaptureController] start onSwitchBack");
       }
-      auto expr_1 = "[FLog::ExperienceStateCaptureController] onSwitchBack: null referencedDataModel";
+      uint64_t i_ebx;
       if (param_2 == 0) {
         if (ExperienceStateCaptureController >= 6 && ExperienceStateCaptureController >> 8 >= 2) {
           do { // L_0x4cf7610
-          } while (i_eax[(rbx + 1)] != 0); // loop -> L_0x4cf7610
-          expr_1 - 0x512b99;
-          expr_1 - 0x512b99;
-          expr_1;
-          FLog::Log(expr_1);
+            i_ebx++;
+          } while (rax[i_ebx] != 0); // loop -> L_0x4cf7610
+          "[FLog::ExperienceStateCaptureController] onSwitchBack: null referencedDataModel" - 0x512b99;
+          "[FLog::ExperienceStateCaptureController] onSwitchBack: null referencedDataModel" - 0x512b99;
+          "[FLog::ExperienceStateCaptureController] onSwitchBack: null referencedDataModel";
+          FLog::Log("[FLog::ExperienceStateCaptureController] onSwitchBack: null referencedDataModel");
         }
       } else {
-        auto vret_1 = &param_2->field_0x1f0->vfunc(&param_2->field_0x1f0);
+        auto vret_1 = (&param_2->field_0x1f0)->vfunc_0x268(&param_2->field_0x1f0) // -> RBX::ModelInstance::BackpackItem::fn_0x3340f30;
         if (vret_1 == 0) {
           call_0x27c4080();
           auto local_0x90 = 0;
@@ -573,11 +572,13 @@ Operação  : 0xe2ad52: cmp byte [flag], imm8 ; fn=0xe2ad40..0xe2ad90
           call_0xe2a380(ret_0x34b55a0_4, 0);
         }
         if (ExperienceStateCaptureController >= 6 && ExperienceStateCaptureController >> 8 >= 4) {
+          i_ebx = -1;
           do { // L_0x4cf7700
-          } while (i_eax[(rbx + 1)] != 0); // loop -> L_0x4cf7700
+            i_ebx++;
+          } while (rax[i_ebx] != 0); // loop -> L_0x4cf7700
           "[FLog::ExperienceStateCaptureController] finished onSwitchBack" - 0x53798e;
           "[FLog::ExperienceStateCaptureController] finished onSwitchBack";
-          FLog::Log(expr_1);
+          FLog::Log("[FLog::ExperienceStateCaptureController] onSwitchBack: null referencedDataModel");
         }
       }
     }
@@ -593,7 +594,7 @@ Operação  : 0xe2ad52: cmp byte [flag], imm8 ; fn=0xe2ad40..0xe2ad90
     0x4cf7533 | 48 33 c4                 | xor rax, rsp
     0x4cf7536 | 48 89 45 00              | mov qword ptr [rbp], rax
     0x4cf753a | 48 8b fa                 | mov rdi, rdx
-    0x4cf753d | 48 c7 c3 ff ff ff ff     | mov rbx, 0xffffffff
+    0x4cf753d | 48 c7 c3 ff ff ff ff     | mov rbx, -0x1
     0x4cf7544 | 33 f6                    | xor esi, esi
     0x4cf7546 | 48 8b 0d 33 9f 44 03     | mov rcx, qword ptr [rip + 0x3449f33] ; FLogExperienceStateCaptureController
     0x4cf754d | 80 f9 06                 | cmp cl, 0x6

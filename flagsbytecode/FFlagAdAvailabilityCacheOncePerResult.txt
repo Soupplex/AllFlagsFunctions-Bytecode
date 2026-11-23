@@ -26,50 +26,36 @@ Operação  : 0xfdfdb1: cmp byte [flag], imm8 ; fn=0xfdfd40..0xfdff22
     
     // Flag defaults: AdAvailabilityCacheOncePerResult = false, RewardedVideo = 6
     void RBX::AdAvailability::func_0xfdfd40(RBX::AdAvailability* this, int64_t param_2, void* param_3) {
+      void* stk_1;
       void* stk_2;
-      void* stk_3;
       auto* f_8 = this->field_0x8;
       if (f_8 != 0) {
         if (f_8->field_0x8 != 0) {
           L_0xfdfd90:
           do { // L_0xfdfd90
-            L_0xfdfd90:
             atomic_try_incref(&f_8->field_0x8);
-            if (atomic_cas(&f_8->field_0x8, f_8->field_0x8, (f_8->field_0x8 + 1)) == 0) break;
-            stk_2 = 0.0;
-            stk_3 = 0.0;
-            break;
+            if (atomic_cas(&f_8->field_0x8, f_8->field_0x8, f_8->field_0x8 + 1) == 0) break;
           } while (f_8->field_0x8 != 0); // loop -> L_0xfdfd90
-          stk_2 = f_8;
-          stk_3 = this->field_0x0;
-        } else {
+          stk_1 = 0.0;
           stk_2 = 0.0;
-          stk_3 = 0.0;
+        } else {
+          stk_1 = 0.0;
+          stk_2 = 0.0;
         }
       } else {
         goto L_0xfdfd90;
       }
-      if (AdAvailabilityCacheOncePerResult) {
-        if (param_3 != 0) {
-          call_0xfaf4f0(&stk_3->field_0x270);
-        }
-      } else {
-        call_0xfaf4f0(&stk_3->field_0x270);
+      if (!AdAvailabilityCacheOncePerResult || param_3 != 0) {
+        call_0xfaf4f0(&stk_2->field_0x270);
       }
       if (RewardedVideo >= 6 && RewardedVideo >> 8 >= 5) {
         FLog::Log("[DFLog::RewardedVideo] AdService::getAdAvailabilityNowForUniverseAsync returning an error");
       }
       call_0x77d0b0(&this->field_0x10, &local_0x70);
-      if (stk_2 != 0) {
-        call_0x6daf40(stk_2);
+      if (stk_1 != 0) {
+        call_0x6daf40(stk_1);
       }
-      if (param_2->field_0x18 >= 16) {
-        void* v_rcx_5 = param_2->field_0x0;
-        if (param_2->field_0x18 + 1 >= 0x1000) {
-          v_rcx_5 = param_2->field_0x0->field_m0x8;
-        }
-        call_0x4955ac0(v_rcx_5);
-      }
+      std::string::_Tidy_deallocate(param_2->field_0x0);
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -125,7 +111,7 @@ Operação  : 0xfdfdb1: cmp byte [flag], imm8 ; fn=0xfdfd40..0xfdff22
     0xfdfdf8 | 48 8b 4c 24 30           | mov rcx, qword ptr [rsp + 0x30]
     0xfdfdfd | 48 81 c1 48 5e 43 fc     | add rcx, 0xfc435e48
     0xfdfe04 | 48 89 4c 24 60           | mov qword ptr [rsp + 0x60], rcx
-    0xfdfe09 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0xfdfe09 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     L_0xfdfe10:
     0xfdfe10 | 48 ff c0                 | inc rax
     0xfdfe13 | 80 3c 01 00              | cmp byte ptr [rcx + rax], 0x0
@@ -213,7 +199,7 @@ Operação  : 0xfdfdb1: cmp byte [flag], imm8 ; fn=0xfdfd40..0xfdff22
         call_0x2e12fd0(&this->field_0x28);
         this->field_0x30 = ret_0xc8a0_1;
       }
-      this->field_0x38 = this->field_0x38 + 1;
+      this->field_0x38++;
       this->field_0x0 = 0;
       void* prev_0x8_2 = this->field_0x8;
       this->field_0x8 = 0;
@@ -223,16 +209,13 @@ Operação  : 0xfdfdb1: cmp byte [flag], imm8 ; fn=0xfdfd40..0xfdff22
       this->field_0x10 = 0;
       this->field_0x18 = 0;
       this->field_0x20 = 0;
-      if (prev_0x8_2 == 0) {
+      this->field_0x38--;
+      if (this->field_0x38 == 1) {
         this->field_0x30 = 0;
-        if (this->field_0x28 == 3) {
-          if (atomic_cas(&this->field_0x28, this->field_0x28, 1) != 0) {
-            call_0xdac0(&this->field_0x28);
-            return;
-          }
+        if (this->field_0x28 != 3 || atomic_cas(&this->field_0x28, this->field_0x28, 1) != 0) {
+          call_0xdac0(&this->field_0x28);
           return;
         }
-        call_0xdac0(&this->field_0x28);
       }
     }
   
@@ -298,38 +281,30 @@ Operação  : 0xfdfdb1: cmp byte [flag], imm8 ; fn=0xfdfd40..0xfdff22
     
     // Flag defaults: AdAvailabilityCacheOncePerResult = false, RewardedVideo = 6
     void RBX::AdAvailability::func_0xff2830(RBX::AdAvailability* this, int64_t param_2, void* param_3) {
+      void* stk_1;
       void* stk_2;
-      void* stk_3;
       auto* f_8 = this->field_0x8;
       if (f_8 != 0 && f_8->field_0x8 != 0) {
         do { // L_0xff2891
           atomic_try_incref(&f_8->field_0x8);
-          if (atomic_cas(&f_8->field_0x8, f_8->field_0x8, (f_8->field_0x8 + 1)) == 0) break;
-          stk_2 = 0.0;
-          stk_3 = 0.0;
-          break;
+          if (atomic_cas(&f_8->field_0x8, f_8->field_0x8, f_8->field_0x8 + 1) == 0) break;
         } while (f_8->field_0x8 != 0); // loop -> L_0xff2891
-        stk_2 = this->field_0x0;
-        stk_3 = f_8;
-      } else {
+        stk_1 = 0.0;
         stk_2 = 0.0;
-        stk_3 = 0.0;
-      }
-      if (AdAvailabilityCacheOncePerResult) {
-        if (param_3 != 0) {
-          auto local_0x30 = param_2->field_0x0;
-          call_0xfaee20(&stk_2->field_0x270, &local_0x30, this->field_0x30, this->field_0x38);
-        }
       } else {
+        stk_1 = 0.0;
+        stk_2 = 0.0;
+      }
+      if (!AdAvailabilityCacheOncePerResult || param_3 != 0) {
         auto local_0x30 = param_2->field_0x0;
-        call_0xfaee20(&stk_2->field_0x270, &local_0x30, this->field_0x30, this->field_0x38);
+        call_0xfaee20(&stk_1->field_0x270, &local_0x30, this->field_0x30, this->field_0x38);
       }
       if (RewardedVideo >= 6 && RewardedVideo >> 8 >= 5) {
         FLog::Log("[DFLog::RewardedVideo] AdService::getAdAvailabilityNowForUniverseAsync returning successfully");
       }
       call_0x7464a0(&this->field_0x10, &local_0x40);
-      if (stk_3 != 0) {
-        call_0x6daf40(stk_3);
+      if (stk_2 != 0) {
+        call_0x6daf40(stk_2);
       }
       if (0.0 != 0) {
         call_0x6daf40(0.0);
@@ -397,7 +372,7 @@ Operação  : 0xfdfdb1: cmp byte [flag], imm8 ; fn=0xfdfd40..0xfdff22
     0xff28f8 | 48 8b 4d 07              | mov rcx, qword ptr [rbp + 0x7]
     0xff28fc | 48 81 c1 fe f3 46 fc     | add rcx, 0xfc46f3fe
     0xff2903 | 48 89 4d f7              | mov qword ptr [rbp - 0x9], rcx
-    0xff2907 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0xff2907 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0xff290e | 66 90                    | nop
     L_0xff2910:
     0xff2910 | 48 ff c0                 | inc rax
@@ -450,19 +425,16 @@ Operação  : 0xfdfdb1: cmp byte [flag], imm8 ; fn=0xfdfd40..0xfdff22
   === [Decompilacao C++ do XREF Runtime #3: 0xfaf000..0xfaf4c0 (insn @0xfaf18e: cmp [flag], reg)] ===
     // Flag defaults: AdAvailabilityCacheOncePerResult = false, RewardedVideo = 6
     auto RBX::AdAvailability::func_0xfaf000(RBX::AdAvailability* this) {
-      rax->field_m0x77 = rax->field_m0x77 - 1;
+      rax->field_m0x77--;
       call_0x4971cd0(&frame_0x90, 2, &frame_0x80, &frame_0x70);
       call_0xfb3580(2, &frame_0xa0);
       call_0xfaf4f0(r14);
-      if (rax[rsi + 1] == rbx) {
+      r15->field_0x10--;
+      if (r15->field_0x10 == 1) {
         r15->field_0x8 = 0;
-        if (local_0x38->field_0x0 == 3) {
-          if (atomic_cas(&local_0x38->field_0x0, 3, 1) != 0) {
-            call_0xdac0(local_0x38);
-          }
-          return rbx;
+        if (local_0x38->field_0x0 != 3 || atomic_cas(&local_0x38->field_0x0, 3, 1) != 0) {
+          call_0xdac0(local_0x38);
         }
-        call_0xdac0(local_0x38);
       }
       return rbx;
     }

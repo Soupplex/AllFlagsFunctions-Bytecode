@@ -31,7 +31,7 @@ Operação  : 0x10f52a1: cmp byte [flag], imm8 ; fn=0x10f5270..0x10f541e
           call_0x2e12fd0(&f_268->field_0x98);
           f_268->field_0xa0 = ret_0xc8a0_5;
         }
-        f_268->field_0xa8 = f_268->field_0xa8 + 1;
+        f_268->field_0xa8++;
         call_0x1093a50(this, f_268_b0);
         f_268_b0->field_0x0 = f_268_b0;
         f_268_b0->field_0x8 = f_268_b0;
@@ -39,13 +39,10 @@ Operação  : 0x10f52a1: cmp byte [flag], imm8 ; fn=0x10f5270..0x10f541e
         call_0x11436b0(&f_268->field_0x140);
         call_0x701d90(&f_268->field_0xc0);
         call_0x105b740(&f_268->field_0x100);
-        if (0 == 0) {
+        f_268->field_0xa8--;
+        if (f_268->field_0xa8 == 1) {
           f_268->field_0xa0 = 0;
-          if (f_268->field_0x98 == 3) {
-            if (atomic_cas(&f_268->field_0x98, f_268->field_0x98, 1) != 0) {
-              call_0xdac0(&f_268->field_0x98);
-            }
-          } else {
+          if (f_268->field_0x98 != 3 || atomic_cas(&f_268->field_0x98, f_268->field_0x98, 1) != 0) {
             call_0xdac0(&f_268->field_0x98);
           }
         }
@@ -64,14 +61,10 @@ Operação  : 0x10f52a1: cmp byte [flag], imm8 ; fn=0x10f5270..0x10f541e
         call_0x110d3d0(&this->field_0x180);
       }
       if ((local_0x30 & 0x1) != 0) {
-        if ((local_0x30 & 0xfffffffe)->field_0x0 == 3) {
-          if (atomic_cas(&(local_0x30 & 0xfffffffe)->field_0x0, (local_0x30 & 0xfffffffe)->field_0x0, 1) != 0) {
-            call_0xdac0(local_0x30 & 0xfffffffe);
-            return;
-          }
+        if ((local_0x30 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x30 & 0xfffffffe)->field_0x0, (local_0x30 & 0xfffffffe)->field_0x0, 1) != 0) {
+          call_0xdac0(local_0x30 & 0xfffffffe);
           return;
         }
-        call_0xdac0(local_0x30 & 0xfffffffe);
       }
     }
   
@@ -191,15 +184,16 @@ Operação  : 0x10f52a1: cmp byte [flag], imm8 ; fn=0x10f5270..0x10f541e
     // Flag defaults: AsyncHttpQueueLockClearRequestLists = true
     void RBX::AsyncHttp::func_0x1093a50(RBX::AsyncHttp* this, int64_t param_2) {
       if (param_2->field_0x0 != 0) {
-        auto i_esi = param_2->field_0x0;
+        void* i_esi = param_2->field_0x0;
         do { // L_0x1093a80
-          call_0x6f8fb0(&param_2->field_0x0->field_0xa0);
-          call_0x6f8fb0(&param_2->field_0x0->field_0x70);
-          call_0x6f8fb0(&param_2->field_0x0->field_0x50);
-          call_0x6f8fb0(&param_2->field_0x0->field_0x30);
-          call_0x6f8fb0(&param_2->field_0x0->field_0x10);
+          call_0x6f8fb0(i_esi + 0xa0);
+          call_0x6f8fb0(i_esi + 0x70);
+          call_0x6f8fb0(i_esi + 0x50);
+          call_0x6f8fb0(i_esi + 0x30);
+          call_0x6f8fb0(i_esi + 0x10);
           call_0x4955ac0(i_esi);
-        } while (param_2->field_0x0->field_0x0 != 0); // loop -> L_0x1093a80
+          i_esi = i_esi->field_0x0;
+        } while (i_esi->field_0x0 != 0); // loop -> L_0x1093a80
       }
     }
   
@@ -252,17 +246,19 @@ Operação  : 0x10f52a1: cmp byte [flag], imm8 ; fn=0x10f5270..0x10f541e
     
     // Flag defaults: AsyncHttpQueueLockClearRequestLists = true
     auto RBX::AsyncHttp::func_0x11436b0(RBX::AsyncHttp* this) {
-      auto* f_8 = this->field_0x8;
-      if (this->field_0x10 != 0 && this->field_0x38 >> 3 > this->field_0x10) {
-        return tailcall_0x1143c20(this, f_8->field_0x0, f_8);
+      if (this->field_0x10 != 0) {
+        auto* f_8 = this->field_0x8;
+        if (this->field_0x38 >> 3 > this->field_0x10) {
+          return tailcall_0x1143c20(this, f_8->field_0x0, f_8);
+        }
+        call_0x1144a80(this->field_0x10, f_8);
+        f_8->field_0x0 = f_8;
+        f_8->field_0x8 = f_8;
+        this->field_0x10 = 0;
+        auto local_0x30 = f_8;
+        call_0x6fda20(this->field_0x18, this->field_0x20, &local_0x30);
+        return;
       }
-      call_0x1144a80(this->field_0x10, f_8);
-      f_8->field_0x0 = f_8;
-      f_8->field_0x8 = f_8;
-      this->field_0x10 = 0;
-      auto local_0x30 = f_8;
-      call_0x6fda20(this->field_0x18, this->field_0x20, &local_0x30);
-      return;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x11436b0..0x1143723)] ===
@@ -312,24 +308,27 @@ Operação  : 0x10f52a1: cmp byte [flag], imm8 ; fn=0x10f5270..0x10f541e
     
     // Flag defaults: AsyncHttpQueueLockClearRequestLists = true
     auto RBX::AsyncHttp::func_0x105b740(RBX::AsyncHttp* this) {
-      auto* f_8 = this->field_0x8;
-      if (this->field_0x10 != 0 && this->field_0x38 >> 3 > this->field_0x10) {
-        return tailcall_0x701e00(this, f_8->field_0x0, f_8);
+      if (this->field_0x10 != 0) {
+        auto* f_8 = this->field_0x8;
+        if (this->field_0x38 >> 3 > this->field_0x10) {
+          return tailcall_0x701e00(this, f_8->field_0x0, f_8);
+        }
+        f_8->field_0x8->field_0x0 = 0;
+        void* i_esi = f_8->field_0x0;
+        if (f_8->field_0x0 != 0) {
+          do { // L_0x105b7a4
+            call_0x6f8fb0(i_esi + 0x10);
+            call_0x4955ac0(i_esi);
+            i_esi = i_esi->field_0x0;
+          } while (i_esi->field_0x0 != 0); // loop -> L_0x105b7a4
+        }
+        f_8->field_0x0 = f_8;
+        f_8->field_0x8 = f_8;
+        this->field_0x10 = 0;
+        auto local_0x30 = f_8;
+        call_0x6fda20(this->field_0x18, this->field_0x20, &local_0x30);
+        return;
       }
-      f_8->field_0x8->field_0x0 = 0;
-      auto i_esi = f_8->field_0x0;
-      if (f_8->field_0x0 != 0) {
-        do { // L_0x105b7a4
-          call_0x6f8fb0(&f_8->field_0x0->field_0x10);
-          call_0x4955ac0(i_esi);
-        } while (f_8->field_0x0->field_0x0 != 0); // loop -> L_0x105b7a4
-      }
-      f_8->field_0x0 = f_8;
-      f_8->field_0x8 = f_8;
-      this->field_0x10 = 0;
-      auto local_0x30 = f_8;
-      call_0x6fda20(this->field_0x18, this->field_0x20, &local_0x30);
-      return;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x105b740..0x105b805)] ===
@@ -405,32 +404,40 @@ Operação  : 0x10f52a1: cmp byte [flag], imm8 ; fn=0x10f5270..0x10f541e
     void RBX::AsyncHttp::func_0x110d550(RBX::AsyncHttp* this) {
       if (this->field_0x0 != 0) {
         auto ret_0x8510e0_1 = call_0x8510e0(this);
-        auto expr_2 = this->field_0x8 + (1 << this->field_0x1c) * 4;
-        auto expr_1 = expr_2 + rcx * 8;
+        auto expr_1 = this->field_0x8 + (1 << this->field_0x1c) * 4;
+        int64_t idx_1 = expr_1->field_0x10;
         if (ret_0x8510e0_1 != 0) {
+          int32_t i_ebp = 0;
+          int32_t i_edi = 1;
+          int32_t i_r12d = ret_0x8510e0_1;
           int32_t i_r14d = 0;
           do { // L_0x110d5b0
-            if (expr_1->field_0x18[(0) * 8] == 0) {
+            if (((expr_1 + idx_1 * 8)->field_0x18[(i_ebp >> 6) * 8] & i_edi) == 0) {
               call_0x6f8fb0(this->field_0x10 + i_r14d + 0x70);
               if ((this->field_0x10 + i_r14d)->field_0x60 != 0 && atomic_fetch_sub(&((this->field_0x10 + i_r14d)->field_0x60)->field_0x8, 1) == 1) {
-                (this->field_0x10 + i_r14d)->field_0x60->vfunc((this->field_0x10 + i_r14d)->field_0x60);
+                ((((this->field_0x10 + i_r14d)->field_0x60)->field_0x0))->vfunc_0x0((this->field_0x10 + i_r14d)->field_0x60) // -> RBX::ModelInstance::BackpackItem::fn_0xd1e370;
                 if (atomic_fetch_sub(&((this->field_0x10 + i_r14d)->field_0x60)->field_0xc, 1) == 1) {
-                  (this->field_0x10 + i_r14d)->field_0x60->vfunc((this->field_0x10 + i_r14d)->field_0x60);
+                  ((((this->field_0x10 + i_r14d)->field_0x60)->field_0x0))->vfunc_0x8((this->field_0x10 + i_r14d)->field_0x60) // -> RBX::VehicleSeat::fn_0x147a960;
                 }
               }
               call_0x6f8fb0(this->field_0x10 + i_r14d + 0x38);
               call_0x6f8fb0(this->field_0x10 + i_r14d + 8);
             }
-          } while ((ret_0x8510e0_1 - 1) != 0); // loop -> L_0x110d5b0
+            i_ebp++;
+            i_r14d += 0x98;
+            i_r12d--;
+            i_edi = rotl(i_edi, 1);
+          } while (i_r12d != 0); // loop -> L_0x110d5b0
         }
-        expr_2->field_0x0 = 0;
-        expr_2->field_0x8 = 0;
+        expr_1->field_0x0 = 0;
+        expr_1->field_0x8 = 0;
         auto* f_4 = this->field_0x4;
-        call_0x5e051b0(this->field_0x8 + (1 << this->field_0x1c) * 4 + 0x18, 255, (rbx + rdi + ((f_4 + 0x3f) >> 6)) << 3);
-        (expr_2 + (rbx - 1) * 8)->field_0x18 = (expr_2 + (rbx - 1) * 8)->field_0x18 & (rbx - 1) >> (-((((f_4 + 0x3f) >> 6) + 0x3f) >> 6) & 0x3f);
-        expr_1->field_0x18 = expr_1->field_0x18 & ((rbx - 1) >> (-((((f_4 + 0x3f) >> 6) + 0x3f) >> 6) & 0x3f)) >> (-((f_4 + 0x3f) >> 6) & 0x3f);
-        int64_t tmp_1 = (((rbx - 1) >> (-((((f_4 + 0x3f) >> 6) + 0x3f) >> 6) & 0x3f)) >> (-((f_4 + 0x3f) >> 6) & 0x3f)) >> (-f_4 & 0x3f);
-        expr_1->field_0x18 = expr_1->field_0x18 & tmp_1;
+        call_0x5e051b0(this->field_0x8 + (1 << this->field_0x1c) * 4 + 0x18, 255, (rbx + ((((f_4 + 0x3f) >> 6) + 0x3f) >> 6) + ((f_4 + 0x3f) >> 6)) << 3);
+        (expr_1 + (rbx - 1) * 8)->field_0x18 = (expr_1 + (rbx - 1) * 8)->field_0x18 & -1 >> (-((((f_4 + 0x3f) >> 6) + 0x3f) >> 6) & 0x3f);
+        int64_t idx_2 = ((((f_4 + 0x3f) >> 6) + 0x3f) >> 6) - 1 + expr_1->field_0xc;
+        (expr_1 + idx_2 * 8)->field_0x18 = (expr_1 + idx_2 * 8)->field_0x18 & -1 >> (-((f_4 + 0x3f) >> 6) & 0x3f);
+        int64_t idx_3 = ((f_4 + 0x3f) >> 6) - 1 + expr_1->field_0x10;
+        (expr_1 + idx_3 * 8)->field_0x18 = (expr_1 + idx_3 * 8)->field_0x18 & -1 >> (-f_4 & 0x3f);
         this->field_0x0 = 0;
         if (this->field_0x8 != 0 && 4 << this->field_0x1c != 0) {
           call_0x5e051b0(this->field_0x8, -1, 4 << this->field_0x1c);
@@ -533,7 +540,7 @@ Operação  : 0x10f52a1: cmp byte [flag], imm8 ; fn=0x10f5270..0x10f541e
     0x110d695 | 8b cf                    | mov ecx, edi
     0x110d697 | f7 d9                    | neg ecx
     0x110d699 | 83 e1 3f                 | and ecx, 0x3f
-    0x110d69c | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x110d69c | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x110d6a3 | 48 d3 e8                 | shr rax, cl
     0x110d6a6 | 48 21 42 18              | and qword ptr [rdx + 0x18], rax
     0x110d6aa | 8d 4f ff                 | lea ecx, [rdi - 0x1]
@@ -542,7 +549,7 @@ Operação  : 0x10f52a1: cmp byte [flag], imm8 ; fn=0x10f5270..0x10f541e
     0x110d6b5 | 8b ce                    | mov ecx, esi
     0x110d6b7 | f7 d9                    | neg ecx
     0x110d6b9 | 83 e1 3f                 | and ecx, 0x3f
-    0x110d6bc | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x110d6bc | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x110d6c3 | 48 d3 e8                 | shr rax, cl
     0x110d6c6 | 48 21 42 18              | and qword ptr [rdx + 0x18], rax
     0x110d6ca | 8d 4e ff                 | lea ecx, [rsi - 0x1]
@@ -551,7 +558,7 @@ Operação  : 0x10f52a1: cmp byte [flag], imm8 ; fn=0x10f5270..0x10f541e
     0x110d6d5 | 41 8b 4f 04              | mov ecx, dword ptr [r15 + 0x4]
     0x110d6d9 | f7 d9                    | neg ecx
     0x110d6db | 83 e1 3f                 | and ecx, 0x3f
-    0x110d6de | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x110d6de | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x110d6e5 | 48 d3 e8                 | shr rax, cl
     0x110d6e8 | 49 21 40 18              | and qword ptr [r8 + 0x18], rax
     0x110d6ec | 41 89 2f                 | mov dword ptr [r15], ebp

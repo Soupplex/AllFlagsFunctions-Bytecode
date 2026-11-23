@@ -8,9 +8,8 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
   === [Resumo do Efeito da FFlag no Engine (RBX::HitchRate)] ===
     Classe  : RBX::HitchRate (RTTI Resolvido)
     Padrão  : DFIntHitchRateFrameTimeTargetChangeMinimumCaptureMilliseconds = 1000 (default) [int, mode=2]
-    Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : max(0, HitchRateFrameTimeTargetChangeMinimumCaptureMilliseconds) / 1000.0
-    Fórmula : local_0x20 - this->field_0x120 < max(0, HitchRateFrameTimeTargetChangeMinimumCaptureMilliseconds) / 1000.0
+    Papel   : Parâmetro de configuração lido diretamente pela rotina
+    Fórmula : (double)max(0, HitchRateFrameTimeTargetChangeMinimumCaptureMilliseconds) / 1000.0
     Altera  : this->field_0xb40->field_0x28->field_0x2e8, this->field_0x128, this->field_0x114, this->field_0x120
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
@@ -40,8 +39,12 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
       auto* f_b40 = this->field_0xb40;
       if (f_b40 != 0 && f_b40->field_0x0 != 0) {
         auto ret_0x4959ee0_2 = call_0x4959ee0();
+        int32_t i_r9d = 0;
+        int32_t i_r10d = 0;
         do { // L_0x2006da0
-        } while ((r9d + 1) < 6); // loop -> L_0x2006da0
+          i_r9d++;
+          i_r10d = i_r10d + 8;
+        } while (i_r9d < 6); // loop -> L_0x2006da0
         auto* f_b40_28 = f_b40->field_0x28;
         call_0x20302f0(f_b40_28, ret_0x4959ee0_2, &local_0x80, &local_0x50);
         if (atomic_exchange(&f_b40->field_0x18, 0x8000000000000000) != 0x8000000000000000) {
@@ -58,27 +61,28 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
       if (this->field_0xb20 != 0) {
         call_0x495a220(&local_0x20);
         uint8_t v_dil_2;
-        if (this->field_0x3a0 > 0.0 && this->field_0x130 != 0 && !isnan(this->field_0x128) && !isnan(this->field_0x3a0)) {
-          auto expr_1 = HitchRateFrameTimeTargetChangeMinimumCaptureMilliseconds;
-          if (this->field_0x128 != this->field_0x3a0) {
-            v_dil_2 = 1;
-            L_0x2006f24:
-            if (local_0x20 - this->field_0x120 >= max(0, expr_1) / 1000.0) {
-              call_0x201c880(this->field_0xb20, this->field_0x114, local_0x20, &local_0x40);
+        if (this->field_0x3a0 > 0.0) {
+          if (this->field_0x130 != 0 && !isnan(this->field_0x128) && !isnan(this->field_0x3a0)) {
+            auto expr_1 = HitchRateFrameTimeTargetChangeMinimumCaptureMilliseconds;
+            if (this->field_0x128 != this->field_0x3a0) {
+              v_dil_2 = 1;
+              L_0x2006f24:
+              double ftmp_1 = (double)max(0, expr_1) / 1000.0;
+              if (local_0x20 - this->field_0x120 >= ftmp_1) {
+                call_0x201c880(this->field_0xb20, this->field_0x114, local_0x20, &local_0x40);
+              } else {
+                call_0x201c7c0(this->field_0xb20, local_0x20, &local_0x40);
+              }
+              if (v_dil_2 != 0) {
+                this->field_0x128 = this->field_0x3a0;
+              }
+              this->field_0x114 = local_0x28;
+              this->field_0x120 = local_0x20;
             } else {
-              call_0x201c7c0(this->field_0xb20, local_0x20, &local_0x40);
-            }
-            if (v_dil_2 != 0) {
-              this->field_0x128 = this->field_0x3a0;
-            }
-            this->field_0x114 = local_0x28;
-            this->field_0x120 = local_0x20;
-          } else {
-            if (this->field_0x14 == this->field_0x114 && this->field_0x18 == this->field_0x118) {
-              if (max(0, HitchRateWindowMaximumDurationMilliseconds) / 1000.0 <= local_0x20 - this->field_0x120) {
-                L_0x2006f1f:
+              if (this->field_0x14 != this->field_0x114 || this->field_0x18 != this->field_0x118 || (double)max(0, HitchRateWindowMaximumDurationMilliseconds) / 1000.0 <= local_0x20 - this->field_0x120) {
                 v_dil_2 = 0;
-                if (local_0x20 - this->field_0x120 >= max(0, expr_1) / 1000.0) {
+                double ftmp_1 = (double)max(0, expr_1) / 1000.0;
+                if (local_0x20 - this->field_0x120 >= ftmp_1) {
                   call_0x201c880(this->field_0xb20, this->field_0x114, local_0x20, &local_0x40);
                 } else {
                   call_0x201c7c0(this->field_0xb20, local_0x20, &local_0x40);
@@ -89,20 +93,14 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
                 this->field_0x114 = local_0x28;
                 this->field_0x120 = local_0x20;
               }
-            } else {
-              v_dil_2 = 0;
-              goto L_0x2006f24;
             }
           } else {
             v_dil_2 = 1;
             goto L_0x2006f24;
           }
-        } else if (this->field_0x14 == this->field_0x114 && this->field_0x18 == this->field_0x118) {
-          if (max(0, HitchRateWindowMaximumDurationMilliseconds) / 1000.0 <= local_0x20 - this->field_0x120) {
-            goto L_0x2006f1f;
-          }
-        } else {
-          goto L_0x2006f1f;
+        } else if (this->field_0x14 != this->field_0x114 || this->field_0x18 != this->field_0x118 || (double)max(0, HitchRateWindowMaximumDurationMilliseconds) / 1000.0 <= local_0x20 - this->field_0x120) {
+          v_dil_2 = 0;
+          goto L_0x2006f24;
         }
       }
     }
@@ -309,19 +307,19 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
       auto local_0x500 = &local_0x470;
       call_0x200be10(&local_0x500);
       call_0x2e12fd0(this);
-      int32_t v_r12_4 = 0;
+      uint8_t v_r12b_4 = 0;
       uint8_t v_r14b_5 = 0;
       if (PerformanceControlObserveThermalState) {
         auto ret_0x495a220_8 = call_0x495a220(&local_0x50);
         call_0x20075d0(this, param_2, ret_0x495a220_8->field_0x0);
         uint8_t v_al_2;
-        int32_t v_r12_3 = 0;
+        uint8_t v_r12b_3 = 0;
         if (this->field_0x110 != 0) {
           if (this->field_0x3f8 != 0) {
             if (!PerformanceControlMlSnapshotEnabled2) {
               if (PerformanceControlThermalThrottleMemory) {
                 v_al_2 = 1;
-                v_r12_3 = 1;
+                v_r12b_3 = 1;
               } else {
                 v_al_2 = 1;
               }
@@ -330,7 +328,7 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
             }
           } else if (PerformanceControlThermalThrottleMemory) {
             v_al_2 = 1;
-            v_r12_3 = 1;
+            v_r12b_3 = 1;
           } else {
             v_al_2 = 1;
           }
@@ -338,10 +336,10 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
           v_al_2 = 0;
         }
         if (PerformanceControlManageComputeEnabled10 && v_al_2 != 0 && PerformanceControlThermalThrottleCompute) {
-          v_r12_4 = v_r12_3;
+          v_r12b_4 = v_r12b_3;
           v_r14b_5 = 1;
         } else {
-          v_r12_4 = v_r12_3;
+          v_r12b_4 = v_r12b_3;
         }
       }
       if (PerformanceControlMlSnapshotEnabled2) {
@@ -385,7 +383,7 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
       }
       this->field_0xb59 = this->field_0xe08;
       if (PerformanceControlObserveThermalState) {
-        this->field_0xb64 = v_r12_4;
+        this->field_0xb64 = v_r12b_4;
         this->field_0xb60 = v_r14b_5;
       }
       if (PerformanceControlManageComputeEnabled10) {
@@ -419,25 +417,17 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
           this->field_0xe11 = 0;
         }
       }
-      int64_t local_0x470;
-      int64_t local_0x340;
       if (local_0x48 != 0) {
-        if (local_0x40->field_0x0 == 3) {
-          if (atomic_cas(&local_0x40->field_0x0, local_0x40->field_0x0, 1) != 0) {
-            call_0xdac0(local_0x40);
-          }
-          L_0x2007476:
-          call_0x2008d80(this, &local_0x110);
-          local_0x470 = &sym_0x7041068;
-          call_0x2005a60(&local_0x470);
-          local_0x340 = &sym_0x7040fe8;
-          call_0x2007560(&local_0x340);
-          call_0x2007500(&local_0x110);
-          return;
+        if (local_0x40->field_0x0 != 3 || atomic_cas(&local_0x40->field_0x0, local_0x40->field_0x0, 1) != 0) {
+          call_0xdac0(local_0x40);
         }
-        call_0xdac0(local_0x40);
       }
-      goto L_0x2007476;
+      call_0x2008d80(this, &local_0x110);
+      auto local_0x470 = &sym_0x7041068;
+      call_0x2005a60(&local_0x470);
+      auto local_0x340 = &sym_0x7040fe8;
+      call_0x2007560(&local_0x340);
+      call_0x2007500(&local_0x110);
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x2006fe0..0x20074cf)] ===
@@ -795,10 +785,8 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
         this->field_0x320 = this->field_0x320 + param_4->field_0x0;
       }
       this->field_0x2f8 = this->field_0x2f8 + param_3->field_0x8;
-      void* v_rax_1 = param_4->field_0x0;
       if (NetworkBandwidthReportUpload) {
         this->field_0x328 = this->field_0x328 + param_4->field_0x8;
-        v_rax_1 = param_4->field_0x8;
       }
       this->field_0x300 = this->field_0x300 + param_3->field_0x10;
       if (NetworkBandwidthReportUpload) {
@@ -888,7 +876,7 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
           if (NetworkBandwidthReportUpload != this->field_0x2e0) {
             this->field_0x120 = this->field_0x120 + param_4->field_0x28;
           }
-          if (this->field_0x2e0 == 0 && param_2 - this->field_0x2d8 > NetworkBandwidthEarlyWindowSec) {
+          if (this->field_0x2e0 == 0 && param_2 - this->field_0x2d8 > (double)NetworkBandwidthEarlyWindowSec) {
             this->field_0x2e0 = 1;
           }
         }
@@ -909,7 +897,7 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
           this->field_0x60 = param_2;
         }
       }
-      if (param_2 - this->field_0x350 >= NetworkBandwidthCounterReportIntervalSec) {
+      if (param_2 - this->field_0x350 >= (double)NetworkBandwidthCounterReportIntervalSec) {
         call_0x2033950(this);
         this->field_0x350 = param_2;
       }
@@ -1122,11 +1110,23 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
     
     // Flag defaults: HitchRateFrameTimeTargetChangeMinimumCaptureMilliseconds = 1000, NetworkBandwidthReportUpload = true
     void RBX::Telemetry::IRobloxTelemetryCounter::func_0x2033950(RBX::Telemetry::IRobloxTelemetryCounter* this) {
-      auto i_eax = &sym_0x7189078;
+      void* i_eax = &sym_0x7189078;
+      int32_t i_ebx = 0;
+      int32_t i_esi = 0;
+      void* i_edi = &this->field_0x320;
       do { // L_0x20339e2
         void* v_rax_5 = i_eax;
+        int32_t v_rbx_8 = i_ebx;
+        int32_t v_rbx_14;
+        int32_t v_rbx_21;
+        int32_t v_rbx_28;
+        int32_t v_rbx_35;
+        int32_t v_rbx_42;
+        int32_t v_rbx_49;
+        int32_t v_rbx_56;
+        int32_t v_rbx_65;
         int64_t local_0xf8;
-        if (this->field_0x2f0 != 0) {
+        if (i_edi->field_m0x30 != 0) {
           int32_t v_rcx_2;
           if (global_0x84bc6dc >= 1024) {
             call_0x494e780();
@@ -1146,12 +1146,14 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
           i_eax->field_0x4->field_m0x28[rbp] = &sym_0x6edbf18;
           i_eax->field_0x4->field_m0x2c[rbp] = i_eax->field_0x4 - 0x68;
           local_0xf8 = 0;
-          call_0x6f7000(&local_0xf8, global_0x8161bb0, r8 + 1);
+          call_0x6f7000(&local_0xf8, global_0x8161bb0, 0);
           if (v_rcx_2 >= 1024) {
             call_0x494e780();
           } else {
             auto ret_0x4954c10_5 = call_0x4954c10();
-            if (ret_0x4954c10_5 == 0) {
+            if (ret_0x4954c10_5 != 0) {
+              ret_0x4954c10_5->field_0x0 = ret_0x4954c10_5->field_0x0 ^ (ret_0x4954c10_5->field_0x0 ^ r8) & 0x3ff;
+            } else {
               call_0x4954d30(r8, 1023);
             }
           }
@@ -1162,58 +1164,61 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
           i_eax->field_0x4->field_m0x2c[rbp] = i_eax->field_0x4 - 0x2e0;
           i_eax->field_0x8->field_m0x2c[rbp] = i_eax->field_0x8 - 0x2f0;
           i_eax->field_0xc->field_m0x2c[rbp] = i_eax->field_0xc - 0x300;
-          if (0 <= 5) {
-            switch (0) {
+          if (i_esi <= 5) {
+            switch (i_esi) {
               case 0:
-              L_0x2033c5b:
-              call_0x2dbdab0(&local_0x3b0, &local_0x40, &local_0x60, 1);
-              call_0x2dbdec0(&local_0x3b0, &local_0x40, this->field_0x2e8, 1);
-              call_0x2dbdec0(&local_0x3b0, &local_0x40, 1);
-              call_0x2daef40(&local_0x3b8);
-              this->field_0x2f0 = 0;
-              call_0x6e41c0(&local_0x3b0);
-              call_0x6f8fb0(&local_0xf8);
-              v_rax_5 = &sym_0x7189078;
-              if (NetworkBandwidthReportUpload && this->field_0x320 != 0) {
-                int32_t v_rax_12;
-                if (global_0x84bc6dc >= 1024) {
-                  call_0x494e780();
-                  v_rax_12 = 0;
-                } else {
-                  auto ret_0x4954c10_15 = call_0x4954c10();
-                  void* v_rax_11;
-                  if (ret_0x4954c10_15 != 0) {
-                    auto prev_0x0_2 = ret_0x4954c10_15->field_0x0;
-                    ret_0x4954c10_15->field_0x0 = (ret_0x4954c10_15->field_0x0 ^ r8) & 0x3ff ^ ret_0x4954c10_15->field_0x0;
-                    v_rax_11 = prev_0x0_2;
+                L_0x2033c5b:
+                call_0x2dbdab0(&local_0x3b0, &local_0x40, &local_0x60, 1);
+                call_0x2dbdec0(&local_0x3b0, &local_0x40, this->field_0x2e8, 1);
+                call_0x2dbdec0(&local_0x3b0, &local_0x40, 1);
+                call_0x2daef40(&local_0x3b8);
+                i_edi->field_m0x30 = 0;
+                call_0x6e41c0(&local_0x3b0);
+                call_0x6f8fb0(&local_0xf8);
+                v_rax_5 = &sym_0x7189078;
+                v_rbx_8 = i_ebx | 0x1 | 0x6;
+                if (NetworkBandwidthReportUpload && i_edi->field_0x0 != 0) {
+                  int32_t v_rax_13;
+                  if (global_0x84bc6dc >= 1024) {
+                    call_0x494e780();
+                    v_rax_13 = 0;
                   } else {
+                    auto ret_0x4954c10_15 = call_0x4954c10();
+                    void* v_rax_12;
+                    if (ret_0x4954c10_15 != 0) {
+                    auto prev_0x0_3 = ret_0x4954c10_15->field_0x0;
+                    ret_0x4954c10_15->field_0x0 = (ret_0x4954c10_15->field_0x0 ^ r8) & 0x3ff ^ ret_0x4954c10_15->field_0x0;
+                    v_rax_12 = prev_0x0_3;
+                    } else {
                     auto ret_0x4954d30_16 = call_0x4954d30(r8, 1023);
-                    v_rax_11 = ret_0x4954d30_16;
+                    v_rax_12 = ret_0x4954d30_16;
+                    }
+                    v_rax_13 = v_rax_12 & 0x3ff;
                   }
-                  v_rax_12 = v_rax_11 & 0x3ff;
-                }
-                v_rax_5->field_0x4->field_m0x28[rbp] = &sym_0x6edbf18;
-                v_rax_5->field_0x4->field_m0x2c[rbp] = v_rax_5->field_0x4 - 0x68;
-                local_0xf8 = 0;
-                call_0x6f7000(&local_0xf8, global_0x8161c58, r8 + 1);
-                if (v_rax_12 >= 1024) {
-                  call_0x494e780();
-                } else {
-                  auto ret_0x4954c10_19 = call_0x4954c10();
-                  if (ret_0x4954c10_19 == 0) {
+                  v_rax_5->field_0x4->field_m0x28[rbp] = &sym_0x6edbf18;
+                  v_rax_5->field_0x4->field_m0x2c[rbp] = v_rax_5->field_0x4 - 0x68;
+                  local_0xf8 = 0;
+                  call_0x6f7000(&local_0xf8, global_0x8161c58, 0);
+                  if (v_rax_13 >= 1024) {
+                    call_0x494e780();
+                  } else {
+                    auto ret_0x4954c10_19 = call_0x4954c10();
+                    if (ret_0x4954c10_19 != 0) {
+                    ret_0x4954c10_19->field_0x0 = ret_0x4954c10_19->field_0x0 ^ (ret_0x4954c10_19->field_0x0 ^ r8) & 0x3ff;
+                    } else {
                     call_0x4954d30(r8, 1023);
+                    }
                   }
-                }
-                L_0x2033ebf:
-                call_0x6e4000(&local_0x138, 0);
-                v_rax_5->field_0x4->field_m0x28[rbp] = &sym_0x6edc138;
-                v_rax_5->field_0x8->field_m0x28[rbp] = &sym_0x6edc288;
-                v_rax_5->field_0xc->field_m0x28[rbp] = &sym_0x6edb620;
-                v_rax_5->field_0x4->field_m0x2c[rbp] = v_rax_5->field_0x4 - 0x2e0;
-                v_rax_5->field_0x8->field_m0x2c[rbp] = v_rax_5->field_0x8 - 0x2f0;
-                v_rax_5->field_0xc->field_m0x2c[rbp] = v_rax_5->field_0xc - 0x300;
-                if (0 <= 5) {
-                  switch (0) {
+                  L_0x2033ebf:
+                  call_0x6e4000(&local_0x138, 0);
+                  v_rax_5->field_0x4->field_m0x28[rbp] = &sym_0x6edc138;
+                  v_rax_5->field_0x8->field_m0x28[rbp] = &sym_0x6edc288;
+                  v_rax_5->field_0xc->field_m0x28[rbp] = &sym_0x6edb620;
+                  v_rax_5->field_0x4->field_m0x2c[rbp] = v_rax_5->field_0x4 - 0x2e0;
+                  v_rax_5->field_0x8->field_m0x2c[rbp] = v_rax_5->field_0x8 - 0x2f0;
+                  v_rax_5->field_0xc->field_m0x2c[rbp] = v_rax_5->field_0xc - 0x300;
+                  if (i_esi <= 5) {
+                    switch (i_esi) {
                     case 0:
                     goto L_0x2033c5b;
                     break;
@@ -1233,108 +1238,130 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
                     goto L_0x2033c5b;
                     break;
                     case 0:
+                    v_rbx_56 = v_rbx_49;
                     L_0x2033ff9:
                     call_0x2dbdab0(&local_0x3b0, &local_0x60, &local_0x40, 1);
                     call_0x2dbdec0(&local_0x3b0, &local_0x40, this->field_0x2e8, 1);
                     call_0x2dbdec0(&local_0x3b0, &local_0x40, 1);
                     call_0x2daef40(&local_0x3b8);
-                    this->field_0x320 = 0;
+                    i_edi->field_0x0 = 0;
                     call_0x6e41c0(&local_0x3b0);
                     call_0x6f8fb0(&local_0xf8);
+                    v_rbx_65 = v_rbx_56;
                     break;
                     case 1:
+                    v_rbx_56 = v_rbx_42;
                     goto L_0x2033ff9;
                     break;
                     case 2:
+                    v_rbx_56 = v_rbx_35;
                     goto L_0x2033ff9;
                     break;
                     case 3:
+                    v_rbx_56 = v_rbx_28;
                     goto L_0x2033ff9;
                     break;
                     case 4:
+                    v_rbx_56 = v_rbx_21;
                     goto L_0x2033ff9;
                     break;
                     case 5:
+                    v_rbx_56 = v_rbx_14;
                     goto L_0x2033ff9;
                     break;
+                    }
+                  } else {
+                    v_rbx_56 = v_rbx_8 | 0x8 | 0x30;
+                    goto L_0x2033ff9;
                   }
                 } else {
-                  goto L_0x2033ff9;
+                  v_rbx_65 = v_rbx_8;
                 }
-              }
-              break;
+                break;
               case 1:
-              goto L_0x2033c5b;
-              break;
+                goto L_0x2033c5b;
+                break;
               case 2:
-              goto L_0x2033c5b;
-              break;
+                goto L_0x2033c5b;
+                break;
               case 3:
-              goto L_0x2033c5b;
-              break;
+                goto L_0x2033c5b;
+                break;
               case 4:
-              goto L_0x2033c5b;
-              break;
+                goto L_0x2033c5b;
+                break;
               case 5:
-              goto L_0x2033c5b;
-              break;
+                goto L_0x2033c5b;
+                break;
               case 0:
-              goto L_0x2033ff9;
-              break;
+                v_rbx_56 = v_rbx_49;
+                goto L_0x2033ff9;
+                break;
               case 1:
-              goto L_0x2033ff9;
-              break;
+                v_rbx_56 = v_rbx_42;
+                goto L_0x2033ff9;
+                break;
               case 2:
-              goto L_0x2033ff9;
-              break;
+                v_rbx_56 = v_rbx_35;
+                goto L_0x2033ff9;
+                break;
               case 3:
-              goto L_0x2033ff9;
-              break;
+                v_rbx_56 = v_rbx_28;
+                goto L_0x2033ff9;
+                break;
               case 4:
-              goto L_0x2033ff9;
-              break;
+                v_rbx_56 = v_rbx_21;
+                goto L_0x2033ff9;
+                break;
               case 5:
-              goto L_0x2033ff9;
-              break;
+                v_rbx_56 = v_rbx_14;
+                goto L_0x2033ff9;
+                break;
             }
           } else {
             goto L_0x2033c5b;
           }
-        } else {
-          if (NetworkBandwidthReportUpload && this->field_0x320 != 0) {
-            int32_t v_rax_12;
-            if (global_0x84bc6dc >= 1024) {
-              call_0x494e780();
-              v_rax_12 = 0;
+        } else if (NetworkBandwidthReportUpload && i_edi->field_0x0 != 0) {
+          int32_t v_rax_13;
+          if (global_0x84bc6dc >= 1024) {
+            call_0x494e780();
+            v_rax_13 = 0;
+          } else {
+            auto ret_0x4954c10_15 = call_0x4954c10();
+            void* v_rax_12;
+            if (ret_0x4954c10_15 != 0) {
+              auto prev_0x0_3 = ret_0x4954c10_15->field_0x0;
+              ret_0x4954c10_15->field_0x0 = (ret_0x4954c10_15->field_0x0 ^ r8) & 0x3ff ^ ret_0x4954c10_15->field_0x0;
+              v_rax_12 = prev_0x0_3;
             } else {
-              auto ret_0x4954c10_15 = call_0x4954c10();
-              void* v_rax_11;
-              if (ret_0x4954c10_15 != 0) {
-                auto prev_0x0_2 = ret_0x4954c10_15->field_0x0;
-                ret_0x4954c10_15->field_0x0 = (ret_0x4954c10_15->field_0x0 ^ r8) & 0x3ff ^ ret_0x4954c10_15->field_0x0;
-                v_rax_11 = prev_0x0_2;
-              } else {
-                auto ret_0x4954d30_16 = call_0x4954d30(r8, 1023);
-                v_rax_11 = ret_0x4954d30_16;
-              }
-              v_rax_12 = v_rax_11 & 0x3ff;
+              auto ret_0x4954d30_16 = call_0x4954d30(r8, 1023);
+              v_rax_12 = ret_0x4954d30_16;
             }
-            v_rax_5->field_0x4->field_m0x28[rbp] = &sym_0x6edbf18;
-            v_rax_5->field_0x4->field_m0x2c[rbp] = v_rax_5->field_0x4 - 0x68;
-            local_0xf8 = 0;
-            call_0x6f7000(&local_0xf8, global_0x8161c58, r8 + 1);
-            if (v_rax_12 >= 1024) {
-              call_0x494e780();
-            } else {
-              auto ret_0x4954c10_19 = call_0x4954c10();
-              if (ret_0x4954c10_19 == 0) {
-                call_0x4954d30(r8, 1023);
-              }
-            }
-            goto L_0x2033ebf;
+            v_rax_13 = v_rax_12 & 0x3ff;
           }
+          v_rax_5->field_0x4->field_m0x28[rbp] = &sym_0x6edbf18;
+          v_rax_5->field_0x4->field_m0x2c[rbp] = v_rax_5->field_0x4 - 0x68;
+          local_0xf8 = 0;
+          call_0x6f7000(&local_0xf8, global_0x8161c58, 0);
+          if (v_rax_13 >= 1024) {
+            call_0x494e780();
+          } else {
+            auto ret_0x4954c10_19 = call_0x4954c10();
+            if (ret_0x4954c10_19 != 0) {
+              ret_0x4954c10_19->field_0x0 = ret_0x4954c10_19->field_0x0 ^ (ret_0x4954c10_19->field_0x0 ^ r8) & 0x3ff;
+            } else {
+              call_0x4954d30(r8, 1023);
+            }
+          }
+          goto L_0x2033ebf;
+        } else {
+          v_rbx_65 = v_rbx_8;
         }
-      } while ((esi + 1) < 6); // loop -> L_0x20339e2
+        i_esi++;
+        i_edi += 8;
+        i_eax = &sym_0x7189078;
+        i_ebx = v_rbx_65;
+      } while (i_esi < 6); // loop -> L_0x20339e2
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x2033950..0x2034153)] ===
@@ -1423,7 +1450,7 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
     0x2033aac | 4c 89 7d 08              | mov qword ptr [rbp + 0x8], r15
     0x2033ab0 | 48 c7 45 10 0f 00 00 00  | mov qword ptr [rbp + 0x10], 0xf
     0x2033ab8 | c6 45 f8 00              | mov byte ptr [rbp - 0x8], 0x0
-    0x2033abc | 49 c7 c0 ff ff ff ff     | mov r8, 0xffffffff
+    0x2033abc | 49 c7 c0 ff ff ff ff     | mov r8, -0x1
     L_0x2033ac3:
     0x2033ac3 | 49 ff c0                 | inc r8
     0x2033ac6 | 42 80 3c 02 00           | cmp byte ptr [rdx + r8], 0x0
@@ -1626,7 +1653,7 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
     0x2033e4a | 4c 89 7d 08              | mov qword ptr [rbp + 0x8], r15
     0x2033e4e | 48 c7 45 10 0f 00 00 00  | mov qword ptr [rbp + 0x10], 0xf
     0x2033e56 | c6 45 f8 00              | mov byte ptr [rbp - 0x8], 0x0
-    0x2033e5a | 49 c7 c0 ff ff ff ff     | mov r8, 0xffffffff
+    0x2033e5a | 49 c7 c0 ff ff ff ff     | mov r8, -0x1
     L_0x2033e61:
     0x2033e61 | 49 ff c0                 | inc r8
     0x2033e64 | 42 80 3c 02 00           | cmp byte ptr [rdx + r8], 0x0
@@ -1803,72 +1830,67 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
     
     // Flag defaults: HitchRateFrameTimeTargetChangeMinimumCaptureMilliseconds = 1000, NetworkBandwidthReportUpload = true
     void RBX::Telemetry::IRobloxTelemetryStat::func_0x2030950(RBX::Telemetry::IRobloxTelemetryStat* this, int64_t param_2) {
-      auto i_edx = &sym_0x6edbed0;
-      auto i_esi = &this->field_0xc8;
+      void* i_r8d = &sym_0x6edb290;
+      void* i_edx = &sym_0x6edbed0;
+      void* i_esi = &this->field_0xc8;
+      int32_t i_edi = 0;
       int32_t i_r14d = 0;
-      auto i_r15d = &sym_0x7189068;
+      void* i_r15d = &sym_0x7189068;
       do { // L_0x2030a00
-        void* v_rdx_6 = i_edx;
-        void* stk_13;
-        void* stk_18;
-        void* v_rsi_28 = i_esi;
-        int32_t v_r14_30 = i_r14d;
-        void* v_r15_31 = i_r15d;
-        void* stk_33;
-        void* v_rsi_37;
-        int32_t v_r14_39;
-        void* v_r15_40;
-        void* stk_43;
-        void* v_rsi_49;
-        int32_t v_r14_51;
-        void* v_r15_52;
-        void* v_rsi_55 = i_esi;
-        int32_t v_r14_57 = i_r14d;
-        void* stk_60;
-        void* v_rsi_64;
-        int32_t v_r14_66;
-        void* stk_69;
-        int32_t v_r14_78;
-        int64_t local_0x198;
-        if (this->field_0x68 != 0) {
-          int32_t v_rcx_2;
+        void* v_rdx_3 = i_edx;
+        int32_t v_rdi_4 = i_edi;
+        void* v_r8_5 = i_r8d;
+        if (i_esi->field_m0x60 != 0) {
           if (global_0x84bc6dc >= 1024) {
             call_0x494e780();
-            v_rcx_2 = 0;
           } else {
             auto ret_0x4954c10_1 = call_0x4954c10();
-            int32_t v_rcx_1;
             if (ret_0x4954c10_1 != 0) {
-              auto prev_0x0_1 = ret_0x4954c10_1->field_0x0;
               ret_0x4954c10_1->field_0x0 = (ret_0x4954c10_1->field_0x0 ^ r8) & 0x3ff ^ ret_0x4954c10_1->field_0x0;
-              v_rcx_1 = prev_0x0_1;
             } else {
-              v_rcx_1 = call_0x4954d30(r8, 1023);
-            }
-            v_rcx_2 = v_rcx_1 & 0x3ff;
-          }
-          i_r15d->field_0x4->field_0x78[rbp] = &sym_0x6edbf18;
-          i_r15d->field_0x4->field_0x74[rbp] = i_r15d->field_0x4 - 0x68;
-          local_0x198 = 0;
-          call_0x6f7000(&local_0x198, global_0x8161b20, r8 + 1);
-          if (v_rcx_2 >= 1024) {
-            call_0x494e780();
-          } else {
-            auto ret_0x4954c10_5 = call_0x4954c10();
-            if (ret_0x4954c10_5 == 0) {
               call_0x4954d30(r8, 1023);
             }
           }
-          call_0x6e4000(&local_0x1d8, 0);
-          i_r15d->field_0x4->field_0x78[rbp] = &sym_0x6edaf18;
-          i_r15d->field_0x8->field_0x78[rbp] = &sym_0x6edb8f0;
-          i_r15d->field_0xc->field_0x78[rbp] = &sym_0x6edb570;
-          i_r15d->field_0x4->field_0x74[rbp] = i_r15d->field_0x4 - 0x2f8;
-          i_r15d->field_0x8->field_0x74[rbp] = i_r15d->field_0x8 - 0x308;
-          i_r15d->field_0xc->field_0x74[rbp] = i_r15d->field_0xc - 0x318;
-          if (i_r14d <= 5) {
-            switch (i_r14d) {
-              case 0:
+          i_r15d->field_0x4->field_0x78[rbp] = &sym_0x6edbf18;
+          i_r15d->field_0x4->field_0x74[rbp] = i_r15d->field_0x4 - 0x68;
+          v_rdx_3 = global_0x8161b20;
+          v_rdi_4 = i_edi | 0x3 | 0x4;
+          v_r8_5 = -1;
+        }
+        call_0x6f7000(&local_0x198, v_rdx_3, v_r8_5 + 1);
+        if (local_0x170 >= 1024) {
+          call_0x494e780();
+        } else {
+          auto ret_0x4954c10_5 = call_0x4954c10();
+          if (ret_0x4954c10_5 != 0) {
+            ret_0x4954c10_5->field_0x0 = ret_0x4954c10_5->field_0x0 ^ (ret_0x4954c10_5->field_0x0 ^ r8) & 0x3ff;
+          } else {
+            call_0x4954d30(r8, 1023);
+          }
+        }
+        call_0x6e4000(&local_0x1d8, 0);
+        int32_t v_rdi_10 = v_rdi_4;
+        int32_t v_rdi_12;
+        int32_t v_rdi_16 = v_rdi_4;
+        void* v_rsi_20 = i_esi;
+        int32_t v_r14_22 = i_r14d;
+        void* v_r15_23 = i_r15d;
+        void* v_rsi_25;
+        int32_t v_r14_27;
+        void* v_r15_28;
+        void* v_rsi_32;
+        int32_t v_r14_34;
+        void* v_r15_35;
+        void* v_rsi_39 = i_esi;
+        int32_t v_r14_41 = i_r14d;
+        void* v_rsi_44;
+        int32_t v_r14_46;
+        int32_t v_r14_53;
+        int64_t local_0x170;
+        int64_t local_0x198;
+        if (i_r14d <= 5) {
+          switch (i_r14d) {
+            case 0:
               L_0x2030c1c:
               L_0x2030cb7:
               auto local_0x450 = 0.0;
@@ -1877,46 +1899,44 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
               auto local_0x45c = 0.0;
               call_0x2dbdab0(&local_0x450, &local_0x80, &local_0x30, 1);
               call_0x2dbdec0(&local_0x450, &local_0x30, 1);
-              auto local_0x490 = i_edx;
-              call_0x2db1560(&local_0x490, (double)this->field_0x68);
+              call_0x2db1560(&local_0x490, (double)i_esi->field_m0x60);
               call_0x2db1900(&local_0x470);
               if (local_0x458 != 0) {
                 call_0x6f7bf0(&local_0x450, local_0x458);
               }
               call_0x6e41c0(&local_0x450);
               call_0x6f8fb0(&local_0x198);
-              v_rdx_6 = &sym_0x6edbed0;
-              if (NetworkBandwidthReportUpload && this->field_0xc8 != 0) {
-                int32_t v_rax_11;
+              if (NetworkBandwidthReportUpload && i_esi->field_0x0 != 0) {
+                int32_t v_rax_9;
                 if (global_0x84bc6dc >= 1024) {
                   call_0x494e780();
-                  v_rax_11 = 0;
+                  v_rax_9 = 0;
                 } else {
                   auto ret_0x4954c10_16 = call_0x4954c10();
-                  void* v_rax_10;
+                  void* v_rax_8;
                   if (ret_0x4954c10_16 != 0) {
-                    auto prev_0x0_2 = ret_0x4954c10_16->field_0x0;
+                    auto prev_0x0_3 = ret_0x4954c10_16->field_0x0;
                     ret_0x4954c10_16->field_0x0 = (ret_0x4954c10_16->field_0x0 ^ r8) & 0x3ff ^ ret_0x4954c10_16->field_0x0;
-                    v_rax_10 = prev_0x0_2;
+                    v_rax_8 = prev_0x0_3;
                   } else {
-                    auto ret_0x4954d30_17 = call_0x4954d30(r8, 1023);
-                    v_rax_10 = ret_0x4954d30_17;
+                    v_rax_8 = call_0x4954d30(r8, 1023);
                   }
-                  v_rax_11 = v_rax_10 & 0x3ff;
+                  v_rax_9 = v_rax_8 & 0x3ff;
                 }
                 i_r15d->field_0x4->field_0x78[rbp] = &sym_0x6edbf18;
                 i_r15d->field_0x4->field_0x74[rbp] = i_r15d->field_0x4 - 0x68;
                 local_0x198 = 0;
-                call_0x6f7000(&local_0x198, global_0x8161bc8, r8 + 1);
-                if (v_rax_11 >= 1024) {
+                call_0x6f7000(&local_0x198, global_0x8161bc8, 0);
+                if (v_rax_9 >= 1024) {
                   call_0x494e780();
                 } else {
                   auto ret_0x4954c10_20 = call_0x4954c10();
-                  if (ret_0x4954c10_20 == 0) {
+                  if (ret_0x4954c10_20 != 0) {
+                    ret_0x4954c10_20->field_0x0 = ret_0x4954c10_20->field_0x0 ^ (ret_0x4954c10_20->field_0x0 ^ r8) & 0x3ff;
+                  } else {
                     call_0x4954d30(r8, 1023);
                   }
                 }
-                L_0x2030f19:
                 call_0x6e4000(&local_0x1d8, 0);
                 i_r15d->field_0x4->field_0x78[rbp] = &sym_0x6edaf18;
                 i_r15d->field_0x8->field_0x78[rbp] = &sym_0x6edb8f0;
@@ -1951,7 +1971,7 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
                     break;
                     case 0:
                     L_0x2030fcc:
-                    stk_18 = stk_13;
+                    v_rdi_12 = v_rdi_10;
                     L_0x2031067:
                     local_0x450 = 0.0;
                     local_0x454 = 0.0;
@@ -1959,43 +1979,49 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
                     local_0x45c = 0.0;
                     call_0x2dbdab0(&local_0x450, &local_0x80, &local_0x30, 1);
                     call_0x2dbdec0(&local_0x450, &local_0x30, 1);
-                    local_0x490 = stk_18;
-                    call_0x2db1560(&local_0x490, (double)this->field_0xc8);
+                    call_0x2db1560(&local_0x490, (double)i_esi->field_0x0);
                     call_0x2db1900(&local_0x470);
                     if (local_0x458 != 0) {
                     call_0x6f7bf0(&local_0x450, local_0x458);
                     }
                     call_0x6e41c0(&local_0x450);
                     call_0x6f8fb0(&local_0x198);
-                    L_0x2031132:
+                    v_rdi_16 = v_rdi_12;
+                    i_r14d++;
+                    i_esi += 8;
+                    i_r8d = &sym_0x6edb290;
+                    i_edx = &sym_0x6edbed0;
+                    i_edi = v_rdi_16;
                     if (local_0xa0->field_0x2e0 != 0) {
                     if (local_0xa0->field_0x98 != 0) {
-                    int32_t v_rax_27;
+                    int32_t v_rax_19;
                     if (global_0x84bc6dc >= 1024) {
                     call_0x494e780(&sym_0x7188da0, &sym_0x6edbed0, global_0x84bc6dc, &sym_0x6edbfc0);
-                    v_rax_27 = 0;
+                    v_rax_19 = 0;
                     } else {
                     auto ret_0x4954c10_31 = call_0x4954c10(&sym_0x7188da0, &sym_0x6edbed0, global_0x84bc6dc, &sym_0x6edbfc0);
-                    void* v_rax_26;
+                    void* v_rax_18;
                     if (ret_0x4954c10_31 != 0) {
-                    auto prev_0x0_3 = ret_0x4954c10_31->field_0x0;
+                    auto prev_0x0_5 = ret_0x4954c10_31->field_0x0;
                     ret_0x4954c10_31->field_0x0 = (ret_0x4954c10_31->field_0x0 ^ r8) & 0x3ff ^ ret_0x4954c10_31->field_0x0;
-                    v_rax_26 = prev_0x0_3;
+                    v_rax_18 = prev_0x0_5;
                     } else {
                     auto ret_0x4954d30_32 = call_0x4954d30(r8, 1023);
-                    v_rax_26 = ret_0x4954d30_32;
+                    v_rax_18 = ret_0x4954d30_32;
                     }
-                    v_rax_27 = v_rax_26 & 0x3ff;
+                    v_rax_19 = v_rax_18 & 0x3ff;
                     }
                     &sym_0x7189068->field_0x4->field_0x78[rbp] = &sym_0x6edbf18;
                     &sym_0x7189068->field_0x4->field_0x74[rbp] = &sym_0x7189068->field_0x4 - 0x68;
                     local_0x198 = 0;
-                    call_0x6f7000(&local_0x198, global_0x8161b38, r8 + 1);
-                    if (v_rax_27 >= 1024) {
+                    call_0x6f7000(&local_0x198, global_0x8161b38, 0);
+                    if (v_rax_19 >= 1024) {
                     call_0x494e780();
                     } else {
                     auto ret_0x4954c10_35 = call_0x4954c10();
-                    if (ret_0x4954c10_35 == 0) {
+                    if (ret_0x4954c10_35 != 0) {
+                    ret_0x4954c10_35->field_0x0 = ret_0x4954c10_35->field_0x0 ^ (ret_0x4954c10_35->field_0x0 ^ r8) & 0x3ff;
+                    } else {
                     call_0x4954d30(r8, 1023);
                     }
                     }
@@ -2007,7 +2033,7 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
                     &sym_0x7189068->field_0x4->field_0x74[rbp] = &sym_0x7189068->field_0x4 - 0x2f8;
                     &sym_0x7189068->field_0x8->field_0x74[rbp] = &sym_0x7189068->field_0x8 - 0x308;
                     &sym_0x7189068->field_0xc->field_0x74[rbp] = &sym_0x7189068->field_0xc - 0x318;
-                    if (0 <= 5) {
+                    if (1) {
                     switch (0) {
                     case 0:
                     goto L_0x2030c1c;
@@ -2028,7 +2054,7 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
                     goto L_0x2030cb7;
                     break;
                     case 0:
-                    stk_18 = stk_13;
+                    v_rdi_12 = v_rdi_10;
                     goto L_0x2031067;
                     break;
                     case 1:
@@ -2053,10 +2079,9 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
                     break;
                     case 0:
                     L_0x20313cc:
-                    v_rsi_37 = v_rsi_28;
-                    v_r14_39 = v_r14_30;
-                    v_r15_40 = v_r15_31;
-                    stk_43 = stk_33;
+                    v_rsi_25 = v_rsi_20;
+                    v_r14_27 = v_r14_22;
+                    v_r15_28 = v_r15_23;
                     L_0x2031467:
                     local_0x450 = 0.0;
                     local_0x454 = 0.0;
@@ -2064,58 +2089,59 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
                     local_0x45c = 0.0;
                     call_0x2dbdab0(&local_0x450, &local_0x80, &local_0x30, 1);
                     call_0x2dbdec0(&local_0x450, &local_0x30, 1);
-                    local_0x490 = stk_43;
-                    call_0x2db1560(&local_0x490, (double)v_rsi_37->field_m0x60);
+                    call_0x2db1560(&local_0x490, (double)v_rsi_25->field_m0x60);
                     call_0x2db1900(&local_0x470);
                     if (local_0x458 != 0) {
                     call_0x6f7bf0(&local_0x450, local_0x458);
                     }
                     call_0x6e41c0(&local_0x450);
                     call_0x6f8fb0(&local_0x198);
-                    v_rsi_49 = v_rsi_37;
-                    v_r14_51 = v_r14_39;
-                    v_r15_52 = v_r15_40;
+                    v_rsi_32 = v_rsi_25;
+                    v_r14_34 = v_r14_27;
+                    v_r15_35 = v_r15_28;
                     L_0x2031533:
-                    if (NetworkBandwidthReportUpload && v_rsi_49->field_0x0 != 0) {
-                    int32_t v_rax_54;
+                    if (NetworkBandwidthReportUpload && v_rsi_32->field_0x0 != 0) {
+                    int32_t v_rax_38;
                     if (global_0x84bc6dc >= 1024) {
                     call_0x494e780();
-                    v_rax_54 = 0;
+                    v_rax_38 = 0;
                     } else {
                     auto ret_0x4954c10_46 = call_0x4954c10();
-                    void* v_rax_53;
+                    void* v_rax_37;
                     if (ret_0x4954c10_46 != 0) {
-                    auto prev_0x0_4 = ret_0x4954c10_46->field_0x0;
+                    auto prev_0x0_7 = ret_0x4954c10_46->field_0x0;
                     ret_0x4954c10_46->field_0x0 = (ret_0x4954c10_46->field_0x0 ^ r8) & 0x3ff ^ ret_0x4954c10_46->field_0x0;
-                    v_rax_53 = prev_0x0_4;
+                    v_rax_37 = prev_0x0_7;
                     } else {
                     auto ret_0x4954d30_47 = call_0x4954d30(r8, 1023);
-                    v_rax_53 = ret_0x4954d30_47;
+                    v_rax_37 = ret_0x4954d30_47;
                     }
-                    v_rax_54 = v_rax_53 & 0x3ff;
+                    v_rax_38 = v_rax_37 & 0x3ff;
                     }
-                    v_r15_52->field_0x4->field_0x78[rbp] = &sym_0x6edbf18;
-                    v_r15_52->field_0x4->field_0x74[rbp] = v_r15_52->field_0x4 - 0x68;
+                    v_r15_35->field_0x4->field_0x78[rbp] = &sym_0x6edbf18;
+                    v_r15_35->field_0x4->field_0x74[rbp] = v_r15_35->field_0x4 - 0x68;
                     local_0x198 = 0;
-                    call_0x6f7000(&local_0x198, global_0x8161be0, r8 + 1);
-                    if (v_rax_54 >= 1024) {
+                    call_0x6f7000(&local_0x198, global_0x8161be0, 0);
+                    if (v_rax_38 >= 1024) {
                     call_0x494e780();
                     } else {
                     auto ret_0x4954c10_50 = call_0x4954c10();
-                    if (ret_0x4954c10_50 == 0) {
+                    if (ret_0x4954c10_50 != 0) {
+                    ret_0x4954c10_50->field_0x0 = ret_0x4954c10_50->field_0x0 ^ (ret_0x4954c10_50->field_0x0 ^ r8) & 0x3ff;
+                    } else {
                     call_0x4954d30(r8, 1023);
                     }
                     }
                     L_0x20316c9:
                     call_0x6e4000(&local_0x1d8, 0);
-                    v_r15_52->field_0x4->field_0x78[rbp] = &sym_0x6edaf18;
-                    v_r15_52->field_0x8->field_0x78[rbp] = &sym_0x6edb8f0;
-                    v_r15_52->field_0xc->field_0x78[rbp] = &sym_0x6edb570;
-                    v_r15_52->field_0x4->field_0x74[rbp] = v_r15_52->field_0x4 - 0x2f8;
-                    v_r15_52->field_0x8->field_0x74[rbp] = v_r15_52->field_0x8 - 0x308;
-                    v_r15_52->field_0xc->field_0x74[rbp] = v_r15_52->field_0xc - 0x318;
-                    if (v_r14_51 <= 5) {
-                    switch (v_r14_51) {
+                    v_r15_35->field_0x4->field_0x78[rbp] = &sym_0x6edaf18;
+                    v_r15_35->field_0x8->field_0x78[rbp] = &sym_0x6edb8f0;
+                    v_r15_35->field_0xc->field_0x78[rbp] = &sym_0x6edb570;
+                    v_r15_35->field_0x4->field_0x74[rbp] = v_r15_35->field_0x4 - 0x2f8;
+                    v_r15_35->field_0x8->field_0x74[rbp] = v_r15_35->field_0x8 - 0x308;
+                    v_r15_35->field_0xc->field_0x74[rbp] = v_r15_35->field_0xc - 0x318;
+                    if (v_r14_34 <= 5) {
+                    switch (v_r14_34) {
                     case 0:
                     goto L_0x2030c1c;
                     break;
@@ -2153,10 +2179,9 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
                     goto L_0x2031067;
                     break;
                     case 0:
-                    v_rsi_37 = v_rsi_28;
-                    v_r14_39 = v_r14_30;
-                    v_r15_40 = v_r15_31;
-                    stk_43 = stk_33;
+                    v_rsi_25 = v_rsi_20;
+                    v_r14_27 = v_r14_22;
+                    v_r15_28 = v_r15_23;
                     goto L_0x2031467;
                     break;
                     case 1:
@@ -2181,9 +2206,8 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
                     break;
                     case 0:
                     L_0x203177c:
-                    v_rsi_64 = v_rsi_55;
-                    v_r14_66 = v_r14_57;
-                    stk_69 = stk_60;
+                    v_rsi_44 = v_rsi_39;
+                    v_r14_46 = v_r14_41;
                     L_0x2031817:
                     local_0x450 = 0.0;
                     local_0x454 = 0.0;
@@ -2191,19 +2215,47 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
                     local_0x45c = 0.0;
                     call_0x2dbdab0(&local_0x450, &local_0x80, &local_0x30, 1);
                     call_0x2dbdec0(&local_0x450, &local_0x30, 1);
-                    local_0x490 = stk_69;
-                    call_0x2db1560(&local_0x490, (double)v_rsi_64->field_0x0);
+                    call_0x2db1560(&local_0x490, (double)v_rsi_44->field_0x0);
                     call_0x2db1900(&local_0x470);
                     if (local_0x458 != 0) {
                     call_0x6f7bf0(&local_0x450, local_0x458);
                     }
                     call_0x6e41c0(&local_0x450);
                     call_0x6f8fb0(&local_0x198);
-                    v_r14_78 = v_r14_66;
+                    v_r14_53 = v_r14_46;
                     L_0x20318e8:
-                    if (v_r14_78 + 1 >= 6) {
+                    if (v_r14_53 + 1 >= 6) {
                     L_0x20318fd:
-                    if (0 > 5) break;
+                    if (local_0xa0->field_0x128 > 0) {
+                    local_0x170 = 0;
+                    call_0x6e45a0(&local_0x170, &sym_0x8161b50);
+                    call_0x2dbdec0(&local_0x450, &local_0x30, 1);
+                    call_0x2db1560(&local_0x490, (double)local_0xa0->field_0x128);
+                    call_0x2db1900(&local_0x470);
+                    call_0x6e41c0(&local_0x450);
+                    call_0x6f8fb0(&local_0x198);
+                    call_0x6e45a0(&local_0x170, &sym_0x8161b80);
+                    call_0x2dbdec0(&local_0x450, &local_0x30, 1);
+                    call_0x2db1560(&local_0x490, local_0xa0->field_0x160);
+                    call_0x2db1900(&local_0x470);
+                    call_0x6e41c0(&local_0x450);
+                    call_0x6f8fb0(&local_0x198);
+                    }
+                    if (NetworkBandwidthReportUpload && local_0xa0->field_0x168 > 0) {
+                    call_0x6e45a0(&local_0x170, &sym_0x8161bf8);
+                    call_0x2dbdec0(&local_0x450, &local_0x30, 1);
+                    call_0x2db1560(&local_0x490, (double)local_0xa0->field_0x168);
+                    call_0x2db1900(&local_0x470);
+                    call_0x6e41c0(&local_0x450);
+                    call_0x6f8fb0(&local_0x198);
+                    call_0x6e45a0(&local_0x170, &sym_0x8161c28);
+                    call_0x2dbdec0(&local_0x450, &local_0x30, 1);
+                    call_0x2db1560(&local_0x490, local_0xa0->field_0x1a0);
+                    call_0x2db1900(&local_0x470);
+                    call_0x6e41c0(&local_0x450);
+                    call_0x6f8fb0(&local_0x198);
+                    }
+                    if (0) break;
                     switch (0) {
                     case 0:
                     break;
@@ -2314,55 +2366,20 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
                     break;
                     }
                     } else {
-                    v_rsi_64 = v_rsi_49;
-                    v_r14_66 = v_r14_51;
-                    stk_69 = &sym_0x6edbed0;
+                    v_rsi_44 = v_rsi_32;
+                    v_r14_46 = v_r14_34;
                     goto L_0x2031817;
                     }
                     } else {
-                    v_r14_78 = v_r14_51;
-                    if (v_r14_78 + 1 >= 6) {
+                    v_r14_53 = v_r14_34;
+                    if (v_r14_53 + 1 >= 6) {
                     if (local_0xa0->field_0x128 > 0) {
-                    call_0x6e45a0(&local_0x170, &sym_0x8161b50);
-                    call_0x2dbdec0(&local_0x450, &local_0x30, 1);
-                    call_0x2db1560(&local_0x490, (double)local_0xa0->field_0x128);
-                    call_0x2db1900(&local_0x470);
-                    if (local_0x458 != 0) {
-                    call_0x6f7bf0(&local_0x450, local_0x458);
-                    }
-                    call_0x6e41c0(&local_0x450);
-                    call_0x6f8fb0(&local_0x198);
-                    call_0x6e45a0(&local_0x170, &sym_0x8161b80);
-                    call_0x2dbdec0(&local_0x450, &local_0x30, 1);
-                    call_0x2db1560(&local_0x490, local_0xa0->field_0x160);
-                    call_0x2db1900(&local_0x470);
-                    if (local_0x458 != 0) {
-                    call_0x6f7bf0(&local_0x450, local_0x458);
-                    }
-                    call_0x6e41c0(&local_0x450);
-                    call_0x6f8fb0(&local_0x198);
+                    goto L_0x203190b;
                     }
                     if (NetworkBandwidthReportUpload && local_0xa0->field_0x168 > 0) {
-                    call_0x6e45a0(&local_0x170, &sym_0x8161bf8);
-                    call_0x2dbdec0(&local_0x450, &local_0x30, 1);
-                    call_0x2db1560(&local_0x490, (double)local_0xa0->field_0x168);
-                    call_0x2db1900(&local_0x470);
-                    if (local_0x458 != 0) {
-                    call_0x6f7bf0(&local_0x450, local_0x458);
+                    goto L_0x2031a61;
                     }
-                    call_0x6e41c0(&local_0x450);
-                    call_0x6f8fb0(&local_0x198);
-                    call_0x6e45a0(&local_0x170, &sym_0x8161c28);
-                    call_0x2dbdec0(&local_0x450, &local_0x30, 1);
-                    call_0x2db1560(&local_0x490, local_0xa0->field_0x1a0);
-                    call_0x2db1900(&local_0x470);
-                    if (local_0x458 != 0) {
-                    call_0x6f7bf0(&local_0x450, local_0x458);
-                    }
-                    call_0x6e41c0(&local_0x450);
-                    call_0x6f8fb0(&local_0x198);
-                    }
-                    if (0 > 5) break;
+                    if (0) break;
                     switch (0) {
                     case 0:
                     goto L_0x2030c1c;
@@ -2419,9 +2436,8 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
                     goto L_0x2031467;
                     break;
                     case 0:
-                    v_rsi_64 = v_rsi_55;
-                    v_r14_66 = v_r14_57;
-                    stk_69 = stk_60;
+                    v_rsi_44 = v_rsi_39;
+                    v_r14_46 = v_r14_41;
                     goto L_0x2031817;
                     break;
                     case 1:
@@ -2514,50 +2530,50 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
                     break;
                     }
                     } else {
-                    v_rsi_37 = &local_0xa0->field_0xf8;
-                    v_r14_39 = 0;
-                    v_r15_40 = &sym_0x7189068;
-                    stk_43 = &sym_0x6edbed0;
+                    v_rsi_25 = &local_0xa0->field_0xf8;
+                    v_r14_27 = 0;
+                    v_r15_28 = &sym_0x7189068;
                     goto L_0x2031467;
                     }
                     } else {
-                    v_rsi_49 = &local_0xa0->field_0xf8;
-                    v_r14_51 = 0;
-                    v_r15_52 = &sym_0x7189068;
-                    if (NetworkBandwidthReportUpload && v_rsi_49->field_0x0 != 0) {
-                    int32_t v_rax_54;
+                    v_rsi_32 = &local_0xa0->field_0xf8;
+                    v_r14_34 = 0;
+                    v_r15_35 = &sym_0x7189068;
+                    if (NetworkBandwidthReportUpload && v_rsi_32->field_0x0 != 0) {
+                    int32_t v_rax_38;
                     if (global_0x84bc6dc >= 1024) {
                     call_0x494e780();
-                    v_rax_54 = 0;
+                    v_rax_38 = 0;
                     } else {
                     auto ret_0x4954c10_46 = call_0x4954c10();
-                    void* v_rax_53;
+                    void* v_rax_37;
                     if (ret_0x4954c10_46 != 0) {
-                    auto prev_0x0_4 = ret_0x4954c10_46->field_0x0;
+                    auto prev_0x0_7 = ret_0x4954c10_46->field_0x0;
                     ret_0x4954c10_46->field_0x0 = (ret_0x4954c10_46->field_0x0 ^ r8) & 0x3ff ^ ret_0x4954c10_46->field_0x0;
-                    v_rax_53 = prev_0x0_4;
+                    v_rax_37 = prev_0x0_7;
                     } else {
                     auto ret_0x4954d30_47 = call_0x4954d30(r8, 1023);
-                    v_rax_53 = ret_0x4954d30_47;
+                    v_rax_37 = ret_0x4954d30_47;
                     }
-                    v_rax_54 = v_rax_53 & 0x3ff;
+                    v_rax_38 = v_rax_37 & 0x3ff;
                     }
-                    v_r15_52->field_0x4->field_0x78[rbp] = &sym_0x6edbf18;
-                    v_r15_52->field_0x4->field_0x74[rbp] = v_r15_52->field_0x4 - 0x68;
+                    v_r15_35->field_0x4->field_0x78[rbp] = &sym_0x6edbf18;
+                    v_r15_35->field_0x4->field_0x74[rbp] = v_r15_35->field_0x4 - 0x68;
                     local_0x198 = 0;
-                    call_0x6f7000(&local_0x198, global_0x8161be0, r8 + 1);
-                    if (v_rax_54 >= 1024) {
+                    call_0x6f7000(&local_0x198, global_0x8161be0, 0);
+                    if (v_rax_38 >= 1024) {
                     call_0x494e780();
                     } else {
                     auto ret_0x4954c10_50 = call_0x4954c10();
                     if (ret_0x4954c10_50 != 0) {
+                    ret_0x4954c10_50->field_0x0 = ret_0x4954c10_50->field_0x0 ^ (ret_0x4954c10_50->field_0x0 ^ r8) & 0x3ff;
                     } else {
                     call_0x4954d30(r8, 1023);
                     }
                     }
                     goto L_0x20316c9;
                     } else {
-                    v_r14_78 = v_r14_51;
+                    v_r14_53 = v_r14_34;
                     goto L_0x20318e8;
                     }
                     }
@@ -2636,47 +2652,53 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
                     break;
                   }
                 } else {
-                  stk_18 = v_rdx_6;
+                  v_rdi_12 = v_rdi_4 | 0x18 | 0x20;
                   goto L_0x2031067;
                 }
               } else {
+                i_r14d++;
+                i_esi += 8;
+                i_r8d = &sym_0x6edb290;
+                i_edx = &sym_0x6edbed0;
+                i_edi = v_rdi_16;
                 if (local_0xa0->field_0x2e0 != 0) {
                   if (local_0xa0->field_0x98 != 0) {
-                    int32_t v_rax_27;
+                    int32_t v_rax_19;
                     if (global_0x84bc6dc >= 1024) {
                     call_0x494e780(&sym_0x7188da0, &sym_0x6edbed0, global_0x84bc6dc, &sym_0x6edbfc0);
-                    v_rax_27 = 0;
+                    v_rax_19 = 0;
                     } else {
                     auto ret_0x4954c10_31 = call_0x4954c10(&sym_0x7188da0, &sym_0x6edbed0, global_0x84bc6dc, &sym_0x6edbfc0);
-                    void* v_rax_26;
+                    void* v_rax_18;
                     if (ret_0x4954c10_31 != 0) {
-                    auto prev_0x0_3 = ret_0x4954c10_31->field_0x0;
+                    auto prev_0x0_5 = ret_0x4954c10_31->field_0x0;
                     ret_0x4954c10_31->field_0x0 = (ret_0x4954c10_31->field_0x0 ^ r8) & 0x3ff ^ ret_0x4954c10_31->field_0x0;
-                    v_rax_26 = prev_0x0_3;
+                    v_rax_18 = prev_0x0_5;
                     } else {
                     auto ret_0x4954d30_32 = call_0x4954d30(r8, 1023);
-                    v_rax_26 = ret_0x4954d30_32;
+                    v_rax_18 = ret_0x4954d30_32;
                     }
-                    v_rax_27 = v_rax_26 & 0x3ff;
+                    v_rax_19 = v_rax_18 & 0x3ff;
                     }
                     &sym_0x7189068->field_0x4->field_0x78[rbp] = &sym_0x6edbf18;
                     &sym_0x7189068->field_0x4->field_0x74[rbp] = &sym_0x7189068->field_0x4 - 0x68;
                     local_0x198 = 0;
-                    call_0x6f7000(&local_0x198, global_0x8161b38, r8 + 1);
-                    if (v_rax_27 >= 1024) {
+                    call_0x6f7000(&local_0x198, global_0x8161b38, 0);
+                    if (v_rax_19 >= 1024) {
                     call_0x494e780();
                     } else {
                     auto ret_0x4954c10_35 = call_0x4954c10();
                     if (ret_0x4954c10_35 != 0) {
+                    ret_0x4954c10_35->field_0x0 = ret_0x4954c10_35->field_0x0 ^ (ret_0x4954c10_35->field_0x0 ^ r8) & 0x3ff;
                     } else {
                     call_0x4954d30(r8, 1023);
                     }
                     }
                     goto L_0x2031319;
                   } else {
-                    v_rsi_49 = &local_0xa0->field_0xf8;
-                    v_r14_51 = 0;
-                    v_r15_52 = &sym_0x7189068;
+                    v_rsi_32 = &local_0xa0->field_0xf8;
+                    v_r14_34 = 0;
+                    v_r15_35 = &sym_0x7189068;
                     goto L_0x2031533;
                   }
                 } else {
@@ -2684,138 +2706,101 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
                 }
               }
               break;
-              case 1:
+            case 1:
               goto L_0x2030c36;
               break;
-              case 2:
+            case 2:
               goto L_0x2030c4d;
               break;
-              case 3:
+            case 3:
               goto L_0x2030c64;
               break;
-              case 4:
+            case 4:
               goto L_0x2030c7b;
               break;
-              case 5:
+            case 5:
               goto L_0x2030c92;
               break;
-              case 0:
+            case 0:
               goto L_0x2030fcc;
               break;
-              case 1:
+            case 1:
               goto L_0x2030fe6;
               break;
-              case 2:
+            case 2:
               goto L_0x2030ffd;
               break;
-              case 3:
+            case 3:
               goto L_0x2031014;
               break;
-              case 4:
+            case 4:
               goto L_0x203102b;
               break;
-              case 5:
+            case 5:
               goto L_0x2031042;
               break;
-              case 0:
+            case 0:
               goto L_0x20313cc;
               break;
-              case 1:
+            case 1:
               goto L_0x20313e6;
               break;
-              case 2:
+            case 2:
               goto L_0x20313fd;
               break;
-              case 3:
+            case 3:
               goto L_0x2031414;
               break;
-              case 4:
+            case 4:
               goto L_0x203142b;
               break;
-              case 5:
+            case 5:
               goto L_0x2031442;
               break;
-              case 0:
+            case 0:
               goto L_0x203177c;
               break;
-              case 1:
+            case 1:
               goto L_0x2031796;
               break;
-              case 2:
+            case 2:
               goto L_0x20317ad;
               break;
-              case 3:
+            case 3:
               goto L_0x20317c4;
               break;
-              case 4:
+            case 4:
               goto L_0x20317db;
               break;
-              case 5:
+            case 5:
               goto L_0x20317f2;
               break;
-              case 0:
+            case 0:
               goto L_0x2031bd3;
               break;
-              case 1:
+            case 1:
               goto L_0x2031be5;
               break;
-              case 2:
+            case 2:
               goto L_0x2031bf7;
               break;
-              case 3:
+            case 3:
               goto L_0x2031c09;
               break;
-              case 4:
+            case 4:
               goto L_0x2031c1b;
               break;
-              case 5:
+            case 5:
               goto L_0x2031c2d;
               break;
-            }
-          } else {
-            goto L_0x2030cb7;
           }
         } else {
-          if (NetworkBandwidthReportUpload && this->field_0xc8 != 0) {
-            int32_t v_rax_11;
-            if (global_0x84bc6dc >= 1024) {
-              call_0x494e780();
-              v_rax_11 = 0;
-            } else {
-              auto ret_0x4954c10_16 = call_0x4954c10();
-              void* v_rax_10;
-              if (ret_0x4954c10_16 != 0) {
-                auto prev_0x0_2 = ret_0x4954c10_16->field_0x0;
-                ret_0x4954c10_16->field_0x0 = (ret_0x4954c10_16->field_0x0 ^ r8) & 0x3ff ^ ret_0x4954c10_16->field_0x0;
-                v_rax_10 = prev_0x0_2;
-              } else {
-                auto ret_0x4954d30_17 = call_0x4954d30(r8, 1023);
-                v_rax_10 = ret_0x4954d30_17;
-              }
-              v_rax_11 = v_rax_10 & 0x3ff;
-            }
-            i_r15d->field_0x4->field_0x78[rbp] = &sym_0x6edbf18;
-            i_r15d->field_0x4->field_0x74[rbp] = i_r15d->field_0x4 - 0x68;
-            local_0x198 = 0;
-            call_0x6f7000(&local_0x198, global_0x8161bc8, r8 + 1);
-            if (v_rax_11 >= 1024) {
-              call_0x494e780();
-            } else {
-              auto ret_0x4954c10_20 = call_0x4954c10();
-              if (ret_0x4954c10_20 != 0) {
-              } else {
-                call_0x4954d30(r8, 1023);
-              }
-            }
-            goto L_0x2030f19;
-          } else {
-            goto L_0x2031132;
-          }
+          goto L_0x2030cb7;
         }
         if (global_0x84bc6dc < 1024) break;
         call_0x494e780();
         break;
-      } while ((i_r14d + 1) < 6); // loop -> L_0x2030a00
+      } while (i_r14d < 6); // loop -> L_0x2030a00
       goto L_0x2031bd3;
     }
   
@@ -2859,7 +2844,7 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
     0x20309fc | 0f 1f 40 00              | nop
     L_0x2030a00:
     0x2030a00 | 48 83 7e a0 00           | cmp qword ptr [rsi - 0x60], 0x0
-    0x2030a05 | 0f 84 a1 03 00 00        | je 0x2030dac
+    0x2030a05 | 0f 84 f5 00 00 00        | je 0x2030b00 ; [Nanomite Reconstructed: je +0xf5 via cfg_join_label_resolver]
     0x2030a0b | 4c 89 7d 78              | mov qword ptr [rbp + 0x78], r15
     0x2030a0f | 48 89 85 e0 00 00 00     | mov qword ptr [rbp + 0xe0], rax
     0x2030a16 | 48 89 8d 98 03 00 00     | mov qword ptr [rbp + 0x398], rcx
@@ -2912,7 +2897,7 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
     0x2030ad7 | 48 89 9d a8 00 00 00     | mov qword ptr [rbp + 0xa8], rbx
     0x2030ade | 48 c7 85 b0 00 00 00 0f.. | mov qword ptr [rbp + 0xb0], 0xf
     0x2030ae9 | c6 85 98 00 00 00 00     | mov byte ptr [rbp + 0x98], 0x0
-    0x2030af0 | 49 c7 c0 ff ff ff ff     | mov r8, 0xffffffff
+    0x2030af0 | 49 c7 c0 ff ff ff ff     | mov r8, -0x1
     0x2030af7 | 66 0f 1f 84 00 00 00 00.. | nop
     L_0x2030b00:
     0x2030b00 | 49 ff c0                 | inc r8
@@ -3059,7 +3044,6 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
     0x2030d97 | 48 8d 15 32 b1 ea 04     | lea rdx, [rip + 0x4eab132]
     0x2030d9e | 4c 8d 05 eb a4 ea 04     | lea r8, [rip + 0x4eaa4eb]
     0x2030da5 | 4c 8d 0d 14 b2 ea 04     | lea r9, [rip + 0x4eab214]
-    L_0x2030dac:
     0x2030dac | 80 3d 0d 86 0c 06 00     | cmp byte ptr [rip + 0x60c860d], 0x0 ; DFFlagNetworkBandwidthReportUpload
     0x2030db3 | 0f 84 79 03 00 00        | je 0x2031132
     0x2030db9 | 48 83 3e 00              | cmp qword ptr [rsi], 0x0
@@ -3115,7 +3099,7 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
     0x2030e8d | 48 89 9d a8 00 00 00     | mov qword ptr [rbp + 0xa8], rbx
     0x2030e94 | 48 c7 85 b0 00 00 00 0f.. | mov qword ptr [rbp + 0xb0], 0xf
     0x2030e9f | c6 85 98 00 00 00 00     | mov byte ptr [rbp + 0x98], 0x0
-    0x2030ea6 | 49 c7 c0 ff ff ff ff     | mov r8, 0xffffffff
+    0x2030ea6 | 49 c7 c0 ff ff ff ff     | mov r8, -0x1
     0x2030ead | 0f 1f 00                 | nop
     L_0x2030eb0:
     0x2030eb0 | 49 ff c0                 | inc r8
@@ -3333,7 +3317,7 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
     0x203128c | 48 89 9d a8 00 00 00     | mov qword ptr [rbp + 0xa8], rbx
     0x2031293 | 48 c7 85 b0 00 00 00 0f.. | mov qword ptr [rbp + 0xb0], 0xf
     0x203129e | c6 85 98 00 00 00 00     | mov byte ptr [rbp + 0x98], 0x0
-    0x20312a5 | 49 c7 c0 ff ff ff ff     | mov r8, 0xffffffff
+    0x20312a5 | 49 c7 c0 ff ff ff ff     | mov r8, -0x1
     0x20312ac | 0f 1f 40 00              | nop
     L_0x20312b0:
     0x20312b0 | 49 ff c0                 | inc r8
@@ -3536,7 +3520,7 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
     0x203163b | 48 89 9d a8 00 00 00     | mov qword ptr [rbp + 0xa8], rbx
     0x2031642 | 48 c7 85 b0 00 00 00 0f.. | mov qword ptr [rbp + 0xb0], 0xf
     0x203164d | c6 85 98 00 00 00 00     | mov byte ptr [rbp + 0x98], 0x0
-    0x2031654 | 49 c7 c0 ff ff ff ff     | mov r8, 0xffffffff
+    0x2031654 | 49 c7 c0 ff ff ff ff     | mov r8, -0x1
     0x203165b | 0f 1f 44 00 00           | nop
     L_0x2031660:
     0x2031660 | 49 ff c0                 | inc r8
@@ -3913,7 +3897,7 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
     0x2031d3f | 48 89 9d a8 00 00 00     | mov qword ptr [rbp + 0xa8], rbx
     0x2031d46 | 48 c7 85 b0 00 00 00 0f.. | mov qword ptr [rbp + 0xb0], 0xf
     0x2031d51 | c6 85 98 00 00 00 00     | mov byte ptr [rbp + 0x98], 0x0
-    0x2031d58 | 49 c7 c0 ff ff ff ff     | mov r8, 0xffffffff
+    0x2031d58 | 49 c7 c0 ff ff ff ff     | mov r8, -0x1
     0x2031d5f | 90                       | nop
     L_0x2031d60:
     0x2031d60 | 49 ff c0                 | inc r8
@@ -4337,283 +4321,283 @@ Operação  : 0x2006e71: mov/math reg, [flag] ; fn=0x2006d40..0x2006fd6
   0x20309ae: f2 44 0f 5c 91 d8 02 00 00 | 44 8b f3 | 48 8d b1 c8 00 00 00 | 4c 8d 3d a0 86 15 05
   0x20309c8: 48 8d 05 81 86 15 05 | 48 8d 0d ca 83 15 05 | 48 8d 15 f3 b4 ea 04 | 4c 8d 05 ac a8 ea 04
   0x20309e4: 4c 8d 0d d5 b5 ea 04 | 4c 8d 25 0e f6 fc fd | 4c 8d 2d ef a1 16 05 | 0f 57 ff
-  0x20309fc: 0f 1f 40 00 | 48 83 7e a0 00 | 0f 84 a1 03 00 00 | 4c 89 7d 78
-  0x2030a0f: 48 89 85 e0 00 00 00 | 48 89 8d 98 03 00 00 | 83 cf 03 | 48 89 95 90 03 00 00
-  0x2030a27: 4c 89 85 70 03 00 00 | 4c 89 8d 80 03 00 00 | 83 cf 04 | 44 8b 05 9d bc 48 06
-  0x2030a3f: 41 81 f8 00 04 00 00 | 72 09 | e8 33 dd 91 02 | 8b cb
-  0x2030a4f: eb 34 | e8 ba 41 92 02 | 48 8b d0 | 48 85 c0
-  0x2030a5c: 74 12 | 8b 08 | 8b c1 | 41 33 c0
-  0x2030a65: 25 ff 03 00 00 | 33 c1 | 89 02 | eb 0f
-  0x2030a70: ba ff 03 00 00 | 41 8b c8 | e8 b3 42 92 02 | 8b c8
-  0x2030a7f: 81 e1 ff 03 00 00 | 89 4d 70 | 48 8b 45 78 | 48 63 48 04
-  0x2030a90: 48 8d 05 81 b4 ea 04 | 48 89 44 0d 78 | 48 8b 45 78 | 48 63 48 04
-  0x2030aa4: 8d 51 98 | 89 54 0d 74 | c7 85 84 00 00 00 08 00 00 00 | 48 8b 05 74 10 13 06
-  0x2030abc: 48 89 85 88 00 00 00 | 89 9d 90 00 00 00 | 48 8b 15 50 10 13 06 | 48 89 9d 98 00 00 00
-  0x2030ad7: 48 89 9d a8 00 00 00 | 48 c7 85 b0 00 00 00 0f 00 00 00 | c6 85 98 00 00 00 00 | 49 c7 c0 ff ff ff ff
-  0x2030af7: 66 0f 1f 84 00 00 00 00 00 | 49 ff c0 | 42 80 3c 02 00 | 75 f6
-  0x2030b0a: 48 8d 8d 98 00 00 00 | e8 ea 64 6c fe | c6 85 c0 00 00 00 00 | c6 85 cc 00 00 00 00
-  0x2030b24: c6 85 d4 00 00 00 00 | 44 8b 45 70 | 89 5d 70 | 41 81 f8 00 04 00 00
-  0x2030b39: 72 07 | e8 40 dc 91 02 | eb 27 | e8 c9 40 92 02
-  0x2030b47: 48 85 c0 | 74 0f | 8b 10 | 41 33 d0
-  0x2030b51: 81 e2 ff 03 00 00 | 31 10 | eb 0e | ba ff 03 00 00
-  0x2030b60: 41 8b c8 | e8 c8 41 92 02 | 90 | 33 d2
-  0x2030b6b: 48 8d 8d d8 00 00 00 | e8 89 34 6b fe | 48 8b 45 78 | 48 63 48 04
-  0x2030b7f: 48 8d 05 92 a3 ea 04 | 48 89 44 0d 78 | 48 8b 45 78 | 48 63 48 08
-  0x2030b93: 48 8d 05 56 ad ea 04 | 48 89 44 0d 78 | 48 8b 45 78 | 48 63 48 0c
-  0x2030ba7: 48 8d 05 c2 a9 ea 04 | 48 89 44 0d 78 | 48 8b 45 78 | 48 63 48 04
-  0x2030bbb: 8d 91 08 fd ff ff | 89 54 0d 74 | 48 8b 45 78 | 48 63 48 08
-  0x2030bcd: 8d 91 f8 fc ff ff | 89 54 0d 74 | 48 8b 45 78 | 48 63 48 0c
-  0x2030bdf: 8d 91 e8 fc ff ff | 89 54 0d 74 | f2 0f 11 bd 48 03 00 00 | 0f 57 c0
-  0x2030bf4: 66 0f 7f 85 50 03 00 00 | 89 9d 60 03 00 00 | 41 0f b6 c6 | 83 f8 05
-  0x2030c09: 0f 87 9a 00 00 00 | 41 8b 8c 84 c8 34 03 02 | 49 03 cc | ff e1
-  0x2030c1c: 48 8d 05 5d eb 1b 05 | 48 89 44 24 20 | 48 c7 44 24 28 09 00 00 00 | e9 81 00 00 00
-  0x2030c36: 48 8d 05 2b eb 1b 05 | 48 89 44 24 20 | 48 c7 44 24 28 13 00 00 00 | eb 6a
-  0x2030c4d: 48 8d 05 04 eb 1b 05 | 48 89 44 24 20 | 48 c7 44 24 28 09 00 00 00 | eb 53
-  0x2030c64: 48 8d 05 e5 ea 1b 05 | 48 89 44 24 20 | 48 c7 44 24 28 05 00 00 00 | eb 3c
-  0x2030c7b: 48 8d 05 66 bf 19 05 | 48 89 44 24 20 | 48 c7 44 24 28 0b 00 00 00 | eb 25
-  0x2030c92: 48 8d 05 f7 ea 1b 05 | 48 89 44 24 20 | 48 c7 44 24 28 11 00 00 00 | eb 0e
-  0x2030ca9: 4c 89 6c 24 20 | 48 c7 44 24 28 07 00 00 00 | 48 8d 05 a2 f1 1b 05 | 48 89 44 24 70
-  0x2030cc3: 48 c7 44 24 78 0e 00 00 00 | 0f 28 44 24 20 | 66 0f 7f 44 24 30 | 0f 28 4c 24 70
-  0x2030cdc: 66 0f 7f 4d 80 | 41 b9 01 00 00 00 | 4c 8d 44 24 30 | 48 8d 55 80
-  0x2030cf0: 48 8d 8d 50 03 00 00 | e8 b4 cd d8 00 | 48 8d 05 c5 19 27 05 | 48 89 44 24 50
-  0x2030d08: 48 c7 44 24 58 07 00 00 00 | 0f 28 44 24 50 | 66 0f 7f 44 24 30 | 41 b9 01 00 00 00
-  0x2030d22: 45 0f b6 c1 | 48 8d 54 24 30 | 48 8d 8d 50 03 00 00 | e8 89 d1 d8 00
-  0x2030d37: 0f 57 c9 | f2 48 0f 2a 4e a0 | 48 8d 8d 90 03 00 00 | e8 14 08 d8 00
-  0x2030d4c: 48 8d 8d 70 03 00 00 | e8 a8 0b d8 00 | 90 | 48 8b 95 58 03 00 00
-  0x2030d60: 48 85 d2 | 74 0c | 48 8d 8d 50 03 00 00 | e8 7f 6e 6c fe
-  0x2030d71: 48 8d 8d 50 03 00 00 | e8 43 34 6b fe | 48 8d 8d 98 00 00 00 | e8 27 82 6c fe
-  0x2030d89: 48 8d 05 c0 82 15 05 | 48 8d 0d 09 80 15 05 | 48 8d 15 32 b1 ea 04 | 4c 8d 05 eb a4 ea 04
-  0x2030da5: 4c 8d 0d 14 b2 ea 04 | 80 3d 0d 86 0c 06 00 | 0f 84 79 03 00 00 | 48 83 3e 00
-  0x2030dbd: 0f 84 6f 03 00 00 | 4c 89 7d 78 | 48 89 85 e0 00 00 00 | 48 89 8d 98 03 00 00
-  0x2030dd5: 83 cf 18 | 48 89 95 90 03 00 00 | 4c 89 85 70 03 00 00 | 4c 89 8d 80 03 00 00
-  0x2030ded: 83 cf 20 | 44 8b 05 e5 b8 48 06 | 41 81 f8 00 04 00 00 | 72 09
-  0x2030e00: e8 7b d9 91 02 | 8b c3 | eb 32 | e8 02 3e 92 02
-  0x2030e0e: 48 8b d0 | 48 85 c0 | 74 13 | 8b 00
-  0x2030e18: 8b c8 | 41 33 c8 | 81 e1 ff 03 00 00 | 33 c8
-  0x2030e25: 89 0a | eb 0d | ba ff 03 00 00 | 41 8b c8
-  0x2030e31: e8 fa 3e 92 02 | 25 ff 03 00 00 | 89 45 70 | 48 8b 45 78
-  0x2030e42: 48 63 48 04 | 48 8d 05 cb b0 ea 04 | 48 89 44 0d 78 | 48 8b 45 78
-  0x2030e56: 48 63 48 04 | 8d 51 98 | 89 54 0d 74 | c7 85 84 00 00 00 08 00 00 00
-  0x2030e6b: 48 8b 05 66 0d 13 06 | 48 89 85 88 00 00 00 | 89 9d 90 00 00 00 | 48 8b 15 42 0d 13 06
-  0x2030e86: 48 89 9d 98 00 00 00 | 48 89 9d a8 00 00 00 | 48 c7 85 b0 00 00 00 0f 00 00 00 | c6 85 98 00 00 00 00
-  0x2030ea6: 49 c7 c0 ff ff ff ff | 0f 1f 00 | 49 ff c0 | 42 80 3c 02 00
-  0x2030eb8: 75 f6 | 48 8d 8d 98 00 00 00 | e8 3a 61 6c fe | c6 85 c0 00 00 00 00
-  0x2030ecd: c6 85 cc 00 00 00 00 | c6 85 d4 00 00 00 00 | 44 8b 45 70 | 89 5d 70
-  0x2030ee2: 41 81 f8 00 04 00 00 | 72 07 | e8 90 d8 91 02 | eb 27
-  0x2030ef2: e8 19 3d 92 02 | 48 85 c0 | 74 0f | 8b 10
-  0x2030efe: 41 33 d0 | 81 e2 ff 03 00 00 | 31 10 | eb 0e
-  0x2030f0b: ba ff 03 00 00 | 41 8b c8 | e8 18 3e 92 02 | 90
-  0x2030f19: 33 d2 | 48 8d 8d d8 00 00 00 | e8 d9 30 6b fe | 48 8b 45 78
-  0x2030f2b: 48 63 48 04 | 48 8d 05 e2 9f ea 04 | 48 89 44 0d 78 | 48 8b 45 78
-  0x2030f3f: 48 63 48 08 | 48 8d 05 a6 a9 ea 04 | 48 89 44 0d 78 | 48 8b 45 78
-  0x2030f53: 48 63 48 0c | 48 8d 05 12 a6 ea 04 | 48 89 44 0d 78 | 48 8b 45 78
-  0x2030f67: 48 63 48 04 | 8d 91 08 fd ff ff | 89 54 0d 74 | 48 8b 45 78
-  0x2030f79: 48 63 48 08 | 8d 91 f8 fc ff ff | 89 54 0d 74 | 48 8b 45 78
-  0x2030f8b: 48 63 48 0c | 8d 91 e8 fc ff ff | 89 54 0d 74 | f2 0f 11 bd 48 03 00 00
-  0x2030fa1: 0f 57 c0 | 66 0f 7f 85 50 03 00 00 | 89 9d 60 03 00 00 | 41 0f b6 c6
-  0x2030fb6: 83 f8 05 | 0f 87 9a 00 00 00 | 41 8b 8c 84 e0 34 03 02 | 49 03 cc
-  0x2030fca: ff e1 | 48 8d 05 ad e7 1b 05 | 48 89 44 24 40 | 48 c7 44 24 48 09 00 00 00
-  0x2030fe1: e9 81 00 00 00 | 48 8d 05 7b e7 1b 05 | 48 89 44 24 40 | 48 c7 44 24 48 13 00 00 00
-  0x2030ffb: eb 6a | 48 8d 05 54 e7 1b 05 | 48 89 44 24 40 | 48 c7 44 24 48 09 00 00 00
-  0x2031012: eb 53 | 48 8d 05 35 e7 1b 05 | 48 89 44 24 40 | 48 c7 44 24 48 05 00 00 00
-  0x2031029: eb 3c | 48 8d 05 b6 bb 19 05 | 48 89 44 24 40 | 48 c7 44 24 48 0b 00 00 00
-  0x2031040: eb 25 | 48 8d 05 47 e7 1b 05 | 48 89 44 24 40 | 48 c7 44 24 48 11 00 00 00
-  0x2031057: eb 0e | 4c 89 6c 24 40 | 48 c7 44 24 48 07 00 00 00 | 48 8d 05 f2 ed 1b 05
-  0x203106e: 48 89 45 c0 | 48 c7 45 c8 0e 00 00 00 | 0f 28 44 24 40 | 66 0f 7f 44 24 30
-  0x2031085: 0f 28 4d c0 | 66 0f 7f 4d 80 | 41 b9 01 00 00 00 | 4c 8d 44 24 30
-  0x2031099: 48 8d 55 80 | 48 8d 8d 50 03 00 00 | e8 07 ca d8 00 | 48 8d 05 18 16 27 05
-  0x20310b0: 48 89 45 90 | 48 c7 45 98 07 00 00 00 | 0f 28 45 90 | 66 0f 7f 44 24 30
-  0x20310c6: 41 b9 01 00 00 00 | 45 0f b6 c1 | 48 8d 54 24 30 | 48 8d 8d 50 03 00 00
-  0x20310dc: e8 df cd d8 00 | 0f 57 c9 | f2 48 0f 2a 0e | 48 8d 8d 90 03 00 00
-  0x20310f0: e8 6b 04 d8 00 | 48 8d 8d 70 03 00 00 | e8 ff 07 d8 00 | 90
-  0x2031102: 48 8b 95 58 03 00 00 | 48 85 d2 | 74 0c | 48 8d 8d 50 03 00 00
-  0x2031115: e8 d6 6a 6c fe | 48 8d 8d 50 03 00 00 | e8 9a 30 6b fe | 48 8d 8d 98 00 00 00
-  0x203112d: e8 7e 7e 6c fe | 41 ff c6 | 48 83 c6 08 | 41 83 fe 06
-  0x203113d: 48 8d 05 0c 7f 15 05 | 48 8d 0d 55 7c 15 05 | 48 8d 15 7e ad ea 04 | 4c 8d 05 37 a1 ea 04
-  0x2031159: 4c 8d 0d 60 ae ea 04 | 0f 8c 9a f8 ff ff | 4c 8b 7d a0 | 41 80 bf e0 02 00 00 00
-  0x2031172: 0f 84 85 07 00 00 | 44 8b f3 | 49 8d b7 f8 00 00 00 | 4c 8d 3d df 7e 15 05
-  0x2031189: 0f 1f 80 00 00 00 00 | 48 83 7e a0 00 | 0f 84 98 03 00 00 | 4c 89 7d 78
-  0x203119f: 48 8d 05 aa 7e 15 05 | 48 89 85 e0 00 00 00 | 48 8d 05 ec 7b 15 05 | 48 89 85 98 03 00 00
-  0x20311bb: 81 cf c0 00 00 00 | 48 8d 05 08 ad ea 04 | 48 89 85 90 03 00 00 | 48 8d 05 ba a0 ea 04
-  0x20311d6: 48 89 85 70 03 00 00 | 48 8d 05 dc ad ea 04 | 48 89 85 80 03 00 00 | 0f ba ef 08
-  0x20311ef: 44 8b 05 e6 b4 48 06 | 41 81 f8 00 04 00 00 | 72 09 | e8 7c d5 91 02
-  0x2031204: 8b c3 | eb 32 | e8 03 3a 92 02 | 48 8b d0
-  0x2031210: 48 85 c0 | 74 13 | 8b 00 | 8b c8
-  0x2031219: 41 33 c8 | 81 e1 ff 03 00 00 | 33 c8 | 89 0a
-  0x2031226: eb 0d | ba ff 03 00 00 | 41 8b c8 | e8 fb 3a 92 02
-  0x2031235: 25 ff 03 00 00 | 89 45 70 | 48 8b 45 78 | 48 63 48 04
-  0x2031245: 48 8d 05 cc ac ea 04 | 48 89 44 0d 78 | 48 8b 45 78 | 48 63 48 04
-  0x2031259: 8d 51 98 | 89 54 0d 74 | c7 85 84 00 00 00 08 00 00 00 | 48 8b 05 d7 08 13 06
-  0x2031271: 48 89 85 88 00 00 00 | 89 9d 90 00 00 00 | 48 8b 15 b3 08 13 06 | 48 89 9d 98 00 00 00
-  0x203128c: 48 89 9d a8 00 00 00 | 48 c7 85 b0 00 00 00 0f 00 00 00 | c6 85 98 00 00 00 00 | 49 c7 c0 ff ff ff ff
-  0x20312ac: 0f 1f 40 00 | 49 ff c0 | 42 80 3c 02 00 | 75 f6
-  0x20312ba: 48 8d 8d 98 00 00 00 | e8 3a 5d 6c fe | c6 85 c0 00 00 00 00 | c6 85 cc 00 00 00 00
-  0x20312d4: c6 85 d4 00 00 00 00 | 44 8b 45 70 | 89 5d 70 | 41 81 f8 00 04 00 00
-  0x20312e9: 72 07 | e8 90 d4 91 02 | eb 27 | e8 19 39 92 02
-  0x20312f7: 48 85 c0 | 74 0f | 8b 10 | 41 33 d0
-  0x2031301: 81 e2 ff 03 00 00 | 31 10 | eb 0e | ba ff 03 00 00
-  0x2031310: 41 8b c8 | e8 18 3a 92 02 | 90 | 33 d2
-  0x203131b: 48 8d 8d d8 00 00 00 | e8 d9 2c 6b fe | 48 8b 45 78 | 48 63 48 04
-  0x203132f: 48 8d 05 e2 9b ea 04 | 48 89 44 0d 78 | 48 8b 45 78 | 48 63 48 08
-  0x2031343: 48 8d 05 a6 a5 ea 04 | 48 89 44 0d 78 | 48 8b 45 78 | 48 63 48 0c
-  0x2031357: 48 8d 05 12 a2 ea 04 | 48 89 44 0d 78 | 48 8b 45 78 | 48 63 48 04
-  0x203136b: 8d 91 08 fd ff ff | 89 54 0d 74 | 48 8b 45 78 | 48 63 48 08
-  0x203137d: 8d 91 f8 fc ff ff | 89 54 0d 74 | 48 8b 45 78 | 48 63 48 0c
-  0x203138f: 8d 91 e8 fc ff ff | 89 54 0d 74 | f2 0f 11 bd 48 03 00 00 | 0f 57 c0
-  0x20313a4: 66 0f 7f 85 50 03 00 00 | 89 9d 60 03 00 00 | 41 0f b6 c6 | 83 f8 05
-  0x20313b9: 0f 87 9a 00 00 00 | 41 8b 8c 84 f8 34 03 02 | 49 03 cc | ff e1
-  0x20313cc: 48 8d 05 ad e3 1b 05 | 48 89 44 24 20 | 48 c7 44 24 28 09 00 00 00 | e9 81 00 00 00
-  0x20313e6: 48 8d 05 7b e3 1b 05 | 48 89 44 24 20 | 48 c7 44 24 28 13 00 00 00 | eb 6a
-  0x20313fd: 48 8d 05 54 e3 1b 05 | 48 89 44 24 20 | 48 c7 44 24 28 09 00 00 00 | eb 53
-  0x2031414: 48 8d 05 35 e3 1b 05 | 48 89 44 24 20 | 48 c7 44 24 28 05 00 00 00 | eb 3c
-  0x203142b: 48 8d 05 b6 b7 19 05 | 48 89 44 24 20 | 48 c7 44 24 28 0b 00 00 00 | eb 25
-  0x2031442: 48 8d 05 47 e3 1b 05 | 48 89 44 24 20 | 48 c7 44 24 28 11 00 00 00 | eb 0e
-  0x2031459: 4c 89 6c 24 20 | 48 c7 44 24 28 07 00 00 00 | 48 8d 05 f2 e9 1b 05 | 48 89 45 90
-  0x2031472: 48 c7 45 98 0e 00 00 00 | 0f 28 44 24 20 | 66 0f 7f 44 24 30 | 0f 28 4d 90
-  0x2031489: 66 0f 7f 4d 80 | 41 b9 01 00 00 00 | 4c 8d 44 24 30 | 48 8d 55 80
-  0x203149d: 48 8d 8d 50 03 00 00 | e8 07 c6 d8 00 | 48 8d 05 18 12 27 05 | 48 89 45 c0
-  0x20314b4: 48 c7 45 c8 07 00 00 00 | 0f 28 45 c0 | 66 0f 7f 44 24 30 | 41 b9 01 00 00 00
-  0x20314cc: 45 0f b6 c1 | 48 8d 54 24 30 | 48 8d 8d 50 03 00 00 | e8 df c9 d8 00
-  0x20314e1: 0f 57 c9 | f2 48 0f 2a 4e a0 | 48 8d 8d 90 03 00 00 | e8 6a 00 d8 00
-  0x20314f6: 48 8d 8d 70 03 00 00 | e8 fe 03 d8 00 | 90 | 48 8b 95 58 03 00 00
-  0x203150a: 48 85 d2 | 74 0c | 48 8d 8d 50 03 00 00 | e8 d5 66 6c fe
-  0x203151b: 48 8d 8d 50 03 00 00 | e8 99 2c 6b fe | 48 8d 8d 98 00 00 00 | e8 7d 7a 6c fe
-  0x2031533: 80 3d 86 7e 0c 06 00 | 0f 84 a8 03 00 00 | 48 83 3e 00 | 0f 84 9e 03 00 00
-  0x203154a: 4c 89 7d 78 | 48 8d 05 fb 7a 15 05 | 48 89 85 e0 00 00 00 | 48 8d 05 3d 78 15 05
-  0x2031563: 48 89 85 98 03 00 00 | 81 cf 00 06 00 00 | 48 8d 05 59 a9 ea 04 | 48 89 85 90 03 00 00
-  0x203157e: 48 8d 05 0b 9d ea 04 | 48 89 85 70 03 00 00 | 48 8d 05 2d aa ea 04 | 48 89 85 80 03 00 00
-  0x203159a: 0f ba ef 0b | 44 8b 05 37 b1 48 06 | 41 81 f8 00 04 00 00 | 72 09
-  0x20315ae: e8 cd d1 91 02 | 8b c3 | eb 32 | e8 54 36 92 02
-  0x20315bc: 48 8b d0 | 48 85 c0 | 74 13 | 8b 00
-  0x20315c6: 8b c8 | 41 33 c8 | 81 e1 ff 03 00 00 | 33 c8
-  0x20315d3: 89 0a | eb 0d | ba ff 03 00 00 | 41 8b c8
-  0x20315df: e8 4c 37 92 02 | 25 ff 03 00 00 | 89 45 70 | 48 8b 45 78
-  0x20315f0: 48 63 48 04 | 48 8d 05 1d a9 ea 04 | 48 89 44 0d 78 | 48 8b 45 78
-  0x2031604: 48 63 48 04 | 8d 51 98 | 89 54 0d 74 | c7 85 84 00 00 00 08 00 00 00
-  0x2031619: 48 8b 05 d0 05 13 06 | 48 89 85 88 00 00 00 | 89 9d 90 00 00 00 | 48 8b 15 ac 05 13 06
-  0x2031634: 48 89 9d 98 00 00 00 | 48 89 9d a8 00 00 00 | 48 c7 85 b0 00 00 00 0f 00 00 00 | c6 85 98 00 00 00 00
-  0x2031654: 49 c7 c0 ff ff ff ff | 0f 1f 44 00 00 | 49 ff c0 | 42 80 3c 02 00
-  0x2031668: 75 f6 | 48 8d 8d 98 00 00 00 | e8 8a 59 6c fe | c6 85 c0 00 00 00 00
-  0x203167d: c6 85 cc 00 00 00 00 | c6 85 d4 00 00 00 00 | 44 8b 45 70 | 89 5d 70
-  0x2031692: 41 81 f8 00 04 00 00 | 72 07 | e8 e0 d0 91 02 | eb 27
-  0x20316a2: e8 69 35 92 02 | 48 85 c0 | 74 0f | 8b 10
-  0x20316ae: 41 33 d0 | 81 e2 ff 03 00 00 | 31 10 | eb 0e
-  0x20316bb: ba ff 03 00 00 | 41 8b c8 | e8 68 36 92 02 | 90
-  0x20316c9: 33 d2 | 48 8d 8d d8 00 00 00 | e8 29 29 6b fe | 48 8b 45 78
-  0x20316db: 48 63 48 04 | 48 8d 05 32 98 ea 04 | 48 89 44 0d 78 | 48 8b 45 78
-  0x20316ef: 48 63 48 08 | 48 8d 05 f6 a1 ea 04 | 48 89 44 0d 78 | 48 8b 45 78
-  0x2031703: 48 63 48 0c | 48 8d 05 62 9e ea 04 | 48 89 44 0d 78 | 48 8b 45 78
-  0x2031717: 48 63 48 04 | 8d 91 08 fd ff ff | 89 54 0d 74 | 48 8b 45 78
-  0x2031729: 48 63 48 08 | 8d 91 f8 fc ff ff | 89 54 0d 74 | 48 8b 45 78
-  0x203173b: 48 63 48 0c | 8d 91 e8 fc ff ff | 89 54 0d 74 | f2 0f 11 bd 48 03 00 00
-  0x2031751: 0f 57 c0 | 66 0f 7f 85 50 03 00 00 | 89 9d 60 03 00 00 | 41 0f b6 c6
-  0x2031766: 83 f8 05 | 0f 87 9a 00 00 00 | 41 8b 8c 84 10 35 03 02 | 49 03 cc
-  0x203177a: ff e1 | 48 8d 05 fd df 1b 05 | 48 89 44 24 40 | 48 c7 44 24 48 09 00 00 00
-  0x2031791: e9 81 00 00 00 | 48 8d 05 cb df 1b 05 | 48 89 44 24 40 | 48 c7 44 24 48 13 00 00 00
-  0x20317ab: eb 6a | 48 8d 05 a4 df 1b 05 | 48 89 44 24 40 | 48 c7 44 24 48 09 00 00 00
-  0x20317c2: eb 53 | 48 8d 05 85 df 1b 05 | 48 89 44 24 40 | 48 c7 44 24 48 05 00 00 00
-  0x20317d9: eb 3c | 48 8d 05 06 b4 19 05 | 48 89 44 24 40 | 48 c7 44 24 48 0b 00 00 00
-  0x20317f0: eb 25 | 48 8d 05 97 df 1b 05 | 48 89 44 24 40 | 48 c7 44 24 48 11 00 00 00
-  0x2031807: eb 0e | 4c 89 6c 24 40 | 48 c7 44 24 48 07 00 00 00 | 48 8d 05 42 e6 1b 05
-  0x203181e: 48 89 44 24 70 | 48 c7 44 24 78 0e 00 00 00 | 0f 28 44 24 40 | 66 0f 7f 44 24 30
-  0x2031837: 0f 28 4c 24 70 | 66 0f 7f 4d 80 | 41 b9 01 00 00 00 | 4c 8d 44 24 30
-  0x203184c: 48 8d 55 80 | 48 8d 8d 50 03 00 00 | e8 54 c2 d8 00 | 48 8d 05 65 0e 27 05
-  0x2031863: 48 89 44 24 50 | 48 c7 44 24 58 07 00 00 00 | 0f 28 44 24 50 | 66 0f 7f 44 24 30
-  0x203187c: 41 b9 01 00 00 00 | 45 0f b6 c1 | 48 8d 54 24 30 | 48 8d 8d 50 03 00 00
-  0x2031892: e8 29 c6 d8 00 | 0f 57 c9 | f2 48 0f 2a 0e | 48 8d 8d 90 03 00 00
-  0x20318a6: e8 b5 fc d7 00 | 48 8d 8d 70 03 00 00 | e8 49 00 d8 00 | 90
-  0x20318b8: 48 8b 95 58 03 00 00 | 48 85 d2 | 74 0c | 48 8d 8d 50 03 00 00
-  0x20318cb: e8 20 63 6c fe | 48 8d 8d 50 03 00 00 | e8 e4 28 6b fe | 48 8d 8d 98 00 00 00
-  0x20318e3: e8 c8 76 6c fe | 41 ff c6 | 48 83 c6 08 | 41 83 fe 06
-  0x20318f3: 0f 8c 97 f8 ff ff | 4c 8b 7d a0 | 49 83 bf 28 01 00 00 00 | 0f 8e 34 01 00 00
-  0x203190b: 48 8d 15 3e 02 13 06 | 48 8d 4d 70 | e8 85 2c 6b fe | 90
-  0x203191c: 48 8d 35 a5 0d 27 05 | 48 89 75 90 | 48 c7 45 98 07 00 00 00 | 0f 28 45 90
-  0x2031933: 66 0f 7f 44 24 30 | 41 b9 01 00 00 00 | 45 0f b6 c1 | 48 8d 54 24 30
-  0x2031948: 48 8d 8d 50 03 00 00 | e8 6c c5 d8 00 | 0f 57 c9 | f2 49 0f 2a 8f 28 01 00 00
-  0x2031960: 48 8d 8d 90 03 00 00 | e8 f4 fb d7 00 | 48 8d 8d 70 03 00 00 | e8 88 ff d7 00
-  0x2031978: 90 | 48 8b 95 58 03 00 00 | 48 85 d2 | 74 0c
-  0x2031985: 48 8d 8d 50 03 00 00 | e8 5f 62 6c fe | 48 8d 8d 50 03 00 00 | e8 23 28 6b fe
-  0x203199d: 48 8d 8d 98 00 00 00 | e8 07 76 6c fe | 48 8d 15 d0 01 13 06 | 48 8d 4d 70
-  0x20319b4: e8 e7 2b 6b fe | 90 | 48 89 75 90 | 48 c7 45 98 07 00 00 00
-  0x20319c6: 0f 28 45 90 | 66 0f 7f 44 24 30 | 41 b9 01 00 00 00 | 45 0f b6 c1
-  0x20319da: 48 8d 54 24 30 | 48 8d 8d 50 03 00 00 | e8 d5 c4 d8 00 | f2 41 0f 10 8f 60 01 00 00
-  0x20319f4: 48 8d 8d 90 03 00 00 | e8 60 fb d7 00 | 48 8d 8d 70 03 00 00 | e8 f4 fe d7 00
-  0x2031a0c: 90 | 48 8b 95 58 03 00 00 | 48 85 d2 | 74 0c
-  0x2031a19: 48 8d 8d 50 03 00 00 | e8 cb 61 6c fe | 48 8d 8d 50 03 00 00 | e8 8f 27 6b fe
-  0x2031a31: 48 8d 8d 98 00 00 00 | e8 73 75 6c fe | eb 07 | 48 8d 35 82 0c 27 05
-  0x2031a46: 80 3d 73 79 0c 06 00 | 0f 84 39 01 00 00 | 49 83 bf 68 01 00 00 00 | 0f 8e 2b 01 00 00
-  0x2031a61: 48 8d 15 90 01 13 06 | 48 8d 4d 70 | e8 2f 2b 6b fe | 90
-  0x2031a72: 48 89 75 90 | 48 c7 45 98 07 00 00 00 | 0f 28 45 90 | 66 0f 7f 44 24 30
-  0x2031a88: 41 b9 01 00 00 00 | 45 0f b6 c1 | 48 8d 54 24 30 | 48 8d 8d 50 03 00 00
-  0x2031a9e: e8 1d c4 d8 00 | 0f 57 c9 | f2 49 0f 2a 8f 68 01 00 00 | 48 8d 8d 90 03 00 00
-  0x2031ab6: e8 a5 fa d7 00 | 48 8d 8d 70 03 00 00 | e8 39 fe d7 00 | 90
-  0x2031ac8: 48 8b 95 58 03 00 00 | 48 85 d2 | 74 0c | 48 8d 8d 50 03 00 00
-  0x2031adb: e8 10 61 6c fe | 48 8d 8d 50 03 00 00 | e8 d4 26 6b fe | 48 8d 8d 98 00 00 00
-  0x2031af3: e8 b8 74 6c fe | 48 8d 15 29 01 13 06 | 48 8d 4d 70 | e8 98 2a 6b fe
-  0x2031b08: 90 | 48 89 75 90 | 48 c7 45 98 07 00 00 00 | 0f 28 45 90
-  0x2031b19: 66 0f 7f 44 24 30 | 41 b9 01 00 00 00 | 45 0f b6 c1 | 48 8d 54 24 30
-  0x2031b2e: 48 8d 8d 50 03 00 00 | e8 86 c3 d8 00 | f2 41 0f 10 8f a0 01 00 00 | 48 8d 8d 90 03 00 00
-  0x2031b4a: e8 11 fa d7 00 | 48 8d 8d 70 03 00 00 | e8 a5 fd d7 00 | 90
-  0x2031b5c: 48 8b 95 58 03 00 00 | 48 85 d2 | 74 0c | 48 8d 8d 50 03 00 00
-  0x2031b6f: e8 7c 60 6c fe | 48 8d 8d 50 03 00 00 | e8 40 26 6b fe | 48 8d 8d 98 00 00 00
-  0x2031b87: e8 24 74 6c fe | 44 8b e3 | 4d 8d af a8 01 00 00 | 4c 89 6c 24 20
-  0x2031b9b: 4d 8b fd | 4c 8d 2d 5b e4 fc fd | 48 8d 35 bc 74 15 05 | 4c 8d 35 9d 74 15 05
-  0x2031bb3: 49 83 3f 00 | 0f 84 3b 06 00 00 | 41 0f b6 c4 | 83 f8 05
-  0x2031bc4: 77 79 | 41 8b 8c 85 28 35 03 02 | 49 03 cd | ff e1
-  0x2031bd3: 48 8d 05 a6 db 1b 05 | 48 c7 44 24 48 09 00 00 00 | eb 6a | 48 8d 05 7c db 1b 05
-  0x2031bec: 48 c7 44 24 48 13 00 00 00 | eb 58 | 48 8d 05 5a db 1b 05 | 48 c7 44 24 48 09 00 00 00
-  0x2031c07: eb 46 | 48 8d 05 40 db 1b 05 | 48 c7 44 24 48 05 00 00 00 | eb 34
-  0x2031c1b: 48 8d 05 c6 af 19 05 | 48 c7 44 24 48 0b 00 00 00 | eb 22 | 48 8d 05 5c db 1b 05
-  0x2031c34: 48 c7 44 24 48 11 00 00 00 | eb 10 | 48 8d 05 a2 8f 16 05 | 48 c7 44 24 48 07 00 00 00
-  0x2031c4f: 48 89 44 24 40 | 48 89 75 78 | 4c 89 b5 e0 00 00 00 | 48 8d 05 3a 71 15 05
-  0x2031c66: 48 89 85 98 03 00 00 | 81 cf 00 30 00 00 | 48 8d 05 56 a2 ea 04 | 48 89 85 90 03 00 00
-  0x2031c81: 48 8d 05 08 96 ea 04 | 48 89 85 70 03 00 00 | 48 8d 05 2a a3 ea 04 | 48 89 85 80 03 00 00
-  0x2031c9d: 0f ba ef 0e | 44 8b 05 34 aa 48 06 | 41 81 f8 00 04 00 00 | 72 09
-  0x2031cb1: e8 ca ca 91 02 | 8b c3 | eb 33 | e8 51 2f 92 02
-  0x2031cbf: 48 8b d0 | 48 85 c0 | 74 14 | 8b 00
-  0x2031cc9: 44 33 c0 | 41 81 e0 ff 03 00 00 | 44 33 c0 | 44 89 02
-  0x2031cd9: eb 0d | ba ff 03 00 00 | 41 8b c8 | e8 48 30 92 02
-  0x2031ce8: 25 ff 03 00 00 | 89 45 70 | 48 8b 45 78 | 48 63 48 04
-  0x2031cf8: 48 8d 05 19 a2 ea 04 | 48 89 44 0d 78 | 48 8b 45 78 | 48 63 48 04
-  0x2031d0c: 8d 51 98 | 89 54 0d 74 | c7 85 84 00 00 00 08 00 00 00 | 48 8b 05 54 fe 12 06
-  0x2031d24: 48 89 85 88 00 00 00 | 89 9d 90 00 00 00 | 48 8b 15 30 fe 12 06 | 48 89 9d 98 00 00 00
-  0x2031d3f: 48 89 9d a8 00 00 00 | 48 c7 85 b0 00 00 00 0f 00 00 00 | c6 85 98 00 00 00 00 | 49 c7 c0 ff ff ff ff
-  0x2031d5f: 90 | 49 ff c0 | 42 80 3c 02 00 | 75 f6
-  0x2031d6a: 48 8d 8d 98 00 00 00 | e8 8a 52 6c fe | c6 85 c0 00 00 00 00 | c6 85 cc 00 00 00 00
-  0x2031d84: c6 85 d4 00 00 00 00 | 44 8b 45 70 | 89 5d 70 | 41 81 f8 00 04 00 00
-  0x2031d99: 72 07 | e8 e0 c9 91 02 | eb 27 | e8 69 2e 92 02
-  0x2031da7: 48 85 c0 | 74 0f | 8b 10 | 41 33 d0
-  0x2031db1: 81 e2 ff 03 00 00 | 31 10 | eb 0e | ba ff 03 00 00
-  0x2031dc0: 41 8b c8 | e8 68 2f 92 02 | 90 | 33 d2
-  0x2031dcb: 48 8d 8d d8 00 00 00 | e8 29 22 6b fe | 48 8b 45 78 | 48 63 48 04
-  0x2031ddf: 48 8d 05 32 91 ea 04 | 48 89 44 0d 78 | 48 8b 45 78 | 48 63 48 08
-  0x2031df3: 48 8d 05 f6 9a ea 04 | 48 89 44 0d 78 | 48 8b 45 78 | 48 63 48 0c
-  0x2031e07: 48 8d 05 62 97 ea 04 | 48 89 44 0d 78 | 48 8b 45 78 | 48 63 48 04
-  0x2031e1b: 8d 91 08 fd ff ff | 89 54 0d 74 | 48 8b 45 78 | 48 63 48 08
-  0x2031e2d: 8d 91 f8 fc ff ff | 89 54 0d 74 | 48 8b 45 78 | 48 63 48 0c
-  0x2031e3f: 8d 91 e8 fc ff ff | 89 54 0d 74 | f2 0f 11 bd 48 03 00 00 | 0f 57 c0
-  0x2031e54: 66 0f 7f 85 50 03 00 00 | 89 9d 60 03 00 00 | 48 8d 05 f7 df 1b 05 | 48 89 45 90
-  0x2031e6d: 48 c7 45 98 0e 00 00 00 | 0f 28 74 24 40 | 66 0f 7f 75 d0 | 0f 28 45 90
-  0x2031e83: 66 0f 7f 45 20 | 41 b9 01 00 00 00 | 4c 8d 45 d0 | 48 8d 55 20
-  0x2031e96: 48 8d 8d 50 03 00 00 | e8 0e bc d8 00 | 48 8d 05 1f 08 27 05 | 48 89 45 c0
-  0x2031ead: 48 c7 45 c8 07 00 00 00 | 0f 28 45 c0 | 66 0f 7f 45 20 | 41 b9 01 00 00 00
-  0x2031ec4: 45 0f b6 c1 | 48 8d 55 20 | 48 8d 8d 50 03 00 00 | e8 e8 bf d8 00
-  0x2031ed8: 0f 57 c9 | f2 49 0f 2a 0f | 48 8d 8d 90 03 00 00 | e8 74 f6 d7 00
-  0x2031eec: 48 8d 8d 70 03 00 00 | e8 08 fa d7 00 | 90 | 48 8b 95 58 03 00 00
-  0x2031f00: 48 85 d2 | 74 0c | 48 8d 8d 50 03 00 00 | e8 df 5c 6c fe
-  0x2031f11: 48 8d 8d 50 03 00 00 | e8 a3 22 6b fe | 48 8d 8d 98 00 00 00 | e8 87 70 6c fe
-  0x2031f29: 48 89 75 78 | 4c 89 b5 e0 00 00 00 | 48 8d 05 65 6e 15 05 | 48 89 85 98 03 00 00
-  0x2031f42: 81 cf 00 80 01 00 | 48 8d 05 81 9f ea 04 | 48 89 85 90 03 00 00 | 48 8d 05 33 93 ea 04
-  0x2031f5d: 48 89 85 70 03 00 00 | 48 8d 05 55 a0 ea 04 | 48 89 85 80 03 00 00 | 0f ba ef 11
-  0x2031f76: 44 8b 05 5f a7 48 06 | 41 81 f8 00 04 00 00 | 72 09 | e8 f5 c7 91 02
-  0x2031f8b: 8b c3 | eb 32 | e8 7c 2c 92 02 | 48 8b d0
-  0x2031f97: 48 85 c0 | 74 13 | 8b 00 | 8b c8
-  0x2031fa0: 41 33 c8 | 81 e1 ff 03 00 00 | 33 c8 | 89 0a
-  0x2031fad: eb 0d | ba ff 03 00 00 | 41 8b c8 | e8 74 2d 92 02
-  0x2031fbc: 25 ff 03 00 00 | 89 45 70 | 48 8b 45 78 | 48 63 48 04
-  0x2031fcc: 48 8d 05 45 9f ea 04 | 48 89 44 0d 78 | 48 8b 45 78 | 48 63 48 04
-  0x2031fe0: 8d 51 98 | 89 54 0d 74 | c7 85 84 00 00 00 08 00 00 00 | 48 8b 05 b0 fb 12 06
-  0x2031ff8: 48 89 85 88 00 00 00
+  0x20309fc: 0f 1f 40 00 | 48 83 7e a0 00 | cc cc | cc cc
+  0x2030a09: cc cc | 4c 89 7d 78 | 48 89 85 e0 00 00 00 | 48 89 8d 98 03 00 00
+  0x2030a1d: 83 cf 03 | 48 89 95 90 03 00 00 | 4c 89 85 70 03 00 00 | 4c 89 8d 80 03 00 00
+  0x2030a35: 83 cf 04 | 44 8b 05 9d bc 48 06 | 41 81 f8 00 04 00 00 | 72 09
+  0x2030a48: e8 33 dd 91 02 | 8b cb | eb 34 | e8 ba 41 92 02
+  0x2030a56: 48 8b d0 | 48 85 c0 | 74 12 | 8b 08
+  0x2030a60: 8b c1 | 41 33 c0 | 25 ff 03 00 00 | 33 c1
+  0x2030a6c: 89 02 | eb 0f | ba ff 03 00 00 | 41 8b c8
+  0x2030a78: e8 b3 42 92 02 | 8b c8 | 81 e1 ff 03 00 00 | 89 4d 70
+  0x2030a88: 48 8b 45 78 | 48 63 48 04 | 48 8d 05 81 b4 ea 04 | 48 89 44 0d 78
+  0x2030a9c: 48 8b 45 78 | 48 63 48 04 | 8d 51 98 | 89 54 0d 74
+  0x2030aab: c7 85 84 00 00 00 08 00 00 00 | 48 8b 05 74 10 13 06 | 48 89 85 88 00 00 00 | 89 9d 90 00 00 00
+  0x2030ac9: 48 8b 15 50 10 13 06 | 48 89 9d 98 00 00 00 | 48 89 9d a8 00 00 00 | 48 c7 85 b0 00 00 00 0f 00 00 00
+  0x2030ae9: c6 85 98 00 00 00 00 | 49 c7 c0 ff ff ff ff | 66 0f 1f 84 00 00 00 00 00 | 49 ff c0
+  0x2030b03: 42 80 3c 02 00 | 75 f6 | 48 8d 8d 98 00 00 00 | e8 ea 64 6c fe
+  0x2030b16: c6 85 c0 00 00 00 00 | c6 85 cc 00 00 00 00 | c6 85 d4 00 00 00 00 | 44 8b 45 70
+  0x2030b2f: 89 5d 70 | 41 81 f8 00 04 00 00 | 72 07 | e8 40 dc 91 02
+  0x2030b40: eb 27 | e8 c9 40 92 02 | 48 85 c0 | 74 0f
+  0x2030b4c: 8b 10 | 41 33 d0 | 81 e2 ff 03 00 00 | 31 10
+  0x2030b59: eb 0e | ba ff 03 00 00 | 41 8b c8 | e8 c8 41 92 02
+  0x2030b68: 90 | 33 d2 | 48 8d 8d d8 00 00 00 | e8 89 34 6b fe
+  0x2030b77: 48 8b 45 78 | 48 63 48 04 | 48 8d 05 92 a3 ea 04 | 48 89 44 0d 78
+  0x2030b8b: 48 8b 45 78 | 48 63 48 08 | 48 8d 05 56 ad ea 04 | 48 89 44 0d 78
+  0x2030b9f: 48 8b 45 78 | 48 63 48 0c | 48 8d 05 c2 a9 ea 04 | 48 89 44 0d 78
+  0x2030bb3: 48 8b 45 78 | 48 63 48 04 | 8d 91 08 fd ff ff | 89 54 0d 74
+  0x2030bc5: 48 8b 45 78 | 48 63 48 08 | 8d 91 f8 fc ff ff | 89 54 0d 74
+  0x2030bd7: 48 8b 45 78 | 48 63 48 0c | 8d 91 e8 fc ff ff | 89 54 0d 74
+  0x2030be9: f2 0f 11 bd 48 03 00 00 | 0f 57 c0 | 66 0f 7f 85 50 03 00 00 | 89 9d 60 03 00 00
+  0x2030c02: 41 0f b6 c6 | 83 f8 05 | 0f 87 9a 00 00 00 | 41 8b 8c 84 c8 34 03 02
+  0x2030c17: 49 03 cc | ff e1 | 48 8d 05 5d eb 1b 05 | 48 89 44 24 20
+  0x2030c28: 48 c7 44 24 28 09 00 00 00 | e9 81 00 00 00 | 48 8d 05 2b eb 1b 05 | 48 89 44 24 20
+  0x2030c42: 48 c7 44 24 28 13 00 00 00 | eb 6a | 48 8d 05 04 eb 1b 05 | 48 89 44 24 20
+  0x2030c59: 48 c7 44 24 28 09 00 00 00 | eb 53 | 48 8d 05 e5 ea 1b 05 | 48 89 44 24 20
+  0x2030c70: 48 c7 44 24 28 05 00 00 00 | eb 3c | 48 8d 05 66 bf 19 05 | 48 89 44 24 20
+  0x2030c87: 48 c7 44 24 28 0b 00 00 00 | eb 25 | 48 8d 05 f7 ea 1b 05 | 48 89 44 24 20
+  0x2030c9e: 48 c7 44 24 28 11 00 00 00 | eb 0e | 4c 89 6c 24 20 | 48 c7 44 24 28 07 00 00 00
+  0x2030cb7: 48 8d 05 a2 f1 1b 05 | 48 89 44 24 70 | 48 c7 44 24 78 0e 00 00 00 | 0f 28 44 24 20
+  0x2030cd1: 66 0f 7f 44 24 30 | 0f 28 4c 24 70 | 66 0f 7f 4d 80 | 41 b9 01 00 00 00
+  0x2030ce7: 4c 8d 44 24 30 | 48 8d 55 80 | 48 8d 8d 50 03 00 00 | e8 b4 cd d8 00
+  0x2030cfc: 48 8d 05 c5 19 27 05 | 48 89 44 24 50 | 48 c7 44 24 58 07 00 00 00 | 0f 28 44 24 50
+  0x2030d16: 66 0f 7f 44 24 30 | 41 b9 01 00 00 00 | 45 0f b6 c1 | 48 8d 54 24 30
+  0x2030d2b: 48 8d 8d 50 03 00 00 | e8 89 d1 d8 00 | 0f 57 c9 | f2 48 0f 2a 4e a0
+  0x2030d40: 48 8d 8d 90 03 00 00 | e8 14 08 d8 00 | 48 8d 8d 70 03 00 00 | e8 a8 0b d8 00
+  0x2030d58: 90 | 48 8b 95 58 03 00 00 | 48 85 d2 | 74 0c
+  0x2030d65: 48 8d 8d 50 03 00 00 | e8 7f 6e 6c fe | 48 8d 8d 50 03 00 00 | e8 43 34 6b fe
+  0x2030d7d: 48 8d 8d 98 00 00 00 | e8 27 82 6c fe | 48 8d 05 c0 82 15 05 | 48 8d 0d 09 80 15 05
+  0x2030d97: 48 8d 15 32 b1 ea 04 | 4c 8d 05 eb a4 ea 04 | 4c 8d 0d 14 b2 ea 04 | 80 3d 0d 86 0c 06 00
+  0x2030db3: 0f 84 79 03 00 00 | 48 83 3e 00 | 0f 84 6f 03 00 00 | 4c 89 7d 78
+  0x2030dc7: 48 89 85 e0 00 00 00 | 48 89 8d 98 03 00 00 | 83 cf 18 | 48 89 95 90 03 00 00
+  0x2030ddf: 4c 89 85 70 03 00 00 | 4c 89 8d 80 03 00 00 | 83 cf 20 | 44 8b 05 e5 b8 48 06
+  0x2030df7: 41 81 f8 00 04 00 00 | 72 09 | e8 7b d9 91 02 | 8b c3
+  0x2030e07: eb 32 | e8 02 3e 92 02 | 48 8b d0 | 48 85 c0
+  0x2030e14: 74 13 | 8b 00 | 8b c8 | 41 33 c8
+  0x2030e1d: 81 e1 ff 03 00 00 | 33 c8 | 89 0a | eb 0d
+  0x2030e29: ba ff 03 00 00 | 41 8b c8 | e8 fa 3e 92 02 | 25 ff 03 00 00
+  0x2030e3b: 89 45 70 | 48 8b 45 78 | 48 63 48 04 | 48 8d 05 cb b0 ea 04
+  0x2030e4d: 48 89 44 0d 78 | 48 8b 45 78 | 48 63 48 04 | 8d 51 98
+  0x2030e5d: 89 54 0d 74 | c7 85 84 00 00 00 08 00 00 00 | 48 8b 05 66 0d 13 06 | 48 89 85 88 00 00 00
+  0x2030e79: 89 9d 90 00 00 00 | 48 8b 15 42 0d 13 06 | 48 89 9d 98 00 00 00 | 48 89 9d a8 00 00 00
+  0x2030e94: 48 c7 85 b0 00 00 00 0f 00 00 00 | c6 85 98 00 00 00 00 | 49 c7 c0 ff ff ff ff | 0f 1f 00
+  0x2030eb0: 49 ff c0 | 42 80 3c 02 00 | 75 f6 | 48 8d 8d 98 00 00 00
+  0x2030ec1: e8 3a 61 6c fe | c6 85 c0 00 00 00 00 | c6 85 cc 00 00 00 00 | c6 85 d4 00 00 00 00
+  0x2030edb: 44 8b 45 70 | 89 5d 70 | 41 81 f8 00 04 00 00 | 72 07
+  0x2030eeb: e8 90 d8 91 02 | eb 27 | e8 19 3d 92 02 | 48 85 c0
+  0x2030efa: 74 0f | 8b 10 | 41 33 d0 | 81 e2 ff 03 00 00
+  0x2030f07: 31 10 | eb 0e | ba ff 03 00 00 | 41 8b c8
+  0x2030f13: e8 18 3e 92 02 | 90 | 33 d2 | 48 8d 8d d8 00 00 00
+  0x2030f22: e8 d9 30 6b fe | 48 8b 45 78 | 48 63 48 04 | 48 8d 05 e2 9f ea 04
+  0x2030f36: 48 89 44 0d 78 | 48 8b 45 78 | 48 63 48 08 | 48 8d 05 a6 a9 ea 04
+  0x2030f4a: 48 89 44 0d 78 | 48 8b 45 78 | 48 63 48 0c | 48 8d 05 12 a6 ea 04
+  0x2030f5e: 48 89 44 0d 78 | 48 8b 45 78 | 48 63 48 04 | 8d 91 08 fd ff ff
+  0x2030f71: 89 54 0d 74 | 48 8b 45 78 | 48 63 48 08 | 8d 91 f8 fc ff ff
+  0x2030f83: 89 54 0d 74 | 48 8b 45 78 | 48 63 48 0c | 8d 91 e8 fc ff ff
+  0x2030f95: 89 54 0d 74 | f2 0f 11 bd 48 03 00 00 | 0f 57 c0 | 66 0f 7f 85 50 03 00 00
+  0x2030fac: 89 9d 60 03 00 00 | 41 0f b6 c6 | 83 f8 05 | 0f 87 9a 00 00 00
+  0x2030fbf: 41 8b 8c 84 e0 34 03 02 | 49 03 cc | ff e1 | 48 8d 05 ad e7 1b 05
+  0x2030fd3: 48 89 44 24 40 | 48 c7 44 24 48 09 00 00 00 | e9 81 00 00 00 | 48 8d 05 7b e7 1b 05
+  0x2030fed: 48 89 44 24 40 | 48 c7 44 24 48 13 00 00 00 | eb 6a | 48 8d 05 54 e7 1b 05
+  0x2031004: 48 89 44 24 40 | 48 c7 44 24 48 09 00 00 00 | eb 53 | 48 8d 05 35 e7 1b 05
+  0x203101b: 48 89 44 24 40 | 48 c7 44 24 48 05 00 00 00 | eb 3c | 48 8d 05 b6 bb 19 05
+  0x2031032: 48 89 44 24 40 | 48 c7 44 24 48 0b 00 00 00 | eb 25 | 48 8d 05 47 e7 1b 05
+  0x2031049: 48 89 44 24 40 | 48 c7 44 24 48 11 00 00 00 | eb 0e | 4c 89 6c 24 40
+  0x203105e: 48 c7 44 24 48 07 00 00 00 | 48 8d 05 f2 ed 1b 05 | 48 89 45 c0 | 48 c7 45 c8 0e 00 00 00
+  0x203107a: 0f 28 44 24 40 | 66 0f 7f 44 24 30 | 0f 28 4d c0 | 66 0f 7f 4d 80
+  0x203108e: 41 b9 01 00 00 00 | 4c 8d 44 24 30 | 48 8d 55 80 | 48 8d 8d 50 03 00 00
+  0x20310a4: e8 07 ca d8 00 | 48 8d 05 18 16 27 05 | 48 89 45 90 | 48 c7 45 98 07 00 00 00
+  0x20310bc: 0f 28 45 90 | 66 0f 7f 44 24 30 | 41 b9 01 00 00 00 | 45 0f b6 c1
+  0x20310d0: 48 8d 54 24 30 | 48 8d 8d 50 03 00 00 | e8 df cd d8 00 | 0f 57 c9
+  0x20310e4: f2 48 0f 2a 0e | 48 8d 8d 90 03 00 00 | e8 6b 04 d8 00 | 48 8d 8d 70 03 00 00
+  0x20310fc: e8 ff 07 d8 00 | 90 | 48 8b 95 58 03 00 00 | 48 85 d2
+  0x203110c: 74 0c | 48 8d 8d 50 03 00 00 | e8 d6 6a 6c fe | 48 8d 8d 50 03 00 00
+  0x2031121: e8 9a 30 6b fe | 48 8d 8d 98 00 00 00 | e8 7e 7e 6c fe | 41 ff c6
+  0x2031135: 48 83 c6 08 | 41 83 fe 06 | 48 8d 05 0c 7f 15 05 | 48 8d 0d 55 7c 15 05
+  0x203114b: 48 8d 15 7e ad ea 04 | 4c 8d 05 37 a1 ea 04 | 4c 8d 0d 60 ae ea 04 | 0f 8c 9a f8 ff ff
+  0x2031166: 4c 8b 7d a0 | 41 80 bf e0 02 00 00 00 | 0f 84 85 07 00 00 | 44 8b f3
+  0x203117b: 49 8d b7 f8 00 00 00 | 4c 8d 3d df 7e 15 05 | 0f 1f 80 00 00 00 00 | 48 83 7e a0 00
+  0x2031195: 0f 84 98 03 00 00 | 4c 89 7d 78 | 48 8d 05 aa 7e 15 05 | 48 89 85 e0 00 00 00
+  0x20311ad: 48 8d 05 ec 7b 15 05 | 48 89 85 98 03 00 00 | 81 cf c0 00 00 00 | 48 8d 05 08 ad ea 04
+  0x20311c8: 48 89 85 90 03 00 00 | 48 8d 05 ba a0 ea 04 | 48 89 85 70 03 00 00 | 48 8d 05 dc ad ea 04
+  0x20311e4: 48 89 85 80 03 00 00 | 0f ba ef 08 | 44 8b 05 e6 b4 48 06 | 41 81 f8 00 04 00 00
+  0x20311fd: 72 09 | e8 7c d5 91 02 | 8b c3 | eb 32
+  0x2031208: e8 03 3a 92 02 | 48 8b d0 | 48 85 c0 | 74 13
+  0x2031215: 8b 00 | 8b c8 | 41 33 c8 | 81 e1 ff 03 00 00
+  0x2031222: 33 c8 | 89 0a | eb 0d | ba ff 03 00 00
+  0x203122d: 41 8b c8 | e8 fb 3a 92 02 | 25 ff 03 00 00 | 89 45 70
+  0x203123d: 48 8b 45 78 | 48 63 48 04 | 48 8d 05 cc ac ea 04 | 48 89 44 0d 78
+  0x2031251: 48 8b 45 78 | 48 63 48 04 | 8d 51 98 | 89 54 0d 74
+  0x2031260: c7 85 84 00 00 00 08 00 00 00 | 48 8b 05 d7 08 13 06 | 48 89 85 88 00 00 00 | 89 9d 90 00 00 00
+  0x203127e: 48 8b 15 b3 08 13 06 | 48 89 9d 98 00 00 00 | 48 89 9d a8 00 00 00 | 48 c7 85 b0 00 00 00 0f 00 00 00
+  0x203129e: c6 85 98 00 00 00 00 | 49 c7 c0 ff ff ff ff | 0f 1f 40 00 | 49 ff c0
+  0x20312b3: 42 80 3c 02 00 | 75 f6 | 48 8d 8d 98 00 00 00 | e8 3a 5d 6c fe
+  0x20312c6: c6 85 c0 00 00 00 00 | c6 85 cc 00 00 00 00 | c6 85 d4 00 00 00 00 | 44 8b 45 70
+  0x20312df: 89 5d 70 | 41 81 f8 00 04 00 00 | 72 07 | e8 90 d4 91 02
+  0x20312f0: eb 27 | e8 19 39 92 02 | 48 85 c0 | 74 0f
+  0x20312fc: 8b 10 | 41 33 d0 | 81 e2 ff 03 00 00 | 31 10
+  0x2031309: eb 0e | ba ff 03 00 00 | 41 8b c8 | e8 18 3a 92 02
+  0x2031318: 90 | 33 d2 | 48 8d 8d d8 00 00 00 | e8 d9 2c 6b fe
+  0x2031327: 48 8b 45 78 | 48 63 48 04 | 48 8d 05 e2 9b ea 04 | 48 89 44 0d 78
+  0x203133b: 48 8b 45 78 | 48 63 48 08 | 48 8d 05 a6 a5 ea 04 | 48 89 44 0d 78
+  0x203134f: 48 8b 45 78 | 48 63 48 0c | 48 8d 05 12 a2 ea 04 | 48 89 44 0d 78
+  0x2031363: 48 8b 45 78 | 48 63 48 04 | 8d 91 08 fd ff ff | 89 54 0d 74
+  0x2031375: 48 8b 45 78 | 48 63 48 08 | 8d 91 f8 fc ff ff | 89 54 0d 74
+  0x2031387: 48 8b 45 78 | 48 63 48 0c | 8d 91 e8 fc ff ff | 89 54 0d 74
+  0x2031399: f2 0f 11 bd 48 03 00 00 | 0f 57 c0 | 66 0f 7f 85 50 03 00 00 | 89 9d 60 03 00 00
+  0x20313b2: 41 0f b6 c6 | 83 f8 05 | 0f 87 9a 00 00 00 | 41 8b 8c 84 f8 34 03 02
+  0x20313c7: 49 03 cc | ff e1 | 48 8d 05 ad e3 1b 05 | 48 89 44 24 20
+  0x20313d8: 48 c7 44 24 28 09 00 00 00 | e9 81 00 00 00 | 48 8d 05 7b e3 1b 05 | 48 89 44 24 20
+  0x20313f2: 48 c7 44 24 28 13 00 00 00 | eb 6a | 48 8d 05 54 e3 1b 05 | 48 89 44 24 20
+  0x2031409: 48 c7 44 24 28 09 00 00 00 | eb 53 | 48 8d 05 35 e3 1b 05 | 48 89 44 24 20
+  0x2031420: 48 c7 44 24 28 05 00 00 00 | eb 3c | 48 8d 05 b6 b7 19 05 | 48 89 44 24 20
+  0x2031437: 48 c7 44 24 28 0b 00 00 00 | eb 25 | 48 8d 05 47 e3 1b 05 | 48 89 44 24 20
+  0x203144e: 48 c7 44 24 28 11 00 00 00 | eb 0e | 4c 89 6c 24 20 | 48 c7 44 24 28 07 00 00 00
+  0x2031467: 48 8d 05 f2 e9 1b 05 | 48 89 45 90 | 48 c7 45 98 0e 00 00 00 | 0f 28 44 24 20
+  0x203147f: 66 0f 7f 44 24 30 | 0f 28 4d 90 | 66 0f 7f 4d 80 | 41 b9 01 00 00 00
+  0x2031494: 4c 8d 44 24 30 | 48 8d 55 80 | 48 8d 8d 50 03 00 00 | e8 07 c6 d8 00
+  0x20314a9: 48 8d 05 18 12 27 05 | 48 89 45 c0 | 48 c7 45 c8 07 00 00 00 | 0f 28 45 c0
+  0x20314c0: 66 0f 7f 44 24 30 | 41 b9 01 00 00 00 | 45 0f b6 c1 | 48 8d 54 24 30
+  0x20314d5: 48 8d 8d 50 03 00 00 | e8 df c9 d8 00 | 0f 57 c9 | f2 48 0f 2a 4e a0
+  0x20314ea: 48 8d 8d 90 03 00 00 | e8 6a 00 d8 00 | 48 8d 8d 70 03 00 00 | e8 fe 03 d8 00
+  0x2031502: 90 | 48 8b 95 58 03 00 00 | 48 85 d2 | 74 0c
+  0x203150f: 48 8d 8d 50 03 00 00 | e8 d5 66 6c fe | 48 8d 8d 50 03 00 00 | e8 99 2c 6b fe
+  0x2031527: 48 8d 8d 98 00 00 00 | e8 7d 7a 6c fe | 80 3d 86 7e 0c 06 00 | 0f 84 a8 03 00 00
+  0x2031540: 48 83 3e 00 | 0f 84 9e 03 00 00 | 4c 89 7d 78 | 48 8d 05 fb 7a 15 05
+  0x2031555: 48 89 85 e0 00 00 00 | 48 8d 05 3d 78 15 05 | 48 89 85 98 03 00 00 | 81 cf 00 06 00 00
+  0x2031570: 48 8d 05 59 a9 ea 04 | 48 89 85 90 03 00 00 | 48 8d 05 0b 9d ea 04 | 48 89 85 70 03 00 00
+  0x203158c: 48 8d 05 2d aa ea 04 | 48 89 85 80 03 00 00 | 0f ba ef 0b | 44 8b 05 37 b1 48 06
+  0x20315a5: 41 81 f8 00 04 00 00 | 72 09 | e8 cd d1 91 02 | 8b c3
+  0x20315b5: eb 32 | e8 54 36 92 02 | 48 8b d0 | 48 85 c0
+  0x20315c2: 74 13 | 8b 00 | 8b c8 | 41 33 c8
+  0x20315cb: 81 e1 ff 03 00 00 | 33 c8 | 89 0a | eb 0d
+  0x20315d7: ba ff 03 00 00 | 41 8b c8 | e8 4c 37 92 02 | 25 ff 03 00 00
+  0x20315e9: 89 45 70 | 48 8b 45 78 | 48 63 48 04 | 48 8d 05 1d a9 ea 04
+  0x20315fb: 48 89 44 0d 78 | 48 8b 45 78 | 48 63 48 04 | 8d 51 98
+  0x203160b: 89 54 0d 74 | c7 85 84 00 00 00 08 00 00 00 | 48 8b 05 d0 05 13 06 | 48 89 85 88 00 00 00
+  0x2031627: 89 9d 90 00 00 00 | 48 8b 15 ac 05 13 06 | 48 89 9d 98 00 00 00 | 48 89 9d a8 00 00 00
+  0x2031642: 48 c7 85 b0 00 00 00 0f 00 00 00 | c6 85 98 00 00 00 00 | 49 c7 c0 ff ff ff ff | 0f 1f 44 00 00
+  0x2031660: 49 ff c0 | 42 80 3c 02 00 | 75 f6 | 48 8d 8d 98 00 00 00
+  0x2031671: e8 8a 59 6c fe | c6 85 c0 00 00 00 00 | c6 85 cc 00 00 00 00 | c6 85 d4 00 00 00 00
+  0x203168b: 44 8b 45 70 | 89 5d 70 | 41 81 f8 00 04 00 00 | 72 07
+  0x203169b: e8 e0 d0 91 02 | eb 27 | e8 69 35 92 02 | 48 85 c0
+  0x20316aa: 74 0f | 8b 10 | 41 33 d0 | 81 e2 ff 03 00 00
+  0x20316b7: 31 10 | eb 0e | ba ff 03 00 00 | 41 8b c8
+  0x20316c3: e8 68 36 92 02 | 90 | 33 d2 | 48 8d 8d d8 00 00 00
+  0x20316d2: e8 29 29 6b fe | 48 8b 45 78 | 48 63 48 04 | 48 8d 05 32 98 ea 04
+  0x20316e6: 48 89 44 0d 78 | 48 8b 45 78 | 48 63 48 08 | 48 8d 05 f6 a1 ea 04
+  0x20316fa: 48 89 44 0d 78 | 48 8b 45 78 | 48 63 48 0c | 48 8d 05 62 9e ea 04
+  0x203170e: 48 89 44 0d 78 | 48 8b 45 78 | 48 63 48 04 | 8d 91 08 fd ff ff
+  0x2031721: 89 54 0d 74 | 48 8b 45 78 | 48 63 48 08 | 8d 91 f8 fc ff ff
+  0x2031733: 89 54 0d 74 | 48 8b 45 78 | 48 63 48 0c | 8d 91 e8 fc ff ff
+  0x2031745: 89 54 0d 74 | f2 0f 11 bd 48 03 00 00 | 0f 57 c0 | 66 0f 7f 85 50 03 00 00
+  0x203175c: 89 9d 60 03 00 00 | 41 0f b6 c6 | 83 f8 05 | 0f 87 9a 00 00 00
+  0x203176f: 41 8b 8c 84 10 35 03 02 | 49 03 cc | ff e1 | 48 8d 05 fd df 1b 05
+  0x2031783: 48 89 44 24 40 | 48 c7 44 24 48 09 00 00 00 | e9 81 00 00 00 | 48 8d 05 cb df 1b 05
+  0x203179d: 48 89 44 24 40 | 48 c7 44 24 48 13 00 00 00 | eb 6a | 48 8d 05 a4 df 1b 05
+  0x20317b4: 48 89 44 24 40 | 48 c7 44 24 48 09 00 00 00 | eb 53 | 48 8d 05 85 df 1b 05
+  0x20317cb: 48 89 44 24 40 | 48 c7 44 24 48 05 00 00 00 | eb 3c | 48 8d 05 06 b4 19 05
+  0x20317e2: 48 89 44 24 40 | 48 c7 44 24 48 0b 00 00 00 | eb 25 | 48 8d 05 97 df 1b 05
+  0x20317f9: 48 89 44 24 40 | 48 c7 44 24 48 11 00 00 00 | eb 0e | 4c 89 6c 24 40
+  0x203180e: 48 c7 44 24 48 07 00 00 00 | 48 8d 05 42 e6 1b 05 | 48 89 44 24 70 | 48 c7 44 24 78 0e 00 00 00
+  0x203182c: 0f 28 44 24 40 | 66 0f 7f 44 24 30 | 0f 28 4c 24 70 | 66 0f 7f 4d 80
+  0x2031841: 41 b9 01 00 00 00 | 4c 8d 44 24 30 | 48 8d 55 80 | 48 8d 8d 50 03 00 00
+  0x2031857: e8 54 c2 d8 00 | 48 8d 05 65 0e 27 05 | 48 89 44 24 50 | 48 c7 44 24 58 07 00 00 00
+  0x2031871: 0f 28 44 24 50 | 66 0f 7f 44 24 30 | 41 b9 01 00 00 00 | 45 0f b6 c1
+  0x2031886: 48 8d 54 24 30 | 48 8d 8d 50 03 00 00 | e8 29 c6 d8 00 | 0f 57 c9
+  0x203189a: f2 48 0f 2a 0e | 48 8d 8d 90 03 00 00 | e8 b5 fc d7 00 | 48 8d 8d 70 03 00 00
+  0x20318b2: e8 49 00 d8 00 | 90 | 48 8b 95 58 03 00 00 | 48 85 d2
+  0x20318c2: 74 0c | 48 8d 8d 50 03 00 00 | e8 20 63 6c fe | 48 8d 8d 50 03 00 00
+  0x20318d7: e8 e4 28 6b fe | 48 8d 8d 98 00 00 00 | e8 c8 76 6c fe | 41 ff c6
+  0x20318eb: 48 83 c6 08 | 41 83 fe 06 | 0f 8c 97 f8 ff ff | 4c 8b 7d a0
+  0x20318fd: 49 83 bf 28 01 00 00 00 | 0f 8e 34 01 00 00 | 48 8d 15 3e 02 13 06 | 48 8d 4d 70
+  0x2031916: e8 85 2c 6b fe | 90 | 48 8d 35 a5 0d 27 05 | 48 89 75 90
+  0x2031927: 48 c7 45 98 07 00 00 00 | 0f 28 45 90 | 66 0f 7f 44 24 30 | 41 b9 01 00 00 00
+  0x203193f: 45 0f b6 c1 | 48 8d 54 24 30 | 48 8d 8d 50 03 00 00 | e8 6c c5 d8 00
+  0x2031954: 0f 57 c9 | f2 49 0f 2a 8f 28 01 00 00 | 48 8d 8d 90 03 00 00 | e8 f4 fb d7 00
+  0x203196c: 48 8d 8d 70 03 00 00 | e8 88 ff d7 00 | 90 | 48 8b 95 58 03 00 00
+  0x2031980: 48 85 d2 | 74 0c | 48 8d 8d 50 03 00 00 | e8 5f 62 6c fe
+  0x2031991: 48 8d 8d 50 03 00 00 | e8 23 28 6b fe | 48 8d 8d 98 00 00 00 | e8 07 76 6c fe
+  0x20319a9: 48 8d 15 d0 01 13 06 | 48 8d 4d 70 | e8 e7 2b 6b fe | 90
+  0x20319ba: 48 89 75 90 | 48 c7 45 98 07 00 00 00 | 0f 28 45 90 | 66 0f 7f 44 24 30
+  0x20319d0: 41 b9 01 00 00 00 | 45 0f b6 c1 | 48 8d 54 24 30 | 48 8d 8d 50 03 00 00
+  0x20319e6: e8 d5 c4 d8 00 | f2 41 0f 10 8f 60 01 00 00 | 48 8d 8d 90 03 00 00 | e8 60 fb d7 00
+  0x2031a00: 48 8d 8d 70 03 00 00 | e8 f4 fe d7 00 | 90 | 48 8b 95 58 03 00 00
+  0x2031a14: 48 85 d2 | 74 0c | 48 8d 8d 50 03 00 00 | e8 cb 61 6c fe
+  0x2031a25: 48 8d 8d 50 03 00 00 | e8 8f 27 6b fe | 48 8d 8d 98 00 00 00 | e8 73 75 6c fe
+  0x2031a3d: eb 07 | 48 8d 35 82 0c 27 05 | 80 3d 73 79 0c 06 00 | 0f 84 39 01 00 00
+  0x2031a53: 49 83 bf 68 01 00 00 00 | 0f 8e 2b 01 00 00 | 48 8d 15 90 01 13 06 | 48 8d 4d 70
+  0x2031a6c: e8 2f 2b 6b fe | 90 | 48 89 75 90 | 48 c7 45 98 07 00 00 00
+  0x2031a7e: 0f 28 45 90 | 66 0f 7f 44 24 30 | 41 b9 01 00 00 00 | 45 0f b6 c1
+  0x2031a92: 48 8d 54 24 30 | 48 8d 8d 50 03 00 00 | e8 1d c4 d8 00 | 0f 57 c9
+  0x2031aa6: f2 49 0f 2a 8f 68 01 00 00 | 48 8d 8d 90 03 00 00 | e8 a5 fa d7 00 | 48 8d 8d 70 03 00 00
+  0x2031ac2: e8 39 fe d7 00 | 90 | 48 8b 95 58 03 00 00 | 48 85 d2
+  0x2031ad2: 74 0c | 48 8d 8d 50 03 00 00 | e8 10 61 6c fe | 48 8d 8d 50 03 00 00
+  0x2031ae7: e8 d4 26 6b fe | 48 8d 8d 98 00 00 00 | e8 b8 74 6c fe | 48 8d 15 29 01 13 06
+  0x2031aff: 48 8d 4d 70 | e8 98 2a 6b fe | 90 | 48 89 75 90
+  0x2031b0d: 48 c7 45 98 07 00 00 00 | 0f 28 45 90 | 66 0f 7f 44 24 30 | 41 b9 01 00 00 00
+  0x2031b25: 45 0f b6 c1 | 48 8d 54 24 30 | 48 8d 8d 50 03 00 00 | e8 86 c3 d8 00
+  0x2031b3a: f2 41 0f 10 8f a0 01 00 00 | 48 8d 8d 90 03 00 00 | e8 11 fa d7 00 | 48 8d 8d 70 03 00 00
+  0x2031b56: e8 a5 fd d7 00 | 90 | 48 8b 95 58 03 00 00 | 48 85 d2
+  0x2031b66: 74 0c | 48 8d 8d 50 03 00 00 | e8 7c 60 6c fe | 48 8d 8d 50 03 00 00
+  0x2031b7b: e8 40 26 6b fe | 48 8d 8d 98 00 00 00 | e8 24 74 6c fe | 44 8b e3
+  0x2031b8f: 4d 8d af a8 01 00 00 | 4c 89 6c 24 20 | 4d 8b fd | 4c 8d 2d 5b e4 fc fd
+  0x2031ba5: 48 8d 35 bc 74 15 05 | 4c 8d 35 9d 74 15 05 | 49 83 3f 00 | 0f 84 3b 06 00 00
+  0x2031bbd: 41 0f b6 c4 | 83 f8 05 | 77 79 | 41 8b 8c 85 28 35 03 02
+  0x2031bce: 49 03 cd | ff e1 | 48 8d 05 a6 db 1b 05 | 48 c7 44 24 48 09 00 00 00
+  0x2031be3: eb 6a | 48 8d 05 7c db 1b 05 | 48 c7 44 24 48 13 00 00 00 | eb 58
+  0x2031bf7: 48 8d 05 5a db 1b 05 | 48 c7 44 24 48 09 00 00 00 | eb 46 | 48 8d 05 40 db 1b 05
+  0x2031c10: 48 c7 44 24 48 05 00 00 00 | eb 34 | 48 8d 05 c6 af 19 05 | 48 c7 44 24 48 0b 00 00 00
+  0x2031c2b: eb 22 | 48 8d 05 5c db 1b 05 | 48 c7 44 24 48 11 00 00 00 | eb 10
+  0x2031c3f: 48 8d 05 a2 8f 16 05 | 48 c7 44 24 48 07 00 00 00 | 48 89 44 24 40 | 48 89 75 78
+  0x2031c58: 4c 89 b5 e0 00 00 00 | 48 8d 05 3a 71 15 05 | 48 89 85 98 03 00 00 | 81 cf 00 30 00 00
+  0x2031c73: 48 8d 05 56 a2 ea 04 | 48 89 85 90 03 00 00 | 48 8d 05 08 96 ea 04 | 48 89 85 70 03 00 00
+  0x2031c8f: 48 8d 05 2a a3 ea 04 | 48 89 85 80 03 00 00 | 0f ba ef 0e | 44 8b 05 34 aa 48 06
+  0x2031ca8: 41 81 f8 00 04 00 00 | 72 09 | e8 ca ca 91 02 | 8b c3
+  0x2031cb8: eb 33 | e8 51 2f 92 02 | 48 8b d0 | 48 85 c0
+  0x2031cc5: 74 14 | 8b 00 | 44 33 c0 | 41 81 e0 ff 03 00 00
+  0x2031cd3: 44 33 c0 | 44 89 02 | eb 0d | ba ff 03 00 00
+  0x2031ce0: 41 8b c8 | e8 48 30 92 02 | 25 ff 03 00 00 | 89 45 70
+  0x2031cf0: 48 8b 45 78 | 48 63 48 04 | 48 8d 05 19 a2 ea 04 | 48 89 44 0d 78
+  0x2031d04: 48 8b 45 78 | 48 63 48 04 | 8d 51 98 | 89 54 0d 74
+  0x2031d13: c7 85 84 00 00 00 08 00 00 00 | 48 8b 05 54 fe 12 06 | 48 89 85 88 00 00 00 | 89 9d 90 00 00 00
+  0x2031d31: 48 8b 15 30 fe 12 06 | 48 89 9d 98 00 00 00 | 48 89 9d a8 00 00 00 | 48 c7 85 b0 00 00 00 0f 00 00 00
+  0x2031d51: c6 85 98 00 00 00 00 | 49 c7 c0 ff ff ff ff | 90 | 49 ff c0
+  0x2031d63: 42 80 3c 02 00 | 75 f6 | 48 8d 8d 98 00 00 00 | e8 8a 52 6c fe
+  0x2031d76: c6 85 c0 00 00 00 00 | c6 85 cc 00 00 00 00 | c6 85 d4 00 00 00 00 | 44 8b 45 70
+  0x2031d8f: 89 5d 70 | 41 81 f8 00 04 00 00 | 72 07 | e8 e0 c9 91 02
+  0x2031da0: eb 27 | e8 69 2e 92 02 | 48 85 c0 | 74 0f
+  0x2031dac: 8b 10 | 41 33 d0 | 81 e2 ff 03 00 00 | 31 10
+  0x2031db9: eb 0e | ba ff 03 00 00 | 41 8b c8 | e8 68 2f 92 02
+  0x2031dc8: 90 | 33 d2 | 48 8d 8d d8 00 00 00 | e8 29 22 6b fe
+  0x2031dd7: 48 8b 45 78 | 48 63 48 04 | 48 8d 05 32 91 ea 04 | 48 89 44 0d 78
+  0x2031deb: 48 8b 45 78 | 48 63 48 08 | 48 8d 05 f6 9a ea 04 | 48 89 44 0d 78
+  0x2031dff: 48 8b 45 78 | 48 63 48 0c | 48 8d 05 62 97 ea 04 | 48 89 44 0d 78
+  0x2031e13: 48 8b 45 78 | 48 63 48 04 | 8d 91 08 fd ff ff | 89 54 0d 74
+  0x2031e25: 48 8b 45 78 | 48 63 48 08 | 8d 91 f8 fc ff ff | 89 54 0d 74
+  0x2031e37: 48 8b 45 78 | 48 63 48 0c | 8d 91 e8 fc ff ff | 89 54 0d 74
+  0x2031e49: f2 0f 11 bd 48 03 00 00 | 0f 57 c0 | 66 0f 7f 85 50 03 00 00 | 89 9d 60 03 00 00
+  0x2031e62: 48 8d 05 f7 df 1b 05 | 48 89 45 90 | 48 c7 45 98 0e 00 00 00 | 0f 28 74 24 40
+  0x2031e7a: 66 0f 7f 75 d0 | 0f 28 45 90 | 66 0f 7f 45 20 | 41 b9 01 00 00 00
+  0x2031e8e: 4c 8d 45 d0 | 48 8d 55 20 | 48 8d 8d 50 03 00 00 | e8 0e bc d8 00
+  0x2031ea2: 48 8d 05 1f 08 27 05 | 48 89 45 c0 | 48 c7 45 c8 07 00 00 00 | 0f 28 45 c0
+  0x2031eb9: 66 0f 7f 45 20 | 41 b9 01 00 00 00 | 45 0f b6 c1 | 48 8d 55 20
+  0x2031ecc: 48 8d 8d 50 03 00 00 | e8 e8 bf d8 00 | 0f 57 c9 | f2 49 0f 2a 0f
+  0x2031ee0: 48 8d 8d 90 03 00 00 | e8 74 f6 d7 00 | 48 8d 8d 70 03 00 00 | e8 08 fa d7 00
+  0x2031ef8: 90 | 48 8b 95 58 03 00 00 | 48 85 d2 | 74 0c
+  0x2031f05: 48 8d 8d 50 03 00 00 | e8 df 5c 6c fe | 48 8d 8d 50 03 00 00 | e8 a3 22 6b fe
+  0x2031f1d: 48 8d 8d 98 00 00 00 | e8 87 70 6c fe | 48 89 75 78 | 4c 89 b5 e0 00 00 00
+  0x2031f34: 48 8d 05 65 6e 15 05 | 48 89 85 98 03 00 00 | 81 cf 00 80 01 00 | 48 8d 05 81 9f ea 04
+  0x2031f4f: 48 89 85 90 03 00 00 | 48 8d 05 33 93 ea 04 | 48 89 85 70 03 00 00 | 48 8d 05 55 a0 ea 04
+  0x2031f6b: 48 89 85 80 03 00 00 | 0f ba ef 11 | 44 8b 05 5f a7 48 06 | 41 81 f8 00 04 00 00
+  0x2031f84: 72 09 | e8 f5 c7 91 02 | 8b c3 | eb 32
+  0x2031f8f: e8 7c 2c 92 02 | 48 8b d0 | 48 85 c0 | 74 13
+  0x2031f9c: 8b 00 | 8b c8 | 41 33 c8 | 81 e1 ff 03 00 00
+  0x2031fa9: 33 c8 | 89 0a | eb 0d | ba ff 03 00 00
+  0x2031fb4: 41 8b c8 | e8 74 2d 92 02 | 25 ff 03 00 00 | 89 45 70
+  0x2031fc4: 48 8b 45 78 | 48 63 48 04 | 48 8d 05 45 9f ea 04 | 48 89 44 0d 78
+  0x2031fd8: 48 8b 45 78 | 48 63 48 04 | 8d 51 98 | 89 54 0d 74
+  0x2031fe7: c7 85 84 00 00 00 08 00 00 00 | 48 8b 05 b0 fb 12 06 | 48 89 85 88 00 00 00
 
 [Strings .rdata na função]
   * Unknown

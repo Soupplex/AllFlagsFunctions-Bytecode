@@ -12,11 +12,11 @@ Operação  : 0x5d4cd08: mov/math reg, [flag] ; fn=0x5d4cba0..0x5d4ce05
     Fórmula : "AudioFocusManager"
     Fórmula : AudioFocusManager < 6
     Fórmula : AudioFocusManager >> 8 < 4
-    Altera  : this->field_0x10, this->field_0x18
+    Altera  : this->field_0x10, this->field_0x18, this->field_0x20
     [XREF #2 @0x5d4cec7] Classe  : RBX::AudioFocus (RTTI Resolvido)
     [XREF #2 @0x5d4cec7] Fórmula : AudioFocusManager < 6
     [XREF #2 @0x5d4cec7] Fórmula : AudioFocusManager >> 8 < 4
-    [XREF #2 @0x5d4cec7] Altera  : this->field_0x10, this->field_0x18, this->field_0x8
+    [XREF #2 @0x5d4cec7] Altera  : this->field_0x10, this->field_0x18, this->field_0x20, this->field_0x8
   
   === [Decompilacao C++ da Funcao 0x5d4cba0..0x5d4ce05] ===
     struct RBX::AudioFocus {
@@ -29,42 +29,42 @@ Operação  : 0x5d4cd08: mov/math reg, [flag] ; fn=0x5d4cba0..0x5d4ce05
     // Flag defaults: AudioFocusManager = 6
     auto RBX::AudioFocus::func_0x5d4cba0(RBX::AudioFocus* this) {
       if ((atomic_fetch_add(&this->field_0x20, 1) & 0xc0000000) != -2147483648) {
-        L_0x5d4cc10:
+        atomic_fetch_add(&this->field_0x20, 1) & 0xc0000000;
+        int32_t i_edi = 0;
         auto* f_8 = this->field_0x8;
         do { // L_0x5d4cc10
-          L_0x5d4cc10:
           auto ret_0xc8a0_1 = call_0xc8a0();
           if (f_8 == ret_0xc8a0_1) break;
           if (f_8 == 0) {
             auto ret_0xc8a0_2 = call_0xc8a0();
             if (atomic_cas(&f_8, 0, ret_0xc8a0_2) == 0) break;
-            if (0 >= 16) {
+            if (i_edi >= 16) {
               auto ret_0xc880_6 = call_0xc880(&local_0x80, 0, 0);
               if (ret_0xc880_6 != 0) {
                 call_0xcb40(1);
+                i_edi++;
                 continue;
               } else {
                 L_0x5d4cc5b:
+                i_edi++;
               }
+            } else {
+              i_edi++;
             }
-            auto ret_0xc8a0_1 = call_0xc8a0();
-            if (f_8 == ret_0xc8a0_1) break;
-          } else {
-            if (0 >= 16) {
-              auto ret_0xc880_6 = call_0xc880(&local_0x80, 0, 0);
-              if (ret_0xc880_6 != 0) {
-                call_0xcb40(1);
-                continue;
-              } else {
-                goto L_0x5d4cc5b;
-              }
+          } else if (i_edi >= 16) {
+            auto ret_0xc880_6 = call_0xc880(&local_0x80, 0, 0);
+            if (ret_0xc880_6 != 0) {
+              call_0xcb40(1);
+              i_edi++;
+              continue;
             } else {
               goto L_0x5d4cc5b;
             }
-            goto L_0x5d4cc10;
+          } else {
+            goto L_0x5d4cc5b;
           }
         } while (true); // loop -> L_0x5d4cc10
-        this->field_0x10 = this->field_0x10 + 1;
+        this->field_0x10++;
         if (this->field_0x18 == 0) {
           call_0x4959930(global_0x84a4e50, this);
           auto ret_0x4956380_4 = call_0x4956380(144, 8);
@@ -72,15 +72,17 @@ Operação  : 0x5d4cd08: mov/math reg, [flag] ; fn=0x5d4cba0..0x5d4ce05
           if (&ret_0x4956380_4->field_0x20 != 0) {
             ret_0x4956380_4->field_0x20 = 1;
           }
-          ret_0x4956380_4->field_0x28 = &f_8;
+          ret_0x4956380_4->field_0x28 = -1;
           auto local_0x30 = 0.0;
           call_0x5d4e8c0(&ret_0x4956380_4->field_0x50, &local_0x30);
           if (AudioFocusManager >= 6 && AudioFocusManager >> 8 >= 4) {
             FLog::Log("[FLog::AudioFocusManager] AudioFocusManager::AudioFocusManager() constructor");
           }
           this->field_0x18 = ret_0x4956380_4;
+          this->field_0x20 = this->field_0x20 | 0x80000000;
         }
-        if (this->field_0x18 == 0) {
+        &f_8->field_0x8--;
+        if (&f_8->field_0x8 == 1) {
           &f_8->field_0x0 = 0;
         }
       }
@@ -167,7 +169,7 @@ Operação  : 0x5d4cd08: mov/math reg, [flag] ; fn=0x5d4cba0..0x5d4ce05
     0x5d4ccc7 | 74 07                    | je 0x5d4ccd0
     0x5d4ccc9 | 48 c7 00 01 00 00 00     | mov qword ptr [rax], 0x1
     L_0x5d4ccd0:
-    0x5d4ccd0 | 48 c7 c3 ff ff ff ff     | mov rbx, 0xffffffff
+    0x5d4ccd0 | 48 c7 c3 ff ff ff ff     | mov rbx, -0x1
     0x5d4ccd7 | 89 5f 28                 | mov dword ptr [rdi + 0x28], ebx
     0x5d4ccda | 4c 89 77 30              | mov qword ptr [rdi + 0x30], r14
     0x5d4ccde | 4c 89 77 38              | mov qword ptr [rdi + 0x38], r14
@@ -251,43 +253,41 @@ Operação  : 0x5d4cd08: mov/math reg, [flag] ; fn=0x5d4cba0..0x5d4ce05
     
     // Flag defaults: AudioFocusManager = 6
     void RBX::AudioFocus::func_0x5d4ce20(RBX::AudioFocus* this) {
-      L_0x5d4ce50:
+      int32_t i_edi = 0;
       do { // L_0x5d4ce50
-        L_0x5d4ce50:
-        auto ret_0xc8a0_1 = call_0xc8a0(this);
+        auto ret_0xc8a0_1 = call_0xc8a0();
         if (this->field_0x8 == ret_0xc8a0_1) break;
         if (this->field_0x8 == 0) {
           auto ret_0xc8a0_2 = call_0xc8a0();
           if (atomic_cas(&this->field_0x8, 0, ret_0xc8a0_2) == 0) break;
-          if (0 >= 16) {
+          if (i_edi >= 16) {
             auto ret_0xc880_10 = call_0xc880(&local_0x60, 0, 0);
             if (ret_0xc880_10 != 0) {
               call_0xcb40(1);
+              i_edi++;
               continue;
             } else {
               L_0x5d4ce9a:
+              i_edi++;
             }
+          } else {
+            i_edi++;
           }
-          auto ret_0xc8a0_1 = call_0xc8a0(this);
-          if (this->field_0x8 == ret_0xc8a0_1) break;
-        } else {
-          if (0 >= 16) {
-            auto ret_0xc880_10 = call_0xc880(&local_0x60, 0, 0);
-            if (ret_0xc880_10 != 0) {
-              call_0xcb40(1);
-              continue;
-            } else {
-              goto L_0x5d4ce9a;
-            }
+        } else if (i_edi >= 16) {
+          auto ret_0xc880_10 = call_0xc880(&local_0x60, 0, 0);
+          if (ret_0xc880_10 != 0) {
+            call_0xcb40(1);
+            i_edi++;
+            continue;
           } else {
             goto L_0x5d4ce9a;
           }
-          goto L_0x5d4ce50;
+        } else {
+          goto L_0x5d4ce9a;
         }
       } while (true); // loop -> L_0x5d4ce50
-      this->field_0x10 = this->field_0x10 + 1;
-      auto expr_1 = atomic_cas(&this->field_0x20, -2147483648, -1073741824) == 0;
-      if expr_1 {
+      this->field_0x10++;
+      if (atomic_cas(&this->field_0x20, -2147483648, -1073741824) == 0) {
         if (this->field_0x18 != 0) {
           if (AudioFocusManager >= 6 && AudioFocusManager >> 8 >= 4) {
             FLog::Log("[FLog::AudioFocusManager] AudioFocusManager::AudioFocusManager() destructor");
@@ -303,8 +303,10 @@ Operação  : 0x5d4cd08: mov/math reg, [flag] ; fn=0x5d4cba0..0x5d4ce05
           call_0x4955ac0(this->field_0x18);
         }
         this->field_0x18 = 0;
+        this->field_0x20 = this->field_0x20 & 0x3fffffff;
       }
-      if expr_1 {
+      this->field_0x10--;
+      if (this->field_0x10 == 1) {
         this->field_0x8 = 0;
       }
     }
@@ -369,7 +371,7 @@ Operação  : 0x5d4cd08: mov/math reg, [flag] ; fn=0x5d4cba0..0x5d4ce05
     0x5d4ceee | 48 8b 4c 24 30           | mov rcx, qword ptr [rsp + 0x30]
     0x5d4cef3 | 48 81 c1 e2 5d fa ff     | add rcx, 0xfffa5de2
     0x5d4cefa | 48 89 4c 24 50           | mov qword ptr [rsp + 0x50], rcx
-    0x5d4ceff | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x5d4ceff | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     L_0x5d4cf06:
     0x5d4cf06 | 48 ff c0                 | inc rax
     0x5d4cf09 | 80 3c 01 00              | cmp byte ptr [rcx + rax], 0x0

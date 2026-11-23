@@ -10,6 +10,7 @@ Operação  : 0x48faf3e: mov/math reg, [flag] ; fn=0x48fae90..0x48fb025
     Padrão  : FIntFRMConstantFrameTimeTargetMsStatic = 0 (default) [int, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : FRMConstantFrameTimeTargetMs <= 0 && FRMConstantFrameTimeTargetMsStatic <= 0
+    Fórmula : FRMConstantFrameTimeTargetMsStatic <= 0
     Fórmula : FRMConstantFrameTimeTargetMsStatic
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
@@ -36,34 +37,39 @@ Operação  : 0x48faf3e: mov/math reg, [flag] ; fn=0x48fae90..0x48fb025
           return this->field_0xae4;
         }
         uint8_t v_al_5;
-        if (EnableFRMLockstepTableOverrides && param_2->field_0x136[&sym_0x8c93b20] != 0) {
-          v_al_5 = 1;
+        if (EnableFRMLockstepTableOverrides) {
+          if (param_2->field_0x136[&sym_0x8c93b20] != 0) {
+            v_al_5 = 1;
+          } else {
+            v_al_5 = 0;
+          }
         } else {
           v_al_5 = 0;
-          if (FRMUseSteppedFrameTimeTarget && param_2 != 0 && v_al_5 == 0) {
-            auto ret_0x48fae00_1 = call_0x48fae00(this, param_2, this->field_0xae4, xmm3);
-            return tailcall_0x48fb030(r8, ret_0x48fae00_1);
-          }
-          if (FRMUseConstantFrameTimeTarget) {
-            if (param_2 == 0) {
-              return tailcall_0x48fb030(this, global_0x75a0f40);
-            }
-            fxmm0_7 = 19.0;
-            L_0x48fb016:
-            return tailcall_0x48fb030(this, fxmm0_7);
-          }
-          if (FRMConstantFrameTimeTargetMs <= 0 && FRMConstantFrameTimeTargetMsStatic <= 0) {
-            fxmm0_7 = (&param_2->field_0x12 * 56)[this];
-            return tailcall_0x48fb030(this, fxmm0_7);
-          }
-          v_rax_6 = FRMConstantFrameTimeTargetMs;
-          return (float)v_rax_6;
         }
-      } else {
-        if (this->field_0xae4 > 0.0 && !FRMUseSteppedFrameTimeTarget) {
-          return this->field_0xae4;
+        if (FRMUseSteppedFrameTimeTarget && param_2 != 0 && v_al_5 == 0) {
+          auto ret_0x48fae00_1 = call_0x48fae00(this, param_2, this->field_0xae4, xmm3);
+          return tailcall_0x48fb030(r8, ret_0x48fae00_1);
+        }
+        if (FRMUseConstantFrameTimeTarget) {
+          if (param_2 == 0) {
+            return tailcall_0x48fb030(this, global_0x75a0f40);
+          }
+          fxmm0_7 = 19.0;
+          L_0x48fb016:
+          return tailcall_0x48fb030(this, fxmm0_7);
         }
         if (FRMConstantFrameTimeTargetMs <= 0 && FRMConstantFrameTimeTargetMsStatic <= 0) {
+          fxmm0_7 = (&param_2->field_0x12 * 56)[this];
+          return tailcall_0x48fb030(this, fxmm0_7);
+        }
+        v_rax_6 = FRMConstantFrameTimeTargetMs;
+        return (float)v_rax_6;
+      }
+      if (this->field_0xae4 > 0.0 && !FRMUseSteppedFrameTimeTarget) {
+        return this->field_0xae4;
+      }
+      if (FRMConstantFrameTimeTargetMs <= 0) {
+        if (FRMConstantFrameTimeTargetMsStatic <= 0) {
           uint8_t v_cl_1;
           if (!isnan((&param_2->field_0x12 * 56)[this]) && !isnan(global_0x75a0f40) && (&param_2->field_0x12 * 56)[this] == global_0x75a0f40) {
             v_cl_1 = 1;
@@ -71,8 +77,12 @@ Operação  : 0x48faf3e: mov/math reg, [flag] ; fn=0x48fae90..0x48fb025
             v_cl_1 = 0;
           }
           uint8_t v_al_3;
-          if (EnableFRMLockstepTableOverrides && param_2->field_0x136[&sym_0x8c93b20] != 0) {
-            v_al_3 = 1;
+          if (EnableFRMLockstepTableOverrides) {
+            if (param_2->field_0x136[&sym_0x8c93b20] != 0) {
+              v_al_3 = 1;
+            } else {
+              v_al_3 = 0;
+            }
           } else {
             v_al_3 = 0;
           }
@@ -85,14 +95,15 @@ Operação  : 0x48faf3e: mov/math reg, [flag] ; fn=0x48fae90..0x48fb025
               return tailcall_0x48fb030(this, global_0x75a0f40);
             }
             fxmm0_7 = 19.0;
-            fxmm0_7 = (&param_2->field_0x12 * 56)[this];
-            goto L_0x48fb016;
           }
+          fxmm0_7 = (&param_2->field_0x12 * 56)[this];
+          goto L_0x48fb016;
         } else {
           v_rax_6 = FRMConstantFrameTimeTargetMsStatic;
-          return (float)v_rax_6;
         }
       }
+      v_rax_6 = FRMConstantFrameTimeTargetMs;
+      return (float)v_rax_6;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -223,27 +234,35 @@ Operação  : 0x48faf3e: mov/math reg, [flag] ; fn=0x48fae90..0x48fb025
     0x48fb020 | e9 0b 00 00 00           | jmp 0x48fb030
   
   === [Sub-Rotina Chamada: 0x48fae00..0x48fae8f via call @0x48fafd5 (rcx = this (Direct Engine Sub-Call))] ===
-    struct RBX::FRMConstantFrame {
+    struct RBX::FRMSteppedTarget {
       /* +0xae4 */ float   field_0xae4;
     };
     
-    // Flag defaults: FRMConstantFrameTimeTargetMsStatic = 0, FRMSteppedTargetFloorMs = 34, FRMSteppedTargetEndpointMs = 19, FRMSteppedTargetRampStartQL = 13, FRMSteppedTargetRampEndQL = 16
-    float RBX::FRMConstantFrame::func_0x48fae00(RBX::FRMConstantFrame* this, int64_t param_2) {
-      float fxmm2_1;
+    // Flag defaults: FRMSteppedTargetEndpointMs = 19, FRMSteppedTargetFloorMs = 34, FRMSteppedTargetRampStartQL = 13, FRMSteppedTargetRampEndQL = 16
+    double RBX::FRMSteppedTarget::func_0x48fae00(RBX::FRMSteppedTarget* this, int64_t param_2) {
+      double fxmm2_1;
       if (this->field_0xae4 > 0.0) {
-        fxmm2_1 = this->field_0xae4;
+        fxmm2_1 = (double)this->field_0xae4;
       } else {
-        fxmm2_1 = FRMSteppedTargetEndpointMs;
+        fxmm2_1 = (double)FRMSteppedTargetEndpointMs;
       }
-      if (fxmm2_1 >= FRMSteppedTargetFloorMs) {
-        return FRMSteppedTargetFloorMs;
+      if (fxmm2_1 >= (double)FRMSteppedTargetFloorMs) {
+        return (double)FRMSteppedTargetFloorMs;
       }
-      float ftmp_1 = max(FRMSteppedTargetRampStartQL + 1, FRMSteppedTargetRampEndQL) - FRMSteppedTargetRampStartQL;
-      double ftmp_2 = (param_2 - FRMSteppedTargetRampStartQL) / ftmp_1;
-      if (ftmp_2 <= 1.0 && 0.0 <= ftmp_2) {
+      double ftmp_1 = (double)(max(FRMSteppedTargetRampStartQL + 1, FRMSteppedTargetRampEndQL) - FRMSteppedTargetRampStartQL);
+      double ftmp_2 = (double)(param_2 - FRMSteppedTargetRampStartQL) / ftmp_1;
+      double fxmm1_2;
+      if (ftmp_2 <= 1.0) {
+        if (0.0 <= ftmp_2) {
+          fxmm1_2 = ftmp_2;
+        } else {
+          fxmm1_2 = 0.0;
+        }
       } else {
-        return ftmp_4;
+        fxmm1_2 = 1.0;
       }
+      double ftmp_4 = (fxmm2_1 - (double)FRMSteppedTargetFloorMs) * fxmm1_2 + (double)FRMSteppedTargetFloorMs;
+      return ftmp_4;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x48fae00..0x48fae8f)] ===

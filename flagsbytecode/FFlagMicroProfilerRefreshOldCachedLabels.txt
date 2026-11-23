@@ -9,7 +9,7 @@ Operação  : 0x29a3d78: cmp byte [flag], imm8 ; fn=0x29a3b50..0x29a3ea6
     Classe  : RBX::MicroProfiler (RTTI Resolvido)
     Padrão  : FFlagMicroProfilerRefreshOldCachedLabels = true (default) [bool, mode=1]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
-    Fórmula : global_0x84a44d6 != 0 && MicroProfilerRefreshOldCachedLabels && v_r15_5 != 0 && __ImageBase->field_0x8c67220[rbx * 8] < global_0x816d648->field_0x1e5570 && min(MicroProfilerLabelCacheRefreshOldestPercent > 0 ? MicroProfilerLabelCacheRefreshOldestPercent : 25, 100) * v_r15_5 >= 100
+    Fórmula : global_0x84a44d6 == 0 || !MicroProfilerRefreshOldCachedLabels || v_r15_3 == 0 || __ImageBase->field_0x8c67220[idx_1 * 8] >= global_0x816d648->field_0x1e5570 || min(MicroProfilerLabelCacheRefreshOldestPercent > 0 ? MicroProfilerLabelCacheRefreshOldestPercent : 25, 100) * v_r15_3 < 100
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x29a3f29 (in fn_0x29a3eb0): call 0x29a3b50  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
@@ -23,7 +23,7 @@ Operação  : 0x29a3d78: cmp byte [flag], imm8 ; fn=0x29a3b50..0x29a3ea6
     
     // Flag defaults: MicroProfilerLabelCacheRefreshOldestPercent = 0, MicroProfilerRefreshOldCachedLabels = true
     auto RBX::MicroProfiler::func_0x29a3b50(RBX::MicroProfiler* this) {
-      void* v_r12_3 = global_0x816d648->field_0x1e5560;
+      void* v_r12_1 = global_0x816d648->field_0x1e5560;
       int64_t ret_0x29a1d60_1;
       if (global_0x816d648->field_0x1e5560 != 0) {
         ret_0x29a1d60_1 = call_0x29a1d60(this);
@@ -32,72 +32,76 @@ Operação  : 0x29a3d78: cmp byte [flag], imm8 ; fn=0x29a3b50..0x29a3ea6
           call_0x2e12fd0(ret_0x29a1d60_1);
           ret_0x29a1d60_1->field_0x8 = ret_0xc8a0_2;
         }
-        ret_0x29a1d60_1->field_0x10 = ret_0x29a1d60_1->field_0x10 + 1;
+        ret_0x29a1d60_1->field_0x10++;
         if (global_0x816d648->field_0x1e5560 == 0) {
           auto ret_0x29ea790_4 = call_0x29ea790();
           auto ret_0xc6d0_5 = call_0xc6d0(ret_0x29ea790_4->field_0x404 + 0x100);
           call_0x5e051b0(ret_0xc6d0_5, 0, ret_0x29ea790_4->field_0x404 + 0x100);
           global_0x816d648->field_0x1e5568 = ret_0x29ea790_4->field_0x404;
           global_0x816d648->field_0x1e5560 = ret_0xc6d0_5;
-          v_r12_3 = ret_0xc6d0_5;
+          v_r12_1 = ret_0xc6d0_5;
         }
       }
-      if (global_0x816d648->field_0x1e5560 == 0 && ret_0x29a1d60_1->field_0x0 == 3) {
-        if (atomic_cas(&ret_0x29a1d60_1->field_0x0, ret_0x29a1d60_1->field_0x0, 1) != 0) {
+      ret_0x29a1d60_1->field_0x10--;
+      if (ret_0x29a1d60_1->field_0x10 == 1) {
+        if (ret_0x29a1d60_1->field_0x0 != 3 || atomic_cas(&ret_0x29a1d60_1->field_0x0, ret_0x29a1d60_1->field_0x0, 1) != 0) {
           call_0xdac0(ret_0x29a1d60_1);
         }
-      } else {
-        call_0xdac0(ret_0x29a1d60_1);
       }
-      int32_t v_r15_5 = 16777216;
+      int32_t v_r15_3 = 16777216;
       if (global_0x846997f != 0) {
-        v_r15_5 = global_0x816d648->field_0x1e5568;
+        v_r15_3 = global_0x816d648->field_0x1e5568;
       }
       auto local_0x68 = 0;
-      memcpy(&local_0x68, this, min(4, min(ret_0x29a1d60_1 + 1, 255)));
-      if (global_0x84bdfca - ((__ImageBase + 0x8c6b220) + rax * 2)->field_0x0 <= 0x800) {
-        auto ret_0x5e1d000_9 = memcmp(this, __ImageBase->field_0x8c67220[rbx * 8] % v_r15_5 + v_r12_3, min(ret_0x29a1d60_1 + 1, 255));
+      memcpy(&local_0x68, this, min(4, min(0, 255)));
+      int64_t tmp_2 = (min(0, 255) <= 4 ? local_0x68 : (rdx >> 1)->field_m0x1[this] + (min(0, 255))->field_m0x4[this] + local_0x68 * 0x9e3779b97f4a7c15) >> (64 - bsr(8192));
+      if (global_0x84bdfca - ((__ImageBase + 0x8c6b220) + tmp_2 * 2)->field_0x0 <= 0x800) {
+        int64_t idx_1 = ((__ImageBase + 0x8c6b220) + tmp_2 * 2)->field_0x0 & 0x7ff;
+        auto ret_0x5e1d000_9 = memcmp(this, __ImageBase->field_0x8c67220[idx_1 * 8] % v_r15_3 + v_r12_1, min(0, 255));
         if (ret_0x5e1d000_9 == 0) {
-          if (global_0x84a44d6 != 0 && MicroProfilerRefreshOldCachedLabels && v_r15_5 != 0 && __ImageBase->field_0x8c67220[rbx * 8] < global_0x816d648->field_0x1e5570 && min(MicroProfilerLabelCacheRefreshOldestPercent > 0 ? MicroProfilerLabelCacheRefreshOldestPercent : 25, 100) * v_r15_5 >= 100) {
-            int64_t tmp_2 = ((min(MicroProfilerLabelCacheRefreshOldestPercent > 0 ? MicroProfilerLabelCacheRefreshOldestPercent : 25, 100) * v_r15_5 - rdx) >> 1) + rdx >> 6;
-            if (global_0x816d648->field_0x1e5570 - __ImageBase->field_0x8c67220[rbx * 8] < v_r15_5 - tmp_2) {
-              return __ImageBase->field_0x8c67220[rbx * 8];
+          if (global_0x84a44d6 == 0 || !MicroProfilerRefreshOldCachedLabels || v_r15_3 == 0 || __ImageBase->field_0x8c67220[idx_1 * 8] >= global_0x816d648->field_0x1e5570 || min(MicroProfilerLabelCacheRefreshOldestPercent > 0 ? MicroProfilerLabelCacheRefreshOldestPercent : 25, 100) * v_r15_3 < 100) {
+            return __ImageBase->field_0x8c67220[idx_1 * 8];
+          }
+          int64_t tmp_3 = ((min(MicroProfilerLabelCacheRefreshOldestPercent > 0 ? MicroProfilerLabelCacheRefreshOldestPercent : 25, 100) * v_r15_3 - rdx) >> 1) + rdx >> 6;
+          if (global_0x816d648->field_0x1e5570 - __ImageBase->field_0x8c67220[idx_1 * 8] < v_r15_3 - tmp_3) {
+            return __ImageBase->field_0x8c67220[idx_1 * 8];
+          }
+          L_0x29a3dde:
+          L_0x29a3df3:
+          void* v_rdi_4;
+          if (v_r15_3 != 0 && min(0, 255) != -1 && min(0, 255) + 1 <= v_r15_3) {
+            void* sel_rdi_2 = global_0x816d648->field_0x1e5570 == 0 ? 1 : global_0x816d648->field_0x1e5570;
+            if (min(0, 255) + 1 > v_r15_3 - sel_rdi_2 % v_r15_3) {
+              v_rdi_4 = sel_rdi_2 + (v_r15_3 - sel_rdi_2 % v_r15_3);
+            } else {
+              v_rdi_4 = sel_rdi_2;
             }
-            L_0x29a3df3:
-            void* v_rdi_7;
-            if (v_r15_5 != 0 && min(ret_0x29a1d60_1 + 1, 255) != -1 && min(ret_0x29a1d60_1 + 1, 255) + 1 <= v_r15_5) {
-              void* sel_rdi_1 = global_0x816d648->field_0x1e5570 == 0 ? 1 : global_0x816d648->field_0x1e5570;
-              if (min(ret_0x29a1d60_1 + 1, 255) + 1 > v_r15_5 - sel_rdi_1 % v_r15_5) {
-                v_rdi_7 = sel_rdi_1 + (v_r15_5 - sel_rdi_1 % v_r15_5);
+          } else {
+            v_rdi_4 = 0;
+          }
+          if (atomic_cas(&global_0x816d648->field_0x1e5570, global_0x816d648->field_0x1e5570, v_rdi_4 + min(0, 255) + 1) != 0) {
+            void* v_rdi_4;
+            if (v_r15_3 != 0 && min(0, 255) != -1 && min(0, 255) + 1 <= v_r15_3) {
+              void* sel_rdi_2 = global_0x816d648->field_0x1e5570 == 0 ? 1 : global_0x816d648->field_0x1e5570;
+              if (min(0, 255) + 1 > v_r15_3 - sel_rdi_2 % v_r15_3) {
+                v_rdi_4 = sel_rdi_2 + (v_r15_3 - sel_rdi_2 % v_r15_3);
               } else {
-                v_rdi_7 = sel_rdi_1;
+                v_rdi_4 = sel_rdi_2;
               }
             } else {
-              v_rdi_7 = 0;
-              if (atomic_cas(&global_0x816d648->field_0x1e5570, global_0x816d648->field_0x1e5570, v_rdi_7 + r9) != 0) {
-                void* v_rdi_7;
-                if (v_r15_5 != 0 && min(ret_0x29a1d60_1 + 1, 255) != -1 && min(ret_0x29a1d60_1 + 1, 255) + 1 <= v_r15_5) {
-                  void* sel_rdi_1 = global_0x816d648->field_0x1e5570 == 0 ? 1 : global_0x816d648->field_0x1e5570;
-                  if (min(ret_0x29a1d60_1 + 1, 255) + 1 > v_r15_5 - sel_rdi_1 % v_r15_5) {
-                    v_rdi_7 = sel_rdi_1 + (v_r15_5 - sel_rdi_1 % v_r15_5);
-                  } else {
-                    v_rdi_7 = sel_rdi_1;
-                  }
-                } else {
-                  v_rdi_7 = 0;
-                }
-              }
-              memcpy(v_r12_3 + v_rdi_7 % v_r15_5, this, min(ret_0x29a1d60_1 + 1, 255));
-              (v_r12_3 + (v_rdi_7 % v_r15_5))[min((ret_0x29a1d60_1 + 1), 255)] = 0;
-              __ImageBase->field_0x8c67220[rcx * 8] = v_rdi_7;
-              ((__ImageBase + 0x8c6b220) + rax * 2)->field_0x0 = atomic_fetch_add(&global_0x84bdfca, 1);
-              return v_rdi_7;
+              v_rdi_4 = 0;
             }
           }
-          return __ImageBase->field_0x8c67220[rbx * 8];
+          memcpy(v_r12_1 + v_rdi_4 % v_r15_3, this, min(0, 255));
+          (v_r12_1 + (v_rdi_4 % v_r15_3))[min((-1 + 1), 255)] = 0;
+          __ImageBase->field_0x8c67220[(atomic_fetch_add(&global_0x84bdfca, 1) & 0x7ff) * 8] = v_rdi_4;
+          ((__ImageBase + 0x8c6b220) + tmp_2 * 2)->field_0x0 = atomic_fetch_add(&global_0x84bdfca, 1);
+          return v_rdi_4;
         }
+        goto L_0x29a3df3;
+      } else {
+        goto L_0x29a3dde;
       }
-      goto L_0x29a3df3;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -185,7 +189,7 @@ Operação  : 0x29a3d78: cmp byte [flag], imm8 ; fn=0x29a3b50..0x29a3ea6
     0x29a3c6d | 44 8b b8 68 55 1e 00     | mov r15d, dword ptr [rax + 0x1e5568]
     0x29a3c74 | 90                       | nop
     L_0x29a3c75:
-    0x29a3c75 | 48 c7 c6 ff ff ff ff     | mov rsi, 0xffffffff
+    0x29a3c75 | 48 c7 c6 ff ff ff ff     | mov rsi, -0x1
     0x29a3c7c | 0f 1f 40 00              | nop
     L_0x29a3c80:
     0x29a3c80 | 48 ff c6                 | inc rsi
@@ -383,7 +387,7 @@ Operação  : 0x29a3d78: cmp byte [flag], imm8 ; fn=0x29a3b50..0x29a3ea6
     0x29a1dce | c3                       | ret
   
   === [Sub-Rotina Chamada: 0x29ea790..0x29ea855 via call @0x29a3bc8 (rcx = this (Direct Engine Sub-Call))] ===
-    // Flag defaults: MicroProfilerLabelCacheRefreshOldestPercent = 0
+    // Flag defaults: MicroProfilerRefreshOldCachedLabels = true
     auto RBX::MicroProfiler::func_0x29ea790(RBX::MicroProfiler* this) {
       if (global_0x8db6b78 <= rbp->field_0x58->field_0x0->field_0x0[40]) {
         return global_0x81b7e10;

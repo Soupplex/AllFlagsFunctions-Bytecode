@@ -8,7 +8,7 @@ Operação  : 0x2714af7: cmp dword [flag], imm ; fn=0x2714330..0x2714d64
   === [Resumo do Efeito da FFlag no Engine (RBX::RenderDx11CPUMemory)] ===
     Classe  : RBX::RenderDx11CPUMemory (RTTI Resolvido)
     Padrão  : FStringGraphicsDX11TurnOffFutureLighting3 = "" (default) [string, mode=1]
-    Papel   : Parâmetro de configuração lido diretamente pela rotina
+    Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : GraphicsDX11TurnOffFutureLighting3.size() != 0
     Fórmula : call_0x270d490(&local_0x210, GraphicsDX11TurnOffFutureLighting3)
     [Child @0x270be30] Papel   : Parâmetro de configuração lido diretamente pela rotina
@@ -41,7 +41,7 @@ Operação  : 0x2714af7: cmp dword [flag], imm ; fn=0x2714330..0x2714d64
           if (local_0x25c != 0 && local_0x258 != 0 && local_0x260 != 0) {
             param_2->field_0x16 = 1;
           }
-          param_2->field_0x90 = local_0x260 != 0;
+          param_2->field_0x90 = (local_0x25c != 0 ? local_0x258 : local_0x260) != 0;
           param_2->field_0x91 = local_0x264 != 0;
         } else {
           call_0x27193f0(vret_4, param_2, 668, "Device");
@@ -71,20 +71,20 @@ Operação  : 0x2714af7: cmp dword [flag], imm ; fn=0x2714330..0x2714d64
         param_2->field_0x92 = v_al_2;
       }
       param_2->field_0xc = 16843009;
+      uint8_t v_al_4;
+      if (!UIStencilBufferAllocation5 && !UIStencilWorldBuffer) {
+        v_al_4 = 0;
+      } else {
+        v_al_4 = 1;
+      }
+      param_2->field_0x10 = v_al_4;
       uint8_t v_al_5;
       if (!UIStencilBufferAllocation5 && !UIStencilWorldBuffer) {
         v_al_5 = 0;
       } else {
         v_al_5 = 1;
       }
-      param_2->field_0x10 = v_al_5;
-      uint8_t v_al_6;
-      if (!UIStencilBufferAllocation5 && !UIStencilWorldBuffer) {
-        v_al_6 = 0;
-      } else {
-        v_al_6 = 1;
-      }
-      param_2->field_0x11 = v_al_6;
+      param_2->field_0x11 = v_al_5;
       param_2->field_0x13 = 257;
       param_2->field_0x12 = 1;
       param_2->field_0x18 = 1;
@@ -106,27 +106,20 @@ Operação  : 0x2714af7: cmp dword [flag], imm ; fn=0x2714330..0x2714d64
       param_2->field_0x50 = 32;
       param_2->field_0x54 = 16;
       param_2->field_0x58 = 65536;
-      float fxmm0_7;
-      if (local_0x350->field_0x110 >> 20 >= 0) {
-        fxmm0_7 = (float)(local_0x350->field_0x110 >> 20);
-      } else {
-        float ftmp_1 = (float)((local_0x350->field_0x110 >> 20) >> 1 | local_0x350->field_0x110 >> 20 & 0x1);
-        fxmm0_7 = ftmp_1 * 2;
-      }
-      int32_t v_rcx_8 = 0;
-      float fxmm0_9;
-      if (fxmm0_7 * 0.25 >= global_0x75a0efc) {
-        float ftmp_2 = fxmm0_7 * 0.25 - global_0x75a0efc;
-        if (ftmp_2 < global_0x75a0efc) {
-          v_rcx_8 = 0x8000000000000000;
-          fxmm0_9 = ftmp_2;
+      float fxmm0_6 = (float)(uint64_t)(local_0x350->field_0x110 >> 20);
+      int32_t v_rcx_7 = 0;
+      float fxmm0_8;
+      if (fxmm0_6 * 0.25 >= 9.22337e+18) {
+        if (fxmm0_6 * 0.25 - 9.22337e+18 < 9.22337e+18) {
+          v_rcx_7 = 0x8000000000000000;
+          fxmm0_8 = fxmm0_6 * 0.25 - 9.22337e+18;
         } else {
-          fxmm0_9 = ftmp_2;
+          fxmm0_8 = fxmm0_6 * 0.25 - 9.22337e+18;
         }
       } else {
-        fxmm0_9 = fxmm0_7 * 0.25;
+        fxmm0_8 = fxmm0_6 * 0.25;
       }
-      param_2->field_0x5c = min(-1, max(128, (uint64_t)fxmm0_9 + v_rcx_8) << 20);
+      param_2->field_0x5c = min(-1, max(128, (int64_t)fxmm0_8 + v_rcx_7) << 20);
       auto vret_16 = param_3->vfunc_0x128(param_3) // -> RBX::unique_function::fn_0x2091c20;
       param_2->field_0x3c = vret_16 >= 0x9200;
       param_2->field_0x3d = vret_16 >= 0x9200;
@@ -137,7 +130,7 @@ Operação  : 0x2714af7: cmp dword [flag], imm ; fn=0x2714330..0x2714d64
       this->vfunc_0xb0(this, &local_0x1e0) // -> RBX::Graphics::DeviceD3D11::fn_0x2716cf0;
       call_0x4973b00(&local_0x1a0, "%x:%x:%s", local_0x350->field_0x100, local_0x350->field_0x104);
       if (local_0x1f8 >= 16) {
-        void* v_rcx_11 = local_0x1e0;
+        void* v_rcx_10 = local_0x1e0;
         if (local_0x1f8 + 1 >= 0x1000) {
           if (local_0x1e0 - local_0x1e0->field_m0x8 < 8 || local_0x1e0 - local_0x1e0->field_m0x8 > 39) {
             L_0x2714d4d:
@@ -146,57 +139,40 @@ Operação  : 0x2714af7: cmp dword [flag], imm ; fn=0x2714330..0x2714d64
             call_0x5e14580();
           }
         }
-        call_0x4955ac0(v_rcx_11);
+        call_0x4955ac0(v_rcx_10);
       }
-      void* v_rsi_13;
+      void* v_rsi_11;
       if (DebugFakeTotalMemoryAvailableMB > 0) {
-        v_rsi_13 = DebugFakeTotalMemoryAvailableMB << 20;
+        v_rsi_11 = DebugFakeTotalMemoryAvailableMB << 20;
       } else {
         auto local_0x160 = 64;
-        &local_0x160->vfunc(&local_0x160);
-        v_rsi_13 = local_0x168;
+        (&local_0x160)->vfunc(&local_0x160);
+        v_rsi_11 = local_0x168;
       }
       auto ret_0x29cd2c0_21 = call_0x29cd2c0();
       auto ret_0x270d490_22 = call_0x270d490(&local_0x1a0, DisableHQShadersDx11List);
-      uint8_t v_cl_14;
-      if (ret_0x270d490_22 == 0 && ret_0x29cd2c0_21->field_0x40 > RenderDx11LowEndCoreCount && v_rsi_13 >> 20 > RenderDx11LowEndCPUMemoryMB) {
-        v_cl_14 = 0;
+      uint8_t v_cl_12;
+      if (ret_0x270d490_22 == 0 && ret_0x29cd2c0_21->field_0x40 > RenderDx11LowEndCoreCount && v_rsi_11 >> 20 > RenderDx11LowEndCPUMemoryMB) {
+        v_cl_12 = 0;
       } else {
-        v_cl_14 = 1;
+        v_cl_12 = 1;
       }
-      auto expr_1 = "[FLog::Graphics] D3D11 future rendering is disabled for pattern: {}";
-      auto expr_2 = GraphicsDX11TurnOffFutureLightingDriverVersion.size() == 0;
-      auto expr_3 = GraphicsDX11TurnOffFutureLighting3.size() != 0;
       if (local_0x350->field_0x110 >> 20 <= RenderDx11IGPUDedicatedVideoMemoryThresholdMB) {
-        if ((v_rsi_13 >> 20 < RenderDx11CPUMemoryUsedByIntegratedGPUMB ? 0 : (v_rsi_13 >> 20) - RenderDx11CPUMemoryUsedByIntegratedGPUMB) <= RenderDx11LowEndCPUMemoryMB) {
+        if ((v_rsi_11 >> 20 < RenderDx11CPUMemoryUsedByIntegratedGPUMB ? 0 : (v_rsi_11 >> 20) - RenderDx11CPUMemoryUsedByIntegratedGPUMB) <= RenderDx11LowEndCPUMemoryMB) {
           call_0x1d48fe0(&local_0x1c0, &local_0x200, &local_0xc0);
           if (Graphics >= 6 && Graphics >> 8 >= 3) {
             FLog::Log("[FLog::Graphics] {}");
             "[FLog::Graphics] {}";
           }
-          if (local_0x1d8 >= 16) {
-            void* v_rcx_18 = local_0x1c0;
-            if (local_0x1d8 + 1 >= 0x1000) {
-              if (local_0x1c0 - local_0x1c0->field_m0x8 < 8 || local_0x1c0 - local_0x1c0->field_m0x8 > 39) {
-                call_0x5e14580();
-              }
-            }
-            call_0x4955ac0(v_rcx_18);
-          }
-          if (local_0x1b8 >= 16) {
-            void* v_rcx_22 = local_0x1a0;
-            call_0x4955ac0(v_rcx_22);
-          }
+          std::string::_Tidy_deallocate(local_0x1c0);
+          std::string::_Tidy_deallocate(local_0x1a0);
           if (param_2->field_0x50 >= 16 && param_2->field_0x2 != 0 && param_2->field_0x79 != 0) {
             param_2->field_0x66 = 1;
-            if expr_2 {
-              if expr_3 {
+            if (GraphicsDX11TurnOffFutureLightingDriverVersion.size() == 0) {
+              if (GraphicsDX11TurnOffFutureLighting3.size() != 0) {
                 call_0x4973b00(&local_0x1e0, "%x:%x", local_0x350->field_0x100, local_0x350->field_0x104);
                 call_0x270d490(&local_0x1e0, GraphicsDX11TurnOffFutureLighting3);
-                if (local_0x1f8 >= 16) {
-                  void* v_rcx_33 = local_0x1e0;
-                  call_0x4955ac0(v_rcx_33);
-                }
+                std::string::_Tidy_deallocate(local_0x1e0);
               }
               L_0x2714cf9:
               param_2->field_0x88 = local_0x350->field_0x128;
@@ -207,78 +183,62 @@ Operação  : 0x2714af7: cmp dword [flag], imm ; fn=0x2714330..0x2714d64
             call_0x4973b00(&local_0x210, "%x:%x:%d.%d.%d.%d", local_0x350->field_0x100, local_0x350->field_0x104);
             auto ret_0x270d490_27 = call_0x270d490(&local_0x210, GraphicsDX11TurnOffFutureLighting3);
             if (ret_0x270d490_27 != 0 && Graphics >= 6 && Graphics >> 8 >= 3) {
-              FLog::Log(expr_1);
-              expr_1;
-            } else {
-              if (local_0x228 >= 16) {
-                void* v_rcx_32 = local_0x210;
-                if (local_0x228 + 1 >= 0x1000) {
-                  if (local_0x210 - local_0x210->field_m0x8 < 8 || local_0x210 - local_0x210->field_m0x8 > 39) {
-                    call_0x5e14580();
-                    call_0x5e14580();
-                    goto L_0x2714d53;
-                  }
-                }
-                call_0x4955ac0(v_rcx_32);
-              }
-              param_2->field_0x88 = local_0x350->field_0x128;
-              param_2->field_0x8c = local_0x350->field_0x12c;
-              param_2->field_0x81 = 1;
-              return param_2;
+              FLog::Log("[FLog::Graphics] D3D11 future rendering is disabled for pattern: {}");
+              "[FLog::Graphics] D3D11 future rendering is disabled for pattern: {}";
             }
-          } else {
-            goto L_0x2714cf9;
+            if (local_0x228 >= 16) {
+              void* v_rcx_27 = local_0x210;
+              if (local_0x228 + 1 >= 0x1000) {
+                if (local_0x210 - local_0x210->field_m0x8 < 8 || local_0x210 - local_0x210->field_m0x8 > 39) {
+                  call_0x5e14580();
+                  call_0x5e14580();
+                  goto L_0x2714d53;
+                }
+              }
+              call_0x4955ac0(v_rcx_27);
+            }
+            param_2->field_0x88 = local_0x350->field_0x128;
+            param_2->field_0x8c = local_0x350->field_0x12c;
+            param_2->field_0x81 = 1;
+            return param_2;
           }
+          goto L_0x2714cf9;
         }
       }
-      if (v_cl_14 != 0) {
+      if (v_cl_12 != 0) {
         call_0x1d48fe0(&local_0x1c0, &local_0x200, &local_0xc0);
         if (Graphics >= 6 && Graphics >> 8 >= 3) {
           FLog::Log("[FLog::Graphics] {}");
           "[FLog::Graphics] {}";
         }
-        if (local_0x1d8 >= 16) {
-          void* v_rcx_18 = local_0x1c0;
-          if (local_0x1d8 + 1 >= 0x1000) {
-            if (local_0x1c0 - local_0x1c0->field_m0x8 < 8 || local_0x1c0 - local_0x1c0->field_m0x8 > 39) {
-              goto L_0x2714d53;
-            }
-          }
-          call_0x4955ac0(v_rcx_18);
-        }
+        std::string::_Tidy_deallocate(local_0x1c0);
       }
-      if (local_0x1b8 >= 16) {
-        void* v_rcx_22 = local_0x1a0;
-        call_0x4955ac0(v_rcx_22);
-      }
+      std::string::_Tidy_deallocate(local_0x1a0);
       if (param_2->field_0x50 >= 16 && param_2->field_0x2 != 0 && param_2->field_0x79 != 0) {
         param_2->field_0x66 = 1;
-        if expr_2 {
-          if expr_3 {
+        if (GraphicsDX11TurnOffFutureLightingDriverVersion.size() == 0) {
+          if (GraphicsDX11TurnOffFutureLighting3.size() != 0) {
             call_0x4973b00(&local_0x1e0, "%x:%x", local_0x350->field_0x100, local_0x350->field_0x104);
             call_0x270d490(&local_0x1e0, GraphicsDX11TurnOffFutureLighting3);
-            if (local_0x1f8 >= 16) {
-              void* v_rcx_33 = local_0x1e0;
-              call_0x4955ac0(v_rcx_33);
-            }
+            std::string::_Tidy_deallocate(local_0x1e0);
           }
           goto L_0x2714cf9;
         } else {
           call_0x4973b00(&local_0x210, "%x:%x:%d.%d.%d.%d", local_0x350->field_0x100, local_0x350->field_0x104);
           auto ret_0x270d490_27 = call_0x270d490(&local_0x210, GraphicsDX11TurnOffFutureLighting3);
           if (ret_0x270d490_27 != 0 && Graphics >= 6 && Graphics >> 8 >= 3) {
-            FLog::Log(expr_1);
-            expr_1;
+            FLog::Log("[FLog::Graphics] D3D11 future rendering is disabled for pattern: {}");
+            "[FLog::Graphics] D3D11 future rendering is disabled for pattern: {}";
           }
           if (local_0x228 >= 16) {
-            void* v_rcx_32 = local_0x210;
+            void* v_rcx_27 = local_0x210;
             if (local_0x228 + 1 >= 0x1000) {
               if (local_0x210 - local_0x210->field_m0x8 < 8 || local_0x210 - local_0x210->field_m0x8 > 39) {
                 call_0x5e14580();
                 goto L_0x2714d4d;
               }
             }
-            call_0x4955ac0(v_rcx_32);
+            call_0x4955ac0(v_rcx_27);
           }
           goto L_0x2714cf9;
         }
@@ -494,7 +454,7 @@ Operação  : 0x2714af7: cmp dword [flag], imm ; fn=0x2714330..0x2714d64
     L_0x271465c:
     0x271465c | f3 0f 59 05 c8 a7 e8 04  | mulss xmm0, dword ptr [rip + 0x4e8a7c8] ; 0.25
     0x2714664 | 33 c9                    | xor ecx, ecx
-    0x2714666 | f3 0f 10 0d 8e c8 e8 04  | movss xmm1, dword ptr [rip + 0x4e8c88e]
+    0x2714666 | f3 0f 10 0d 8e c8 e8 04  | movss xmm1, dword ptr [rip + 0x4e8c88e] ; 9.22337e+18
     0x271466e | 0f 2f c1                 | comiss xmm0, xmm1
     0x2714671 | 72 16                    | jb 0x2714689
     0x2714673 | f3 0f 5c c1              | subss xmm0, xmm1
@@ -611,7 +571,7 @@ Operação  : 0x2714af7: cmp dword [flag], imm ; fn=0x2714330..0x2714d64
     0x271484f | b1 01                    | mov cl, 0x1
     L_0x2714851:
     0x2714851 | 48 63 05 d0 99 9e 05     | movsxd rax, dword ptr [rip + 0x59e99d0] ; FIntRenderDx11IGPUDedicatedVideoMemoryThresholdMB
-    0x2714858 | 48 c7 c3 ff ff ff ff     | mov rbx, 0xffffffff
+    0x2714858 | 48 c7 c3 ff ff ff ff     | mov rbx, -0x1
     0x271485f | 4c 3b e0                 | cmp r12, rax
     0x2714862 | 77 05                    | ja 0x2714869
     0x2714864 | 4c 3b fa                 | cmp r15, rdx
@@ -1020,15 +980,17 @@ Operação  : 0x2714af7: cmp dword [flag], imm ; fn=0x2714330..0x2714d64
         auto local_0x58 = 0;
         auto* f_18 = this->field_0x18;
         auto vret_1 = f_18->vfunc_0xe8(f_18, this->field_0x570[param_2 * 8], &local_0x58, (0 + 8)) // -> RBX::Graphics::DeviceContextD3D11::fn_0x27216a0;
-        auto* f_560 = this->field_0x560;
-        if (vret_1 == 0 && f_560 != this->field_0x568) {
-          f_560->field_0x0 = param_2;
+        if (vret_1 == 0) {
+          if (this->field_0x560 != this->field_0x568) {
+            this->field_0x560->field_0x0 = param_2;
+            this->field_0x560 = this->field_0x560 + 4;
+            param_3->field_0x0 = local_0x58;
+            return 1;
+          }
+          call_0x82b3d0(&this->field_0x558, this->field_0x560, &local_0x48);
           param_3->field_0x0 = local_0x58;
           return 1;
         }
-        call_0x82b3d0(&this->field_0x558, f_560, &local_0x48);
-        param_3->field_0x0 = local_0x58;
-        return 1;
       }
       return 0;
     }
@@ -1098,9 +1060,12 @@ Operação  : 0x2714af7: cmp dword [flag], imm ; fn=0x2714330..0x2714d64
     
     // Flag defaults: GraphicsDX11TurnOffFutureLighting3 = ""
     auto RBX::GraphicsDX11Turn::func_0x2711430(RBX::GraphicsDX11Turn* this) {
+      int32_t i_r14d = 1;
       int32_t i_esi = 2;
+      int32_t i_edi = 0;
       do { // L_0x2711490
         auto vret_1 = this->vfunc_0xf0(this, 28, i_esi, &local_0x38) // -> RBX::Graphics::DeviceContextD3D11::fn_0x27216b0;
+        int32_t v_rdi_4 = i_edi;
         if (vret_1 < 0 && vret_1 != -0x7ff8fff2) {
           call_0x1d4bef0(&local_0x110, &local_0x170);
           auto local_0x1a8 = 0;
@@ -1114,11 +1079,11 @@ Operação  : 0x2714af7: cmp dword [flag], imm ; fn=0x2714330..0x2714d64
           global_0x8171367 = 0;
           call_0x1d48fe0(&local_0x60, &local_0x140, &local_0x130);
           if (global_0x8628d48 != 0) {
-            global_0x8628d48->field_0x8 = global_0x8628d48->field_0x8 + 1;
+            global_0x8628d48->field_0x8++;
           }
           auto ret_0x6e17b0_7 = call_0x6e17b0();
           if (global_0x8628d40 != 0) {
-            global_0x8628d40->field_0x8 = global_0x8628d40->field_0x8 + 1;
+            global_0x8628d40->field_0x8++;
           }
           auto local_0x150 = local_0x60;
           auto local_0x154 = local_0x64;
@@ -1135,13 +1100,17 @@ Operação  : 0x2714af7: cmp dword [flag], imm ; fn=0x2714330..0x2714d64
               }
             }
           }
-          std::string::_Tidy_deallocate(v_rcx_2);
-          std::string::_Tidy_deallocate(v_rcx_3);
+          std::string::_Tidy_deallocate(local_0x60);
+          std::string::_Tidy_deallocate(local_0x1a8);
         }
+        int32_t v_r14_6 = i_r14d;
         if (local_0x38 <= 0) {
           return v_r14_6;
         }
-      } while ((i_esi + i_esi) <= 32); // loop -> L_0x2711490
+        i_r14d = i_esi;
+        i_esi = i_esi * 2;
+        i_edi = v_rdi_4;
+      } while (i_esi * 2 <= 32); // loop -> L_0x2711490
       return v_r14_6;
     }
   

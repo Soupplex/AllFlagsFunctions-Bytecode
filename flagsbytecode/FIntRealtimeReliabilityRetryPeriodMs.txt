@@ -31,7 +31,7 @@ Operação  : 0x48c6c96: mov/math reg, [flag] ; fn=0x48c6ae0..0x48c6dd3
     
     // Flag defaults: RealtimeReliabilityRetryPeriodMs = 9000000, UseRealtimeNetworkHandlerLock = true, RealtimeDurableReplayerNotificationProcessorLifetimeFix = true, RealtimeOnDemandDurableReplay2 = true, RealtimeCoreNotification = 0, RealtimeFixMeasurementIsConnected = true, RealtimeReliabilityMeasurement = 6
     void RBX::RealtimeReliability::func_0x48c6ae0(RBX::RealtimeReliability* this) {
-      int64_t stk_2;
+      int64_t stk_1;
       auto* f_350 = this->field_0x350;
       if (UseRealtimeNetworkHandlerLock) {
         auto ret_0xc8a0_1 = call_0xc8a0(this);
@@ -39,10 +39,10 @@ Operação  : 0x48c6c96: mov/math reg, [flag] ; fn=0x48c6ae0..0x48c6dd3
           call_0x2e12fd0(&f_350);
           this->field_0x358 = ret_0xc8a0_1;
         }
-        this->field_0x360 = this->field_0x360 + 1;
-        stk_2 = 1;
+        this->field_0x360++;
+        stk_1 = 1;
       } else {
-        stk_2 = 0;
+        stk_1 = 0;
       }
       if (RealtimeDurableReplayerNotificationProcessorLifetimeFix) {
         call_0x48c0850(this);
@@ -68,20 +68,12 @@ Operação  : 0x48c6c96: mov/math reg, [flag] ; fn=0x48c6ae0..0x48c6dd3
         if (ret_0x48df440_9 != 0 && f_318->field_0x58 == 0) {
           call_0x2e12fd0(&f_318->field_0x10);
           if (f_318->field_0x58 != 0) {
-            if (f_318->field_0x10 == 3) {
-              if (atomic_cas(&f_318->field_0x10, f_318->field_0x10, 1) != 0) {
-                call_0xdac0(&f_318->field_0x10);
-              }
-            } else {
+            if (f_318->field_0x10 != 3 || atomic_cas(&f_318->field_0x10, f_318->field_0x10, 1) != 0) {
               call_0xdac0(&f_318->field_0x10);
             }
           } else {
             f_318->field_0x58 = 1;
-            if (f_318->field_0x10 == 3) {
-              if (atomic_cas(&f_318->field_0x10, f_318->field_0x10, 1) != 0) {
-                call_0xdac0(&f_318->field_0x10);
-              }
-            } else {
+            if (f_318->field_0x10 != 3 || atomic_cas(&f_318->field_0x10, f_318->field_0x10, 1) != 0) {
               call_0xdac0(&f_318->field_0x10);
             }
             call_0x4975550();
@@ -93,15 +85,14 @@ Operação  : 0x48c6c96: mov/math reg, [flag] ; fn=0x48c6ae0..0x48c6dd3
           }
         }
       }
-      if (stk_2 != 0 && stk_2 == 0) {
-        &f_350->field_0x8 = 0;
-        if (&f_350->field_0x0 == 3) {
-          if (atomic_cas(&&f_350->field_0x0, 3, 1) != 0) {
+      if (stk_1 != 0) {
+        &f_350->field_0x10--;
+        if (&f_350->field_0x10 == 1) {
+          &f_350->field_0x8 = 0;
+          if (&f_350->field_0x0 != 3 || atomic_cas(&&f_350->field_0x0, 3, 1) != 0) {
             call_0xdac0(&f_350);
           }
-          return;
         }
-        call_0xdac0(&f_350);
       }
     }
   
@@ -234,7 +225,7 @@ Operação  : 0x48c6c96: mov/math reg, [flag] ; fn=0x48c6ae0..0x48c6dd3
     0x48c6cc6 | 48 8b 4c 24 40           | mov rcx, qword ptr [rsp + 0x40]
     0x48c6ccb | 48 81 c1 d5 55 d9 ff     | add rcx, 0xffd955d5
     0x48c6cd2 | 48 89 4c 24 70           | mov qword ptr [rsp + 0x70], rcx
-    0x48c6cd7 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x48c6cd7 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x48c6cde | 66 90                    | nop
     L_0x48c6ce0:
     0x48c6ce0 | 48 ff c0                 | inc rax
@@ -310,7 +301,7 @@ Operação  : 0x48c6c96: mov/math reg, [flag] ; fn=0x48c6ae0..0x48c6dd3
       if (RealtimeOnDemandDurableReplay2 && RealtimeDurableReplayerNotificationProcessorLifetimeFix && this->field_0x2f0 == 0) {
         auto* f_8 = this->field_0x8;
         if (f_8 != 0) {
-          f_8->field_0xc = f_8->field_0xc + 1;
+          f_8->field_0xc++;
         }
         auto ret_0x48c8fd0_2 = call_0x48c8fd0(&local_0x50, &local_0x60, &this->field_0x278, &this->field_0x2b8);
         this->field_0x2f0 = ret_0x48c8fd0_2->field_0x0;
@@ -325,23 +316,19 @@ Operação  : 0x48c6c96: mov/math reg, [flag] ; fn=0x48c6ae0..0x48c6dd3
         if ((local_0x78 & 0xfffffffc & 0xfffffff8) != 0) {
           if ((local_0x78 >> 1 & 0x1) != 0) {
             if ((~((local_0x78 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x78 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-              &local_0x60->vfunc(&local_0x60);
+              ((~((local_0x78 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x78 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0x60) // -> RBX::Path2D::fn_0x3ee3920;
             }
           } else {
             if ((~((local_0x78 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x78 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-              local_0x60->vfunc(local_0x60);
+              ((~((local_0x78 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x78 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(local_0x60) // -> RBX::Path2D::fn_0x3ee3920;
             }
             call_0x4955ac0(local_0x60);
           }
         }
       }
-      if (f_300 == 3) {
-        if (atomic_cas(&&f_300->field_0x0, 3, 1) != 0) {
-          call_0xdac0(&f_300);
-        }
-        return this->field_0x2f0;
+      if (f_300 != 3 || atomic_cas(&&f_300->field_0x0, 3, 1) != 0) {
+        call_0xdac0(&f_300);
       }
-      call_0xdac0(&f_300);
       return this->field_0x2f0;
     }
   
@@ -510,154 +497,165 @@ Operação  : 0x48c6c96: mov/math reg, [flag] ; fn=0x48c6ae0..0x48c6dd3
       if (local_0x148 != 0) {
         call_0x6daf40(local_0x148);
       }
-      int32_t v_rbx_7;
-      void* v_rdi_8 = &this->field_0x20;
-      auto expr_2 = this->field_0x28 + (1 << this->field_0x3c) * 4;
-      if (this->field_0x24 != 0 && (expr_2->field_0x18[rax * 8] & 0x1) != 0) {
-        if (this->field_0x24 == 1) {
-          v_rbx_7 = 0;
-          v_rdi_8 = 0;
-        } else {
-          auto expr_1 = expr_2 + rax * 8;
-          int64_t v_rcx_3 = ~expr_1->field_0x18 & 0xfffffffe;
-          int32_t v_rbx_4 = 0;
-          if ((~expr_1->field_0x18 & 0xfffffffe) == 0) {
-            do { // L_0x48c0b35
-              if ((0 + 0x40) >= this->field_0x24) break;
-              v_rcx_3 = ~expr_1->field_0x18[(ebx + 1) * 8];
-              v_rbx_4 = ebx + 1;
-              if (((v_rbx_4 << 6) + bsr(((-v_rcx_3) & v_rcx_3))) != this->field_0x24) break;
-            } while ((~expr_1->field_0x18[(ebx + 1) * 8]) == 0); // loop -> L_0x48c0b35
-            L_0x48c0b69:
-            v_rbx_7 = 0;
-            v_rdi_8 = 0;
-          } else if ((v_rbx_4 << 6) + ctz(v_rcx_3) == this->field_0x24) {
-            v_rbx_7 = 0;
-            v_rdi_8 = 0;
+      void* v_rdi_4 = &this->field_0x20;
+      int32_t i_ebx;
+      if (this->field_0x24 != 0) {
+        auto expr_1 = this->field_0x28 + (1 << this->field_0x3c) * 4;
+        int64_t idx_1 = expr_1->field_0x10;
+        if ((expr_1->field_0x18[idx_1 * 8] & 0x1) != 0) {
+          if (this->field_0x24 == 1) {
+            v_rdi_4 = 0;
           } else {
-            v_rbx_7 = (v_rbx_4 << 6) + ctz(v_rcx_3);
+            int64_t idx_2 = expr_1->field_0x10;
+            int64_t v_rcx_1 = ~(expr_1 + idx_2 * 8)->field_0x18 & 0xfffffffe;
+            int32_t v_rbx_2 = 0;
+            if ((~(expr_1 + idx_2 * 8)->field_0x18 & 0xfffffffe) == 0) {
+              int32_t i_edx = 0;
+              i_ebx = 0;
+              do { // L_0x48c0b35
+                i_ebx++;
+                i_edx += 0x40;
+                if (i_edx >= this->field_0x24) break;
+              } while (~(expr_1 + idx_2 * 8)->field_0x18[i_ebx * 8] == 0); // loop -> L_0x48c0b35
+              if ((v_rbx_2 << 6) + ctz(v_rcx_1) == this->field_0x24) {
+                L_0x48c0b69:
+                v_rdi_4 = 0;
+              }
+            } else if ((v_rbx_2 << 6) + ctz(v_rcx_1) == this->field_0x24) {
+              v_rdi_4 = 0;
+            }
           }
-        } else {
-          v_rbx_7 = 0;
         }
       } else {
         goto L_0x48c0b69;
       }
-      int32_t i_ebx = v_rbx_7;
-      auto i_edi = v_rdi_8;
+      void* i_edi = v_rdi_4;
       do { // L_0x48c0b74
         if (i_edi != 0) {
-          L_0x48c0b81:
-          this->field_0x2e0->vfunc_0x10(this->field_0x2e0, ((i_ebx << 6) + v_rdi_8->field_0x10), (((i_ebx << 6) + v_rdi_8->field_0x10) + 0x20)) // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
-          if (i_ebx + 1 == v_rdi_8->field_0x4) {
-            L_0x48c0bae:
+          this->field_0x2e0->vfunc_0x10(this->field_0x2e0, ((i_ebx << 6) + i_edi->field_0x10), (((i_ebx << 6) + i_edi->field_0x10) + 0x20)) // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
+          i_ebx++;
+          if (i_ebx == i_edi->field_0x4) {
+            i_ebx = 0;
+            i_edi = 0;
             continue;
           } else {
-            int64_t v_rdx_24 = ~((v_rdi_8->field_0x8 + (1 << v_rdi_8->field_0x1c) * 4) + rax * 8)->field_0x18[((i_ebx + 1) >> 6) * 8] & r14 << (i_ebx + 1 & 0x3f);
-            int32_t v_r8_25 = (i_ebx + 1) >> 6;
-            if ((~((v_rdi_8->field_0x8 + (1 << v_rdi_8->field_0x1c) * 4) + rax * 8)->field_0x18[((i_ebx + 1) >> 6) * 8] & r14 << (i_ebx + 1 & 0x3f)) == 0) {
+            int64_t idx_3 = (i_edi->field_0x8 + (1 << i_edi->field_0x1c) * 4)->field_0x10;
+            int64_t v_rdx_20 = ~((i_edi->field_0x8 + (1 << i_edi->field_0x1c) * 4) + idx_3 * 8)->field_0x18[(i_ebx >> 6) * 8] & -1 << (i_ebx & 0x3f);
+            int32_t v_r8_21 = i_ebx >> 6;
+            if ((~((i_edi->field_0x8 + (1 << i_edi->field_0x1c) * 4) + idx_3 * 8)->field_0x18[(i_ebx >> 6) * 8] & -1 << (i_ebx & 0x3f)) == 0) {
+              int32_t i_ecx = (i_ebx >> 6) << 6;
+              int32_t i_r8d = i_ebx >> 6;
               L_0x48c0bf3:
               do { // L_0x48c0bf3
-                L_0x48c0bf3:
-                if (((((i_ebx + 1) >> 6) << 6) + 0x40) >= v_rdi_8->field_0x4) break;
-                v_rdx_24 = ~((v_rdi_8->field_0x8 + (1 << v_rdi_8->field_0x1c) * 4) + rax * 8)->field_0x18[(((i_ebx + 1) >> 6) + 1) * 8];
-                v_r8_25 = ((i_ebx + 1) >> 6) + 1;
-                L_0x48c0c0b:
-                if (((v_r8_25 << 6) + bsr(((-v_rdx_24) & v_rdx_24))) != v_rdi_8->field_0x4) break;
-                break;
-              } while ((~((v_rdi_8->field_0x8 + (1 << v_rdi_8->field_0x1c) * 4) + rax * 8)->field_0x18[(((i_ebx + 1) >> 6) + 1) * 8]) == 0); // loop -> L_0x48c0bf3
-              continue;
+                i_r8d++;
+                i_ecx += 0x40;
+                if (i_ecx >= i_edi->field_0x4) break;
+              } while (~((i_edi->field_0x8 + (1 << i_edi->field_0x1c) * 4) + idx_3 * 8)->field_0x18[i_r8d * 8] == 0); // loop -> L_0x48c0bf3
+              L_0x48c0c0b:
+              if ((v_r8_21 << 6) + ctz(v_rdx_20) != i_edi->field_0x4) {
+                i_ebx = (v_r8_21 << 6) + ctz(v_rdx_20);
+                continue;
+              }
+              i_ebx = 0;
+              i_edi = 0;
             } else {
-              if (((v_r8_25 << 6) + bsr(((-v_rdx_24) & v_rdx_24))) != v_rdi_8->field_0x4) continue;
+              if ((v_r8_21 << 6) + ctz(v_rdx_20) != i_edi->field_0x4) {
+                i_ebx = (v_r8_21 << 6) + ctz(v_rdx_20);
+                continue;
+              }
+              i_ebx = 0;
+              i_edi = 0;
             }
           }
         }
         if (i_ebx == 0) break;
-        this->field_0x2e0->vfunc_0x10(this->field_0x2e0, ((i_ebx << 6) + v_rdi_8->field_0x10), (((i_ebx << 6) + v_rdi_8->field_0x10) + 0x20)) // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
-        if (i_ebx + 1 == v_rdi_8->field_0x4) {
-          goto L_0x48c0bae;
+        this->field_0x2e0->vfunc_0x10(this->field_0x2e0, ((i_ebx << 6) + i_edi->field_0x10), (((i_ebx << 6) + i_edi->field_0x10) + 0x20)) // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
+        i_ebx++;
+        if (i_ebx == i_edi->field_0x4) {
+          i_ebx = 0;
+          i_edi = 0;
+          continue;
         } else {
-          int64_t v_rdx_24 = ~((v_rdi_8->field_0x8 + (1 << v_rdi_8->field_0x1c) * 4) + rax * 8)->field_0x18[((i_ebx + 1) >> 6) * 8] & r14 << (i_ebx + 1 & 0x3f);
-          int32_t v_r8_25 = (i_ebx + 1) >> 6;
-          if ((~((v_rdi_8->field_0x8 + (1 << v_rdi_8->field_0x1c) * 4) + rax * 8)->field_0x18[((i_ebx + 1) >> 6) * 8] & r14 << (i_ebx + 1 & 0x3f)) == 0) {
+          int64_t idx_3 = (i_edi->field_0x8 + (1 << i_edi->field_0x1c) * 4)->field_0x10;
+          int64_t v_rdx_20 = ~((i_edi->field_0x8 + (1 << i_edi->field_0x1c) * 4) + idx_3 * 8)->field_0x18[(i_ebx >> 6) * 8] & -1 << (i_ebx & 0x3f);
+          int32_t v_r8_21 = i_ebx >> 6;
+          if ((~((i_edi->field_0x8 + (1 << i_edi->field_0x1c) * 4) + idx_3 * 8)->field_0x18[(i_ebx >> 6) * 8] & -1 << (i_ebx & 0x3f)) == 0) {
+            int32_t i_ecx = (i_ebx >> 6) << 6;
+            int32_t i_r8d = i_ebx >> 6;
             goto L_0x48c0bf3;
           } else {
             goto L_0x48c0c0b;
           }
         }
-        if (i_edi != 0) {
-          goto L_0x48c0b81;
-        }
-        if (i_ebx == 0) break;
-        goto L_0x48c0b81;
       } while (true); // loop -> L_0x48c0b74
-      float fxmm6_9;
-      float fxmm6_10;
+      float fxmm6_5;
+      float fxmm6_6;
       auto* f_8 = this->field_0x8;
       if (f_8 != 0) {
-        f_8->field_0xc = f_8->field_0xc + 1;
-        fxmm6_9 = this->field_0x0;
-        fxmm6_10 = f_8;
+        f_8->field_0xc++;
+        fxmm6_5 = this->field_0x0;
+        fxmm6_6 = f_8;
       } else {
-        fxmm6_9 = 0.0;
-        fxmm6_10 = 0.0;
+        fxmm6_5 = 0.0;
+        fxmm6_6 = 0.0;
       }
-      float fstk_12;
-      if (fxmm6_10 != 0) {
-        fxmm6_10->field_0xc = fxmm6_10->field_0xc + 1;
-        fstk_12 = fxmm6_9;
+      float fstk_8;
+      if (fxmm6_6 != 0) {
+        fxmm6_6->field_0xc++;
+        fstk_8 = fxmm6_5;
       } else {
-        fstk_12 = 0.0;
+        fstk_8 = 0.0;
       }
-      auto local_0x80 = fstk_12;
+      auto local_0x80 = fstk_8;
       this->field_0x2e0->vfunc_0x28(this->field_0x2e0, &local_0x80) // -> RBX::Path2D::fn_0x3ee2450;
-      float fstk_13;
-      if (fxmm6_10 != 0) {
-        fxmm6_10->field_0xc = fxmm6_10->field_0xc + 1;
-        fstk_13 = fxmm6_9;
+      float fstk_9;
+      if (fxmm6_6 != 0) {
+        fxmm6_6->field_0xc++;
+        fstk_9 = fxmm6_5;
       } else {
-        fstk_13 = 0.0;
+        fstk_9 = 0.0;
       }
-      auto local_0xa0 = fstk_13;
+      auto local_0xa0 = fstk_9;
       this->field_0x2e0->vfunc_0x20(this->field_0x2e0, &sym_0x81909d0, &local_0xa0) // -> RBX::WindowsUpdateController::fn_0x4e3c9a0;
-      float fstk_15;
-      if (fxmm6_10 != 0) {
-        fxmm6_10->field_0xc = fxmm6_10->field_0xc + 1;
-        fstk_15 = fxmm6_9;
+      float fstk_11;
+      if (fxmm6_6 != 0) {
+        fxmm6_6->field_0xc++;
+        fstk_11 = fxmm6_5;
       } else {
-        fstk_15 = 0.0;
+        fstk_11 = 0.0;
       }
-      auto local_0xc0 = fstk_15;
+      auto local_0xc0 = fstk_11;
       this->field_0x2e0->vfunc_0x20(this->field_0x2e0, &sym_0x8190a50, &local_0xc0) // -> RBX::WindowsUpdateController::fn_0x4e3c9a0;
-      void* v_rbx_21 = fxmm6_10;
-      float fstk_23;
+      void* v_rbx_17 = fxmm6_6;
+      float fstk_19;
       if (EnableTopicBasedRealtimeNotifications3) {
-        float fstk_17;
-        if (fxmm6_10 != 0) {
-          fxmm6_10->field_0xc = fxmm6_10->field_0xc + 1;
-          fstk_17 = fxmm6_9;
+        float fstk_13;
+        if (fxmm6_6 != 0) {
+          fxmm6_6->field_0xc++;
+          fstk_13 = fxmm6_5;
         } else {
-          fstk_17 = 0.0;
+          fstk_13 = 0.0;
         }
-        auto local_0xe0 = fstk_17;
+        auto local_0xe0 = fstk_13;
         this->field_0x2e0->vfunc_0x20(this->field_0x2e0, &sym_0x81909f0, &local_0xe0) // -> RBX::WindowsUpdateController::fn_0x4e3c9a0;
-        float fstk_20;
-        if (fxmm6_10 != 0) {
-          fxmm6_10->field_0xc = fxmm6_10->field_0xc + 1;
-          fstk_20 = fxmm6_9;
+        float fstk_16;
+        if (fxmm6_6 != 0) {
+          fxmm6_6->field_0xc++;
+          fstk_16 = fxmm6_5;
         } else {
-          fstk_20 = 0.0;
+          fstk_16 = 0.0;
         }
-        auto local_0x100 = fstk_20;
+        auto local_0x100 = fstk_16;
         this->field_0x2e0->vfunc_0x20(this->field_0x2e0, &sym_0x8190a10, &local_0x100) // -> RBX::WindowsUpdateController::fn_0x4e3c9a0;
+        auto local_0x120 = fxmm6_5;
         this->field_0x2e0->vfunc_0x20(this->field_0x2e0, &sym_0x8190a30, &local_0x120) // -> RBX::WindowsUpdateController::fn_0x4e3c9a0;
-        v_rbx_21 = 0.0;
-        fstk_23 = 0.0;
+        v_rbx_17 = 0.0;
+        fstk_19 = 0.0;
       } else {
-        fstk_23 = fxmm6_10;
+        fstk_19 = fxmm6_6;
       }
-      if (v_rbx_21 != 0 && atomic_fetch_add(&v_rbx_21->field_0xc, r14) == 1) {
-        fstk_23->vfunc_0x8() // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66540;
+      if (v_rbx_17 != 0 && atomic_fetch_sub(&v_rbx_17->field_0xc, 1) == 1) {
+        fstk_19->vfunc_0x8() // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66540;
       }
     }
   
@@ -745,7 +743,7 @@ Operação  : 0x48c6c96: mov/math reg, [flag] ; fn=0x48c6ae0..0x48c6dd3
     0x48c0b69 | 33 ff                    | xor edi, edi
     0x48c0b6b | 33 db                    | xor ebx, ebx
     L_0x48c0b6d:
-    0x48c0b6d | 49 c7 c6 ff ff ff ff     | mov r14, 0xffffffff
+    0x48c0b6d | 49 c7 c6 ff ff ff ff     | mov r14, -0x1
     L_0x48c0b74:
     0x48c0b74 | 48 85 ff                 | test rdi, rdi
     0x48c0b77 | 75 08                    | jne 0x48c0b81
@@ -982,38 +980,36 @@ Operação  : 0x48c6c96: mov/math reg, [flag] ; fn=0x48c6ae0..0x48c6dd3
     };
     
     // Flag defaults: RealtimeReliabilityRetryPeriodMs = 9000000, UseRealtimeNetworkHandlerLock = true
-    auto RBX::RealtimeReliability::func_0x48c69a0(RBX::RealtimeReliability* this, int64_t param_2) {
-      void* v_rbx_2 = &this->field_0x350;
-      uint8_t v_dil_3 = 0;
+    auto RBX::RealtimeReliability::func_0x48c69a0(RBX::RealtimeReliability* this) {
+      uint8_t v_dil_1 = 0;
+      auto* f_350 = this->field_0x350;
       if (UseRealtimeNetworkHandlerLock) {
         auto ret_0xc8a0_1 = call_0xc8a0(this);
         if (ret_0xc8a0_1 != this->field_0x358) {
-          call_0x2e12fd0(&this->field_0x350);
+          call_0x2e12fd0(&f_350);
           this->field_0x358 = ret_0xc8a0_1;
         }
-        this->field_0x360 = this->field_0x360 + 1;
-        v_rbx_2 = local_0x20;
-        v_dil_3 = 1;
+        this->field_0x360++;
+        v_dil_1 = 1;
       }
-      int32_t v_rsi_6;
+      int32_t v_rsi_3;
       auto* f_2e0 = this->field_0x2e0;
       if (f_2e0 != 0) {
         auto vret_3 = f_2e0->vfunc_0x38() // -> RBX::Solver::ConstraintAchievePosition::fn_0x4d35c30;
-        v_rsi_6 = vret_3;
+        v_rsi_3 = vret_3;
       } else {
-        v_rsi_6 = 3;
+        v_rsi_3 = 3;
       }
-      if (v_dil_3 != 0 && v_dil_3 == 0) {
-        v_rbx_2->field_0x8 = 0;
-        if (v_rbx_2->field_0x0 == 3) {
-          if (atomic_cas(&local_0x20->field_0x0, 3, 1) != 0) {
-            call_0xdac0(local_0x20);
+      if (v_dil_1 != 0) {
+        this->field_0x360--;
+        if (this->field_0x360 == 1) {
+          this->field_0x358 = 0;
+          if (f_350 != 3 || atomic_cas(&&f_350->field_0x0, 3, 1) != 0) {
+            call_0xdac0(&f_350);
           }
-          return v_rsi_6 == 1;
         }
-        call_0xdac0(local_0x20);
       }
-      return v_rsi_6 == 1;
+      return v_rsi_3 == 1;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x48c69a0..0x48c6a74)] ===
@@ -1096,25 +1092,23 @@ Operação  : 0x48c6c96: mov/math reg, [flag] ; fn=0x48c6ae0..0x48c6dd3
       call_0x6f8fb0(&local_0x1a0);
       call_0x6f8fb0(&local_0x180);
       call_0x6f8fb0(&local_0x160);
-      if (local_0x158 >= 16) {
-        void* v_rcx_2 = local_0x140;
-        call_0x4955ac0(v_rcx_2);
-      }
+      std::string::_Tidy_deallocate(local_0x140);
       call_0x2ba80a0(&local_0x40, 0);
       call_0x2ba94b0(local_0x40, &local_0xb0);
       auto* f_8 = this->field_0x8;
       if (f_8 != 0) {
-        f_8->field_0xc = f_8->field_0xc + 1;
+        f_8->field_0xc++;
       }
+      auto local_0x100 = 0.0;
       local_0x40->vfunc_0x8(local_0x40, &local_0x100) // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66540;
       if ((local_0x118 & 0xfffffffc & 0xfffffff8) != 0) {
         if ((local_0x118 >> 1 & 0x1) != 0) {
           if ((~((local_0x118 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x118 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-            &local_0x100->vfunc(&local_0x100);
+            ((~((local_0x118 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x118 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0x100) // -> RBX::Path2D::fn_0x3ee3920;
           }
         } else {
           if ((~((local_0x118 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x118 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-            local_0x100->vfunc(local_0x100);
+            ((~((local_0x118 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x118 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(local_0x100) // -> RBX::Path2D::fn_0x3ee3920;
           }
           call_0x4955ac0(local_0x100);
         }
@@ -1122,7 +1116,7 @@ Operação  : 0x48c6c96: mov/math reg, [flag] ; fn=0x48c6ae0..0x48c6dd3
       if (local_0x48 != 0) {
         call_0x6daf40(local_0x48);
       }
-      std::string::_Tidy_deallocate(v_rcx_6);
+      std::string::_Tidy_deallocate(local_0x120);
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x48d3750..0x48d3a7b)] ===
@@ -1358,17 +1352,17 @@ Operação  : 0x48c6c96: mov/math reg, [flag] ; fn=0x48c6ae0..0x48c6dd3
         int32_t v_rbx_1 = tmp_1;
         if (tmp_1 <= (ret_0x5de65b0_1 >> 11) + ((ret_0x5de65b0_1 >> 11) >> 63)) {
           do { // L_0x48e00d5
-            v_rbx_1 = i_ebx + RealtimeReliabilityRetryPeriodMs;
-          } while ((i_ebx + RealtimeReliabilityRetryPeriodMs) <= ((ret_0x5de65b0_1 >> 11) + ((ret_0x5de65b0_1 >> 11) >> 63))); // loop -> L_0x48e00d5
+            i_ebx = i_ebx + RealtimeReliabilityRetryPeriodMs;
+          } while (i_ebx + RealtimeReliabilityRetryPeriodMs <= (ret_0x5de65b0_1 >> 11) + ((ret_0x5de65b0_1 >> 11) >> 63)); // loop -> L_0x48e00d5
         }
         auto* f_8 = this->field_0x8;
         do { // L_0x48e0100
           atomic_try_incref(&f_8->field_0x8);
-          if (atomic_cas(&f_8->field_0x8, f_8->field_0x8, (f_8->field_0x8 + 1)) == 0) break;
+          if (atomic_cas(&f_8->field_0x8, f_8->field_0x8, f_8->field_0x8 + 1) == 0) break;
         } while (true); // loop -> L_0x48e0100
         void* stk_3;
         if (f_8 != 0) {
-          f_8->field_0xc = f_8->field_0xc + 1;
+          f_8->field_0xc++;
           stk_3 = f_8;
         } else {
           stk_3 = 0.0;
@@ -1377,9 +1371,9 @@ Operação  : 0x48c6c96: mov/math reg, [flag] ; fn=0x48c6ae0..0x48c6dd3
           call_0x6daf40(f_8);
         }
         if (stk_3 != 0) {
-          stk_3->field_0xc = stk_3->field_0xc + 1;
+          stk_3->field_0xc++;
         }
-        float ftmp_1 = v_rbx_1 - ((ret_0x5de65b0_1 >> 11) + ((ret_0x5de65b0_1 >> 11) >> 63));
+        double ftmp_1 = (double)(v_rbx_1 - ((ret_0x5de65b0_1 >> 11) + ((ret_0x5de65b0_1 >> 11) >> 63)));
         auto* f_70 = this->field_0x70;
         auto vret_3 = f_70->vfunc_0x8(f_70, &local_0x50, &local_0x60, (ftmp_1 / 1000.0)) // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66540;
         void* prev_0x0_2 = vret_3->field_0x0;
@@ -1398,11 +1392,11 @@ Operação  : 0x48c6c96: mov/math reg, [flag] ; fn=0x48c6ae0..0x48c6dd3
         if ((local_0x78 & 0xfffffffc & 0xfffffff8) != 0) {
           if ((local_0x78 >> 1 & 0x1) != 0) {
             if ((~((local_0x78 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x78 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-              &local_0x60->vfunc(&local_0x60);
+              ((~((local_0x78 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x78 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0x60) // -> RBX::Path2D::fn_0x3ee3920;
             }
           } else {
             if ((~((local_0x78 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x78 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-              local_0x60->vfunc(local_0x60);
+              ((~((local_0x78 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x78 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(local_0x60) // -> RBX::Path2D::fn_0x3ee3920;
             }
             call_0x4955ac0(local_0x60);
           }

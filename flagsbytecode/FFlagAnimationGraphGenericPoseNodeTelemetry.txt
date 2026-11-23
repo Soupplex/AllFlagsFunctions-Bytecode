@@ -25,12 +25,7 @@ Operação  : 0x192d9ff: cmp byte [flag], imm8 ; fn=0x192d9f0..0x192db9a
           if (vret_5 != 0) {
             call_0x2e12fd0(&local_0x58->field_0x18->field_0x70);
             call_0x192e4b0(&local_0x58->field_0x18->field_0x620, ret_0x7c68f0_4->field_0x48);
-            local_0x58->field_0x18->field_0x628->field_0x0[rdx * 8] = local_0x58->field_0x18->field_0x628->field_0x0[rdx * 8] + 1;
-            if (local_0x58->field_0x18->field_0x70 == 3) {
-              if (atomic_cas(&local_0x58->field_0x18->field_0x70, local_0x58->field_0x18->field_0x70, 1) != 0) {
-                call_0xdac0(&local_0x58->field_0x18->field_0x70);
-              }
-            } else {
+            if (local_0x58->field_0x18->field_0x70 != 3 || atomic_cas(&local_0x58->field_0x18->field_0x70, local_0x58->field_0x18->field_0x70, 1) != 0) {
               call_0xdac0(&local_0x58->field_0x18->field_0x70);
             }
           }
@@ -40,63 +35,61 @@ Operação  : 0x192d9ff: cmp byte [flag], imm8 ; fn=0x192d9f0..0x192db9a
           return;
         }
         return;
-      } else {
-        if (this <= 13) {
-          int32_t v_rbx_1;
-          switch (this) {
-            case 0:
+      }
+      if (this <= 13) {
+        int32_t v_rbx_1;
+        switch (this) {
+          case 0:
             v_rbx_1 = 90;
             break;
-            case 1:
+          case 1:
             v_rbx_1 = 91;
             break;
-            case 2:
+          case 2:
             v_rbx_1 = 92;
             break;
-            case 3:
+          case 3:
             v_rbx_1 = 93;
             break;
-            case 4:
+          case 4:
             v_rbx_1 = 94;
             break;
-            case 5:
+          case 5:
             v_rbx_1 = 95;
             break;
-            case 6:
+          case 6:
             v_rbx_1 = 96;
             break;
-            case 7:
+          case 7:
             v_rbx_1 = 97;
             break;
-            case 8:
+          case 8:
             v_rbx_1 = 98;
             break;
-            case 9:
+          case 9:
             v_rbx_1 = 99;
             break;
-            case 10:
+          case 10:
             v_rbx_1 = 100;
             break;
-            case 11:
+          case 11:
             v_rbx_1 = 101;
             break;
-            case 12:
+          case 12:
             v_rbx_1 = 102;
             break;
-            case 13:
+          case 13:
             v_rbx_1 = 103;
             break;
-          }
-          auto ret_0x1923bd0_1 = call_0x1923bd0(&local_0x58);
-          void* v_rcx_2 = ret_0x1923bd0_1->field_0x0;
-          if (ret_0x1923bd0_1->field_0x0 != 0) {
-            v_rcx_2 = ret_0x1923bd0_1->field_0x0->field_0x18;
-          }
-          call_0x19223f0(v_rcx_2, v_rbx_1, 1);
-          if (local_0x58 != 0) {
-            local_0x58->vfunc_0x10() // -> RBX::PoseBase::VCFramePose::fn_0x1625fe0;
-            return;
-          }
+        }
+        auto ret_0x1923bd0_1 = call_0x1923bd0(&local_0x58);
+        void* v_rcx_2 = ret_0x1923bd0_1->field_0x0;
+        if (ret_0x1923bd0_1->field_0x0 != 0) {
+          v_rcx_2 = ret_0x1923bd0_1->field_0x0->field_0x18;
+        }
+        call_0x19223f0(v_rcx_2, v_rbx_1, 1);
+        if (local_0x58 != 0) {
+          local_0x58->vfunc_0x10() // -> RBX::PoseBase::VCFramePose::fn_0x1625fe0;
           return;
         }
       }
@@ -360,11 +353,13 @@ Operação  : 0x192d9ff: cmp byte [flag], imm8 ; fn=0x192d9f0..0x192db9a
         this->field_0x10 = this->field_0x8 + param_2 * 8;
         return;
       }
-      if (param_2 > (this->field_0x10 - this->field_0x8) >> 3 && param_2 > (this->field_0x18 - this->field_0x8) >> 3) {
-        call_0x192f500(this, param_2);
-        return;
+      if (param_2 > (this->field_0x10 - this->field_0x8) >> 3) {
+        if (param_2 > (this->field_0x18 - this->field_0x8) >> 3) {
+          call_0x192f500(this, param_2);
+          return;
+        }
+        this->field_0x10 = call_0x192f400((this->field_0x10 - this->field_0x8) >> 3, this->field_0x10, param_2 - ((this->field_0x10 - this->field_0x8) >> 3));
       }
-      this->field_0x10 = call_0x192f400((this->field_0x10 - this->field_0x8) >> 3, this->field_0x10, param_2 - ((this->field_0x10 - this->field_0x8) >> 3));
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x192e4b0..0x192e516)] ===
@@ -416,14 +411,9 @@ Operação  : 0x192d9ff: cmp byte [flag], imm8 ; fn=0x192d9f0..0x192db9a
     void RBX::AnimationGraph::func_0x19223f0(RBX::AnimationGraph* this, int64_t param_2, void* param_3) {
       call_0x2e12fd0(&this->field_0x70);
       this->field_0x78[param_2 * 8] = this->field_0x78[param_2 * 8] + param_3;
-      if (this->field_0x70 == 3) {
-        if (atomic_cas(&this->field_0x70, this->field_0x70, 1) != 0) {
-          call_0xdac0(&this->field_0x70);
-          return;
-        }
-        return;
+      if (this->field_0x70 != 3 || atomic_cas(&this->field_0x70, this->field_0x70, 1) != 0) {
+        call_0xdac0(&this->field_0x70);
       }
-      call_0xdac0(&this->field_0x70);
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x19223f0..0x1922454)] ===

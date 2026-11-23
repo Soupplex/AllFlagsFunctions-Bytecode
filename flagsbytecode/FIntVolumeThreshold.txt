@@ -10,7 +10,8 @@ Operação  : 0x4540d97: cmp dword [flag], imm ; fn=0x4540d70..0x4540eba
     Padrão  : FIntVolumeThreshold = 1 (default) [int, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : VolumeThreshold != 0
-    Fórmula : VolumeThreshold / 100.0
+    Fórmula : (double)VolumeThreshold / 100.0
+    Fórmula : (double)((fstk_6 != 0 ? fstk_6->field_0xa0 : ret_0x33077f0_1->field_0x120) * this->field_0x8->field_0x110 * vret_3) > (double)VolumeThreshold / 100.0
     Altera  : this->field_0x8->field_0xd8->field_0xc
     Wasm    : .data=0x7d9d58 [via DFFlagAudioEnableVolumetricPanningForMeshes]
     [Wasm]  : AudioEnableVolumetricPanningForMeshes
@@ -25,7 +26,7 @@ Operação  : 0x4540d97: cmp dword [flag], imm ; fn=0x4540d70..0x4540eba
     
     // Flag defaults: VolumeThreshold = 1
     auto RBX::VolumeThreshold::func_0x4540d70(RBX::VolumeThreshold* this) {
-      call_0x33077f0(this);
+      auto ret_0x33077f0_1 = call_0x33077f0(this);
       if (VolumeThreshold == 0) {
         return 1;
       }
@@ -34,7 +35,7 @@ Operação  : 0x4540d97: cmp dword [flag], imm ; fn=0x4540d70..0x4540eba
       auto* f_8 = this->field_0x8;
       auto* f_8_d8 = f_8->field_0xd8;
       if (f_8_d8 != 0) {
-        f_8_d8->field_0xc = f_8_d8->field_0xc + 1;
+        f_8_d8->field_0xc++;
         void* fstk_3;
         void* fstk_4;
         if (f_8_d8->field_0x8 != 0) {
@@ -42,13 +43,10 @@ Operação  : 0x4540d97: cmp dword [flag], imm ; fn=0x4540d70..0x4540eba
           void* stk_1;
           do { // L_0x4540dd2
             atomic_try_incref(&f_8_d8->field_0x8);
-            if (atomic_cas(&f_8_d8->field_0x8, f_8_d8->field_0x8, (f_8_d8->field_0x8 + 1)) == 0) break;
-            stk_1 = 0.0;
-            stk_2 = 0.0;
-            break;
+            if (atomic_cas(&f_8_d8->field_0x8, f_8_d8->field_0x8, f_8_d8->field_0x8 + 1) == 0) break;
           } while (f_8_d8->field_0x8 != 0); // loop -> L_0x4540dd2
-          stk_1 = f_8_d8;
-          stk_2 = f_8->field_0xd0;
+          stk_1 = 0.0;
+          stk_2 = 0.0;
           if (f_8_d8 != 0) {
             fstk_3 = stk_2;
             fstk_4 = stk_1;
@@ -75,17 +73,18 @@ Operação  : 0x4540d97: cmp dword [flag], imm ; fn=0x4540d70..0x4540eba
             fstk_6 = fstk_3;
             fstk_7 = fstk_4;
           }
-        } else {
-          fstk_6 = 0.0;
-          fstk_7 = 0.0;
         }
-        void* sel_rcx_1 = this == 0 ? 0 : f_8;
-        auto vret_3 = sel_rcx_1->field_0x1e8->vfunc_0xc8() // -> RBX::Path2D::fn_0x3e64b20;
-        if (fstk_7 != 0) {
-          call_0x6daf40(fstk_7);
-        }
-        return (fstk_6 != 0 ? fstk_6->field_0xa0 : rax->field_0x120) * f_8->field_0x110 * vret_3 > VolumeThreshold / 100.0;
+      } else {
+        fstk_6 = 0.0;
+        fstk_7 = 0.0;
       }
+      void* sel_rcx_1 = this == 0 ? 0 : f_8;
+      auto vret_3 = sel_rcx_1->field_0x1e8->vfunc_0xc8() // -> RBX::Path2D::fn_0x3e64b20;
+      uint8_t tmp_1 = (double)((fstk_6 != 0 ? fstk_6->field_0xa0 : ret_0x33077f0_1->field_0x120) * f_8->field_0x110 * vret_3) > (double)VolumeThreshold / 100.0;
+      if (fstk_7 != 0) {
+        call_0x6daf40(fstk_7);
+      }
+      return tmp_1;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===

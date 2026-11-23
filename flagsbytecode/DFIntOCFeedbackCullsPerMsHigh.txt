@@ -9,7 +9,7 @@ Operação  : 0x358b964: mov/math reg, [flag] ; fn=0x358b6f0..0x358b9b5
     Classe  : RBX::OCFeedbackCulls (RTTI Resolvido)
     Padrão  : DFIntOCFeedbackCullsPerMsHigh = 60 (default) [int, mode=2]
     Papel   : Parâmetro de configuração lido diretamente pela rotina
-    Fórmula : max(OCFeedbackCullsPerMsHigh, max(OCFeedbackCullsPerMsLow, 0.0))
+    Fórmula : max((double)OCFeedbackCullsPerMsHigh, max((double)OCFeedbackCullsPerMsLow, 0.0))
     Altera  : this->field_0x970, this->field_0x95d, this->field_0x7d8, this->field_0x944, this->field_0x94c, this->field_0x95f
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
@@ -50,12 +50,7 @@ Operação  : 0x358b964: mov/math reg, [flag] ; fn=0x358b6f0..0x358b9b5
       auto prev_0x95d_1 = this->field_0x95d;
       this->field_0x95d = local_0x60;
       if (local_0x60 != 0) {
-        if (param_2->field_0x9d != 0) {
-          if (prev_0x95d_1 == 0) {
-            param_2->field_0x6c = param_3->field_0xcc;
-            param_2->field_0x74 = param_3->field_0xd4;
-          }
-        } else {
+        if (param_2->field_0x9d == 0 || prev_0x95d_1 == 0) {
           param_2->field_0x6c = param_3->field_0xcc;
           param_2->field_0x74 = param_3->field_0xd4;
         }
@@ -64,16 +59,16 @@ Operação  : 0x358b964: mov/math reg, [flag] ; fn=0x358b6f0..0x358b9b5
           this->field_0x948 = 0;
           this->field_0x950 = 0;
         }
-        this->field_0x944 = this->field_0x944 + 1;
+        this->field_0x944++;
         this->field_0x990 = 0;
         float ftmp_1 = param_4->field_0x0 * param_4->field_0x0 + param_4->field_0x4 * param_4->field_0x4;
         float ftmp_2 = ftmp_1 + param_4->field_0x8 * param_4->field_0x8;
-        int32_t v_r8_2;
+        uint8_t v_r8b_2;
         auto* f_70 = this->field_0x70;
         if (ftmp_2 <= 256.0) {
           float ftmp_4 = local_0x24 * param_2->field_0x70 + param_3->field_0xcc * param_2->field_0x6c + param_3->field_0xd4 * param_2->field_0x74;
           if (0.866 <= ftmp_4) {
-            v_r8_2 = 0;
+            v_r8b_2 = 0;
           } else {
             if (this->field_0x95f == 0 && f_70 != 0) {
               f_70->field_0x1d0 = 0;
@@ -83,9 +78,9 @@ Operação  : 0x358b964: mov/math reg, [flag] ; fn=0x358b6f0..0x358b9b5
             this->field_0x94c = 0;
             if (local_0x68 != 0 && prev_0x944_2 >= local_0x78) {
               this->field_0x7d8 = max(1, this->field_0x7d8 >> 1);
-              v_r8_2 = 1;
+              v_r8b_2 = 1;
             } else {
-              v_r8_2 = 1;
+              v_r8b_2 = 1;
             }
           }
         } else {
@@ -97,12 +92,12 @@ Operação  : 0x358b964: mov/math reg, [flag] ; fn=0x358b6f0..0x358b9b5
           this->field_0x94c = 0;
           if (local_0x68 != 0 && prev_0x944_2 >= local_0x78) {
             this->field_0x7d8 = max(1, this->field_0x7d8 >> 1);
-            v_r8_2 = 1;
+            v_r8b_2 = 1;
           } else {
-            v_r8_2 = 1;
+            v_r8b_2 = 1;
           }
         }
-        this->field_0x95f = v_r8_2;
+        this->field_0x95f = v_r8b_2;
         param_2->field_0x6c = param_3->field_0xcc;
         param_2->field_0x74 = param_3->field_0xd4;
       } else if (prev_0x95d_1 != 0) {
@@ -112,35 +107,33 @@ Operação  : 0x358b964: mov/math reg, [flag] ; fn=0x358b6f0..0x358b9b5
         this->field_0x95f = 0;
         this->field_0x998 = 0;
       }
-      if (this->field_0x95d == 0) {
-        if (prev_0x95d_1 != 0) {
-          L_0x358b8a0:
-          this->field_0x95e = local_0x68;
-          this->field_0x958 = local_0x70;
-          float ftmp_5 = this->field_0x388[(this->field_0x84 - 1 & 0x3f) * 4];
-          this->field_0x954 = ftmp_5;
-          int32_t v_rdi_5 = 1;
-          if (ftmp_5 > 0.0) {
-            call_0x5e338a8((float)OCFeedbackMaxIntervalMs / ftmp_5);
-            v_rdi_5 = max(1, (uint64_t)xmm0);
-          }
-          this->oCFeedbackMaxIntervalMs_0x978 = v_rdi_5;
-          uint8_t v_al_7;
-          if (this->field_0x95d != 0 && min(this->field_0x7d8, local_0x68 != 0 ? v_rdi_5 : local_0x70) > 1 && this->field_0x944 % min(this->field_0x7d8, local_0x68 != 0 ? v_rdi_5 : local_0x70) != 0) {
+      if (this->field_0x95d != 0 || prev_0x95d_1 != 0) {
+        this->field_0x95e = local_0x68;
+        this->field_0x958 = local_0x70;
+        float ftmp_5 = this->field_0x388[(this->field_0x84 - 1 & 0x3f) * 4];
+        this->field_0x954 = ftmp_5;
+        int32_t v_rdi_5 = 1;
+        if (ftmp_5 > 0.0) {
+          auto ret_0x5e338a8_1 = call_0x5e338a8((float)OCFeedbackMaxIntervalMs / ftmp_5);
+          v_rdi_5 = max(1, (int64_t)ret_0x5e338a8_1);
+        }
+        this->oCFeedbackMaxIntervalMs_0x978 = v_rdi_5;
+        uint8_t v_al_7;
+        if (this->field_0x95d != 0 && min(this->field_0x7d8, local_0x68 != 0 ? v_rdi_5 : local_0x70) > 1) {
+          if (this->field_0x944 % min(this->field_0x7d8, local_0x68 != 0 ? v_rdi_5 : local_0x70) != 0) {
             v_al_7 = 1;
           } else {
             v_al_7 = 0;
           }
-          this->field_0x960 = v_al_7;
-          this->oCFeedbackCullsPerMsLow_0x968 = max(OCFeedbackCullsPerMsLow, 0.0);
-          this->field_0x970 = max(OCFeedbackCullsPerMsHigh, max(OCFeedbackCullsPerMsLow, 0.0));
-          this->oCFeedbackConvergenceFrames_0x97c = OCFeedbackConvergenceFrames;
-          this->field_0x980 = 4;
-          return;
+        } else {
+          v_al_7 = 0;
         }
-        return;
+        this->field_0x960 = v_al_7;
+        this->oCFeedbackCullsPerMsLow_0x968 = max((double)OCFeedbackCullsPerMsLow, 0.0);
+        this->field_0x970 = max((double)OCFeedbackCullsPerMsHigh, max((double)OCFeedbackCullsPerMsLow, 0.0));
+        this->oCFeedbackConvergenceFrames_0x97c = OCFeedbackConvergenceFrames;
+        this->field_0x980 = 4;
       }
-      goto L_0x358b8a0;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===

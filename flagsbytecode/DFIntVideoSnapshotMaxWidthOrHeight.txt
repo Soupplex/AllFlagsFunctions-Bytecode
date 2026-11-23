@@ -46,14 +46,12 @@ Operação  : 0x36793b3: mov/math reg, [flag] ; fn=0x3679330..0x367957e
           } else {
             v_rbx_1 = CLI73599A;
           }
-        } else {
-          auto* f_ae0 = this->field_0xae0;
-          if ((this->field_0x30c & 0x2) != 0 && VideoCaptureSnapshotClampToVideoResolution && f_ae0 != 0) {
-            void* sel_rcx_1 = f_ae0->field_0x10 < f_ae0->field_0x14 ? 20 : 16;
+        } else if ((this->field_0x30c & 0x2) != 0) {
+          if (VideoCaptureSnapshotClampToVideoResolution && this->field_0xae0 != 0) {
             if (max(0, VideoSnapshotMaxWidthOrHeight) != 0) {
-              v_rbx_1 = std::clamp(0, VideoSnapshotMaxWidthOrHeight, f_ae0->field_0x0[sel_rcx_1]);
+              v_rbx_1 = std::clamp(VideoSnapshotMaxWidthOrHeight, 0, rcx[this->field_0xae0]);
             } else {
-              v_rbx_1 = f_ae0->field_0x0[sel_rcx_1];
+              v_rbx_1 = rcx[this->field_0xae0];
             }
           } else {
             v_rbx_1 = max(0, VideoSnapshotMaxWidthOrHeight);
@@ -70,20 +68,18 @@ Operação  : 0x36793b3: mov/math reg, [flag] ; fn=0x3679330..0x367957e
       void* v_rbx_5;
       if ((this->field_0x30c & 0x10) != 0) {
         v_rbx_5 = this->field_0xb48;
+      } else if (v_rbx_1 == 0) {
+        v_rbx_5 = v_rsi_2->field_0x78;
       } else {
-        if (v_rbx_1 == 0) {
-          v_rbx_5 = v_rsi_2->field_0x78;
-        } else {
-          int32_t v_rcx_3 = v_rsi_2->field_0x78;
-          if (max(v_rsi_2->field_0x78, v_rsi_2->field_0x78 >> 32) > v_rbx_1) {
-            if (v_rsi_2->field_0x78 > v_rsi_2->field_0x78 >> 32) {
-              v_rcx_3 = v_rbx_1;
-            } else {
-              v_rcx_3 = (uint64_t)((float)v_rsi_2->field_0x78 * (float)v_rbx_1 / (float)(v_rsi_2->field_0x78 >> 32));
-            }
+        int32_t v_rcx_3 = v_rsi_2->field_0x78;
+        if (max(v_rsi_2->field_0x78, v_rsi_2->field_0x78 >> 32) > v_rbx_1) {
+          if (v_rsi_2->field_0x78 > v_rsi_2->field_0x78 >> 32) {
+            v_rcx_3 = v_rbx_1;
+          } else {
+            v_rcx_3 = (int64_t)((float)v_rsi_2->field_0x78 * (float)v_rbx_1 / (float)(v_rsi_2->field_0x78 >> 32));
           }
-          v_rbx_5 = v_rcx_3;
         }
+        v_rbx_5 = v_rcx_3;
       }
       void* stk_6;
       auto* f_20_d8 = f_20->field_0xd8;
@@ -102,11 +98,11 @@ Operação  : 0x36793b3: mov/math reg, [flag] ; fn=0x3679330..0x367957e
         stk_6 = v_rbx_5;
       }
       call_0x367ea40(((this->field_0x610 + this->field_0x610 * 4) << 4) + 0x570 + this, f_20_d8, v_rsi_2, stk_6);
-      if (this->field_0x588[rcx * 8] != 0) {
-        (this->field_0x588[rcx * 8])->field_0x8 = (this->field_0x588[rcx * 8])->field_0x8 + 1;
+      if (this->field_0x588[(this->field_0x610 + this->field_0x610 * 4) * 2 * 8] != 0) {
+        (this->field_0x588[(this->field_0x610 + this->field_0x610 * 4) * 2 * 8])->field_0x8++;
       }
-      param_2->field_0x0 = this->field_0x580[rcx * 8];
-      param_2->field_0x8 = this->field_0x588[rcx * 8];
+      param_2->field_0x0 = this->field_0x580[(this->field_0x610 + this->field_0x610 * 4) * 2 * 8];
+      param_2->field_0x8 = this->field_0x588[(this->field_0x610 + this->field_0x610 * 4) * 2 * 8];
       return param_2;
     }
   
@@ -290,16 +286,18 @@ Operação  : 0x36793b3: mov/math reg, [flag] ; fn=0x3679330..0x367957e
     };
     
     // Flag defaults: VideoSnapshotMaxWidthOrHeight = 2560, DebugEnableVREmulator = false
-    auto RBX::VideoSnapshot::func_0x355b590(RBX::VideoSnapshot* this, int64_t param_2) {
+    auto RBX::VideoSnapshot::func_0x355b590(RBX::VideoSnapshot* this) {
       auto* f_d8 = this->field_0xd8;
       if (!DebugEnableVREmulator) {
-        f_d8->vfunc_0x90() // -> RBX::WedgePoly::fn_0x2dac240;
+        auto vret_1 = f_d8->vfunc_0x90() // -> RBX::WedgePoly::fn_0x2dac240;
         return vret_1;
       }
+      void* v_rax_1;
       auto* f_128 = this->field_0x128;
       if (f_128 != 0) {
         auto vret_2 = f_128->vfunc_0x20(f_128, &local_0x20) // -> RBX::ModelInstance::BackpackItem::fn_0x3343db0;
         if (vret_2->field_0x133 != 0) {
+          v_rax_1 = f_128;
         } else {
           f_d8->vfunc_0x90() // -> RBX::WedgePoly::fn_0x2dac240;
         }
@@ -366,23 +364,24 @@ Operação  : 0x36793b3: mov/math reg, [flag] ; fn=0x3679330..0x367957e
     // Flag defaults: VideoSnapshotMaxWidthOrHeight = 2560, GraphicsGLDownloadReadsOwnTexture = false, Graphics = 6
     void RBX::VideoSnapshot::func_0x367ea40(RBX::VideoSnapshot* this, int64_t param_2, void* param_3, void* param_4) {
       if (this->field_0x0 != 0) {
+        if (this->field_0x0->field_0x44 == param_3->field_0x90 && this->field_0x0->field_0x48 == param_4) {
+          if (this->field_0x0->field_0x4c == param_4 >> 32) {
+            return;
+          }
+        }
         call_0x367ff30(this);
       }
       auto vret_2 = param_2->vfunc_0xe8(param_2) // -> RBX::Graphics::RenderView::fn_0x3662290;
       int32_t v_rsi_2;
       if (vret_2->field_0x81 != 0) {
         auto ret_0x6fd950_5 = call_0x6fd950(32);
-        ret_0x6fd950_5->field_0x0 = "TextureDownloadResource";
-        ret_0x6fd950_5->field_0x10 = "esource";
-        ret_0x6fd950_5->field_0x14 = "rce";
+        memcpy(ret_0x6fd950_5, "TextureDownloadResource", 23);
         ret_0x6fd950_5->field_0x16 = global_0x73c522e;
         param_2->vfunc_0x1b0(param_2, &local_0x90, 0, param_3->field_0x90) // -> RBX::Graphics::RenderView::fn_0x367d960;
         v_rsi_2 = 19;
       } else {
         auto ret_0x6fd950_3 = call_0x6fd950(32);
-        ret_0x6fd950_3->field_0x0 = "TextureDownloadResource";
-        ret_0x6fd950_3->field_0x10 = "esource";
-        ret_0x6fd950_3->field_0x14 = "rce";
+        memcpy(ret_0x6fd950_3, "TextureDownloadResource", 23);
         ret_0x6fd950_3->field_0x16 = global_0x73c522e;
         param_2->vfunc_0x1a8(param_2, &local_0xc0, 0, param_3->field_0x90) // -> RBX::Graphics::RenderView::fn_0x367d920;
         v_rsi_2 = 44;
@@ -393,38 +392,31 @@ Operação  : 0x36793b3: mov/math reg, [flag] ; fn=0x3679330..0x367957e
       if (prev_0x8_1 != 0) {
         call_0x6daf40(prev_0x8_1);
       }
-      int32_t v_rsi_8 = v_rsi_2;
-      if ((v_rsi_2 & 0x8) != 0 && local_0xc8 != 0) {
-        call_0x6daf40(local_0xc8);
-        v_rsi_8 = v_rsi_2 & 0xfffffff7;
-      } else {
-        v_rsi_8 = v_rsi_2 & 0xfffffff7;
-      }
-      int32_t v_rsi_13 = v_rsi_8;
-      if ((v_rsi_8 & 0x4) != 0) {
-        if (local_0x218 >= 16) {
-          void* v_rcx_10 = local_0x200;
-          if (local_0x218 + 1 >= 0x1000) {
-            if (local_0x200 - local_0x200->field_m0x8 < 8 || local_0x200 - local_0x200->field_m0x8 > 39) {
-              call_0x5e14580();
-            }
-          }
-          call_0x4955ac0(v_rcx_10);
+      int32_t v_rsi_6 = v_rsi_2;
+      if ((v_rsi_2 & 0x8) != 0) {
+        if (local_0xc8 != 0) {
+          call_0x6daf40(local_0xc8);
+          v_rsi_6 = v_rsi_2 & 0xfffffff7;
+        } else {
+          v_rsi_6 = v_rsi_2 & 0xfffffff7;
         }
-        v_rsi_13 = v_rsi_8 & 0xfffffffb;
       }
-      int32_t v_rsi_17 = v_rsi_13;
-      if ((v_rsi_13 & 0x2) != 0 && 0 != 0) {
-        call_0x6daf40(0);
-        v_rsi_17 = v_rsi_13 & 0xfffffffd;
-      } else {
-        v_rsi_17 = v_rsi_13 & 0xfffffffd;
+      int32_t v_rsi_9 = v_rsi_6;
+      if ((v_rsi_6 & 0x4) != 0) {
+        std::string::_Tidy_deallocate(local_0x200);
+        v_rsi_9 = v_rsi_6 & 0xfffffffb;
       }
-      if ((v_rsi_17 & 0x1) != 0) {
-        if (local_0x1f8 >= 16) {
-          void* v_rcx_19 = local_0x1e0;
-          call_0x4955ac0(v_rcx_19);
+      int32_t v_rsi_12 = v_rsi_9;
+      if ((v_rsi_9 & 0x2) != 0) {
+        if (0) {
+          call_0x6daf40(0);
+          v_rsi_12 = v_rsi_9 & 0xfffffffd;
+        } else {
+          v_rsi_12 = v_rsi_9 & 0xfffffffd;
         }
+      }
+      if ((v_rsi_12 & 0x1) != 0) {
+        std::string::_Tidy_deallocate(local_0x1e0);
       }
       if (this->field_0x0 == 0) {
         if (Graphics >= 6 && Graphics >> 8 >= 2) {
@@ -450,66 +442,61 @@ Operação  : 0x36793b3: mov/math reg, [flag] ; fn=0x3679330..0x367957e
         }
         this->field_0x30 = -1;
         return;
-      } else {
-        if (this->field_0x8 != 0) {
-          this->field_0x8->field_0x8 = this->field_0x8->field_0x8 + 1;
+      }
+      if (this->field_0x8 != 0) {
+        this->field_0x8->field_0x8++;
+      }
+      call_0x270e470();
+      auto local_0xe0 = this->field_0x0;
+      auto local_0x120 = 0.0;
+      auto local_0x124 = 0.0;
+      auto local_0x128 = 0.0;
+      auto local_0x12c = 0.0;
+      auto local_0x134 = 1;
+      auto ret_0x270cd90_14 = call_0x270cd90(param_2, &local_0x1c0, &local_0xe0, &local_0x120);
+      this->field_0x10 = ret_0x270cd90_14->field_0x0;
+      void* prev_0x18_2 = this->field_0x18;
+      this->field_0x18 = ret_0x270cd90_14->field_0x8;
+      if (prev_0x18_2 != 0) {
+        call_0x6daf40(prev_0x18_2);
+      }
+      if (local_0x1c8 != 0) {
+        call_0x6daf40(local_0x1c8);
+      }
+      if (local_0xe8 != 0) {
+        call_0x6daf40(local_0xe8);
+      }
+      if (local_0x128 != 0) {
+        call_0x6daf40(local_0x128);
+      }
+      std::string::_Tidy_deallocate(0);
+      if (GraphicsGLDownloadReadsOwnTexture ? param_3->field_0x90->field_0x0[&sym_0x84a3df8] == 0 : global_0x80f3d01 != 0) {
+        auto vret_20 = this->field_0x0->vfunc_0x28(this->field_0x0, &local_0x1d0, 0, 0) // -> RBX::program_option::fn_0x3506640;
+        void* prev_0x0_3 = vret_20->field_0x0;
+        vret_20->field_0x0 = 0;
+        void* prev_0x8_4 = vret_20->field_0x8;
+        vret_20->field_0x8 = 0;
+        this->field_0x20 = prev_0x0_3;
+        void* prev_0x28_5 = this->field_0x28;
+        this->field_0x28 = prev_0x8_4;
+        if (prev_0x28_5 != 0) {
+          call_0x6daf40(prev_0x28_5);
         }
-        call_0x270e470();
-        auto local_0xe0 = this->field_0x0;
-        auto local_0x120 = 0.0;
-        auto local_0x124 = 0.0;
-        auto local_0x128 = 0.0;
-        auto local_0x12c = 0.0;
-        auto local_0x134 = 1;
-        auto ret_0x270cd90_14 = call_0x270cd90(param_2, &local_0x1c0, &local_0xe0, &local_0x120);
-        this->field_0x10 = ret_0x270cd90_14->field_0x0;
-        void* prev_0x18_2 = this->field_0x18;
-        this->field_0x18 = ret_0x270cd90_14->field_0x8;
-        if (prev_0x18_2 != 0) {
-          call_0x6daf40(prev_0x18_2);
+        if (local_0x1d8 != 0) {
+          call_0x6daf40(local_0x1d8);
         }
-        if (local_0x1c8 != 0) {
-          call_0x6daf40(local_0x1c8);
-        }
-        if (local_0xe8 != 0) {
-          call_0x6daf40(local_0xe8);
-        }
-        if (local_0x128 != 0) {
-          call_0x6daf40(local_0x128);
-        }
-        if (15 >= 16) {
-          void* v_rcx_24 = 0;
-          call_0x4955ac0(v_rcx_24);
-        }
-        if (GraphicsGLDownloadReadsOwnTexture ? param_3->field_0x90->field_0x0[&sym_0x84a3df8] == 0 : global_0x80f3d01 != 0) {
-          auto vret_20 = this->field_0x0->vfunc_0x28(this->field_0x0, &local_0x1d0, 0, 0) // -> RBX::program_option::fn_0x3506640;
-          void* prev_0x0_3 = vret_20->field_0x0;
-          vret_20->field_0x0 = 0;
-          void* prev_0x8_4 = vret_20->field_0x8;
-          vret_20->field_0x8 = 0;
-          this->field_0x20 = prev_0x0_3;
-          void* prev_0x28_5 = this->field_0x28;
-          this->field_0x28 = prev_0x8_4;
-          if (prev_0x28_5 != 0) {
-            call_0x6daf40(prev_0x28_5);
+        if (this->field_0x20 == 0) {
+          if (Graphics >= 6 && Graphics >> 8 >= 3) {
+            FLog::Log("[FLog::Graphics] TextureDownloadResource couldn't create resource for async download, falling ba");
           }
-          if (local_0x1d8 != 0) {
-            call_0x6daf40(local_0x1d8);
-          }
-          if (this->field_0x20 == 0) {
-            if (Graphics >= 6 && Graphics >> 8 >= 3) {
-              FLog::Log("[FLog::Graphics] TextureDownloadResource couldn't create resource for async download, falling ba");
-              "[FLog::Graphics] TextureDownloadResource couldn't create resource for async download, falling ba";
-            }
-            if (!GraphicsGLDownloadReadsOwnTexture) {
-              global_0x80f3d01 = 0;
-              return;
-            }
-            param_3->field_0x90->field_0x0[&sym_0x84a3df8] = 1;
+          if (!GraphicsGLDownloadReadsOwnTexture) {
+            global_0x80f3d01 = 0;
             return;
           }
+          param_3->field_0x90->field_0x0[&sym_0x84a3df8] = 1;
           return;
         }
+        return;
       }
     }
   
@@ -736,7 +723,7 @@ Operação  : 0x36793b3: mov/math reg, [flag] ; fn=0x3679330..0x367957e
     0x367ee2b | 48 8b 8c 24 a0 00 00 00  | mov rcx, qword ptr [rsp + 0xa0]
     0x367ee33 | 48 81 c1 9e 3b b3 f7     | add rcx, 0xf7b33b9e
     0x367ee3a | 48 89 8c 24 10 01 00 00  | mov qword ptr [rsp + 0x110], rcx
-    0x367ee42 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x367ee42 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x367ee49 | 0f 1f 80 00 00 00 00     | nop
     L_0x367ee50:
     0x367ee50 | 48 ff c0                 | inc rax

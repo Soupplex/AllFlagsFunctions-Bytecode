@@ -11,8 +11,8 @@ Operação  : 0x2bb248e: mov/math reg, [flag] ; fn=0x2bb2460..0x2bb26aa
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : WebSocketTraceError < 6
     Fórmula : WebSocketTraceError >> 8 < 3
-    Fórmula : "[DFLog::WebSocketTraceError] ws: {} url: {} error: {}"[rax] != 0
-    Altera  : this->field_0x68->field_0x0, this->field_0x21, this->field_0x110, this->field_0x118, this->field_0x120
+    Fórmula : "[DFLog::WebSocketTraceError] ws: {} url: {} error: {}"[0] != 0
+    Altera  : this->field_0x68->field_0x0, this->field_0x68, this->field_0x21, this->field_0x110, this->field_0x118, this->field_0x120
     [Child @0x2bb2f40] Papel   : Parâmetro de configuração lido diretamente pela rotina
     [Child @0x2bb20f0] Papel   : Parâmetro de configuração lido diretamente pela rotina
   
@@ -40,45 +40,38 @@ Operação  : 0x2bb248e: mov/math reg, [flag] ; fn=0x2bb2460..0x2bb26aa
         FLog::Log("[DFLog::WebSocketTraceError] ws: {} url: {} error: {}");
       }
       call_0x2e13a20(&local_0xd0, &this->field_0x58, 0);
-      auto* f_68 = this->field_0x68;
-      if (f_68 != this->field_0x70) {
-        f_68->field_0x0 = 0;
-        call_0x6f7510(&f_68->field_0x8, param_2);
+      if (this->field_0x68 != this->field_0x70) {
+        this->field_0x68->field_0x0 = 0;
+        call_0x6f7510(&this->field_0x68->field_0x8, param_2);
+        this->field_0x68 = this->field_0x68 + 0x28;
       } else {
         auto local_0x38 = 0;
-        call_0x2bb2f40(&this->field_0x60, f_68, &local_0x38, param_2);
+        call_0x2bb2f40(&this->field_0x60, this->field_0x68, &local_0x38, param_2);
       }
       this->field_0x21 = 1;
       if (&this->field_0x28 != param_2) {
-        void* v_rbx_4 = param_2;
+        void* v_rbx_3 = param_2;
         if (param_2->field_0x18 >= 16) {
-          v_rbx_4 = param_2->field_0x0;
+          v_rbx_3 = param_2->field_0x0;
         }
-        call_0x6f7000(&this->field_0x28, v_rbx_4, param_2->field_0x10);
+        call_0x6f7000(&this->field_0x28, v_rbx_3, param_2->field_0x10);
       }
-      if ((local_0xd0 & 1) != 0 && (local_0xd0 & 0xfffffffe)->field_0x0 == 3) {
-        if (atomic_cas(&(local_0xd0 & 0xfffffffe)->field_0x0, (local_0xd0 & 0xfffffffe)->field_0x0, 1) != 0) {
+      if ((local_0xd0 & 1) != 0) {
+        if ((local_0xd0 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0xd0 & 0xfffffffe)->field_0x0, (local_0xd0 & 0xfffffffe)->field_0x0, 1) != 0) {
           call_0xdac0(local_0xd0 & 0xfffffffe);
         }
-      } else {
-        call_0xdac0(local_0xd0 & 0xfffffffe);
       }
       call_0x2e12fd0(&this->field_0xb8);
       this->field_0x110 = 1;
-      void* v_rsi_5 = &this->field_0x28;
+      void* v_rsi_4 = &this->field_0x28;
       if (this->field_0x40 >= 16) {
-        v_rsi_5 = this->field_0x28;
+        v_rsi_4 = this->field_0x28;
       }
-      this->field_0x118 = v_rsi_5;
+      this->field_0x118 = v_rsi_4;
       this->field_0x120 = this->field_0x38;
-      if (this->field_0xb8 == 3) {
-        if (atomic_cas(&this->field_0xb8, this->field_0xb8, 1) != 0) {
-          call_0xdac0(&this->field_0xb8);
-        }
-        call_0x2bb20f0(this, 3);
-        return;
+      if (this->field_0xb8 != 3 || atomic_cas(&this->field_0xb8, this->field_0xb8, 1) != 0) {
+        call_0xdac0(&this->field_0xb8);
       }
-      call_0xdac0(&this->field_0xb8);
       call_0x2bb20f0(this, 3);
     }
   
@@ -106,7 +99,7 @@ Operação  : 0x2bb248e: mov/math reg, [flag] ; fn=0x2bb2460..0x2bb26aa
     0x2bb24b5 | 48 8b 4c 24 38           | mov rcx, qword ptr [rsp + 0x38]
     0x2bb24ba | 48 81 c1 02 c9 e1 ff     | add rcx, 0xffe1c902
     0x2bb24c1 | 48 89 4d 80              | mov qword ptr [rbp - 0x80], rcx
-    0x2bb24c5 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x2bb24c5 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x2bb24cc | 0f 1f 40 00              | nop
     L_0x2bb24d0:
     0x2bb24d0 | 48 ff c0                 | inc rax
@@ -251,15 +244,20 @@ Operação  : 0x2bb248e: mov/math reg, [flag] ; fn=0x2bb2460..0x2bb26aa
     // Flag defaults: WebSocketTraceError = 6
     auto RBX::WebSocket::func_0x2bb2f40(RBX::WebSocket* this, int64_t param_2, void* param_3, void* param_4) {
       int64_t v_rbx_1;
-      if (((this->field_0x10 - this->field_0x0) / 40 >> 4) + (((this->field_0x10 - this->field_0x0) / 40 >> 4) >> 63) > 0x666666666666666 - ((((this->field_0x10 - this->field_0x0) / 40 >> 4) + (((this->field_0x10 - this->field_0x0) / 40 >> 4) >> 63)) >> 1)) {
+      auto expr_2 = (this->field_0x10 - this->field_0x0) / 40 >> 4;
+      auto expr_1 = expr_2 >> 63;
+      if (expr_2 + expr_1 > 0x666666666666666 - ((expr_2 + expr_1) >> 1)) {
         v_rbx_1 = 0x666666666666666;
-      } else if (max(rdx + 1, rcx + rdx) > 0x666666666666666) {
       } else {
-        v_rbx_1 = max(rdx + 1, rcx + rdx);
+        int64_t idx_1 = expr_2 + expr_1;
+        if (max(rdx + 1, rcx + idx_1) <= 0x666666666666666) {
+          v_rbx_1 = max(rdx + 1, rcx + idx_1);
+        }
       }
       auto ret_0x6fd950_1 = call_0x6fd950((v_rbx_1 + v_rbx_1 * 4) << 3);
-      (ret_0x6fd950_1 + rcx * 8)->field_0x0 = param_3->field_0x0;
-      call_0x6f7510(ret_0x6fd950_1 + rcx * 8 + 8, param_4);
+      int64_t idx_2 = (param_2 >> 4) + ((param_2 >> 4) >> 63) + ((param_2 >> 4) + ((param_2 >> 4) >> 63)) * 4;
+      (ret_0x6fd950_1 + idx_2 * 8)->field_0x0 = param_3->field_0x0;
+      call_0x6f7510(ret_0x6fd950_1 + idx_2 * 8 + 8, param_4);
       void* v_rcx_3 = this->field_0x0;
       if (param_2 != this->field_0x8) {
         call_0x156cf90(this->field_0x0, param_2, ret_0x6fd950_1);
@@ -267,7 +265,7 @@ Operação  : 0x2bb248e: mov/math reg, [flag] ; fn=0x2bb2460..0x2bb26aa
       }
       call_0x156cf90(v_rcx_3, this->field_0x8, ret_0x6fd950_1);
       call_0x1113530(this, ret_0x6fd950_1, rdx + 1, v_rbx_1);
-      return ret_0x6fd950_1 + rcx * 8;
+      return ret_0x6fd950_1 + idx_2 * 8;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x2bb2f40..0x2bb30b7)] ===
@@ -399,84 +397,81 @@ Operação  : 0x2bb248e: mov/math reg, [flag] ; fn=0x2bb2460..0x2bb26aa
           if (WebSocketTraceLight >= 6 && WebSocketTraceLight >> 8 >= 3) {
             FLog::Log("[DFLog::WebSocketTraceLight] ws: %u state %d -> %d");
           }
-          auto* f_68 = this->field_0x68;
-          if (param_2 != 0) {
-            if (param_2 != 1 && param_2 - 1 != 1) {
-              if (param_2 - 1 == 2) {
-                call_0x2e13a20(&local_0x88, &this->field_0x58, 0);
-                if (f_68 != this->field_0x70) {
-                  f_68->field_0x0 = 1;
-                  f_68->field_0x8 = 0;
-                  f_68->field_0x20 = 15;
-                  f_68->field_0x18 = 6;
-                  call_0x5e05370(&f_68->field_0x8, "closed", 6);
-                  f_68->field_0xe = 0;
-                } else {
-                  call_0x2bb2d90(&this->field_0x60, param_2, &local_0x50, "closed");
-                }
-                v_rcx_1 = local_0x88;
-                L_0x2bb23a4:
-                if ((v_rcx_1 & 0x1) != 0 && (v_rcx_1 & 0xfffffffe)->field_0x0 == 3) {
-                  if (atomic_cas(&(v_rcx_1 & 0xfffffffe)->field_0x0, 3, 1) != 0) {
-                    L_0x2bb23c5:
-                    call_0xdac0(v_rcx_1 & 0xfffffffe);
-                  }
-                } else {
-                  call_0xdac0(v_rcx_1 & 0xfffffffe);
-                }
+          switch (param_2) {
+            case 0:
+              call_0x2e13a20(&local_0x80, &this->field_0x58, 0);
+              if (this->field_0x68 != this->field_0x70) {
+                this->field_0x68->field_0x0 = 1;
+                this->field_0x68->field_0x8 = 0;
+                this->field_0x68->field_0x20 = 15;
+                this->field_0x68->field_0x18 = 10;
+                call_0x5e05370(&this->field_0x68->field_0x8, "connecting", 10);
+                this->field_0x68->field_0x12 = 0;
+                this->field_0x68 = this->field_0x68 + 0x28;
               } else {
-                call_0x2e13a20(&local_0x90, &this->field_0x58, 0);
-                if (f_68 != this->field_0x70) {
-                  f_68->field_0x0 = 1;
-                  f_68->field_0x8 = 0;
-                  f_68->field_0x20 = 15;
-                  f_68->field_0x18 = 7;
-                  call_0x5e05370(&f_68->field_0x8, "closing", 7);
-                  f_68->field_0xf = 0;
-                } else {
-                  auto local_0x54 = 1;
-                  call_0x2bb2d90(&this->field_0x60, f_68, &local_0x54, "closing");
-                }
-                v_rcx_1 = local_0x90;
-                if ((v_rcx_1 & 0x1) != 0 && (v_rcx_1 & 0xfffffffe)->field_0x0 == 3) {
-                  if (atomic_cas(&(v_rcx_1 & 0xfffffffe)->field_0x0, 3, 1) != 0) {
-                    goto L_0x2bb23c5;
-                  }
-                } else {
-                  goto L_0x2bb23c5;
-                }
+                auto local_0x5c = 1;
+                call_0x2bb2d90(&this->field_0x60, this->field_0x68, &local_0x5c, "connecting");
               }
-            } else {
+              v_rcx_1 = local_0x80;
+              goto L_0x2bb23a4;
+            case 1:
               call_0x2e13a20(&local_0x98, &this->field_0x58, 0);
-              if (f_68 != this->field_0x70) {
-                f_68->field_0x0 = 1;
-                f_68->field_0x8 = 0;
-                f_68->field_0x20 = 15;
-                f_68->field_0x18 = 4;
-                f_68->field_0x8 = "open";
-                f_68->field_0xc = 0;
+              if (this->field_0x68 != this->field_0x70) {
+                this->field_0x68->field_0x0 = 1;
+                this->field_0x68->field_0x8 = 0;
+                this->field_0x68->field_0x20 = 15;
+                this->field_0x68->field_0x18 = 4;
+                this->field_0x68->field_0x8 = "open";
+                this->field_0x68->field_0xc = 0;
+                this->field_0x68 = this->field_0x68 + 0x28;
               } else {
                 auto local_0x58 = 1;
-                call_0x2bb2d90(&this->field_0x60, f_68, &local_0x58, "open");
+                call_0x2bb2d90(&this->field_0x60, this->field_0x68, &local_0x58, "open");
               }
               v_rcx_1 = local_0x98;
               goto L_0x2bb23a4;
-            }
-          } else {
-            call_0x2e13a20(&local_0x80, &this->field_0x58, 0);
-            if (f_68 != this->field_0x70) {
-              f_68->field_0x0 = 1;
-              f_68->field_0x8 = 0;
-              f_68->field_0x20 = 15;
-              f_68->field_0x18 = 10;
-              call_0x5e05370(&f_68->field_0x8, "connecting", 10);
-              f_68->field_0x12 = 0;
-            } else {
-              auto local_0x5c = 1;
-              call_0x2bb2d90(&this->field_0x60, f_68, &local_0x5c, "connecting");
-            }
-            v_rcx_1 = local_0x80;
-            goto L_0x2bb23a4;
+            case 2:
+              call_0x2e13a20(&local_0x90, &this->field_0x58, 0);
+              if (this->field_0x68 != this->field_0x70) {
+                this->field_0x68->field_0x0 = 1;
+                this->field_0x68->field_0x8 = 0;
+                this->field_0x68->field_0x20 = 15;
+                this->field_0x68->field_0x18 = 7;
+                call_0x5e05370(&this->field_0x68->field_0x8, "closing", 7);
+                this->field_0x68->field_0xf = 0;
+                this->field_0x68 = this->field_0x68 + 0x28;
+              } else {
+                auto local_0x54 = 1;
+                call_0x2bb2d90(&this->field_0x60, this->field_0x68, &local_0x54, "closing");
+              }
+              v_rcx_1 = local_0x90;
+              if ((v_rcx_1 & 0x1) != 0) {
+                if ((v_rcx_1 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(v_rcx_1 & 0xfffffffe)->field_0x0, 3, 1) != 0) {
+                  call_0xdac0(v_rcx_1 & 0xfffffffe);
+                }
+              }
+              break;
+            case 3:
+              call_0x2e13a20(&local_0x88, &this->field_0x58, 0);
+              if (this->field_0x68 != this->field_0x70) {
+                this->field_0x68->field_0x0 = 1;
+                this->field_0x68->field_0x8 = 0;
+                this->field_0x68->field_0x20 = 15;
+                this->field_0x68->field_0x18 = 6;
+                call_0x5e05370(&this->field_0x68->field_0x8, "closed", 6);
+                this->field_0x68->field_0xe = 0;
+                this->field_0x68 = this->field_0x68 + 0x28;
+              } else {
+                call_0x2bb2d90(&this->field_0x60, param_2, &local_0x50, "closed");
+              }
+              v_rcx_1 = local_0x88;
+              L_0x2bb23a4:
+              if ((v_rcx_1 & 0x1) != 0) {
+                if ((v_rcx_1 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(v_rcx_1 & 0xfffffffe)->field_0x0, 3, 1) != 0) {
+                  call_0xdac0(v_rcx_1 & 0xfffffffe);
+                }
+              }
+              break;
           }
           void* v_rsi_2 = 0;
           auto* f_b0 = this->field_0xb0;
@@ -486,14 +481,10 @@ Operação  : 0x2bb248e: mov/math reg, [flag] ; fn=0x2bb2460..0x2bb26aa
           call_0x2bd8e80(v_rsi_2->field_0x38);
           call_0x2e12fd0(&this->field_0xb8);
           call_0x2bc3bc0(&this->field_0xc0, param_2);
-          if (this->field_0xb8 == 3) {
-            if (atomic_cas(&this->field_0xb8, this->field_0xb8, 1) != 0) {
-              call_0xdac0(&this->field_0xb8);
-              return;
-            }
+          if (this->field_0xb8 != 3 || atomic_cas(&this->field_0xb8, this->field_0xb8, 1) != 0) {
+            call_0xdac0(&this->field_0xb8);
             return;
           }
-          call_0xdac0(&this->field_0xb8);
           return;
         }
         return;

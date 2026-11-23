@@ -9,7 +9,7 @@ Operação  : 0x1365b88: mov/math reg, [flag] ; fn=0x1364d00..0x1365c26
     Classe  : RBX::AutomaticAsset (RTTI Resolvido)
     Padrão  : DFIntAutomaticAssetCaptureSenderClientToHttpOffset = -10 (default) [int, mode=2]
     Papel   : Divisor / Taxa de frequência (Hz) usado em cálculos de intervalo e orçamento
-    Fórmula : max(AutomaticAssetCaptureSenderClientToHttpMinHundrethsPercent, AutomaticAssetCaptureSenderClientToHttpScale / max(1, local_0x20 + AutomaticAssetCaptureSenderClientToHttpOffset))
+    Fórmula : std::clamp(AutomaticAssetCaptureSenderClientToHttpScale / max(1, local_0x20 + AutomaticAssetCaptureSenderClientToHttpOffset), AutomaticAssetCaptureSenderClientToHttpMinHundrethsPercent, 10000)
     [Child @0x13646d0] Papel   : Parâmetro de configuração lido diretamente pela rotina
     [Child @0x1255a30] Papel   : Parâmetro de configuração lido diretamente pela rotina
     [Child @0x1380a40] Papel   : Parâmetro de configuração lido diretamente pela rotina
@@ -31,12 +31,13 @@ Operação  : 0x1365b88: mov/math reg, [flag] ; fn=0x1364d00..0x1365c26
         if (AutomaticAssetCaptureSenderServerToHttpSampleRateHundrethsPercent > 0) {
           if (AutomaticAssetCaptureSenderServerToHttpSampleRateHundrethsPercent != 10000) {
             auto ret_0x7503f0_6 = call_0x7503f0(&this->field_0x78);
-            if (ret_0x7503f0_6 - (rdx >> 13) * 10000 >= AutomaticAssetCaptureSenderServerToHttpSampleRateHundrethsPercent) {
-              L_0x1365af4:
-              return 0;
+            if (ret_0x7503f0_6 - (rdx >> 13) * 10000 < AutomaticAssetCaptureSenderServerToHttpSampleRateHundrethsPercent) {
+              L_0x13659e5:
+              return 1;
             }
+          } else {
+            return 1;
           }
-          return 1;
         }
         return 0;
       }
@@ -48,28 +49,32 @@ Operação  : 0x1365b88: mov/math reg, [flag] ; fn=0x1364d00..0x1365c26
               return 1;
             }
           } else {
-            return 1;
-          }
-          goto L_0x1365af4;
-        } else {
-          if (param_2->field_0x60 > 0) {
-            call_0xc758e0(&this->field_0xb8, &local_0x88, &local_0x90);
-            if (local_0x88 != this->field_0xc0) {
-              return local_0x88->field_0x18;
-            }
-            call_0x1365430(this, &local_0x40);
-            int64_t local_0x88;
-            if (local_0x40 != 0) {
-              if (local_0x28 != 0) {
-                void* sel_rdx_1 = max(AutomaticAssetCaptureSenderClientToHttpMinHundrethsPercent, AutomaticAssetCaptureSenderClientToHttpScale / max(1, local_0x20 + AutomaticAssetCaptureSenderClientToHttpOffset));
-                void* sel_rax_2 = sel_rdx_1->field_0x0 <= 10000 ? sel_rdx_1 : 10000;
-                local_0x88 = call_0x12b3b20(sel_rax_2->field_0x0, &this->field_0x98);
-                call_0x12bef30(&this->field_0xb8, &local_0x50, &local_0x90, &local_0x88);
-              }
-              return v_rbx_1;
-            }
+            goto L_0x13659e5;
           }
         }
+        return 0;
+      }
+      if (param_2->field_0x60 > 0) {
+        call_0xc758e0(&this->field_0xb8, &local_0x88, &local_0x90);
+        if (local_0x88 != this->field_0xc0) {
+          return local_0x88->field_0x18;
+        }
+        call_0x1365430(this, &local_0x40);
+        uint8_t v_bl_1;
+        int64_t local_0x88;
+        if (local_0x40 != 0) {
+          if (local_0x28 != 0) {
+            int32_t tmp_1 = std::clamp(AutomaticAssetCaptureSenderClientToHttpScale / max(1, local_0x20 + AutomaticAssetCaptureSenderClientToHttpOffset), AutomaticAssetCaptureSenderClientToHttpMinHundrethsPercent, 10000);
+            local_0x88 = call_0x12b3b20(tmp_1, &this->field_0x98);
+            call_0x12bef30(&this->field_0xb8, &local_0x50, &local_0x90, &local_0x88);
+            v_bl_1 = local_0x88;
+          } else {
+            v_bl_1 = 0;
+          }
+        } else {
+          v_bl_1 = 0;
+        }
+        return v_bl_1;
       }
     }
   
@@ -373,41 +378,53 @@ Operação  : 0x1365b88: mov/math reg, [flag] ; fn=0x1364d00..0x1365c26
     void RBX::AutomaticAsset::func_0x1255a30(RBX::AutomaticAsset* this, int64_t param_2, void* param_3) {
       int32_t v_rsi_1 = 0;
       void* v_r10_2 = param_3;
+      void* v_r14_3 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/Delay value out of range";
       if (param_2 > 2) {
         if (&param_2->field_m0x2 != 0) {
+          void* i_edi = &this->field_0x2;
+          void* i_r10d = param_3;
+          uint64_t i_r11d = (param_2 >> 1) + 1;
+          int64_t idx_1;
           do { // L_0x1255a90
-            param_3->field_0x0 = (this->field_0x0 >> 2)[r14];
-            param_3->field_0x1 = (((this->field_0x0 & 0x3) << 4) | (this->field_0x1 >> 4))[r14];
-            param_3->field_0x2 = (((this->field_0x1 & 0xf) << 2) | (this->field_0x2 >> 6))[r14];
-            param_3->field_0x3 = (this->field_0x2 & 0x3f)[r14];
-          } while ((((param_2 >> 1) + 1) - 1) != 0); // loop -> L_0x1255a90
+            idx_1 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/Delay value out of range";
+            i_r10d->field_0x0 = (i_edi->field_m0x2 >> 2)[idx_1];
+            i_r10d->field_0x1 = (((i_edi->field_m0x2 & 0x3) << 4) | (i_edi->field_m0x1 >> 4))[idx_1];
+            i_r10d->field_0x2 = (((i_edi->field_m0x1 & 0xf) << 2) | (i_edi->field_0x0 >> 6))[idx_1];
+            i_r10d->field_0x3 = (i_edi->field_0x0 & 0x3f)[idx_1];
+            i_r10d += 4;
+            i_r11d--;
+            i_edi = i_edi + 3;
+          } while (i_r11d != 0); // loop -> L_0x1255a90
           v_rsi_1 = (param_2 >> 1) + 1 + ((param_2 >> 1) + 1) * 2;
-          v_r10_2 = &param_3->field_0x4;
+          v_r10_2 = i_r10d;
+          v_r14_3 = idx_1;
           if (v_rsi_1 < param_2) {
             L_0x1255b0a:
-            (param_2 > 2 ? param_3 : v_r10_2)->field_0x0 = (param_2 > 2 ? 0 : v_rsi_1[this] >> 2)[r14];
-            int64_t v_rcx_3;
+            int64_t idx_2 = param_2 > 2 ? "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/Delay value out of range" : v_r14_3;
+            (param_2 > 2 ? param_3 : v_r10_2)->field_0x0 = (param_2 > 2 ? 0 : v_rsi_1[this] >> 2)[idx_2];
+            int64_t v_rcx_4;
             if ((param_2 > 2 ? 0 : v_rsi_1 + 1) < param_2) {
-              v_rcx_3 = (param_2 > 2 ? 0 : v_rsi_1)->field_0x1[this] >> 4 | (param_2 > 2 ? 0 : v_rsi_1[this] & 0x3) << 4;
+              v_rcx_4 = (param_2 > 2 ? 0 : v_rsi_1)->field_0x1[this] >> 4 | (param_2 > 2 ? 0 : v_rsi_1[this] & 0x3) << 4;
             } else {
-              v_rcx_3 = (param_2 > 2 ? 0 : v_rsi_1[this] & 0x3) << 4;
+              v_rcx_4 = (param_2 > 2 ? 0 : v_rsi_1[this] & 0x3) << 4;
             }
-            (param_2 > 2 ? param_3 : v_r10_2)->field_0x1 = v_rcx_3[r14];
-            (param_2 > 2 ? param_3 : v_r10_2)->field_0x2 = (param_2 > 2 ? 0 : v_rsi_1 + 1) < param_2 ? (((param_2 > 2 ? 0 : v_rsi_1)->field_0x1[this] & 0xf) << 2)[r14] : 61;
+            (param_2 > 2 ? param_3 : v_r10_2)->field_0x1 = v_rcx_4[idx_2];
+            (param_2 > 2 ? param_3 : v_r10_2)->field_0x2 = (param_2 > 2 ? 0 : v_rsi_1 + 1) < param_2 ? (((param_2 > 2 ? 0 : v_rsi_1)->field_0x1[this] & 0xf) << 2)[idx_2] : 61;
             (param_2 > 2 ? param_3 : v_r10_2)->field_0x3 = 61;
             return;
           }
           return;
         }
-        (param_2 > 2 ? param_3 : v_r10_2)->field_0x0 = (param_2 > 2 ? 0 : v_rsi_1[this] >> 2)[r14];
-        int64_t v_rcx_3;
+        int64_t idx_2 = param_2 > 2 ? "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/Delay value out of range" : v_r14_3;
+        (param_2 > 2 ? param_3 : v_r10_2)->field_0x0 = (param_2 > 2 ? 0 : v_rsi_1[this] >> 2)[idx_2];
+        int64_t v_rcx_4;
         if ((param_2 > 2 ? 0 : v_rsi_1 + 1) < param_2) {
-          v_rcx_3 = (param_2 > 2 ? 0 : v_rsi_1)->field_0x1[this] >> 4 | (param_2 > 2 ? 0 : v_rsi_1[this] & 0x3) << 4;
+          v_rcx_4 = (param_2 > 2 ? 0 : v_rsi_1)->field_0x1[this] >> 4 | (param_2 > 2 ? 0 : v_rsi_1[this] & 0x3) << 4;
         } else {
-          v_rcx_3 = (param_2 > 2 ? 0 : v_rsi_1[this] & 0x3) << 4;
+          v_rcx_4 = (param_2 > 2 ? 0 : v_rsi_1[this] & 0x3) << 4;
         }
-        (param_2 > 2 ? param_3 : v_r10_2)->field_0x1 = v_rcx_3[r14];
-        (param_2 > 2 ? param_3 : v_r10_2)->field_0x2 = (param_2 > 2 ? 0 : v_rsi_1 + 1) < param_2 ? (((param_2 > 2 ? 0 : v_rsi_1)->field_0x1[this] & 0xf) << 2)[r14] : 61;
+        (param_2 > 2 ? param_3 : v_r10_2)->field_0x1 = v_rcx_4[idx_2];
+        (param_2 > 2 ? param_3 : v_r10_2)->field_0x2 = (param_2 > 2 ? 0 : v_rsi_1 + 1) < param_2 ? (((param_2 > 2 ? 0 : v_rsi_1)->field_0x1[this] & 0xf) << 2)[idx_2] : 61;
         (param_2 > 2 ? param_3 : v_r10_2)->field_0x3 = 61;
         return;
       }
@@ -575,13 +592,7 @@ Operação  : 0x1365b88: mov/math reg, [flag] ; fn=0x1364d00..0x1365c26
       this->field_0x28 = 0;
       this->field_0x30 = 0;
       this->field_0x0 = &sym_0x7001608;
-      if (param_2->field_0x18 >= 16) {
-        void* v_rcx_1 = param_2->field_0x0;
-        if (param_2->field_0x18 + 1 >= 0x1000) {
-          v_rcx_1 = param_2->field_0x0->field_m0x8;
-        }
-        call_0x4955ac0(v_rcx_1);
-      }
+      std::string::_Tidy_deallocate(param_2->field_0x0);
       return this;
     }
   

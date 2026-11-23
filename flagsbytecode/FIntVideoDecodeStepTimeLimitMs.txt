@@ -34,38 +34,40 @@ Operação  : 0x3c71cf4: mov/math reg, [flag] ; fn=0x3c71c70..0x3c71e80
         call_0x2e12fd0(&f_80);
         call_0x495a220(&local_0x30);
         int32_t i_ebx = 0;
-        L_0x3c71d30:
-        do { // L_0x3c71d30
-          L_0x3c71d30:
-          if (i_ebx == 2) break;
+        int32_t i_esi = 0;
+        while (i_ebx != 2) {
           if (this->field_0x88 != 0) break;
           if (this->field_0x8c == 2) break;
-          call_0x495a220(&local_0x38);
-          if ((VideoDecodeStepTimeLimitMs * 0.001) <= (rax->field_0x0 - local_0x30)) break;
-          auto expr_1 = this->field_0x70 < VideoDriverMaxOutgoingFrames;
+          auto ret_0x495a220_5 = call_0x495a220(&local_0x38);
+          if ((double)VideoDecodeStepTimeLimitMs * 0.001 <= ret_0x495a220_5->field_0x0 - local_0x30) break;
           if (i_ebx != 0) {
-            if (i_ebx != (0 + 1)) continue;
+            if (i_ebx != 1) continue;
             if (VideoDriverMaxOutgoingFrames > 0) {
               call_0x7f3280(&this->videoDriverMaxOutgoingFrames_0x78);
               this->videoDriverMaxOutgoingFrames_0x78 = 0;
-              if expr_1 {
-                L_0x3c71da1:
+              if (this->field_0x70 < VideoDriverMaxOutgoingFrames) {
                 if (VideoDriverMaxIncomingPackets > 0) {
-                  if (0 < VideoDriverMaxIncomingPackets) {
+                  if (i_esi < VideoDriverMaxIncomingPackets) {
                     L_0x3c71db1:
                     auto ret_0x3c719d0_11 = call_0x3c719d0(this);
                     if (ret_0x3c719d0_11 != 0) {
+                    i_esi++;
+                    i_ebx = 0;
                     continue;
                     } else {
                     L_0x3c71dc7:
+                    i_ebx = 2;
                     continue;
                     }
                   } else {
+                    i_ebx = 2;
                     continue;
                   }
                 } else {
                   auto ret_0x3c719d0_11 = call_0x3c719d0(this);
                   if (ret_0x3c719d0_11 != 0) {
+                    i_esi++;
+                    i_ebx = 0;
                     continue;
                   } else {
                     goto L_0x3c71dc7;
@@ -74,55 +76,27 @@ Operação  : 0x3c71cf4: mov/math reg, [flag] ; fn=0x3c71c70..0x3c71e80
               } else {
                 goto L_0x3c71dc7;
               }
-            } else {
-              if (VideoDriverMaxIncomingPackets > 0) {
-                if (0 < VideoDriverMaxIncomingPackets) {
-                  goto L_0x3c71db1;
-                } else {
-                  goto L_0x3c71dc7;
-                }
-              } else {
+            } else if (VideoDriverMaxIncomingPackets > 0) {
+              if (i_esi < VideoDriverMaxIncomingPackets) {
                 goto L_0x3c71db1;
-              }
-            }
-          } else {
-            auto ret_0x3c71750_9 = call_0x3c71750(this);
-            if (ret_0x3c71750_9 != 0) continue;
-          }
-          if (i_ebx == 2) break;
-          if (this->field_0x88 != 0) break;
-          if (this->field_0x8c == 2) break;
-          call_0x495a220(&local_0x38);
-          if ((VideoDecodeStepTimeLimitMs * 0.001) <= (rax->field_0x0 - local_0x30)) break;
-          if (i_ebx != 0) {
-            if (i_ebx != (0 + 1)) continue;
-            if (VideoDriverMaxOutgoingFrames > 0) {
-              call_0x7f3280(&this->videoDriverMaxOutgoingFrames_0x78);
-              this->videoDriverMaxOutgoingFrames_0x78 = 0;
-              if expr_1 {
-                goto L_0x3c71da1;
               } else {
                 goto L_0x3c71dc7;
               }
             } else {
-              goto L_0x3c71da1;
+              goto L_0x3c71db1;
             }
           } else {
             auto ret_0x3c71750_9 = call_0x3c71750(this);
             if (ret_0x3c71750_9 != 0) continue;
+            i_ebx = 1;
           }
-          goto L_0x3c71d30;
-        } while (true); // loop -> L_0x3c71d30
-        if (&f_80->field_0x0 == 3) {
-          if (atomic_cas(&&f_80->field_0x0, 3, 1) != 0) {
-            call_0xdac0(&f_80);
-          }
-        } else {
+        }
+        if (&f_80->field_0x0 != 3 || atomic_cas(&&f_80->field_0x0, 3, 1) != 0) {
           call_0xdac0(&f_80);
         }
       }
       if ((local_0x80 & 0xfffffffc & 0xfffffff8) != 0) {
-        local_0x68->vfunc(local_0x68);
+        (((local_0x80 & 0xfffffffc) & 0xfffffff8))->vfunc_0x0(local_0x68) // -> RBX::BackpackItem::fn_0x3c943b0;
       }
       call_0x6f5b70(&local_0x68);
     }
@@ -287,67 +261,68 @@ Operação  : 0x3c71cf4: mov/math reg, [flag] ; fn=0x3c71c70..0x3c71e80
     // Flag defaults: VideoDecodeStepTimeLimitMs = 10, MediaCodecDriver = 0
     auto RBX::VideoDecode::func_0x3c719d0(RBX::VideoDecode* this) {
       call_0x7f3280(&this->field_0x50);
-      void* fstk_2;
-      void* stk_5;
+      void* fstk_4;
+      uint8_t v_bl_5;
+      void* stk_7;
       if (this->field_0x48 != 0) {
-        auto expr_3 = ((this->field_0x40 % this->field_0x38) << 4) + this->field_0x30;
-        auto expr_1 = expr_3->field_0x8 != 0;
-        if expr_1 {
-          rax->field_0x8 = rax->field_0x8 + 1;
+        auto expr_1 = ((this->field_0x40 % this->field_0x38) << 4) + this->field_0x30;
+        if (expr_1->field_0x8 != 0) {
+          rax->field_0x8++;
         }
         this->field_0x50 = 0;
-        if expr_1 {
-          rax->field_0x8 = rax->field_0x8 + 1;
+        if (expr_1->field_0x8 != 0) {
+          rax->field_0x8++;
         }
-        auto local_0x38 = expr_3->field_0x0;
+        auto local_0x38 = expr_1->field_0x0;
         auto local_0x3c = 0.0;
-        auto local_0x40 = expr_3->field_0x8;
+        auto local_0x40 = expr_1->field_0x8;
         auto local_0x44 = 0.0;
         auto ret_0x1da06f0_2 = call_0x1da06f0(this->field_0x20, &local_0x38);
-        auto expr_2 = "[DFLog::MediaCodecDriver] Dropping input with pts {} due to error: {}";
-        if (ret_0x1da06f0_2 != -0x7fffffff) {
-          if (ret_0x1da06f0_2 != -0x7ffffffe) {
-            if (ret_0x1da06f0_2 == 0) {
-              call_0x819500(&this->field_0x30);
-              stk_5 = expr_3->field_0x8;
-            } else {
-              L_0x3c71b57:
-              if (expr_3->field_0x0 != 0 && MediaCodecDriver >= 6 && MediaCodecDriver >> 8 >= 2) {
-                FLog::Log(expr_2);
+        switch (ret_0x1da06f0_2) {
+          case -2147483647:
+            if (atomic_cas(&this->field_0x8c, 0, 1) == 0) {
+              if (MediaCodecDriver >= 6 && MediaCodecDriver >> 8 >= 3) {
+                FLog::Log("[DFLog::MediaCodecDriver] Codec unexpectedly returned EOF. Setting stream state to Ending");
               }
-              call_0x819500(&this->field_0x30);
-              fstk_2 = expr_3->field_0x8;
-              L_0x3c71c2a:
-              stk_5 = fstk_2;
+            } else {
+              goto L_0x3c71b57;
             }
-          } else {
-            fstk_2 = expr_3->field_0x8;
-            stk_5 = fstk_2;
-          }
-        } else {
-          if (atomic_cas(&this->field_0x8c, 0, 1) == 0) {
-            if (MediaCodecDriver >= 6 && MediaCodecDriver >> 8 >= 3) {
-              FLog::Log("[DFLog::MediaCodecDriver] Codec unexpectedly returned EOF. Setting stream state to Ending");
+            if (expr_1->field_0x0 != 0 && MediaCodecDriver >= 6 && MediaCodecDriver >> 8 >= 2) {
+              FLog::Log("[DFLog::MediaCodecDriver] Dropping input with pts {} due to error: {}");
             }
-          } else {
-            goto L_0x3c71b57;
-          }
-          if (expr_3->field_0x0 != 0 && MediaCodecDriver >= 6 && MediaCodecDriver >> 8 >= 2) {
-            FLog::Log(expr_2);
-          }
-          call_0x819500(&this->field_0x30);
-          fstk_2 = expr_3->field_0x8;
-          goto L_0x3c71c2a;
+            call_0x819500(&this->field_0x30);
+            fstk_4 = expr_1->field_0x8;
+            goto L_0x3c71c2a;
+          case -2147483646:
+            fstk_4 = expr_1->field_0x8;
+            v_bl_5 = 0;
+            stk_7 = fstk_4;
+            break;
+          case 0:
+            call_0x819500(&this->field_0x30);
+            v_bl_5 = 1;
+            stk_7 = expr_1->field_0x8;
+            break;
+          default:
+            L_0x3c71b57:
+            if (expr_1->field_0x0 != 0 && MediaCodecDriver >= 6 && MediaCodecDriver >> 8 >= 2) {
+              FLog::Log("[DFLog::MediaCodecDriver] Dropping input with pts {} due to error: {}");
+            }
+            call_0x819500(&this->field_0x30);
+            fstk_4 = expr_1->field_0x8;
+            L_0x3c71c2a:
+            v_bl_5 = 0;
+            stk_7 = fstk_4;
         }
       } else {
         this->field_0x50 = 0;
-        fstk_2 = 0.0;
+        fstk_4 = 0.0;
         goto L_0x3c71c2a;
       }
-      if (stk_5 != 0) {
-        call_0x6daf40(stk_5);
+      if (stk_7 != 0) {
+        call_0x6daf40(stk_7);
       }
-      return v_bl_3;
+      return v_bl_5;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x3c719d0..0x3c71c67)] ===
@@ -397,7 +372,7 @@ Operação  : 0x3c71cf4: mov/math reg, [flag] ; fn=0x3c71c70..0x3c71e80
     0x3c71a77 | 48 8d 54 24 38           | lea rdx, [rsp + 0x38]
     0x3c71a7c | e8 6f ec 12 fe           | call 0x1da06f0
     0x3c71a81 | 44 8b f8                 | mov r15d, eax
-    0x3c71a84 | 48 c7 c3 ff ff ff ff     | mov rbx, 0xffffffff
+    0x3c71a84 | 48 c7 c3 ff ff ff ff     | mov rbx, -0x1
     0x3c71a8b | 3d 01 00 00 80           | cmp eax, 0x80000001
     0x3c71a90 | 74 23                    | je 0x3c71ab5
     0x3c71a92 | 3d 02 00 00 80           | cmp eax, 0x80000002
@@ -530,42 +505,50 @@ Operação  : 0x3c71cf4: mov/math reg, [flag] ; fn=0x3c71c70..0x3c71e80
     // Flag defaults: VideoDecodeStepTimeLimitMs = 10, MediaCodecDriver = 0, VideoNoDropFrameInMediaCodecDriver = true
     auto RBX::VideoDecode::func_0x3c71750(RBX::VideoDecode* this) {
       auto ret_0x1da08d0_1 = call_0x1da08d0(this->field_0x20, &local_0x50);
-      if (ret_0x1da08d0_1 != -0x7fffffff && ret_0x1da08d0_1 == 0) {
-        void* v_rcx_2;
-        if (VideoNoDropFrameInMediaCodecDriver != ret_0x1da08d0_1) {
-          call_0x7f3280(&this->field_0x78);
-          call_0x81b680(&this->field_0x58, &local_0x90, &local_0xa0);
-          v_rcx_2 = local_0x98;
-          if (v_rcx_2 != 0) {
-            call_0x6daf40(v_rcx_2);
-          }
-          this->field_0x78 = 0;
-          L_0x3c718e2:
-        } else {
-          if (local_0x50->field_0x0 < this->field_0x98) {
+      uint8_t v_bl_3;
+      if (ret_0x1da08d0_1 != -0x7fffffff) {
+        if (ret_0x1da08d0_1 == 0) {
+          void* v_rcx_1;
+          if (VideoNoDropFrameInMediaCodecDriver != ret_0x1da08d0_1) {
+            call_0x7f3280(&this->field_0x78);
+            call_0x81b680(&this->field_0x58, &local_0x90, &local_0xa0);
+            v_rcx_1 = local_0x98;
+            if (v_rcx_1 != 0) {
+              call_0x6daf40(v_rcx_1);
+            }
+            this->field_0x78 = 0;
+            L_0x3c718e2:
+            v_bl_3 = 1;
+          } else if (local_0x50->field_0x0 < this->field_0x98) {
             if (MediaCodecDriver >= 6 && MediaCodecDriver >> 8 >= 6) {
               FLog::Log("[DFLog::MediaCodecDriver] Dropping frame with pts {} due to seek");
+              v_bl_3 = 1;
+            } else {
+              v_bl_3 = 1;
             }
           } else {
             call_0x7f3280(&this->field_0x78);
             call_0x81b680(&this->field_0x58, &local_0x70, &local_0x80);
-            v_rcx_2 = local_0x78;
-            if (v_rcx_2 != 0) {
-              call_0x6daf40(v_rcx_2);
+            v_rcx_1 = local_0x78;
+            if (v_rcx_1 != 0) {
+              call_0x6daf40(v_rcx_1);
             }
             this->field_0x78 = 0;
             goto L_0x3c718e2;
           }
+        } else {
+          v_bl_3 = 0;
         }
       } else {
         if (MediaCodecDriver >= 6 && MediaCodecDriver >> 8 >= 6) {
           FLog::Log("[DFLog::MediaCodecDriver] Stream state changed from {} to {}");
         }
+        v_bl_3 = 0;
       }
       if (local_0x58 != 0) {
         call_0x6daf40(local_0x58);
       }
-      return v_bl_5;
+      return v_bl_3;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x3c71750..0x3c719d0)] ===
@@ -619,7 +602,7 @@ Operação  : 0x3c71cf4: mov/math reg, [flag] ; fn=0x3c71c70..0x3c71e80
     0x3c7181e | 48 8b 4d a7              | mov rcx, qword ptr [rbp - 0x59]
     0x3c71822 | 48 81 c1 f6 6b d2 ff     | add rcx, 0xffd26bf6
     0x3c71829 | 48 89 4d b7              | mov qword ptr [rbp - 0x49], rcx
-    0x3c7182d | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x3c7182d | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     L_0x3c71834:
     0x3c71834 | 48 ff c0                 | inc rax
     0x3c71837 | 80 3c 01 00              | cmp byte ptr [rcx + rax], 0x0
@@ -683,7 +666,7 @@ Operação  : 0x3c71cf4: mov/math reg, [flag] ; fn=0x3c71c70..0x3c71e80
     0x3c7191a | 48 8b 4d a7              | mov rcx, qword ptr [rbp - 0x59]
     0x3c7191e | 48 81 c1 b3 94 ce ff     | add rcx, 0xffce94b3
     0x3c71925 | 48 89 4d d7              | mov qword ptr [rbp - 0x29], rcx
-    0x3c71929 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x3c71929 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     L_0x3c71930:
     0x3c71930 | 48 ff c0                 | inc rax
     0x3c71933 | 80 3c 01 00              | cmp byte ptr [rcx + rax], 0x0

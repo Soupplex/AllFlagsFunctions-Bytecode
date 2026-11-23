@@ -9,7 +9,7 @@ Operação  : 0x510ec66: mov/math reg, [flag] ; fn=0x510eb50..0x510ee69
     Classe  : RBX::SessionAuth (RTTI Resolvido)
     Padrão  : DFIntSessionAuthObserverPollIntervalMs = 5000 (default) [int, mode=2]
     Papel   : Parâmetro de configuração lido diretamente pela rotina
-    Fórmula : SessionAuthObserverPollIntervalMs / 1000.0
+    Fórmula : (double)SessionAuthObserverPollIntervalMs / 1000.0
     Altera  : this->field_0x30, this->field_0x38, this->field_0x18->field_0x10->field_0x4, this->field_0x28, this->field_0x20
     [Child @0x2904690] Papel   : Parâmetro de configuração lido diretamente pela rotina
     [Child @0x5109520] Papel   : Parâmetro de configuração lido diretamente pela rotina
@@ -29,7 +29,7 @@ Operação  : 0x510ec66: mov/math reg, [flag] ; fn=0x510eb50..0x510ee69
     void RBX::SessionAuth::func_0x510eb50(RBX::SessionAuth* this) {
       auto* f_18 = this->field_0x18;
       if (f_18->field_0x49 != 0) {
-        auto ret_0x4954e70_13 = call_0x4954e70(global_0x84cf26c, f_18->field_0x49);
+        auto ret_0x4954e70_13 = call_0x4954e70(global_0x84cf26c);
         auto* f_18_10 = f_18->field_0x10;
         call_0x496a6d0(&f_18_10);
         auto ret_0x496a260_15 = call_0x496a260(48);
@@ -39,8 +39,9 @@ Operação  : 0x510ec66: mov/math reg, [flag] ; fn=0x510eb50..0x510ee69
           ret_0x496a260_15->field_0x8 = &sym_0x510f370;
           ret_0x496a260_15->field_0x20 = f_18_10;
           if (f_18_10 != 0) {
-            f_18_10->field_0x4 = f_18_10->field_0x4 + 1;
+            f_18_10->field_0x4++;
           }
+          ret_0x496a260_15->field_0x18 = ret_0x496a260_15->field_0x18 & 0xfffffffb;
           ret_0x496a260_15->field_0x28 = this;
         } else {
           v_rax_2 = 0;
@@ -59,18 +60,14 @@ Operação  : 0x510ec66: mov/math reg, [flag] ; fn=0x510eb50..0x510ee69
         }
       } else {
         auto local_0xb8 = this;
-        auto local_0x50 = SessionAuthObserverPollIntervalMs / 1000.0;
+        auto local_0x50 = (double)SessionAuthObserverPollIntervalMs / 1000.0;
         call_0x2904690(&local_0x28, &local_0xb8, &local_0x50);
         auto ret_0x29032c0_2 = call_0x29032c0();
         call_0x2e12fd0(ret_0x29032c0_2);
         call_0x2903f80(&ret_0x29032c0_2->field_0x8, &local_0x28);
         call_0x4959ee0();
         call_0x2904500(&ret_0x29032c0_2->field_0x8, &local_0xa8, &local_0x28);
-        if (ret_0x29032c0_2->field_0x0 == 3) {
-          if (atomic_cas(&ret_0x29032c0_2->field_0x0, ret_0x29032c0_2->field_0x0, 1) != 0) {
-            call_0xdac0(ret_0x29032c0_2);
-          }
-        } else {
+        if (ret_0x29032c0_2->field_0x0 != 3 || atomic_cas(&ret_0x29032c0_2->field_0x0, ret_0x29032c0_2->field_0x0, 1) != 0) {
           call_0xdac0(ret_0x29032c0_2);
         }
         this->field_0x30 = local_0x28;
@@ -89,7 +86,7 @@ Operação  : 0x510ec66: mov/math reg, [flag] ; fn=0x510eb50..0x510ee69
           }
           if ((local_0xd0 >> 1 & 0x1) != 0) {
             if (v_rax_1 != 0) {
-              &local_0xb8->vfunc(&local_0xb8);
+              (&local_0xb8)->vfunc(&local_0xb8);
             }
           } else {
             if (v_rax_1 != 0) {
@@ -501,8 +498,6 @@ Operação  : 0x510ec66: mov/math reg, [flag] ; fn=0x510eb50..0x510ee69
         this->field_0x18 = param_2->field_0x18;
         if (prev_0x18_1 != 0 && atomic_fetch_sub(&this->field_0x18->field_0xc, 1) == 1) {
           this->field_0x18->vfunc_0x8() // -> RBX::WindowsMediaPickerImpl::fn_0x5088cd0;
-        } else {
-          atomic_fetch_sub(&this->field_0x18->field_0xc, 1);
         }
       }
       return this;
@@ -560,13 +555,10 @@ Operação  : 0x510ec66: mov/math reg, [flag] ; fn=0x510eb50..0x510ee69
       void* v_rdi_2;
       if (this->field_0x18 != 0 && this->field_0x18->field_0x8 != 0) {
         do { // L_0x51095d6
-          if (atomic_cas(&this->field_0x18->field_0x8, this->field_0x18->field_0x8, (this->field_0x18->field_0x8 + 1)) == 0) break;
-          v_rax_1 = 0.0;
-          v_rdi_2 = 0.0;
-          break;
+          if (atomic_cas(&this->field_0x18->field_0x8, this->field_0x18->field_0x8, this->field_0x18->field_0x8 + 1) == 0) break;
         } while (this->field_0x18->field_0x8 != 0); // loop -> L_0x51095d6
-        v_rax_1 = this->field_0x10;
-        v_rdi_2 = this->field_0x18;
+        v_rax_1 = 0.0;
+        v_rdi_2 = 0.0;
       } else {
         v_rax_1 = 0.0;
         v_rdi_2 = 0.0;

@@ -10,7 +10,7 @@ Operação  : 0x36747d6: cmp dword [flag], imm ; fn=0x36745d6..0x3674e76
     Padrão  : FIntTimeToSendMeshRenderFidelitySec = 300 (default) [int, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : TimeToSendMeshRenderFidelitySec <= 0
-    Fórmula : frame_m0x80 - r14->field_0x20->field_0xcb8->field_0x4e10 < TimeToSendMeshRenderFidelitySec
+    Fórmula : frame_m0x80 - r14->field_0x20->field_0xcb8->field_0x4e10 < (double)TimeToSendMeshRenderFidelitySec
     [Child @0x367b450] Papel   : Parâmetro de configuração lido diretamente pela rotina
     [Child @0x367b6b0] Papel   : Parâmetro de configuração lido diretamente pela rotina
     [Child @0x370bfd0] Papel   : Parâmetro de configuração lido diretamente pela rotina
@@ -26,7 +26,7 @@ Operação  : 0x36747d6: cmp dword [flag], imm ; fn=0x36745d6..0x3674e76
       auto* f_a8 = this->field_0xa8;
       if (this != 0 && f_a8 != 0) {
         auto ret_0x4954e70_1 = call_0x4954e70(global_0x84c101c);
-        call_0x2f6c4f0(f_a8->field_0xe0, xmm15, "%.4f msec", xmm15);
+        call_0x2f6c4f0(f_a8->field_0xe0, (double)xmm15, "%.4f msec", (double)xmm15);
         call_0x4954e70(ret_0x4954e70_1);
       }
       if (RenderDeferCaptureUntilFrameSubmitted) {
@@ -40,12 +40,14 @@ Operação  : 0x36747d6: cmp dword [flag], imm ; fn=0x36745d6..0x3674e76
       auto ret_0x4954e70_7 = call_0x4954e70(global_0x84c3a3c);
       call_0x370bfd0(r14->field_0x20->field_0xaf8);
       call_0x3560720(r14->field_0x20, &frame_0x110);
+      void* i_edi = frame_0x110;
       if (frame_0x110 != frame_0x118) {
         do { // L_0x36746b2
-          if (frame_0x110->field_0x0 != 0) {
-            frame_0x110->field_0x0->vfunc_0x78() // -> RBX::Lua::LuaArguments::fn_0x4089a70;
+          if (i_edi->field_0x0 != 0) {
+            i_edi->field_0x0->vfunc_0x78() // -> RBX::Lua::LuaArguments::fn_0x4089a70;
           }
-        } while (&frame_0x110->field_0x8 != frame_0x118); // loop -> L_0x36746b2
+          i_edi += 8;
+        } while (i_edi != frame_0x118); // loop -> L_0x36746b2
       }
       call_0x6f5b10(&frame_0x110);
       if (RenderCapturePlayerGuiMode2) {
@@ -57,7 +59,8 @@ Operação  : 0x36747d6: cmp dword [flag], imm ; fn=0x36745d6..0x3674e76
       if (frame_0x1b0 != 0 && frame_0x1a8 != -1) {
         uint64_t tsc_0x367472b = rdtsc();
         auto ret_0x2973cd0_14 = call_0x2973cd0();
-        call_0x2925410(&frame_0x130, tsc_0x367472b - global_0x8cda630, 0, atomic_fetch_add(&ret_0x2973cd0_14->field_0x0[r8 * 8], tsc_0x367472b - global_0x8cda630 - frame_0x1a8));
+        int64_t idx_1 = ret_0x2973cd0_14->field_0xfc58 * 2688 + (frame_0x140 & 0x3fff);
+        call_0x2925410(&frame_0x130, tsc_0x367472b - global_0x8cda630, 0, atomic_fetch_add(&ret_0x2973cd0_14->field_0x0[idx_1 * 8], tsc_0x367472b - global_0x8cda630 - frame_0x1a8));
       }
       if (frame_m0x48 != 0) {
         call_0x6daf40(frame_m0x48);
@@ -70,7 +73,7 @@ Operação  : 0x36747d6: cmp dword [flag], imm ; fn=0x36745d6..0x3674e76
       }
       if (TimeToSendMeshRenderFidelitySec > 0) {
         call_0x495a220(&frame_m0x80);
-        if (frame_m0x80 - r14->field_0x20->field_0xcb8->field_0x4e10 >= TimeToSendMeshRenderFidelitySec) {
+        if (frame_m0x80 - r14->field_0x20->field_0xcb8->field_0x4e10 >= (double)TimeToSendMeshRenderFidelitySec) {
           if (global_0x8ddd4f0 > rbp->field_0x58->field_0x0->field_0x0[r15]) {
             call_0x12e0(&sym_0x8ddd4f0);
             if (global_0x8ddd4f0 == -1) {
@@ -83,10 +86,10 @@ Operação  : 0x36747d6: cmp dword [flag], imm ; fn=0x36745d6..0x3674e76
           call_0x2925410(&frame_0x4c0, -1, 0);
         }
       }
-      r14->field_0x20->field_0xcb8->field_0x4e18 = r14->field_0x20->field_0xcb8->field_0x4e18 + 1;
+      r14->field_0x20->field_0xcb8->field_0x4e18++;
       if (TelemetryTimeToTrackMeshSizeBuckets2 && TimeToStopTrackMeshSizeBucketSec > 0 && r14->field_0x20->field_0xcb8->field_0x4e28 != 0) {
         call_0x495a220(&frame_0x0);
-        if (frame_0x0 - r14->field_0x20->field_0xcb8->field_0x4e30 >= TimeToStopTrackMeshSizeBucketSec) {
+        if (frame_0x0 - r14->field_0x20->field_0xcb8->field_0x4e30 >= (double)TimeToStopTrackMeshSizeBucketSec) {
           if (global_0x8ddd500 > rbp->field_0x58->field_0x0->field_0x0[r15]) {
             call_0x12e0(&sym_0x8ddd500);
             if (global_0x8ddd500 == -1) {
@@ -100,15 +103,15 @@ Operação  : 0x36747d6: cmp dword [flag], imm ; fn=0x36745d6..0x3674e76
         }
       }
       call_0x495a220(&frame_0x8);
-      double fxmm1_3;
+      float fxmm1_1;
       if (!MovePrerender && !MovePrerenderV2) {
-        fxmm1_3 = (frame_0x8 - frame_m0x80) * xmm14;
+        fxmm1_1 = (float)((frame_0x8 - frame_m0x80) * xmm14);
       } else {
         auto ret_0x4959ee0_34 = call_0x4959ee0();
-        fxmm1_3 = (ret_0x4959ee0_34 - r14->field_0x50) * xmm14;
+        fxmm1_1 = (float)((ret_0x4959ee0_34 - r14->field_0x50) * xmm14);
       }
-      r14->field_0x58 = fxmm1_3;
-      void* v_rcx_4;
+      r14->field_0x58 = fxmm1_1;
+      void* v_rcx_2;
       if (MPLabelRenderTotalTime) {
         if (global_0x8ddd510 > rbp->field_0x58->field_0x0->field_0x0[r15]) {
           call_0x12e0(&sym_0x8ddd510);
@@ -117,7 +120,7 @@ Operação  : 0x36747d6: cmp dword [flag], imm ; fn=0x36745d6..0x3674e76
             call_0x14f0(&sym_0x8ddd510);
           }
         }
-        v_rcx_4 = global_0x8ddd518;
+        v_rcx_2 = global_0x8ddd518;
       } else {
         if (global_0x8ddd520 > rbp->field_0x58->field_0x0->field_0x0[r15]) {
           call_0x12e0(&sym_0x8ddd520);
@@ -126,10 +129,10 @@ Operação  : 0x36747d6: cmp dword [flag], imm ; fn=0x36745d6..0x3674e76
             call_0x14f0(&sym_0x8ddd520);
           }
         }
-        v_rcx_4 = global_0x8ddd528;
+        v_rcx_2 = global_0x8ddd528;
       }
-      call_0x2925220(v_rcx_4, "RenderTotalTime %f", r14->field_0x58);
-      r14->field_0x5c = r14->field_0x58 - xmm6;
+      call_0x2925220(v_rcx_2, "RenderTotalTime %f", (double)r14->field_0x58);
+      r14->field_0x5c = (float)((double)r14->field_0x58 - xmm6);
       auto vret_42 = r14->vfunc_0x180(r14) // -> RBX::Graphics::RenderView::fn_0x36624e0;
       if (global_0x8da5d90 > rbp->field_0x58->field_0x0->field_0x0[r15]) {
         call_0x12e0(&sym_0x8da5d90);
@@ -140,12 +143,10 @@ Operação  : 0x36747d6: cmp dword [flag], imm ; fn=0x36745d6..0x3674e76
         }
       }
       call_0x2e13a20(&frame_0x5e0, &global_0x8da5d98->field_0x90, 0);
-      if ((frame_0x5e0 & 0x1) != 0 && (frame_0x5e0 & 0xfffffffe)->field_0x0 == 3) {
-        if (atomic_cas(&(frame_0x5e0 & 0xfffffffe)->field_0x0, (frame_0x5e0 & 0xfffffffe)->field_0x0, 1) != 0) {
+      if ((frame_0x5e0 & 0x1) != 0) {
+        if ((frame_0x5e0 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(frame_0x5e0 & 0xfffffffe)->field_0x0, (frame_0x5e0 & 0xfffffffe)->field_0x0, 1) != 0) {
           call_0xdac0(frame_0x5e0 & 0xfffffffe);
         }
-      } else {
-        call_0xdac0(frame_0x5e0 & 0xfffffffe);
       }
       if (vret_42->field_0x120 > global_0x8da5d98->field_0x58 && global_0x8da5d98->field_0x60 > vret_42->field_0x118) {
         call_0x49284b0(&vret_42->field_0x138, max(vret_42->field_0x120, global_0x8da5d98->field_0x60) - min(global_0x8da5d98->field_0x58, vret_42->field_0x118));
@@ -169,7 +170,8 @@ Operação  : 0x36747d6: cmp dword [flag], imm ; fn=0x36745d6..0x3674e76
       if (frame_0x238 != -1) {
         uint64_t tsc_0x3674dae = rdtsc();
         auto ret_0x2973cd0_55 = call_0x2973cd0();
-        call_0x2925410(&frame_0x1c0, tsc_0x3674dae - global_0x8cda630, 0, atomic_fetch_add(&ret_0x2973cd0_55->field_0x0[r8 * 8], tsc_0x3674dae - global_0x8cda630 - frame_0x238));
+        int64_t idx_2 = ret_0x2973cd0_55->field_0xfc58 * 2688 + (frame_0x1d0 & 0x3fff);
+        call_0x2925410(&frame_0x1c0, tsc_0x3674dae - global_0x8cda630, 0, atomic_fetch_add(&ret_0x2973cd0_55->field_0x0[idx_2 * 8], tsc_0x3674dae - global_0x8cda630 - frame_0x238));
       }
     }
   
@@ -709,13 +711,13 @@ Operação  : 0x36747d6: cmp dword [flag], imm ; fn=0x36745d6..0x3674e76
           FLog::Log("[FLog::RomarkScreenshot] Setting sProcessingScreenshot to true for type: {}.");
         }
         if (!RenderScreenshotRequestIntake) {
-          this->field_0x5b8[rdi * 8] = this->field_0x30c;
+          this->field_0x5b8[(this->field_0x610 + this->field_0x610 * 4) * 2 * 8] = this->field_0x30c;
           void* prev_0x368_2 = this->field_0x368;
           this->field_0x368 = 0;
-          this->field_0x5b0[rdi * 8] = prev_0x368_2;
+          this->field_0x5b0[(this->field_0x610 + this->field_0x610 * 4) * 2 * 8] = prev_0x368_2;
           this->field_0x30c = 0;
           if (ImageScreenCaptureEnabled4) {
-            this->field_0x5bc[rdi * 8] = param_3;
+            this->field_0x5bc[(this->field_0x610 + this->field_0x610 * 4) * 2 * 8] = param_3;
           }
         }
       }
@@ -740,7 +742,7 @@ Operação  : 0x36747d6: cmp dword [flag], imm ; fn=0x36745d6..0x3674e76
     0x367b497 | 0f 82 ec 01 00 00        | jb 0x367b689
     0x367b49d | 48 8d 05 49 35 52 0b     | lea rax, [rip + 0xb523549] ; "[FLog::Graphics] onDrawFinished called while a capture download is already pending"
     0x367b4a4 | 48 89 84 24 b0 00 00 00  | mov qword ptr [rsp + 0xb0], rax
-    0x367b4ac | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x367b4ac | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x367b4b3 | 48 8b 8c 24 b0 00 00 00  | mov rcx, qword ptr [rsp + 0xb0]
     0x367b4bb | 48 81 c1 33 62 82 f8     | add rcx, 0xf8826233
     0x367b4c2 | 48 89 4c 24 40           | mov qword ptr [rsp + 0x40], rcx
@@ -784,7 +786,7 @@ Operação  : 0x36747d6: cmp dword [flag], imm ; fn=0x36745d6..0x3674e76
     0x367b572 | 0f 82 bb 00 00 00        | jb 0x367b633
     0x367b578 | 48 8d 05 ba 46 55 0b     | lea rax, [rip + 0xb5546ba] ; "[FLog::RomarkScreenshot] Setting sProcessingScreenshot to true for type: {}."
     0x367b57f | 48 89 84 24 b0 00 00 00  | mov qword ptr [rsp + 0xb0], rax
-    0x367b587 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x367b587 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x367b58e | 48 8b 8c 24 b0 00 00 00  | mov rcx, qword ptr [rsp + 0xb0]
     0x367b596 | 48 81 c1 97 4f 7f f8     | add rcx, 0xf87f4f97
     0x367b59d | 48 89 4c 24 60           | mov qword ptr [rsp + 0x60], rcx
@@ -859,12 +861,12 @@ Operação  : 0x36747d6: cmp dword [flag], imm ; fn=0x36745d6..0x3674e76
     
     // Flag defaults: TimeToSendMeshRenderFidelitySec = 300, RomarkScreenshot = 0, RenderScreenshotRequestIntake = false, ImageScreenCaptureEnabled4 = false, CLI207043E3 = false, Graphics = 6
     void RBX::TimeTo::func_0x367b6b0(RBX::TimeTo* this, int64_t param_2, void* param_3, void* param_4) {
-      int32_t i_eax;
       if (param_2 != 0) {
         if (RomarkScreenshot >= 6 && RomarkScreenshot >> 8 >= 4) {
-          i_eax = rsi;
+          uint64_t i_eax = -1;
           do { // L_0x367b753
-          } while (rcx[(i_eax + 1)] != 0); // loop -> L_0x367b753
+            i_eax++;
+          } while (rcx[i_eax] != 0); // loop -> L_0x367b753
           FLog::Log("[FLog::RomarkScreenshot] Setting sProcessingScreenshot to true for type: {}.");
         }
         if (!RenderScreenshotRequestIntake) {
@@ -881,10 +883,12 @@ Operação  : 0x36747d6: cmp dword [flag], imm ; fn=0x36745d6..0x3674e76
         if (CLI207043E3 && this->field_0x638 != 0 && this->field_0x658 != 0) {
           call_0x367f250(&this->field_0x638, param_4);
         }
-        if (rbx->field_0x30 == 0 && RenderScreenshotRequestIntake) {
-          call_0x3679a30(this, &this->field_0x570 + ((this->field_0x610 + this->field_0x610 * 4) << 4), &this->field_0x638);
-        } else {
-          call_0x367a5b0(this, &this->field_0x570 + ((this->field_0x610 + this->field_0x610 * 4) << 4));
+        if (rbx->field_0x30 == 0) {
+          if (RenderScreenshotRequestIntake) {
+            call_0x3679a30(this, &this->field_0x570 + ((this->field_0x610 + this->field_0x610 * 4) << 4), &this->field_0x638);
+          } else {
+            call_0x367a5b0(this, &this->field_0x570 + ((this->field_0x610 + this->field_0x610 * 4) << 4));
+          }
         }
         int32_t v_rax_1 = this->field_0x610 + 1 & 0x80000001;
         if ((this->field_0x610 + 1 & 0x80000001) < 0) {
@@ -892,20 +896,24 @@ Operação  : 0x36747d6: cmp dword [flag], imm ; fn=0x36745d6..0x3674e76
         }
         this->field_0x610 = v_rax_1;
       }
+      void* i_ebx = &this->field_0x570;
+      int32_t i_ebp = 2;
       do { // L_0x367b8a0
-        if (this->field_0x5a0 == rsi && this->field_0x570 != 0) {
-          call_0x367ff30(&this->field_0x570);
+        if (i_ebx->field_0x30 == -1 && i_ebx->field_0x0 != 0) {
+          call_0x367ff30(i_ebx);
         }
-      } while (((rsi + 3) - 1) != 0); // loop -> L_0x367b8a0
-      if (RenderScreenshotRequestIntake && global_0x84be8db == 0 && this->field_0x668 == rsi && this->field_0x638 != 0) {
+        i_ebx += 0x50;
+        i_ebp--;
+      } while (i_ebp != 0); // loop -> L_0x367b8a0
+      if (RenderScreenshotRequestIntake && global_0x84be8db == 0 && this->field_0x668 == -1 && this->field_0x638 != 0) {
         call_0x367ff30(&this->field_0x638);
       }
       this->field_0x618 = 0;
       void* prev_0x620_3 = this->field_0x620;
       this->field_0x620 = 0;
-      if (prev_0x620_3 != 0 && atomic_fetch_add(&this->field_0x620->field_0x8, rsi) == 1) {
+      if (prev_0x620_3 != 0 && atomic_fetch_sub(&this->field_0x620->field_0x8, 1) == 1) {
         this->field_0x620->vfunc_0x0(prev_0x620_3) // -> RBX::ModelInstance::BackpackItem::fn_0x3343dc0;
-        if (atomic_fetch_add(&this->field_0x620->field_0xc, rsi) == 1) {
+        if (atomic_fetch_sub(&this->field_0x620->field_0xc, 1) == 1) {
           this->field_0x620->vfunc_0x8(prev_0x620_3) // -> boost::program_options::invalid_option_value::fn_0x35074e0;
         }
       }
@@ -914,8 +922,10 @@ Operação  : 0x36747d6: cmp dword [flag], imm ; fn=0x36745d6..0x3674e76
         if (f_ae0 != 0) {
           f_ae0->vfunc_0x30(f_ae0, this->field_0xb40) // -> RBX::ModelInstance::BackpackItem::fn_0x3344150;
         } else if (Graphics >= 6 && Graphics >> 8 >= 2) {
+          uint64_t i_esi = -1;
           do { // L_0x367b9c0
-          } while (i_eax[(rsi + 1)] != 0); // loop -> L_0x367b9c0
+            i_esi++;
+          } while (rax[i_esi] != 0); // loop -> L_0x367b9c0
           FLog::Log("[FLog::Graphics] videoCaptureBuffers is not set, but currentVideoCaptureFramebuffer is not null.");
         }
         this->field_0xb40 = 0;
@@ -934,7 +944,7 @@ Operação  : 0x36747d6: cmp dword [flag], imm ; fn=0x36745d6..0x3674e76
     0x367b6c9 | 48 8b 05 10 d0 a5 04     | mov rax, qword ptr [rip + 0x4a5d010]
     0x367b6d0 | 48 33 c4                 | xor rax, rsp
     0x367b6d3 | 48 89 84 24 e0 00 00 00  | mov qword ptr [rsp + 0xe0], rax
-    0x367b6db | 48 c7 c6 ff ff ff ff     | mov rsi, 0xffffffff
+    0x367b6db | 48 c7 c6 ff ff ff ff     | mov rsi, -0x1
     0x367b6e2 | 45 33 e4                 | xor r12d, r12d
     0x367b6e5 | 4d 8b f1                 | mov r14, r9
     0x367b6e8 | 45 8b f8                 | mov r15d, r8d
@@ -1161,48 +1171,56 @@ Operação  : 0x36747d6: cmp dword [flag], imm ; fn=0x36745d6..0x3674e76
     auto RBX::TimeTo::func_0x370bfd0(RBX::TimeTo* this) {
       call_0x6fdab0(this->field_0x38, this->field_0x40);
       this->field_0x40 = this->field_0x38;
-      int64_t i_ebx;
+      void* i_ebx;
       auto* f_58 = this->field_0x58;
-      auto* f_58_0 = f_58->field_0x0;
-      if (RelativeGuiEnable5 && f_58_0 != f_58) {
-        auto i_eax = f_58;
-        i_ebx = f_58_0;
+      if (RelativeGuiEnable5 && f_58->field_0x0 != f_58) {
+        void* i_eax = f_58;
+        i_ebx = f_58->field_0x0;
         do { // L_0x370c031
-          if (f_58_0->field_0x18->field_0x5c != 0) {
+          if (i_ebx->field_0x18->field_0x5c != 0) {
+            int64_t tmp_1 = (((i_ebx->field_0x10 ^ 0xcbf29ce484222325) * 0x100000001b3 ^ i_ebx->field_0x11) * 0x100000001b3 ^ i_ebx->field_0x12) * 0x100000001b3 ^ i_ebx->field_0x13;
+            int64_t tmp_2 = (((tmp_1 * 0x100000001b3 ^ i_ebx->field_0x14) * 0x100000001b3 ^ i_ebx->field_0x15) * 0x100000001b3 ^ i_ebx->field_0x16) * 0x100000001b3 ^ i_ebx->field_0x17;
             auto* f_68 = this->field_0x68;
-            if (f_68->field_0x8[rdx * 8] == i_ebx) {
-              if (f_68->field_0x0[rdx * 8] == i_ebx) {
-                void* prev_0x0[rdx * 8]_5 = f_68->field_0x0[rdx * 8];
-                f_68->field_0x0[rdx * 8] = i_eax;
-                f_68->field_0x8[rdx * 8] = i_eax;
+            if (f_68->field_0x8[(this->field_0x80 & tmp_2 * 0x100000001b3) * 2 * 8] == i_ebx) {
+              if (f_68->field_0x0[(this->field_0x80 & tmp_2 * 0x100000001b3) * 2 * 8] == i_ebx) {
+                void* prev_0x80 & tmp_2 * 0x100000001b3) * 2 * 8]_4 = f_68->field_0x0[(this->field_0x80 & tmp_2 * 0x100000001b3) * 2 * 8];
+                f_68->field_0x0[(this->field_0x80 & tmp_2 * 0x100000001b3) * 2 * 8] = i_eax;
+                f_68->field_0x8[(this->field_0x80 & tmp_2 * 0x100000001b3) * 2 * 8] = i_eax;
               } else {
-                f_68->field_0x8[rdx * 8] = f_58_0->field_0x8;
+                f_68->field_0x8[(this->field_0x80 & tmp_2 * 0x100000001b3) * 2 * 8] = i_ebx->field_0x8;
               }
-            } else if (f_68->field_0x0[rdx * 8] == i_ebx) {
-              void* prev_0x0[rdx * 8]_4 = f_68->field_0x0[rdx * 8];
-              f_68->field_0x0[rdx * 8] = f_58_0->field_0x0;
+            } else if (f_68->field_0x0[(this->field_0x80 & tmp_2 * 0x100000001b3) * 2 * 8] == i_ebx) {
+              void* prev_0x80 & tmp_2 * 0x100000001b3) * 2 * 8]_3 = f_68->field_0x0[(this->field_0x80 & tmp_2 * 0x100000001b3) * 2 * 8];
+              f_68->field_0x0[(this->field_0x80 & tmp_2 * 0x100000001b3) * 2 * 8] = i_ebx->field_0x0;
             }
-            this->field_0x60 = this->field_0x60 - 1;
-            f_58_0->field_0x8->field_0x0 = f_58_0->field_0x0;
-            f_58_0->field_0x0->field_0x8 = f_58_0->field_0x8;
-            if (f_58_0->field_0x20 != 0 && atomic_fetch_sub(&f_58_0->field_0x20->field_0x8, 1) == 1) {
-              f_58_0->field_0x20->vfunc_0x0(f_58_0->field_0x20) // -> RBX::BevelMesh::CylinderMesh::fn_0x3acff30;
-              if (atomic_fetch_sub(&f_58_0->field_0x20->field_0xc, 1) == 1) {
-                f_58_0->field_0x20->vfunc_0x8(f_58_0->field_0x20) // -> boost::program_options::invalid_option_value::fn_0x35074e0;
+            this->field_0x60--;
+            i_ebx->field_0x8->field_0x0 = i_ebx->field_0x0;
+            i_ebx->field_0x0->field_0x8 = i_ebx->field_0x8;
+            if (i_ebx->field_0x20 != 0 && atomic_fetch_sub(&i_ebx->field_0x20->field_0x8, 1) == 1) {
+              i_ebx->field_0x20->vfunc_0x0(i_ebx->field_0x20) // -> RBX::BevelMesh::CylinderMesh::fn_0x3acff30;
+              if (atomic_fetch_sub(&i_ebx->field_0x20->field_0xc, 1) == 1) {
+                i_ebx->field_0x20->vfunc_0x8(i_ebx->field_0x20) // -> boost::program_options::invalid_option_value::fn_0x35074e0;
               }
             }
             call_0x4955ac0(i_ebx);
           }
-        } while (f_58_0->field_0x0 != f_58); // loop -> L_0x370c031
+          i_eax = f_58;
+          i_ebx = i_ebx->field_0x0;
+        } while (i_ebx->field_0x0 != f_58); // loop -> L_0x370c031
       }
+      void* i_edi = &this->field_0x160;
+      int32_t i_r14d = 8;
       do { // L_0x370c163
-        if (this->field_0x160 != this->field_0x168) {
+        if (i_edi->field_0x0 != i_edi->field_0x8) {
           do { // L_0x370c170
-            this->field_0x160->vfunc_0x0(i_ebx, 0) // -> RBX::BevelMesh::CylinderMesh::fn_0x3acff30;
-          } while (&this->field_0x160->field_0x88 != this->field_0x168); // loop -> L_0x370c170
+            i_ebx->vfunc_0x0(i_ebx, 0) // -> RBX::BevelMesh::CylinderMesh::fn_0x3acff30;
+            i_ebx += 0x88;
+          } while (i_ebx != i_edi->field_0x8); // loop -> L_0x370c170
         }
-        this->field_0x168 = this->field_0x160;
-      } while ((8 - 1) != 0); // loop -> L_0x370c163
+        i_edi->field_0x8 = i_edi->field_0x0;
+        i_edi += 0x18;
+        i_r14d--;
+      } while (i_r14d != 0); // loop -> L_0x370c163
       return tailcall_0x5baf920(this->field_0xd8->field_0x0);
     }
   
@@ -1359,16 +1377,18 @@ Operação  : 0x36747d6: cmp dword [flag], imm ; fn=0x36745d6..0x3674e76
     // Flag defaults: TimeToSendMeshRenderFidelitySec = 300
     void RBX::TimeTo::func_0x3560720(RBX::TimeTo* this, int64_t param_2) {
       auto* f_da0 = this->field_0xda0;
-      auto* f_da0_0 = f_da0->field_0x0;
-      if (f_da0_0 != f_da0) {
+      if (f_da0->field_0x0 != f_da0) {
+        void* i_ebx = f_da0->field_0x0;
         do { // L_0x3560760
           if (param_2->field_0x8 != param_2->field_0x10) {
-            param_2->field_0x8->field_0x0 = f_da0_0->field_0x38;
+            param_2->field_0x8->field_0x0 = i_ebx->field_0x38;
+            param_2->field_0x8 = param_2->field_0x8 + 8;
           } else {
-            auto local_0x40 = f_da0_0->field_0x38;
+            auto local_0x40 = i_ebx->field_0x38;
             call_0x99e480(param_2, param_2->field_0x8, &local_0x40);
           }
-        } while (f_da0_0->field_0x0 != f_da0); // loop -> L_0x3560760
+          i_ebx = i_ebx->field_0x0;
+        } while (i_ebx->field_0x0 != f_da0); // loop -> L_0x3560760
       }
     }
   

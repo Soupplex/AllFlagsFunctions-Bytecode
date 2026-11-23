@@ -8,8 +8,9 @@ Operação  : 0x3d25b9e: cmp [flag], reg ; fn=0x3d258a0..0x3d25e13
   === [Resumo do Efeito da FFlag no Engine (RBX::RandomSpawn)] ===
     Classe  : RBX::RandomSpawn (RTTI Resolvido)
     Padrão  : DFIntRandomSpawnRetryTimes = 20 (default) [int, mode=2]
-    Papel   : Parâmetro de configuração lido diretamente pela rotina
-    Fórmula : min((int32_t)(min(0.0, ftmp_2) * min(0.0, max(param_2->field_0x178->field_0x1c4, 0.05) * 0.5 - 1.0) * 4.0 / (fxmm3_5 * fxmm7_7)) + (int32_t)(min(0.0, ftmp_2) * min(0.0, ftmp_1) * 4.0 / (fxmm3_5 * fxmm7_7)), RandomSpawnRetryTimes)
+    Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
+    Fórmula : min((int32_t)(min(0.0, ftmp_2) * min(0.0, max(param_2->field_0x178->field_0x1c4, 0.05) * 0.5 - 1.0) * 4.0 / (fxmm3_5 * fxmm7_7)) + (int32_t)(min(0.0, ftmp_2) * min(0.0, ftmp_1) * 4.0 / (fxmm3_5 * fxmm7_7)), RandomSpawnRetryTimes) <= 0
+    Fórmula : i_esi < min((int32_t)(min(0.0, ftmp_2) * min(0.0, max(param_2->field_0x178->field_0x1c4, 0.05) * 0.5 - 1.0) * 4.0 / (fxmm3_5 * fxmm7_7)) + (int32_t)(min(0.0, ftmp_2) * min(0.0, ftmp_1) * 4.0 / (fxmm3_5 * fxmm7_7)), RandomSpawnRetryTimes)
     Altera  : this->field_0x0, this->field_0x8
   
   === [Decompilacao C++ da Funcao 0x3d258a0..0x3d25e13] ===
@@ -29,10 +30,10 @@ Operação  : 0x3d25b9e: cmp [flag], reg ; fn=0x3d258a0..0x3d25e13
       float fxmm4_2;
       float fxmm7_3;
       if (param_3->field_0x0 != 0) {
-        param_3->field_0x0->vfunc_0x260(param_3->field_0x0, &local_0xac, param_3, 0.0) // -> RBX::SurfaceGuiBase::Ads::fn_0x3eb6670;
-        fxmm3_1 = rax->field_0xc - rax->field_0x0;
-        fxmm4_2 = rax->field_0x14 - rax->field_0x8;
-        fxmm7_3 = rax->field_0x10 - rax->field_0x4;
+        auto vret_2 = param_3->field_0x0->vfunc_0x260(param_3->field_0x0, &local_0xac, param_3, 0.0) // -> RBX::SurfaceGuiBase::Ads::fn_0x3eb6670;
+        fxmm3_1 = vret_2->field_0xc - vret_2->field_0x0;
+        fxmm4_2 = vret_2->field_0x14 - vret_2->field_0x8;
+        fxmm7_3 = vret_2->field_0x10 - vret_2->field_0x4;
       } else {
         fxmm3_1 = 0.0;
         fxmm4_2 = 0.0;
@@ -86,39 +87,40 @@ Operação  : 0x3d25b9e: cmp [flag], reg ; fn=0x3d258a0..0x3d25e13
         }
       } else {
         float ftmp_6 = (float)SpawnMaxSearchHeightCharacterMultiplier * fxmm7_7;
-        void* sel_rbx_3 = min((int32_t)(ftmp_5 / (fxmm3_5 * fxmm7_7)) + (int32_t)(ftmp_5 / (fxmm3_5 * fxmm7_7)), RandomSpawnRetryTimes);
         void* stk_11;
         void* stk_12;
-        if (sel_rbx_3 > 0) {
+        if (min((int32_t)(ftmp_5 / (fxmm3_5 * fxmm7_7)) * 2, RandomSpawnRetryTimes) > 0) {
+          int32_t i_esi = 0;
           float xmm8_val = ftmp_6;
-          int64_t ret_0x1499a20_5;
+          void* stk_9;
+          void* stk_10;
           do { // L_0x3d25bf0
-            call_0x5e1ff60();
-            call_0x5e1ff60();
-            float ftmp_9 = (float)rax * (min(0.0, ftmp_1) - -min(0.0, ftmp_1)) / 32767.0 + -min(0.0, ftmp_1);
-            float ftmp_10 = (float)rax * (min(0.0, ftmp_2) - -min(0.0, ftmp_2)) / 32767.0 + -min(0.0, ftmp_2);
+            auto ret_0x5e1ff60_3 = call_0x5e1ff60();
+            auto ret_0x5e1ff60_4 = call_0x5e1ff60();
+            float ftmp_9 = (float)ret_0x5e1ff60_3 * (min(0.0, ftmp_1) - -min(0.0, ftmp_1)) / 32767.0 + -min(0.0, ftmp_1);
+            float ftmp_10 = (float)ret_0x5e1ff60_4 * (min(0.0, ftmp_2) - -min(0.0, ftmp_2)) / 32767.0 + -min(0.0, ftmp_2);
             auto local_0x78 = ftmp_10 * sel_rbx_2->field_0x50 + ftmp_9 * sel_rbx_2->field_0x48 + sel_rbx_2->field_0x6c;
             auto local_0x7c = ftmp_10 * sel_rbx_2->field_0x5c + ftmp_9 * sel_rbx_2->field_0x54 + sel_rbx_2->field_0x70;
             auto local_0x80 = ftmp_10 * sel_rbx_2->field_0x68 + ftmp_9 * sel_rbx_2->field_0x60 + sel_rbx_2->field_0x74;
-            ret_0x1499a20_5 = call_0x1499a20(param_4->field_0x3f8->field_0x9f0, &local_0xa0, (float)SpawnMaxSearchHeightCharacterMultiplier * fxmm7_7, &local_0x78);
+            auto ret_0x1499a20_5 = call_0x1499a20(param_4->field_0x3f8->field_0x9f0, &local_0xa0, (float)SpawnMaxSearchHeightCharacterMultiplier * fxmm7_7, &local_0x78);
             float ftmp_17 = ret_0x1499a20_5->field_0x4 - fxmm7_7 * 0.5;
             float ftmp_18 = ftmp_17 - sel_rbx_2->field_0x70 - max(param_2->field_0x178->field_0x1c8, 0.05) * 0.5;
             if (1.0 > ftmp_18) break;
-            void* stk_9;
-            void* stk_10;
+            float fxmm8_8;
             if (xmm8_val > ftmp_17) {
+              fxmm8_8 = ftmp_17;
               stk_9 = ret_0x1499a20_5->field_0x0;
               stk_10 = ret_0x1499a20_5->field_0x8;
             } else {
+              fxmm8_8 = xmm8_val;
               stk_9 = sel_rbx_2->field_0x6c;
               stk_10 = sel_rbx_2->field_0x74;
             }
-            stk_11 = stk_9;
-            stk_12 = stk_10;
-            break;
-          } while ((esi + 1) < sel_rbx_3); // loop -> L_0x3d25bf0
-          stk_11 = ret_0x1499a20_5->field_0x0;
-          stk_12 = ret_0x1499a20_5->field_0x8;
+            i_esi++;
+            xmm8_val = fxmm8_8;
+          } while (i_esi < min((int32_t)(ftmp_5 / (fxmm3_5 * fxmm7_7)) * 2, RandomSpawnRetryTimes)); // loop -> L_0x3d25bf0
+          stk_11 = stk_9;
+          stk_12 = stk_10;
         } else {
           stk_11 = sel_rbx_2->field_0x6c;
           stk_12 = sel_rbx_2->field_0x74;

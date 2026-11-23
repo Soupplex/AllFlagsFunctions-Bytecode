@@ -14,6 +14,9 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
     Fórmula : DynamicTranslation >> 8 < 3
     Altera  : this->field_0x28, this->field_0xc8, this->field_0xd0, this->field_0xe8, this->field_0xf0, this->field_0xf0->field_0xc
     [Child @0x12d04f7] Papel   : Parâmetro de configuração lido diretamente pela rotina
+    [Child @0x12c3480] Papel   : Parâmetro de configuração lido diretamente pela rotina
+    [Child @0x12c3480] Fórmula : DynamicTranslationSenderServerLRUMaxSizeBytes
+    [Child @0x12c3070] Papel   : Parâmetro de configuração lido diretamente pela rotina
     [Child @0x12d83d0] Papel   : Parâmetro de configuração lido diretamente pela rotina
     [Child @0x12d83d0] Fórmula : "DynamicTranslationSender"
     [XREF #2 @0x12d0df8] Classe  : RBX::DynamicTranslation (RTTI Resolvido)
@@ -46,10 +49,9 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
         return;
       }
       if (param_2->field_0x200 != 0 && param_2->field_0x200->field_0x8 != 0) {
-        auto expr_1 = atomic_cas(&param_2->field_0x200->field_0x8, param_2->field_0x200->field_0x8, (param_2->field_0x200->field_0x8 + 1)) == 0;
         do { // L_0x12cffa0
           atomic_try_incref(&param_2->field_0x200->field_0x8);
-          if expr_1 break;
+          if (atomic_cas(&param_2->field_0x200->field_0x8, param_2->field_0x200->field_0x8, param_2->field_0x200->field_0x8 + 1) == 0) break;
           if (param_2->field_0x200->field_0x8 == 0) break;
         } while (true); // loop -> L_0x12cffa0
         void* sel_rsi_1 = param_2->field_0x1f8 == 0 ? 0 : param_2->field_0x1f8->field_m0x1f0;
@@ -67,24 +69,22 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
             auto ret_0x12d83d0_5 = call_0x12d83d0(&local_0xa8, &this->field_0x8, &local_0xc0);
             call_0x12d85b0(&this->field_0xf8, ret_0x12d83d0_5);
             if (local_0xa8 != 0) {
-              if (local_0xa8->field_0x48 != 0 && atomic_fetch_add(&local_0xa8->field_0x48->field_0xc, param_2->field_0x200) == 1) {
+              if (local_0xa8->field_0x48 != 0 && atomic_fetch_sub(&local_0xa8->field_0x48->field_0xc, 1) == 1) {
                 local_0xa8->field_0x48->vfunc_0x8() // -> RBX::VehicleSeat::fn_0x147a960;
               }
               call_0x12d4bd0(local_0xa8);
               call_0x4955ac0(local_0xa8);
             }
-            if (local_0xc8 != 0 && atomic_fetch_add(&local_0xc8->field_0xc, param_2->field_0x200) == 1) {
+            if (local_0xc8 != 0 && atomic_fetch_sub(&local_0xc8->field_0xc, 1) == 1) {
               local_0xc8->vfunc_0x8() // -> RBX::VehicleSeat::fn_0x147a960;
             }
-            if (DynamicTranslation >= 6 && DynamicTranslation >> 8 >= 6) {
-            } else {
+            if (!(DynamicTranslation >= 6 && DynamicTranslation >> 8 >= 6)) {
               L_0x12d0503:
               if (param_2->field_0x200 != 0 && param_2->field_0x200->field_0x8 != 0) {
                 L_0x12d0525:
                 do { // L_0x12d0525
-                  L_0x12d0525:
                   atomic_try_incref(&param_2->field_0x200->field_0x8);
-                  if expr_1 break;
+                  if (atomic_cas(&param_2->field_0x200->field_0x8, param_2->field_0x200->field_0x8, param_2->field_0x200->field_0x8 + 1) == 0) break;
                   if (param_2->field_0x200->field_0x8 == 0) break;
                 } while (true); // loop -> L_0x12d0525
                 void* sel_rdx_2 = param_2->field_0x1f8 == 0 ? 0 : param_2->field_0x1f8->field_m0x1f0;
@@ -103,16 +103,14 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
         if (param_2->field_0x970 != 3) {
           if (param_2->field_0x970 == 1) {
             auto ret_0x40625d0_2 = call_0x40625d0(&param_2->field_0x1f0);
-            if (ret_0x40625d0_2 != 0) {
-              if (ret_0x40625d0_2->field_0x980 == 1) {
-                goto L_0x12d037a;
-              }
+            if (ret_0x40625d0_2 != 0 && ret_0x40625d0_2->field_0x980 == 1) {
+              goto L_0x12d037a;
             }
           }
           if (param_2->field_0x970 == 2) {
             this->field_0x28 = 0;
             if (param_2->field_0x200 != 0) {
-              param_2->field_0x200->field_0xc = param_2->field_0x200->field_0xc + 1;
+              param_2->field_0x200->field_0xc++;
             }
             auto ret_0x4956040_11 = call_0x4956040(360);
             if (ret_0x4956040_11 != 0) {
@@ -122,17 +120,12 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
               ret_0x4956040_15->field_0xc = 1;
               ret_0x4956040_15->field_0x0 = &sym_0x6ffe3f0;
               ret_0x4956040_15->field_0x10 = ret_0x12c3480_14;
-              if (ret_0x12c3480_14 != 0 && ret_0x12c3480_14->field_0x8 != 0) {
-                if (ret_0x12c3480_14->field_0x8->field_0x8 == 0) {
-                  L_0x12d00f7:
-                  ret_0x4956040_15->field_0x8 = ret_0x4956040_15->field_0x8 + 1;
-                  ret_0x4956040_15->field_0xc = ret_0x4956040_15->field_0xc + 1;
-                  ret_0x12c3480_14->field_0x0 = ret_0x12c3480_14;
-                  ret_0x12c3480_14->field_0x8 = ret_0x4956040_15;
-                  ret_0x12c3480_14->field_0x8->vfunc_0x8() // -> RBX::VehicleSeat::fn_0x147a960;
-                }
-              } else {
-                goto L_0x12d00f7;
+              if (ret_0x12c3480_14 != 0 && (ret_0x12c3480_14->field_0x8 == 0 || ret_0x12c3480_14->field_0x8->field_0x8 == 0)) {
+                ret_0x4956040_15->field_0x8++;
+                ret_0x4956040_15->field_0xc++;
+                ret_0x12c3480_14->field_0x0 = ret_0x12c3480_14;
+                ret_0x12c3480_14->field_0x8 = ret_0x4956040_15;
+                ret_0x12c3480_14->field_0x8->vfunc_0x8() // -> RBX::VehicleSeat::fn_0x147a960;
               }
               this->field_0xe8 = ret_0x12c3480_14;
               void* prev_0xf0_2 = this->field_0xf0;
@@ -141,81 +134,80 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
                 call_0x6daf40(prev_0xf0_2);
               }
               call_0x12c3070(this->field_0xe8);
+              void* stk_3;
+              void* stk_4;
+              if (this->field_0xf0 != 0) {
+                this->field_0xf0->field_0xc++;
+                stk_3 = this->field_0xe8;
+                stk_4 = this->field_0xf0;
+              } else {
+                stk_3 = 0.0;
+                stk_4 = 0.0;
+              }
+              auto local_0x40 = stk_3;
+              auto local_0x44 = 0.0;
+              auto local_0x48 = stk_4;
+              auto local_0x4c = 0.0;
+              auto ret_0x12d83d0_18 = call_0x12d83d0(&local_0xa0, &this->field_0x8, &local_0x40);
+              call_0x12d85b0(&this->field_0xf8, ret_0x12d83d0_18);
+              if (local_0xa0 != 0) {
+                if (local_0xa0->field_0x48 != 0 && atomic_fetch_sub(&local_0xa0->field_0x48->field_0xc, 1) == 1) {
+                  local_0xa0->field_0x48->vfunc_0x8() // -> RBX::VehicleSeat::fn_0x147a960;
+                }
+                call_0x12d4bd0(local_0xa0);
+                call_0x4955ac0(local_0xa0);
+              }
+              if (local_0x48 != 0 && atomic_fetch_sub(&local_0x48->field_0xc, 1) == 1) {
+                local_0x48->vfunc_0x8() // -> RBX::VehicleSeat::fn_0x147a960;
+              }
               void* stk_5;
               void* stk_6;
               if (this->field_0xf0 != 0) {
-                this->field_0xf0->field_0xc = this->field_0xf0->field_0xc + 1;
+                this->field_0xf0->field_0xc++;
                 stk_5 = this->field_0xe8;
                 stk_6 = this->field_0xf0;
               } else {
                 stk_5 = 0.0;
                 stk_6 = 0.0;
-                auto local_0x40 = stk_5;
-                auto local_0x44 = 0.0;
-                auto local_0x48 = stk_6;
-                auto local_0x4c = 0.0;
-                auto ret_0x12d83d0_18 = call_0x12d83d0(&local_0xa0, &this->field_0x8, &local_0x40);
-                call_0x12d85b0(&this->field_0xf8, ret_0x12d83d0_18);
-                if (local_0xa0 != 0) {
-                  if (local_0xa0->field_0x48 != 0 && atomic_fetch_add(&local_0xa0->field_0x48->field_0xc, param_2->field_0x200) == 1) {
-                    local_0xa0->field_0x48->vfunc_0x8() // -> RBX::VehicleSeat::fn_0x147a960;
-                  }
-                  call_0x12d4bd0(local_0xa0);
-                  call_0x4955ac0(local_0xa0);
+              }
+              local_0x70 = sel_rsi_1;
+              auto local_0x50 = stk_5;
+              auto local_0x54 = 0.0;
+              auto local_0x58 = stk_6;
+              auto local_0x5c = 0.0;
+              auto ret_0x12d8650_24 = call_0x12d8650(&local_0x140, &this->field_0x8, &local_0x70, &local_0x50);
+              this->field_0xd8 = ret_0x12d8650_24->field_0x0;
+              this->field_0xe0 = ret_0x12d8650_24->field_0x8;
+              if (local_0x148 != 0) {
+                call_0x6daf40(local_0x148);
+              }
+              if (local_0x58 != 0 && atomic_fetch_sub(&local_0x58->field_0xc, 1) == 1) {
+                local_0x58->vfunc_0x8() // -> RBX::VehicleSeat::fn_0x147a960;
+              }
+              if (this->field_0xe0 != 0) {
+                this->field_0xe0->field_0x8++;
+              }
+              auto local_0xb0 = this->field_0xd8;
+              call_0x2937390(&local_0xb0);
+              if (!(DynamicTranslation >= 6 && DynamicTranslation >> 8 >= 6)) {
+                if (param_2->field_0x200 != 0 && param_2->field_0x200->field_0x8 != 0) {
+                  goto L_0x12d0525;
                 }
-                if (local_0x48 != 0 && atomic_fetch_add(&local_0x48->field_0xc, param_2->field_0x200) == 1) {
-                  local_0x48->vfunc_0x8() // -> RBX::VehicleSeat::fn_0x147a960;
-                }
-                void* stk_7;
-                void* stk_8;
-                if (this->field_0xf0 != 0) {
-                  this->field_0xf0->field_0xc = this->field_0xf0->field_0xc + 1;
-                  stk_7 = this->field_0xe8;
-                  stk_8 = this->field_0xf0;
-                } else {
-                  stk_7 = 0.0;
-                  stk_8 = 0.0;
-                }
-                local_0x70 = sel_rsi_1;
-                auto local_0x50 = stk_7;
-                auto local_0x54 = 0.0;
-                auto local_0x58 = stk_8;
-                auto local_0x5c = 0.0;
-                auto ret_0x12d8650_24 = call_0x12d8650(&local_0x140, &this->field_0x8, &local_0x70, &local_0x50);
-                this->field_0xd8 = ret_0x12d8650_24->field_0x0;
-                this->field_0xe0 = ret_0x12d8650_24->field_0x8;
-                if (local_0x148 != 0) {
-                  call_0x6daf40(local_0x148);
-                }
-                if (local_0x58 != 0 && atomic_fetch_add(&local_0x58->field_0xc, param_2->field_0x200) == 1) {
-                  local_0x58->vfunc_0x8() // -> RBX::VehicleSeat::fn_0x147a960;
-                }
-                if (this->field_0xe0 != 0) {
-                  this->field_0xe0->field_0x8 = this->field_0xe0->field_0x8 + 1;
-                }
-                auto local_0xb0 = this->field_0xd8;
-                call_0x2937390(&local_0xb0);
-                if (DynamicTranslation >= 6 && DynamicTranslation >> 8 >= 6) {
-                } else {
-                  if (param_2->field_0x200 != 0 && param_2->field_0x200->field_0x8 != 0) {
-                    goto L_0x12d0525;
-                  }
-                  call_0x7431a0();
-                }
-              } else {
-                call_0x6ca7d0(&local_0x1d8);
-                call_0x5e066f0(&local_0x1d8, &sym_0x80cbbc0);
+                call_0x7431a0();
               }
             } else {
-              goto L_0x12d0503;
+              call_0x6ca7d0(&local_0x1d8);
+              call_0x5e066f0(&local_0x1d8, &sym_0x80cbbc0);
             }
           } else {
-            goto L_0x12d037a;
+            goto L_0x12d0503;
           }
+        } else {
+          goto L_0x12d037a;
         }
-        call_0x7431a0();
-        goto L_0x12d05a4;
       }
+      call_0x7431a0();
+      goto L_0x12d05a4;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -248,7 +240,7 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
     0x12cfee8 | 48 8b 44 24 38           | mov rax, qword ptr [rsp + 0x38]
     0x12cfeed | 48 05 24 8a ec ff        | add rax, 0xffec8a24
     0x12cfef3 | 48 89 45 90              | mov qword ptr [rbp - 0x70], rax
-    0x12cfef7 | 48 c7 c3 ff ff ff ff     | mov rbx, 0xffffffff
+    0x12cfef7 | 48 c7 c3 ff ff ff ff     | mov rbx, -0x1
     0x12cfefe | 66 90                    | nop
     L_0x12cff00:
     0x12cff00 | 48 ff c3                 | inc rbx
@@ -366,7 +358,7 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
     0x12d00ce | 48 8d 05 1b e3 d2 05     | lea rax, [rip + 0x5d2e31b]
     0x12d00d5 | 48 89 06                 | mov qword ptr [rsi], rax
     0x12d00d8 | 4c 89 76 10              | mov qword ptr [rsi + 0x10], r14
-    0x12d00dc | 48 c7 c3 ff ff ff ff     | mov rbx, 0xffffffff
+    0x12d00dc | 48 c7 c3 ff ff ff ff     | mov rbx, -0x1
     0x12d00e3 | 4d 85 f6                 | test r14, r14
     0x12d00e6 | 74 48                    | je 0x12d0130
     0x12d00e8 | 49 8b 46 08              | mov rax, qword ptr [r14 + 0x8]
@@ -581,7 +573,7 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
     0x12d03fa | 48 8b d0                 | mov rdx, rax
     0x12d03fd | e8 ae 81 00 00           | call 0x12d85b0
     0x12d0402 | 90                       | nop
-    0x12d0403 | 48 c7 c3 ff ff ff ff     | mov rbx, 0xffffffff
+    0x12d0403 | 48 c7 c3 ff ff ff ff     | mov rbx, -0x1
     0x12d040a | 48 8b 75 a8              | mov rsi, qword ptr [rbp - 0x58]
     0x12d040e | 48 85 f6                 | test rsi, rsi
     0x12d0411 | 74 34                    | je 0x12d0447
@@ -707,7 +699,7 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
       if (r15->field_0x200 != 0 && r15->field_0x200->field_0x8 != 0) {
         do { // L_0x12d0525
           atomic_try_incref(&r15->field_0x200->field_0x8);
-          if (atomic_cas(&r15->field_0x200->field_0x8, r15->field_0x200->field_0x8, (r15->field_0x200->field_0x8 + 1)) == 0) break;
+          if (atomic_cas(&r15->field_0x200->field_0x8, r15->field_0x200->field_0x8, r15->field_0x200->field_0x8 + 1) == 0) break;
           if (r15->field_0x200->field_0x8 == 0) break;
         } while (true); // loop -> L_0x12d0525
         void* sel_rdx_1 = r15->field_0x1f8 == 0 ? r12 : r15->field_0x1f8->field_m0x1f0;
@@ -773,6 +765,595 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
     0x12d05bd | 48 8d 8d c0 00 00 00     | lea rcx, [rbp + 0xc0]
     0x12d05c4 | e8 27 61 b3 04           | call 0x5e066f0
   
+  === [Sub-Rotina Chamada: 0x12c3480..0x12c3658 via call @0x12d009d (rcx = this (Direct Engine Sub-Call))] ===
+    struct ServerTranslationCach::DynamicTranslationSender::TranslationResultKey {
+      /* +0x0 */ void*   field_0x0;
+      /* +0x8 */ void*   field_0x8;
+      /* +0x10 */ void*   field_0x10;
+      /* +0x18 */ void*   field_0x18;
+      /* +0x20 */ void*   field_0x20;
+      /* +0x28 */ void*   field_0x28;
+      /* +0x30 */ void*   field_0x30;
+      /* +0x38 */ void*   field_0x38;
+      /* +0x40 */ void*   field_0x40;
+      /* +0x48 */ void*   field_0x48;
+      /* +0x50 */ void*   field_0x50;
+      /* +0x58 */ void*   field_0x58;
+      /* +0x60 */ void*   field_0x60;
+      /* +0x68 */ void*   field_0x68;
+      /* +0x70 */ void*   field_0x70;
+      /* +0x78 */ void*   field_0x78;
+      /* +0x80 */ void*   field_0x80;
+      /* +0x88 */ void*   field_0x88;
+      /* +0x90 */ void*   field_0x90;
+      /* +0x98 */ void*   field_0x98;
+      /* +0xa0 */ void*   field_0xa0;
+      /* +0xa8 */ void*   field_0xa8;
+      /* +0xb0 */ void*   field_0xb0;
+      /* +0xb8 */ void*   field_0xb8;
+      /* +0xc0 */ void*   field_0xc0;
+      /* +0xc8 */ void*   field_0xc8;
+      /* +0xd0 */ void*   field_0xd0;
+      /* +0xd8 */ void*   field_0xd8;
+      /* +0x120 */ void*   field_0x120;
+      /* +0x128 */ void*   field_0x128;
+      /* +0x130 */ void*   field_0x130;
+      /* +0x138 */ void*   field_0x138;
+      /* +0x140 */ void*   field_0x140;
+      /* +0x148 */ void*   field_0x148;
+      /* +0x150 */ void*   field_0x150;
+      /* +0x158 */ void*   field_0x158;
+      /* +0x160 */ void*   field_0x160;
+    };
+    
+    // Flag defaults: DynamicTranslation = 0, DynamicTranslationSenderServerLRUMaxSizeBytes = 100000000
+    auto ServerTranslationCach::DynamicTranslationSender::TranslationResultKey::func_0x12c3480(ServerTranslationCach::DynamicTranslationSender::TranslationResultKey* this, int64_t param_2) {
+      this->field_0x0 = 0;
+      this->field_0x8 = 0;
+      void* v_rax_1 = &this->field_0x10;
+      if (this != 0) {
+        this->field_0x10 = 1;
+        this->field_0x18 = 0;
+        this->field_0x20 = 0;
+        this->field_0x18 = param_2->field_0x0;
+        this->field_0x20 = param_2->field_0x8;
+        v_rax_1 = call_0x2e13190(this);
+      }
+      this->field_0x48 = v_rax_1;
+      this->field_0x38 = 0;
+      this->field_0x28 = 0;
+      this->field_0x30 = 0;
+      this->field_0x40 = 0;
+      this->field_0x70 = call_0x2e13190(this);
+      this->field_0x60 = 0;
+      this->field_0x50 = 0;
+      this->field_0x58 = 0;
+      this->field_0x68 = 0;
+      this->field_0x98 = call_0x2e13190();
+      this->field_0x88 = 0;
+      this->field_0x78 = 0;
+      this->field_0x80 = 0;
+      this->field_0x90 = 0;
+      this->field_0xc0 = call_0x2e13190();
+      this->field_0xb0 = 0;
+      this->field_0xa0 = 0;
+      this->field_0xa8 = 0;
+      this->field_0xb8 = 0;
+      this->field_0xc8 = &sym_0x6ffe1a0;
+      this->field_0xd0 = 0;
+      this->field_0xd8 = 0;
+      auto ret_0x4956040_5 = call_0x4956040(192);
+      ret_0x4956040_5->field_0x0 = ret_0x4956040_5;
+      ret_0x4956040_5->field_0x8 = ret_0x4956040_5;
+      this->field_0xd0 = ret_0x4956040_5;
+      auto local_0x80 = 0.0;
+      call_0x12c6430(&this->field_0xe0, &local_0x80);
+      this->field_0x120 = 0;
+      this->field_0xc8 = &sym_0x6ffe1c8;
+      this->field_0x128 = DynamicTranslationSenderServerLRUMaxSizeBytes;
+      this->field_0x130 = 0;
+      this->field_0x138 = 0;
+      this->field_0x160 = call_0x2e13190();
+      this->field_0x150 = 0;
+      this->field_0x140 = 0;
+      this->field_0x148 = 0;
+      this->field_0x158 = 0;
+      if (param_2->field_0x8 != 0 && atomic_fetch_sub(&param_2->field_0x8->field_0xc, 1) == 1) {
+        param_2->field_0x8->vfunc_0x8() // -> RBX::VehicleSeat::fn_0x147a960;
+      }
+      return this;
+    }
+  
+  === [Instrucoes x86-64 da Sub-Rotina Chamada (0x12c3480..0x12c3658)] ===
+    0x12c3480 | 48 89 54 24 10           | mov qword ptr [rsp + 0x10], rdx
+    0x12c3485 | 48 89 4c 24 08           | mov qword ptr [rsp + 0x8], rcx
+    0x12c348a | 53                       | push rbx
+    0x12c348b | 55                       | push rbp
+    0x12c348c | 56                       | push rsi
+    0x12c348d | 57                       | push rdi
+    0x12c348e | 41 56                    | push r14
+    0x12c3490 | 48 83 ec 40              | sub rsp, 0x40
+    0x12c3494 | 48 8b f2                 | mov rsi, rdx
+    0x12c3497 | 48 8b f9                 | mov rdi, rcx
+    0x12c349a | 45 33 f6                 | xor r14d, r14d
+    0x12c349d | 4c 89 31                 | mov qword ptr [rcx], r14
+    0x12c34a0 | 4c 89 71 08              | mov qword ptr [rcx + 0x8], r14
+    0x12c34a4 | 48 8d 41 10              | lea rax, [rcx + 0x10]
+    0x12c34a8 | 48 85 c0                 | test rax, rax
+    0x12c34ab | 74 2a                    | je 0x12c34d7 ; [Nanomite Reconstructed: je +0x2a via cfg_call_guard_resolver]
+    0x12c34ad | 48 c7 00 01 00 00 00     | mov qword ptr [rax], 0x1
+    0x12c34b4 | 4c 89 71 18              | mov qword ptr [rcx + 0x18], r14
+    0x12c34b8 | 4c 89 71 20              | mov qword ptr [rcx + 0x20], r14
+    0x12c34bc | 48 8b 02                 | mov rax, qword ptr [rdx]
+    0x12c34bf | 48 89 41 18              | mov qword ptr [rcx + 0x18], rax
+    0x12c34c3 | 48 8b 42 08              | mov rax, qword ptr [rdx + 0x8]
+    0x12c34c7 | 48 89 41 20              | mov qword ptr [rcx + 0x20], rax
+    0x12c34cb | 4c 89 32                 | mov qword ptr [rdx], r14
+    0x12c34ce | 4c 89 72 08              | mov qword ptr [rdx + 0x8], r14
+    0x12c34d2 | e8 b9 fc b4 01           | call 0x2e13190
+    L_0x12c34d7:
+    0x12c34d7 | 48 89 47 48              | mov qword ptr [rdi + 0x48], rax
+    0x12c34db | 4c 89 77 38              | mov qword ptr [rdi + 0x38], r14
+    0x12c34df | 4c 89 77 28              | mov qword ptr [rdi + 0x28], r14
+    0x12c34e3 | 4c 89 77 30              | mov qword ptr [rdi + 0x30], r14
+    0x12c34e7 | 4c 89 77 40              | mov qword ptr [rdi + 0x40], r14
+    0x12c34eb | 48 8d 5f 50              | lea rbx, [rdi + 0x50]
+    0x12c34ef | 48 89 9c 24 80 00 00 00  | mov qword ptr [rsp + 0x80], rbx
+    0x12c34f7 | e8 94 fc b4 01           | call 0x2e13190
+    0x12c34fc | 48 89 43 20              | mov qword ptr [rbx + 0x20], rax
+    0x12c3500 | 4c 89 73 10              | mov qword ptr [rbx + 0x10], r14
+    0x12c3504 | 4c 89 33                 | mov qword ptr [rbx], r14
+    0x12c3507 | 4c 89 73 08              | mov qword ptr [rbx + 0x8], r14
+    0x12c350b | 4c 89 73 18              | mov qword ptr [rbx + 0x18], r14
+    0x12c350f | 48 8d 5f 78              | lea rbx, [rdi + 0x78]
+    0x12c3513 | 48 89 9c 24 80 00 00 00  | mov qword ptr [rsp + 0x80], rbx
+    0x12c351b | e8 70 fc b4 01           | call 0x2e13190
+    0x12c3520 | 48 89 43 20              | mov qword ptr [rbx + 0x20], rax
+    0x12c3524 | 4c 89 73 10              | mov qword ptr [rbx + 0x10], r14
+    0x12c3528 | 4c 89 33                 | mov qword ptr [rbx], r14
+    0x12c352b | 4c 89 73 08              | mov qword ptr [rbx + 0x8], r14
+    0x12c352f | 4c 89 73 18              | mov qword ptr [rbx + 0x18], r14
+    0x12c3533 | e8 58 fc b4 01           | call 0x2e13190
+    0x12c3538 | 48 89 87 c0 00 00 00     | mov qword ptr [rdi + 0xc0], rax
+    0x12c353f | 4c 89 b7 b0 00 00 00     | mov qword ptr [rdi + 0xb0], r14
+    0x12c3546 | 4c 89 b7 a0 00 00 00     | mov qword ptr [rdi + 0xa0], r14
+    0x12c354d | 4c 89 b7 a8 00 00 00     | mov qword ptr [rdi + 0xa8], r14
+    0x12c3554 | 4c 89 b7 b8 00 00 00     | mov qword ptr [rdi + 0xb8], r14
+    0x12c355b | 48 8d 9f c8 00 00 00     | lea rbx, [rdi + 0xc8]
+    0x12c3562 | 48 89 9c 24 88 00 00 00  | mov qword ptr [rsp + 0x88], rbx
+    0x12c356a | 48 63 2d 3f 70 e2 06     | movsxd rbp, dword ptr [rip + 0x6e2703f] ; DFIntDynamicTranslationSenderServerLRUMaxSizeBytes
+    0x12c3571 | 48 8d 05 28 ac d3 05     | lea rax, [rip + 0x5d3ac28]
+    0x12c3578 | 48 89 03                 | mov qword ptr [rbx], rax
+    0x12c357b | 4c 89 73 08              | mov qword ptr [rbx + 0x8], r14
+    0x12c357f | 4c 89 73 10              | mov qword ptr [rbx + 0x10], r14
+    0x12c3583 | b9 c0 00 00 00           | mov ecx, 0xc0
+    0x12c3588 | e8 b3 2a 69 03           | call 0x4956040
+    0x12c358d | 48 85 c0                 | test rax, rax
+    0x12c3590 | 0f 84 a7 00 00 00        | je 0x12c363d
+    0x12c3596 | 48 89 00                 | mov qword ptr [rax], rax
+    0x12c3599 | 48 89 40 08              | mov qword ptr [rax + 0x8], rax
+    0x12c359d | 48 89 43 08              | mov qword ptr [rbx + 0x8], rax
+    0x12c35a1 | 48 8d 4b 18              | lea rcx, [rbx + 0x18]
+    0x12c35a5 | 48 89 8c 24 80 00 00 00  | mov qword ptr [rsp + 0x80], rcx
+    0x12c35ad | 0f 57 c0                 | xorps xmm0, xmm0
+    0x12c35b0 | f3 0f 11 84 24 80 00 00.. | movss dword ptr [rsp + 0x80], xmm0
+    0x12c35b9 | 48 8d 94 24 80 00 00 00  | lea rdx, [rsp + 0x80]
+    0x12c35c1 | e8 6a 2e 00 00           | call 0x12c6430
+    0x12c35c6 | 4c 89 73 58              | mov qword ptr [rbx + 0x58], r14
+    0x12c35ca | 48 8d 05 f7 ab d3 05     | lea rax, [rip + 0x5d3abf7]
+    0x12c35d1 | 48 89 03                 | mov qword ptr [rbx], rax
+    0x12c35d4 | 48 89 6b 60              | mov qword ptr [rbx + 0x60], rbp
+    0x12c35d8 | 4c 89 b7 30 01 00 00     | mov qword ptr [rdi + 0x130], r14
+    0x12c35df | 4c 89 b7 38 01 00 00     | mov qword ptr [rdi + 0x138], r14
+    0x12c35e6 | 48 8d 9f 40 01 00 00     | lea rbx, [rdi + 0x140]
+    0x12c35ed | 48 89 5c 24 78           | mov qword ptr [rsp + 0x78], rbx
+    0x12c35f2 | e8 99 fb b4 01           | call 0x2e13190
+    0x12c35f7 | 48 89 43 20              | mov qword ptr [rbx + 0x20], rax
+    0x12c35fb | 4c 89 73 10              | mov qword ptr [rbx + 0x10], r14
+    0x12c35ff | 4c 89 33                 | mov qword ptr [rbx], r14
+    0x12c3602 | 4c 89 73 08              | mov qword ptr [rbx + 0x8], r14
+    0x12c3606 | 4c 89 73 18              | mov qword ptr [rbx + 0x18], r14
+    0x12c360a | 48 8b 4e 08              | mov rcx, qword ptr [rsi + 0x8]
+    0x12c360e | 48 85 c9                 | test rcx, rcx
+    0x12c3611 | 74 1c                    | je 0x12c362f
+    0x12c3613 | b8 ff ff ff ff           | mov eax, 0xffffffff
+    0x12c3618 | f0 0f c1 41 0c           | lock xadd dword ptr [rcx + 0xc], eax
+    0x12c361d | 83 f8 01                 | cmp eax, 0x1
+    0x12c3620 | 75 0d                    | jne 0x12c362f
+    0x12c3622 | 48 8b 01                 | mov rax, qword ptr [rcx]
+    0x12c3625 | 48 8b 40 08              | mov rax, qword ptr [rax + 0x8]
+    0x12c3629 | ff 15 11 67 17 05        | call qword ptr [rip + 0x5176711] ; __guard_dispatch_icall_fptr (0x6439d40)
+    L_0x12c362f:
+    0x12c362f | 48 8b c7                 | mov rax, rdi
+    0x12c3632 | 48 83 c4 40              | add rsp, 0x40
+    0x12c3636 | 41 5e                    | pop r14
+    0x12c3638 | 5f                       | pop rdi
+    0x12c3639 | 5e                       | pop rsi
+    0x12c363a | 5d                       | pop rbp
+    0x12c363b | 5b                       | pop rbx
+    0x12c363c | c3                       | ret
+    L_0x12c363d:
+    0x12c363d | 48 8d 4c 24 20           | lea rcx, [rsp + 0x20]
+    0x12c3642 | e8 89 71 40 ff           | call 0x6ca7d0
+    0x12c3647 | 48 8d 15 72 85 e0 06     | lea rdx, [rip + 0x6e08572]
+    0x12c364e | 48 8d 4c 24 20           | lea rcx, [rsp + 0x20]
+    0x12c3653 | e8 98 30 b4 04           | call 0x5e066f0
+  
+  === [Sub-Rotina Chamada: 0x12c3070..0x12c3475 via call @0x12d015c (rcx = this (Direct Engine Sub-Call))] ===
+    struct RBX::DynamicTranslation {
+      /* +0x18 */ void*   field_0x18;
+      /* +0x20 */ void*   field_0x20;
+    };
+    
+    // Flag defaults: DynamicTranslation = 0
+    void RBX::DynamicTranslation::func_0x12c3070(RBX::DynamicTranslation* this) {
+      call_0x2e13a20(&local_0x108, &this->field_0x10, 0);
+      void* v_rcx_1;
+      auto* f_20 = this->field_0x20;
+      if (f_20 != 0 && f_20->field_0x8 != 0) {
+        do { // L_0x12c30e0
+          if (atomic_cas(&f_20->field_0x8, f_20->field_0x8, f_20->field_0x8 + 1) == 0) break;
+        } while (f_20->field_0x8 != 0); // loop -> L_0x12c30e0
+        v_rcx_1 = 0.0;
+      } else {
+        v_rcx_1 = 0.0;
+      }
+      if (v_rcx_1 != 0) {
+        auto vret_2 = (&v_rcx_1->field_0x1f0)->vfunc_0x268(&v_rcx_1->field_0x1f0) // -> RBX::Localization::SingleLocaleTableTranslatorInstance::fn_0x12f0e90;
+        if (vret_2 == 0) {
+          call_0x27c4080();
+          auto local_0x78 = 0;
+          call_0x6f8fb0(&local_0x78);
+        }
+        auto ret_0xe10d80_5 = call_0xe10d80(&v_rcx_1->field_0x1f0);
+        auto ret_0x12c6590_6 = call_0x12c6590(&local_0xb8, this);
+        auto ret_0x4954e70_7 = call_0x4954e70(global_0x84cf26c);
+        call_0x496a6d0(&ret_0xe10d80_5->field_0x7e0);
+        auto ret_0x4956040_9 = call_0x4956040(64);
+        ret_0x4956040_9->field_0x4 = 1;
+        ret_0x4956040_9->field_0x8 = &sym_0x12c7880;
+        ret_0x4956040_9->field_0x20 = ret_0xe10d80_5->field_0x7e0;
+        if (ret_0xe10d80_5->field_0x7e0 != 0) {
+          ret_0xe10d80_5->field_0x7e0->field_0x4++;
+        }
+        ret_0x4956040_9->field_0x18 = ret_0x4956040_9->field_0x18 | 0x4;
+        ret_0x4956040_9->field_0x28 = &sym_0x807780;
+        ret_0x4956040_9->field_0x30 = ret_0x12c6590_6->field_0x0;
+        ret_0x4956040_9->field_0x38 = ret_0x12c6590_6->field_0x8;
+        call_0x49698d0(ret_0xe10d80_5->field_0x7e0, &local_0x38, ret_0x4956040_9);
+        call_0x4954e70(ret_0x4954e70_7);
+        call_0x7095a0(&this->field_0x130, &local_0x38);
+        if (local_0x38 != 0 && atomic_fetch_sub(&local_0x38->field_0x4, 1) == 1) {
+          call_0x496a4e0(local_0x38);
+        }
+        if (local_0xc0 != 0 && atomic_fetch_sub(&local_0xc0->field_0xc, 1) == 1) {
+          local_0xc0->vfunc_0x8() // -> RBX::VehicleSeat::fn_0x147a960;
+        }
+        auto vret_15 = (&v_rcx_1->field_0x1f0)->vfunc_0x268(&v_rcx_1->field_0x1f0) // -> RBX::Localization::SingleLocaleTableTranslatorInstance::fn_0x12f0e90;
+        if (vret_15 == 0) {
+          call_0x27c4080();
+          auto local_0x98 = 0;
+          call_0x6f8fb0(&local_0x98);
+        }
+        auto ret_0xe10d80_18 = call_0xe10d80(&v_rcx_1->field_0x1f0);
+        auto ret_0x12c6590_19 = call_0x12c6590(&local_0xc8, this);
+        auto ret_0x4954e70_20 = call_0x4954e70(global_0x84cf26c);
+        call_0x496a6d0(&ret_0xe10d80_18->field_0x7e8);
+        auto ret_0x4956040_22 = call_0x4956040(64);
+        if (ret_0x4956040_22 != 0) {
+          ret_0x4956040_22->field_0x4 = 1;
+          ret_0x4956040_22->field_0x8 = &sym_0x12c7790;
+          ret_0x4956040_22->field_0x20 = ret_0xe10d80_18->field_0x7e8;
+          if (ret_0xe10d80_18->field_0x7e8 != 0) {
+            ret_0xe10d80_18->field_0x7e8->field_0x4++;
+          }
+          ret_0x4956040_22->field_0x18 = ret_0x4956040_22->field_0x18 | 0x4;
+          ret_0x4956040_22->field_0x28 = &sym_0x807780;
+          ret_0x4956040_22->field_0x30 = ret_0x12c6590_19->field_0x0;
+          ret_0x4956040_22->field_0x38 = ret_0x12c6590_19->field_0x8;
+          call_0x49698d0(ret_0xe10d80_18->field_0x7e8, &local_0x40, ret_0x4956040_22);
+          call_0x4954e70(ret_0x4954e70_20);
+          call_0x7095a0(&this->field_0x138, &local_0x40);
+          if (local_0x40 != 0 && atomic_fetch_sub(&local_0x40->field_0x4, 1) == 1) {
+            call_0x496a4e0(local_0x40);
+          }
+          if (local_0xd0 != 0 && atomic_fetch_sub(&local_0xd0->field_0xc, 1) == 1) {
+            local_0xd0->vfunc_0x8() // -> RBX::VehicleSeat::fn_0x147a960;
+          }
+        } else {
+          call_0x6ca7d0(&local_0xd8);
+          call_0x5e066f0(&local_0xd8, &sym_0x80cbbc0);
+        }
+      }
+      if (local_0x50 != 0) {
+        call_0x6daf40(local_0x50);
+      }
+      if ((local_0x108 & 0x1) != 0) {
+        if ((local_0x108 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x108 & 0xfffffffe)->field_0x0, (local_0x108 & 0xfffffffe)->field_0x0, 1) != 0) {
+          call_0xdac0(local_0x108 & 0xfffffffe);
+        }
+      }
+    }
+  
+  === [Instrucoes x86-64 da Sub-Rotina Chamada (0x12c3070..0x12c3475)] ===
+    0x12c3070 | 48 89 5c 24 10           | mov qword ptr [rsp + 0x10], rbx
+    0x12c3075 | 48 89 74 24 18           | mov qword ptr [rsp + 0x18], rsi
+    0x12c307a | 48 89 7c 24 20           | mov qword ptr [rsp + 0x20], rdi
+    0x12c307f | 55                       | push rbp
+    0x12c3080 | 41 54                    | push r12
+    0x12c3082 | 41 55                    | push r13
+    0x12c3084 | 41 56                    | push r14
+    0x12c3086 | 41 57                    | push r15
+    0x12c3088 | 48 8d 6c 24 e0           | lea rbp, [rsp - 0x20]
+    0x12c308d | 48 81 ec 20 01 00 00     | sub rsp, 0x120
+    0x12c3094 | 48 8b 05 45 56 e1 06     | mov rax, qword ptr [rip + 0x6e15645]
+    0x12c309b | 48 33 c4                 | xor rax, rsp
+    0x12c309e | 48 89 45 10              | mov qword ptr [rbp + 0x10], rax
+    0x12c30a2 | 48 8b f1                 | mov rsi, rcx
+    0x12c30a5 | 45 33 ed                 | xor r13d, r13d
+    0x12c30a8 | 44 89 6c 24 24           | mov dword ptr [rsp + 0x24], r13d
+    0x12c30ad | 48 8d 51 10              | lea rdx, [rcx + 0x10]
+    0x12c30b1 | 45 33 c0                 | xor r8d, r8d
+    0x12c30b4 | 48 8d 4d 08              | lea rcx, [rbp + 0x8]
+    0x12c30b8 | e8 63 09 b5 01           | call 0x2e13a20
+    0x12c30bd | 90                       | nop
+    0x12c30be | 0f 57 c0                 | xorps xmm0, xmm0
+    0x12c30c1 | f3 0f 7f 44 24 48        | movdqu xmmword ptr [rsp + 0x48], xmm0
+    0x12c30c7 | 48 8b 56 20              | mov rdx, qword ptr [rsi + 0x20]
+    0x12c30cb | 48 85 d2                 | test rdx, rdx
+    0x12c30ce | 74 22                    | je 0x12c30f2
+    0x12c30d0 | 8b 42 08                 | mov eax, dword ptr [rdx + 0x8]
+    0x12c30d3 | 85 c0                    | test eax, eax
+    0x12c30d5 | 74 1b                    | je 0x12c30f2
+    0x12c30d7 | 66 0f 1f 84 00 00 00 00.. | nop
+    L_0x12c30e0:
+    0x12c30e0 | 8d 48 01                 | lea ecx, [rax + 0x1]
+    0x12c30e3 | f0 0f b1 4a 08           | lock cmpxchg dword ptr [rdx + 0x8], ecx
+    0x12c30e8 | 0f 84 3d 03 00 00        | je 0x12c342b
+    0x12c30ee | 85 c0                    | test eax, eax
+    0x12c30f0 | 75 ee                    | jne 0x12c30e0
+    L_0x12c30f2:
+    0x12c30f2 | 48 8b 4c 24 48           | mov rcx, qword ptr [rsp + 0x48]
+    L_0x12c30f7:
+    0x12c30f7 | bb 01 00 00 00           | mov ebx, 0x1
+    0x12c30fc | 48 85 c9                 | test rcx, rcx
+    0x12c30ff | 0f 84 c3 02 00 00        | je 0x12c33c8
+    0x12c3105 | 4c 8d b1 f0 01 00 00     | lea r14, [rcx + 0x1f0]
+    0x12c310c | 49 8b 06                 | mov rax, qword ptr [r14]
+    0x12c310f | 49 8b ce                 | mov rcx, r14
+    0x12c3112 | 48 8b 80 68 02 00 00     | mov rax, qword ptr [rax + 0x268]
+    0x12c3119 | ff 15 21 6c 17 05        | call qword ptr [rip + 0x5176c21] ; __guard_dispatch_icall_fptr (0x6439d40)
+    0x12c311f | 84 c0                    | test al, al
+    0x12c3121 | 75 20                    | jne 0x12c3143
+    0x12c3123 | e8 58 0f 50 01           | call 0x27c4080
+    0x12c3128 | 4c 89 6c 24 78           | mov qword ptr [rsp + 0x78], r13
+    0x12c312d | 48 c7 45 90 0f 00 00 00  | mov qword ptr [rbp - 0x70], 0xf
+    0x12c3135 | 4c 89 6d 88              | mov qword ptr [rbp - 0x78], r13
+    0x12c3139 | 48 8d 4c 24 78           | lea rcx, [rsp + 0x78]
+    0x12c313e | e8 6d 5e 43 ff           | call 0x6f8fb0
+    L_0x12c3143:
+    0x12c3143 | 49 8b ce                 | mov rcx, r14
+    0x12c3146 | e8 35 dc b4 ff           | call 0xe10d80
+    0x12c314b | 48 8d b8 e0 07 00 00     | lea rdi, [rax + 0x7e0]
+    0x12c3152 | 48 8b d6                 | mov rdx, rsi
+    0x12c3155 | 48 8d 4d b8              | lea rcx, [rbp - 0x48]
+    0x12c3159 | e8 32 34 00 00           | call 0x12c6590
+    0x12c315e | 90                       | nop
+    0x12c315f | 4c 8b 38                 | mov r15, qword ptr [rax]
+    0x12c3162 | 4c 89 7c 24 58           | mov qword ptr [rsp + 0x58], r15
+    0x12c3167 | 4c 8b 60 08              | mov r12, qword ptr [rax + 0x8]
+    0x12c316b | 4c 89 64 24 60           | mov qword ptr [rsp + 0x60], r12
+    0x12c3170 | 4c 89 28                 | mov qword ptr [rax], r13
+    0x12c3173 | 4c 89 68 08              | mov qword ptr [rax + 0x8], r13
+    0x12c3177 | 8b 0d ef c0 20 07        | mov ecx, dword ptr [rip + 0x720c0ef]
+    0x12c317d | e8 ee 1c 69 03           | call 0x4954e70
+    0x12c3182 | 8b d8                    | mov ebx, eax
+    0x12c3184 | 89 44 24 30              | mov dword ptr [rsp + 0x30], eax
+    0x12c3188 | 48 8b cf                 | mov rcx, rdi
+    0x12c318b | e8 40 75 6a 03           | call 0x496a6d0
+    0x12c3190 | b9 40 00 00 00           | mov ecx, 0x40
+    0x12c3195 | e8 a6 2e 69 03           | call 0x4956040
+    0x12c319a | 48 85 c0                 | test rax, rax
+    0x12c319d | 0f 84 b9 02 00 00        | je 0x12c345c
+    0x12c31a3 | 44 89 28                 | mov dword ptr [rax], r13d
+    0x12c31a6 | c7 40 04 01 00 00 00     | mov dword ptr [rax + 0x4], 0x1
+    0x12c31ad | 48 8d 0d cc 46 00 00     | lea rcx, [rip + 0x46cc]
+    0x12c31b4 | 48 89 48 08              | mov qword ptr [rax + 0x8], rcx
+    0x12c31b8 | 4c 89 68 10              | mov qword ptr [rax + 0x10], r13
+    0x12c31bc | 4c 89 68 18              | mov qword ptr [rax + 0x18], r13
+    0x12c31c0 | 48 8b 0f                 | mov rcx, qword ptr [rdi]
+    0x12c31c3 | 48 89 48 20              | mov qword ptr [rax + 0x20], rcx
+    0x12c31c7 | 48 85 c9                 | test rcx, rcx
+    0x12c31ca | 74 08                    | je 0x12c31d4
+    0x12c31cc | f0 ff 41 04              | lock inc dword ptr [rcx + 0x4]
+    0x12c31d0 | 8b 5c 24 30              | mov ebx, dword ptr [rsp + 0x30]
+    L_0x12c31d4:
+    0x12c31d4 | 48 83 48 18 04           | or qword ptr [rax + 0x18], 0x4
+    0x12c31d9 | 48 8d 0d a0 45 54 ff     | lea rcx, [rip - 0xabba60]
+    0x12c31e0 | 48 89 48 28              | mov qword ptr [rax + 0x28], rcx
+    0x12c31e4 | 4c 89 78 30              | mov qword ptr [rax + 0x30], r15
+    0x12c31e8 | 4c 89 60 38              | mov qword ptr [rax + 0x38], r12
+    0x12c31ec | 0f 57 c0                 | xorps xmm0, xmm0
+    0x12c31ef | f3 0f 7f 44 24 58        | movdqu xmmword ptr [rsp + 0x58], xmm0
+    0x12c31f5 | 4c 8b c0                 | mov r8, rax
+    0x12c31f8 | 48 8d 54 24 38           | lea rdx, [rsp + 0x38]
+    0x12c31fd | 48 8b 0f                 | mov rcx, qword ptr [rdi]
+    0x12c3200 | e8 cb 66 6a 03           | call 0x49698d0
+    0x12c3205 | c7 44 24 24 01 00 00 00  | mov dword ptr [rsp + 0x24], 0x1
+    0x12c320d | 8b cb                    | mov ecx, ebx
+    0x12c320f | e8 5c 1c 69 03           | call 0x4954e70
+    0x12c3214 | 90                       | nop
+    0x12c3215 | 48 8d 8e 30 01 00 00     | lea rcx, [rsi + 0x130]
+    0x12c321c | 48 8d 54 24 38           | lea rdx, [rsp + 0x38]
+    0x12c3221 | e8 7a 63 44 ff           | call 0x7095a0
+    0x12c3226 | 44 89 6c 24 24           | mov dword ptr [rsp + 0x24], r13d
+    0x12c322b | bf ff ff ff ff           | mov edi, 0xffffffff
+    0x12c3230 | 48 8b 4c 24 38           | mov rcx, qword ptr [rsp + 0x38]
+    0x12c3235 | 48 85 c9                 | test rcx, rcx
+    0x12c3238 | 74 12                    | je 0x12c324c
+    0x12c323a | 8b c7                    | mov eax, edi
+    0x12c323c | f0 0f c1 41 04           | lock xadd dword ptr [rcx + 0x4], eax
+    0x12c3241 | 83 f8 01                 | cmp eax, 0x1
+    0x12c3244 | 75 06                    | jne 0x12c324c
+    0x12c3246 | e8 95 72 6a 03           | call 0x496a4e0
+    0x12c324b | 90                       | nop
+    L_0x12c324c:
+    0x12c324c | 48 8b 4d c0              | mov rcx, qword ptr [rbp - 0x40]
+    0x12c3250 | 48 85 c9                 | test rcx, rcx
+    0x12c3253 | 74 19                    | je 0x12c326e
+    0x12c3255 | 8b c7                    | mov eax, edi
+    0x12c3257 | f0 0f c1 41 0c           | lock xadd dword ptr [rcx + 0xc], eax
+    0x12c325c | 83 f8 01                 | cmp eax, 0x1
+    0x12c325f | 75 0d                    | jne 0x12c326e
+    0x12c3261 | 48 8b 01                 | mov rax, qword ptr [rcx]
+    0x12c3264 | 48 8b 40 08              | mov rax, qword ptr [rax + 0x8]
+    0x12c3268 | ff 15 d2 6a 17 05        | call qword ptr [rip + 0x5176ad2] ; __guard_dispatch_icall_fptr (0x6439d40)
+    L_0x12c326e:
+    0x12c326e | 49 8b 06                 | mov rax, qword ptr [r14]
+    0x12c3271 | 49 8b ce                 | mov rcx, r14
+    0x12c3274 | 48 8b 80 68 02 00 00     | mov rax, qword ptr [rax + 0x268]
+    0x12c327b | ff 15 bf 6a 17 05        | call qword ptr [rip + 0x5176abf] ; __guard_dispatch_icall_fptr (0x6439d40)
+    0x12c3281 | 84 c0                    | test al, al
+    0x12c3283 | 75 1e                    | jne 0x12c32a3
+    0x12c3285 | e8 f6 0d 50 01           | call 0x27c4080
+    0x12c328a | 4c 89 6d 98              | mov qword ptr [rbp - 0x68], r13
+    0x12c328e | 48 c7 45 b0 0f 00 00 00  | mov qword ptr [rbp - 0x50], 0xf
+    0x12c3296 | 4c 89 6d a8              | mov qword ptr [rbp - 0x58], r13
+    0x12c329a | 48 8d 4d 98              | lea rcx, [rbp - 0x68]
+    0x12c329e | e8 0d 5d 43 ff           | call 0x6f8fb0
+    L_0x12c32a3:
+    0x12c32a3 | 49 8b ce                 | mov rcx, r14
+    0x12c32a6 | e8 d5 da b4 ff           | call 0xe10d80
+    0x12c32ab | 4c 8d b0 e8 07 00 00     | lea r14, [rax + 0x7e8]
+    0x12c32b2 | 48 8b d6                 | mov rdx, rsi
+    0x12c32b5 | 48 8d 4d c8              | lea rcx, [rbp - 0x38]
+    0x12c32b9 | e8 d2 32 00 00           | call 0x12c6590
+    0x12c32be | 90                       | nop
+    0x12c32bf | 4c 8b 38                 | mov r15, qword ptr [rax]
+    0x12c32c2 | 4c 89 7c 24 68           | mov qword ptr [rsp + 0x68], r15
+    0x12c32c7 | 4c 8b 60 08              | mov r12, qword ptr [rax + 0x8]
+    0x12c32cb | 4c 89 64 24 70           | mov qword ptr [rsp + 0x70], r12
+    0x12c32d0 | 4c 89 28                 | mov qword ptr [rax], r13
+    0x12c32d3 | 4c 89 68 08              | mov qword ptr [rax + 0x8], r13
+    0x12c32d7 | 8b 0d 8f bf 20 07        | mov ecx, dword ptr [rip + 0x720bf8f]
+    0x12c32dd | e8 8e 1b 69 03           | call 0x4954e70
+    0x12c32e2 | 8b d8                    | mov ebx, eax
+    0x12c32e4 | 89 44 24 34              | mov dword ptr [rsp + 0x34], eax
+    0x12c32e8 | 49 8b ce                 | mov rcx, r14
+    0x12c32eb | e8 e0 73 6a 03           | call 0x496a6d0
+    0x12c32f0 | b9 40 00 00 00           | mov ecx, 0x40
+    0x12c32f5 | e8 46 2d 69 03           | call 0x4956040
+    0x12c32fa | 48 85 c0                 | test rax, rax
+    0x12c32fd | 0f 84 3f 01 00 00        | je 0x12c3442
+    0x12c3303 | 44 89 28                 | mov dword ptr [rax], r13d
+    0x12c3306 | c7 40 04 01 00 00 00     | mov dword ptr [rax + 0x4], 0x1
+    0x12c330d | 48 8d 0d 7c 44 00 00     | lea rcx, [rip + 0x447c]
+    0x12c3314 | 48 89 48 08              | mov qword ptr [rax + 0x8], rcx
+    0x12c3318 | 4c 89 68 10              | mov qword ptr [rax + 0x10], r13
+    0x12c331c | 4c 89 68 18              | mov qword ptr [rax + 0x18], r13
+    0x12c3320 | 49 8b 0e                 | mov rcx, qword ptr [r14]
+    0x12c3323 | 48 89 48 20              | mov qword ptr [rax + 0x20], rcx
+    0x12c3327 | 48 85 c9                 | test rcx, rcx
+    0x12c332a | 74 08                    | je 0x12c3334
+    0x12c332c | f0 ff 41 04              | lock inc dword ptr [rcx + 0x4]
+    0x12c3330 | 8b 5c 24 34              | mov ebx, dword ptr [rsp + 0x34]
+    L_0x12c3334:
+    0x12c3334 | 48 83 48 18 04           | or qword ptr [rax + 0x18], 0x4
+    0x12c3339 | 48 8d 0d 40 44 54 ff     | lea rcx, [rip - 0xabbbc0]
+    0x12c3340 | 48 89 48 28              | mov qword ptr [rax + 0x28], rcx
+    0x12c3344 | 4c 89 78 30              | mov qword ptr [rax + 0x30], r15
+    0x12c3348 | 4c 89 60 38              | mov qword ptr [rax + 0x38], r12
+    0x12c334c | 0f 57 c0                 | xorps xmm0, xmm0
+    0x12c334f | f3 0f 7f 44 24 68        | movdqu xmmword ptr [rsp + 0x68], xmm0
+    0x12c3355 | 4c 8b c0                 | mov r8, rax
+    0x12c3358 | 48 8d 54 24 40           | lea rdx, [rsp + 0x40]
+    0x12c335d | 49 8b 0e                 | mov rcx, qword ptr [r14]
+    0x12c3360 | e8 6b 65 6a 03           | call 0x49698d0
+    0x12c3365 | c7 44 24 24 02 00 00 00  | mov dword ptr [rsp + 0x24], 0x2
+    0x12c336d | 8b cb                    | mov ecx, ebx
+    0x12c336f | e8 fc 1a 69 03           | call 0x4954e70
+    0x12c3374 | 90                       | nop
+    0x12c3375 | 48 8d 8e 38 01 00 00     | lea rcx, [rsi + 0x138]
+    0x12c337c | 48 8d 54 24 40           | lea rdx, [rsp + 0x40]
+    0x12c3381 | e8 1a 62 44 ff           | call 0x7095a0
+    0x12c3386 | 90                       | nop
+    0x12c3387 | 48 8b 4c 24 40           | mov rcx, qword ptr [rsp + 0x40]
+    0x12c338c | 48 85 c9                 | test rcx, rcx
+    0x12c338f | 74 12                    | je 0x12c33a3
+    0x12c3391 | 8b c7                    | mov eax, edi
+    0x12c3393 | f0 0f c1 41 04           | lock xadd dword ptr [rcx + 0x4], eax
+    0x12c3398 | 83 f8 01                 | cmp eax, 0x1
+    0x12c339b | 75 06                    | jne 0x12c33a3
+    0x12c339d | e8 3e 71 6a 03           | call 0x496a4e0
+    0x12c33a2 | 90                       | nop
+    L_0x12c33a3:
+    0x12c33a3 | 48 8b 4d d0              | mov rcx, qword ptr [rbp - 0x30]
+    0x12c33a7 | 48 85 c9                 | test rcx, rcx
+    0x12c33aa | 74 17                    | je 0x12c33c3
+    0x12c33ac | f0 0f c1 79 0c           | lock xadd dword ptr [rcx + 0xc], edi
+    0x12c33b1 | 83 ff 01                 | cmp edi, 0x1
+    0x12c33b4 | 75 0d                    | jne 0x12c33c3
+    0x12c33b6 | 48 8b 01                 | mov rax, qword ptr [rcx]
+    0x12c33b9 | 48 8b 40 08              | mov rax, qword ptr [rax + 0x8]
+    0x12c33bd | ff 15 7d 69 17 05        | call qword ptr [rip + 0x517697d] ; __guard_dispatch_icall_fptr (0x6439d40)
+    L_0x12c33c3:
+    0x12c33c3 | bb 01 00 00 00           | mov ebx, 0x1
+    L_0x12c33c8:
+    0x12c33c8 | 48 8b 4c 24 50           | mov rcx, qword ptr [rsp + 0x50]
+    0x12c33cd | 48 85 c9                 | test rcx, rcx
+    0x12c33d0 | 74 06                    | je 0x12c33d8
+    0x12c33d2 | e8 69 7b 41 ff           | call 0x6daf40
+    0x12c33d7 | 90                       | nop
+    L_0x12c33d8:
+    0x12c33d8 | 48 8b 4d 08              | mov rcx, qword ptr [rbp + 0x8]
+    0x12c33dc | 0f b6 c1                 | movzx eax, cl
+    0x12c33df | 24 01                    | and al, 0x1
+    0x12c33e1 | 74 1b                    | je 0x12c33fe
+    0x12c33e3 | 48 83 e1 fe              | and rcx, -0x2
+    0x12c33e7 | 48 8b 01                 | mov rax, qword ptr [rcx]
+    0x12c33ea | 90                       | nop
+    0x12c33eb | 48 83 f8 03              | cmp rax, 0x3
+    0x12c33ef | 75 07                    | jne 0x12c33f8
+    0x12c33f1 | f0 48 0f b1 19           | lock cmpxchg qword ptr [rcx], rbx
+    0x12c33f6 | 74 06                    | je 0x12c33fe
+    L_0x12c33f8:
+    0x12c33f8 | e8 c3 a6 d4 fe           | call 0xdac0
+    0x12c33fd | 90                       | nop
+    L_0x12c33fe:
+    0x12c33fe | 48 8b 4d 10              | mov rcx, qword ptr [rbp + 0x10]
+    0x12c3402 | 48 33 cc                 | xor rcx, rsp
+    0x12c3405 | e8 96 14 b2 04           | call 0x5de48a0
+    0x12c340a | 4c 8d 9c 24 20 01 00 00  | lea r11, [rsp + 0x120]
+    0x12c3412 | 49 8b 5b 38              | mov rbx, qword ptr [r11 + 0x38]
+    0x12c3416 | 49 8b 73 40              | mov rsi, qword ptr [r11 + 0x40]
+    0x12c341a | 49 8b 7b 48              | mov rdi, qword ptr [r11 + 0x48]
+    0x12c341e | 49 8b e3                 | mov rsp, r11
+    0x12c3421 | 41 5f                    | pop r15
+    0x12c3423 | 41 5e                    | pop r14
+    0x12c3425 | 41 5d                    | pop r13
+    0x12c3427 | 41 5c                    | pop r12
+    0x12c3429 | 5d                       | pop rbp
+    0x12c342a | c3                       | ret
+    L_0x12c342b:
+    0x12c342b | 48 8b 4e 18              | mov rcx, qword ptr [rsi + 0x18]
+    0x12c342f | 48 89 4c 24 48           | mov qword ptr [rsp + 0x48], rcx
+    0x12c3434 | 48 8b 46 20              | mov rax, qword ptr [rsi + 0x20]
+    0x12c3438 | 48 89 44 24 50           | mov qword ptr [rsp + 0x50], rax
+    0x12c343d | e9 b5 fc ff ff           | jmp 0x12c30f7
+    L_0x12c3442:
+    0x12c3442 | 48 8d 4d d8              | lea rcx, [rbp - 0x28]
+    0x12c3446 | e8 85 73 40 ff           | call 0x6ca7d0
+    0x12c344b | 48 8d 15 6e 87 e0 06     | lea rdx, [rip + 0x6e0876e]
+    0x12c3452 | 48 8d 4d d8              | lea rcx, [rbp - 0x28]
+    0x12c3456 | e8 95 32 b4 04           | call 0x5e066f0
+    0x12c345b | 90                       | nop
+    L_0x12c345c:
+    0x12c345c | 48 8d 4d f0              | lea rcx, [rbp - 0x10]
+    0x12c3460 | e8 6b 73 40 ff           | call 0x6ca7d0
+    0x12c3465 | 48 8d 15 54 87 e0 06     | lea rdx, [rip + 0x6e08754]
+    0x12c346c | 48 8d 4d f0              | lea rcx, [rbp - 0x10]
+    0x12c3470 | e8 7b 32 b4 04           | call 0x5e066f0
+  
   === [Sub-Rotina Chamada: 0x12d83d0..0x12d85a0 via call @0x12d0198 (rcx = this (Direct Engine Sub-Call))] ===
     struct RBX::DynamicTranslationSender::ClientToServerSender {
       /* +0x0 */ void*   field_0x0;
@@ -785,22 +1366,13 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
       param_3->field_0x8 = 0;
       auto ret_0x6f7510_2 = call_0x6f7510(&local_0x90, param_2);
       auto ret_0x6fd950_3 = call_0x6fd950(32);
-      ret_0x6fd950_3->field_0x0 = "DynamicTranslationSender";
-      ret_0x6fd950_3->field_0x10 = "onSender";
+      memcpy(ret_0x6fd950_3, "DynamicTranslationSender", 24);
       auto local_0x30 = ret_0x6fd950_3;
       call_0x12e2420(ret_0x4956040_1, &local_0x30, &local_0x70);
       ret_0x4956040_1->field_0x0 = &sym_0x6ffe968;
       ret_0x4956040_1->field_0x40 = param_3->field_0x0;
       ret_0x4956040_1->field_0x48 = param_3->field_0x8;
-      if (ret_0x6f7510_2->field_0x18 >= 16) {
-        void* v_rcx_1 = ret_0x6f7510_2->field_0x0;
-        if (ret_0x6f7510_2->field_0x18 + 1 >= 0x1000 && rcx >= 8 && rcx <= 39) {
-          v_rcx_1 = ret_0x6f7510_2->field_0x0->field_m0x8;
-        } else {
-          call_0x5e14580();
-        }
-        call_0x4955ac0(v_rcx_1);
-      }
+      std::string::_Tidy_deallocate(ret_0x6f7510_2->field_0x0);
       if (0.0 != 0 && atomic_fetch_sub(&0.0->field_0xc, 1) == 1) {
         0.0->vfunc_0x8() // -> RBX::VehicleSeat::fn_0x147a960;
       }
@@ -938,79 +1510,49 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
     
     // Flag defaults: DynamicTranslation = 0
     auto RBX::DynamicTranslation::func_0x12d0c80(RBX::DynamicTranslation* this, int64_t param_2, void* param_3) {
-      void* v_rax_1;
       int64_t local_0x80;
-      if (param_3->field_0x0 == 0) {
-        v_rax_1 = 15;
-      } else {
+      if (param_3->field_0x0 != 0) {
         local_0x80 = 0;
         call_0x6f7000(&local_0x80, param_3->field_0x0, param_3->field_0x8);
-        v_rax_1 = local_0x98;
       }
-      void* v_rax_3 = v_rax_1;
       uint8_t v_bl_4;
       if (this->field_0x30 == 0) {
         v_bl_4 = 1;
       } else {
         auto ret_0x12c70d0_2 = call_0x12c70d0(&this->field_0x30, &local_0x40, &local_0x80, 0);
-        v_rax_3 = local_0x98;
         v_bl_4 = ret_0x12c70d0_2->field_0x4 != 0;
       }
-      if (v_rax_3 >= 16) {
-        void* v_rcx_6 = local_0x80;
-        call_0x4955ac0(v_rcx_6);
-      }
+      std::string::_Tidy_deallocate(local_0x80);
       if (v_bl_4 != 0) {
         return 1;
       }
-      int32_t v_rdi_12 = 2;
-      int32_t v_rdi_14;
-      uint8_t v_r15b_15;
+      void* i_ebx = param_2->field_0x0;
+      int32_t v_rdi_11 = 2;
+      int32_t v_rdi_13;
+      uint8_t v_r15b_14;
       if (param_2->field_0x0 != param_2->field_0x8 + param_2->field_0x0) {
         do { // L_0x12d0d84
-          auto ret_0x5e1f890_4 = call_0x5e1f890(param_2->field_0x0->field_0x0);
+          auto ret_0x5e1f890_4 = call_0x5e1f890(i_ebx->field_0x0);
           if (ret_0x5e1f890_4 != 0) break;
-          L_0x12d0d9c:
-          v_rdi_14 = v_rdi_12;
-          v_r15b_15 = 0;
-          break;
-        } while ((param_2->field_0x0 + 1) != (param_2->field_0x8 + param_2->field_0x0)); // loop -> L_0x12d0d84
-        void* v_rax_8;
-        int64_t local_0x60;
-        if (param_2->field_0x0 == 0) {
-          v_rax_8 = 0;
-        } else {
-          local_0x60 = 0;
-          call_0x6f7000(&local_0x60, param_2->field_0x0, param_2->field_0x8);
-          v_rax_8 = local_0x70;
-        }
-        auto ret_0x12daa60_6 = call_0x12daa60(local_0x60, v_rax_8 + local_0x60, 0, &this->field_0x58);
-        if (ret_0x12daa60_6 != 0) {
-          v_rdi_14 = 7;
-          v_r15b_15 = 1;
-        } else {
-          v_rdi_12 = 7;
-          v_rdi_14 = v_rdi_12;
-          v_r15b_15 = 0;
-        } else {
-          goto L_0x12d0d9c;
-        }
-        if ((v_rdi_14 & 0x1) != 0) {
-          if (local_0x78 >= 16) {
-            void* v_rcx_17 = local_0x60;
-            call_0x4955ac0(v_rcx_17);
-          }
-        }
-        if (v_r15b_15 == 0 && DynamicTranslation >= 6 && DynamicTranslation >> 8 >= 6) {
-          auto expr_1 = "[DFLog::DynamicTranslation] Sender::isEligibleForDynamicTranslation: text {} of locale {} is not";
-          if (param_3->field_0x0 != 0) {
-            FLog::Log(expr_1);
-          }
-          FLog::Log(expr_1);
-          std::string::_Tidy_deallocate(v_rcx_20);
-        }
-        return v_r15b_15;
+          i_ebx++;
+        } while (i_ebx != param_2->field_0x8 + param_2->field_0x0); // loop -> L_0x12d0d84
+        v_rdi_13 = v_rdi_11;
+        v_r15b_14 = 0;
+      } else {
+        v_rdi_13 = v_rdi_11;
+        v_r15b_14 = 0;
       }
+      if ((v_rdi_13 & 0x1) != 0) {
+        std::string::_Tidy_deallocate(local_0x60);
+      }
+      if (v_r15b_14 == 0 && DynamicTranslation >= 6 && DynamicTranslation >> 8 >= 6) {
+        if (param_3->field_0x0 != 0) {
+          FLog::Log("[DFLog::DynamicTranslation] Sender::isEligibleForDynamicTranslation: text {} of locale {} is not");
+        }
+        FLog::Log("[DFLog::DynamicTranslation] Sender::isEligibleForDynamicTranslation: text {} of locale {} is not");
+        std::string::_Tidy_deallocate(v_r15b_14);
+      }
+      return v_r15b_14;
     }
   
   === [Instrucoes x86-64 do XREF Runtime #2 (0x12d0c80..0x12d0ff0)] ===
@@ -1160,7 +1702,7 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
     0x12d0e58 | 48 8b 75 e7              | mov rsi, qword ptr [rbp - 0x19]
     L_0x12d0e5c:
     0x12d0e5c | 48 89 5d 97              | mov qword ptr [rbp - 0x69], rbx
-    0x12d0e60 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x12d0e60 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     L_0x12d0e67:
     0x12d0e67 | 48 ff c0                 | inc rax
     0x12d0e6a | 80 3c 03 00              | cmp byte ptr [rbx + rax], 0x0
@@ -1279,217 +1821,203 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
     
     // Flag defaults: DynamicTranslation = 0
     auto RBX::DynamicTranslation::func_0x12d1000(RBX::DynamicTranslation* this, int64_t param_2, void* param_3, void* param_4) {
-      auto expr_1 = "[DFLog::DynamicTranslation] Sender::fetchTranslation: trying to call fetchTranslation for source";
       if (this->field_0xc8 == 0) {
         if (DynamicTranslation >= 6 && DynamicTranslation >> 8 >= 3) {
-          FLog::Log(expr_1);
-          expr_1;
+          FLog::Log("[DFLog::DynamicTranslation] Sender::fetchTranslation: trying to call fetchTranslation for source");
+          "[DFLog::DynamicTranslation] Sender::fetchTranslation: trying to call fetchTranslation for source";
         }
         param_2->field_0x28 = 6;
         local_0x6d8->field_0x8->vfunc_0x8() // -> RBX::VehicleSeat::fn_0x147a960;
         return tailcall_0x12d21f8();
+      }
+      if (this->field_0xf8 == 0) {
+        if (DynamicTranslation >= 6 && DynamicTranslation >> 8 >= 3) {
+          FLog::Log("[DFLog::DynamicTranslation] Sender::fetchTranslation: trying to call fetchTranslation for source");
+          "[DFLog::DynamicTranslation] Sender::fetchTranslation: trying to call fetchTranslation for source";
+        }
+        param_2->field_0x28 = 6;
+        local_0x6d8->field_0x8->vfunc_0x8() // -> RBX::VehicleSeat::fn_0x147a960;
+        return tailcall_0x12d21f8();
+      }
+      void* v_r12_1;
+      void* stk_2;
+      void* stk_3;
+      if (local_0x6d8->field_0x8 != 0 && local_0x6d8->field_0x8->field_0x8 != 0) {
+        do { // L_0x12d1300
+          if (atomic_cas(&local_0x6d8->field_0x8->field_0x8, local_0x6d8->field_0x8->field_0x8, local_0x6d8->field_0x8->field_0x8 + 1) == 0) break;
+        } while (local_0x6d8->field_0x8->field_0x8 != 0); // loop -> L_0x12d1300
+        v_r12_1 = 0.0;
+        stk_2 = 0.0;
+        stk_3 = 0.0;
       } else {
-        if (this->field_0xf8 == 0) {
-          if (DynamicTranslation >= 6 && DynamicTranslation >> 8 >= 3) {
-            FLog::Log(expr_1);
-            expr_1;
-          }
-          param_2->field_0x28 = 6;
-          local_0x6d8->field_0x8->vfunc_0x8() // -> RBX::VehicleSeat::fn_0x147a960;
-          return tailcall_0x12d21f8();
-        } else {
-          void* v_r12_3;
-          void* stk_4;
-          void* stk_5;
-          if (local_0x6d8->field_0x8 != 0 && local_0x6d8->field_0x8->field_0x8 != 0) {
-            do { // L_0x12d1300
-              if (atomic_cas(&local_0x6d8->field_0x8->field_0x8, local_0x6d8->field_0x8->field_0x8, (local_0x6d8->field_0x8->field_0x8 + 1)) == 0) break;
-              v_r12_3 = 0.0;
-              stk_4 = 0.0;
-              stk_5 = 0.0;
-              break;
-            } while (local_0x6d8->field_0x8->field_0x8 != 0); // loop -> L_0x12d1300
-            v_r12_3 = local_0x6d8->field_0x8;
-            stk_4 = local_0x6d8->field_0x0;
-            stk_5 = local_0x6d8->field_0x8;
-          } else {
-            v_r12_3 = 0.0;
-            stk_4 = 0.0;
-            stk_5 = 0.0;
-          }
-          if (stk_4 == 0) {
-            void* v_r12_58 = v_r12_3;
-            if (DynamicTranslation >= 6 && DynamicTranslation >> 8 >= 3) {
-              FLog::Log(expr_1);
-              v_r12_58 = stk_5;
-              expr_1;
-            }
-            param_2->field_0x28 = 6;
-            if (v_r12_58 != 0) {
-              call_0x6daf40(v_r12_58);
-            }
-            local_0x6d8->field_0x8->vfunc_0x8() // -> RBX::VehicleSeat::fn_0x147a960;
-            return tailcall_0x12d21f8();
-          } else {
-            auto ret_0x4062490_1 = call_0x4062490(stk_4);
-            void* v_r12_51 = v_r12_3;
-            void* v_r12_54;
-            auto expr_2 = "[DFLog::DynamicTranslation] Sender::fetchTranslation: failed to get DataModel";
-            if (ret_0x4062490_1 == 0) {
-              if (DynamicTranslation >= 6 && DynamicTranslation >> 8 >= 3) {
-                expr_2 - 0x333628;
-                expr_2;
-                expr_2 - 0x333628;
-                FLog::Log(expr_2);
-                v_r12_51 = stk_5;
-              }
-              param_2->field_0x28 = 6;
-              v_r12_54 = v_r12_51;
-              L_0x12d1951:
-              call_0x6daf40(v_r12_54);
-              return tailcall_0x12d21f0();
+        v_r12_1 = 0.0;
+        stk_2 = 0.0;
+        stk_3 = 0.0;
+      }
+      if (stk_2 == 0) {
+        void* v_r12_47 = v_r12_1;
+        if (DynamicTranslation >= 6 && DynamicTranslation >> 8 >= 3) {
+          FLog::Log("[DFLog::DynamicTranslation] Sender::fetchTranslation: trying to call fetchTranslation for source");
+          v_r12_47 = stk_3;
+          "[DFLog::DynamicTranslation] Sender::fetchTranslation: trying to call fetchTranslation for source";
+        }
+        param_2->field_0x28 = 6;
+        if (v_r12_47 != 0) {
+          call_0x6daf40(v_r12_47);
+        }
+        local_0x6d8->field_0x8->vfunc_0x8() // -> RBX::VehicleSeat::fn_0x147a960;
+        return tailcall_0x12d21f8();
+      }
+      auto ret_0x4062490_1 = call_0x4062490(stk_2);
+      void* v_r12_41 = v_r12_1;
+      void* v_r12_44;
+      if (ret_0x4062490_1 == 0) {
+        if (DynamicTranslation >= 6 && DynamicTranslation >> 8 >= 3) {
+          "[DFLog::DynamicTranslation] Sender::fetchTranslation: failed to get DataModel" - 0x333628;
+          "[DFLog::DynamicTranslation] Sender::fetchTranslation: failed to get DataModel";
+          "[DFLog::DynamicTranslation] Sender::fetchTranslation: failed to get DataModel" - 0x333628;
+          FLog::Log("[DFLog::DynamicTranslation] Sender::fetchTranslation: failed to get DataModel");
+          v_r12_41 = stk_3;
+        }
+        param_2->field_0x28 = 6;
+        v_r12_44 = v_r12_41;
+        L_0x12d1951:
+        call_0x6daf40(v_r12_44);
+        return tailcall_0x12d21f0();
+      }
+      if (param_4->field_0x8 == 0) {
+        if (DynamicTranslation >= 6 && DynamicTranslation >> 8 >= 3) {
+          "[DFLog::DynamicTranslation] Sender::fetchTranslation: trying to call fetchTranslation for source" - 0x35c5aa;
+          "[DFLog::DynamicTranslation] Sender::fetchTranslation: trying to call fetchTranslation for source";
+          FLog::Log("[DFLog::DynamicTranslation] Sender::fetchTranslation: failed to get DataModel");
+          v_r12_41 = stk_3;
+        }
+        param_2->field_0x28 = 6;
+        v_r12_44 = v_r12_41;
+        call_0x6daf40(v_r12_44);
+        return tailcall_0x12d21f0();
+      }
+      void* sel_rcx_1 = &ret_0x4062490_1->field_0x2d0 != 0 ? ret_0x4062490_1 : 0;
+      int32_t i_esi;
+      if (sel_rcx_1->field_0x358 == 0) {
+        void* v_r12_27 = v_r12_1;
+        if (DynamicTranslation >= 6 && DynamicTranslation >> 8 >= 3) {
+          do { // L_0x12d1672
+            i_esi++;
+          } while (rax[i_esi] != 0); // loop -> L_0x12d1672
+          FLog::Log("[DFLog::DynamicTranslation] ServerQueue::shouldAdd: failed to get Workspace");
+          v_r12_27 = stk_3;
+          "[DFLog::DynamicTranslation] ServerQueue::shouldAdd: failed to get Workspace";
+        }
+        param_2->field_0x28 = 6;
+        v_r12_44 = v_r12_27;
+        goto L_0x12d1951;
+      } else {
+        int64_t local_0x4b0;
+        if (local_0x6d0->field_0x0 != 0) {
+          local_0x4b0 = 0;
+          call_0x6f7000(&local_0x4b0, local_0x6d0->field_0x0, local_0x6d0->field_0x8);
+        }
+        auto ret_0x134a7c0_3 = call_0x134a7c0(&local_0x580, &local_0x4b0);
+        uint8_t v_sil_4;
+        if (param_4->field_0x8 == ret_0x134a7c0_3->field_0x10) {
+          if (ret_0x134a7c0_3->field_0x10 != 0) {
+            auto ret_0x5e06820_4 = memcmp(param_4->field_0x0, ret_0x134a7c0_3, ret_0x134a7c0_3->field_0x10);
+            if (ret_0x5e06820_4 == 0) {
+              v_sil_4 = 1;
             } else {
-              if (param_4->field_0x8 == 0) {
-                if (DynamicTranslation >= 6 && DynamicTranslation >> 8 >= 3) {
-                  expr_1 - 0x35c5aa;
-                  expr_1;
-                  FLog::Log(expr_2);
-                  v_r12_51 = stk_5;
+              v_sil_4 = 0;
+            }
+          } else {
+            v_sil_4 = 1;
+          }
+        } else {
+          v_sil_4 = 0;
+        }
+        std::string::_Tidy_deallocate(local_0x580);
+        std::string::_Tidy_deallocate(local_0x4b0);
+        if (v_sil_4 != 0) {
+          void* v_r12_24 = v_r12_1;
+          if (DynamicTranslation >= 6 && DynamicTranslation >> 8 >= 4) {
+            FLog::Log("[DFLog::DynamicTranslation] Sender::fetchTranslation: Ignoring dynamic translation for source: {");
+            v_r12_24 = stk_3;
+            "[DFLog::DynamicTranslation] Sender::fetchTranslation: Ignoring dynamic translation for source: {";
+          }
+          v_r12_44 = v_r12_24;
+          goto L_0x12d1951;
+        } else {
+          int64_t local_0x420;
+          if (param_3->field_0x0 != 0) {
+            local_0x420 = 0;
+            call_0x6f7000(&local_0x420, param_3->field_0x0, param_3->field_0x8);
+          }
+          call_0x12ccee0(&local_0x290, &local_0x3a0, local_0x6e0);
+          std::string::_Tidy_deallocate(local_0x420);
+          call_0x12cdb40(&local_0x510, &local_0x290);
+          if (DynamicTranslation >= 6 && DynamicTranslation >> 8 >= 6) {
+            FLog::Log("[DFLog::DynamicTranslation] Sender::fetchTranslationV2: Parameterized source: {}, orig: {}");
+            "[DFLog::DynamicTranslation] Sender::fetchTranslationV2: Parameterized source: {}, orig: {}";
+          }
+          auto ret_0x6dbfe0_11 = call_0x6dbfe0(local_0x6d0, &local_0x400);
+          auto ret_0x6f7510_12 = call_0x6f7510(&local_0x3e0, &local_0x510);
+          call_0x12dc140(this->field_0xc8, &local_0x130, ret_0x6f7510_12, ret_0x6dbfe0_11);
+          if (DynamicTranslation >= 6 && DynamicTranslation >> 8 >= 6) {
+            FLog::Log("[DFLog::DynamicTranslation] Sender::fetchTranslationV2: Fetched translation from client LRU cach");
+            "[DFLog::DynamicTranslation] Sender::fetchTranslationV2: Fetched translation from client LRU cach";
+          }
+          call_0x6f7510(&local_0x460, &local_0x130);
+          call_0xe0bbd0(&local_0x480, &local_0x530);
+          call_0x12ce880(&local_0x4d0, &local_0x2a8);
+          if (0) {
+            int32_t v_r9_15 = (0 + (1 << local_0x49c) * 4)->field_0x4;
+            if ((0 + (1 << local_0x49c) * 4)->field_0x4 != 0) {
+              int32_t i_r9d = (0 + (1 << local_0x49c) * 4)->field_0x4;
+              do { // L_0x12d1de0
+                if ((rbx->field_0x18[((i_r9d - 1) >> 6) * 8] & 1 << (i_r9d - 1 & 0x3f)) == 0) break;
+                i_r9d = i_r9d - 1;
+              } while (i_r9d != 1); // loop -> L_0x12d1de0
+            }
+            (0 + (1 << local_0x49c) * 4)->field_0x4 = v_r9_15;
+            if (v_r9_15 != 0) {
+              int32_t i_ecx = v_r9_15;
+              void* i_edx = (1 << local_0x49c) * 4 + ((0 + (1 << local_0x49c) * 4)->field_0x10 + 3) * 8;
+              i_esi = 0;
+              int32_t i_edi = 1;
+              int32_t i_r13d = 0;
+              void* v_rcx_16;
+              do { // L_0x12d1e50
+                v_rcx_16 = i_ecx;
+                void* v_rdx_17 = i_edx;
+                if ((i_edx[(i_esi >> 6) * 8] & i_edi) == 0) {
+                  call_0x6f8fb0(i_r13d + 0x20);
+                  call_0x6f8fb0(i_r13d);
+                  v_rcx_16 = v_r9_15;
+                  v_rdx_17 = (1 << local_0x49c) * 4 + ((0 + (1 << local_0x49c) * 4)->field_0x10 + 3) * 8;
                 }
-                param_2->field_0x28 = 6;
-                v_r12_54 = v_r12_51;
-                call_0x6daf40(v_r12_54);
-                return tailcall_0x12d21f0();
-              } else {
-                void* sel_rcx_1 = &ret_0x4062490_1->field_0x2d0 != 0 ? ret_0x4062490_1 : 0;
-                if (sel_rcx_1->field_0x358 == 0) {
-                  void* v_r12_35 = v_r12_3;
-                  if (DynamicTranslation >= 6 && DynamicTranslation >> 8 >= 3) {
-                    int32_t i_eax = "[DFLog::DynamicTranslation] ServerQueue::shouldAdd: failed to get Workspace" - 0x37d212;
-                    do { // L_0x12d1672
-                    } while (i_eax[(rsi + 1)] != 0); // loop -> L_0x12d1672
-                    FLog::Log("[DFLog::DynamicTranslation] ServerQueue::shouldAdd: failed to get Workspace");
-                    v_r12_35 = stk_5;
-                    "[DFLog::DynamicTranslation] ServerQueue::shouldAdd: failed to get Workspace";
-                  }
-                  param_2->field_0x28 = 6;
-                  v_r12_54 = v_r12_35;
-                  goto L_0x12d1951;
-                } else {
-                  int64_t local_0x4b0;
-                  if (local_0x6d0->field_0x0 != 0) {
-                    local_0x4b0 = 0;
-                    call_0x6f7000(&local_0x4b0, local_0x6d0->field_0x0, local_0x6d0->field_0x8);
-                  }
-                  auto ret_0x134a7c0_3 = call_0x134a7c0(&local_0x580, &local_0x4b0);
-                  uint8_t v_sil_6;
-                  if (param_4->field_0x8 == ret_0x134a7c0_3->field_0x10) {
-                    if (ret_0x134a7c0_3->field_0x10 != 0) {
-                    auto ret_0x5e06820_4 = memcmp(param_4->field_0x0, ret_0x134a7c0_3, ret_0x134a7c0_3->field_0x10);
-                    if (ret_0x5e06820_4 == 0) {
-                    v_sil_6 = 1;
-                    } else {
-                    v_sil_6 = 0;
-                    }
-                    } else {
-                    v_sil_6 = 1;
-                    }
-                  } else {
-                    v_sil_6 = 0;
-                  }
-                  if (local_0x598 >= 16) {
-                    void* v_rcx_7 = local_0x580;
-                    call_0x4955ac0(v_rcx_7);
-                  }
-                  if (local_0x4c8 >= 16) {
-                    void* v_rcx_9 = local_0x4b0;
-                    call_0x4955ac0(v_rcx_9);
-                  }
-                  if (v_sil_6 != 0) {
-                    void* v_r12_31 = v_r12_3;
-                    if (DynamicTranslation >= 6 && DynamicTranslation >> 8 >= 4) {
-                    FLog::Log("[DFLog::DynamicTranslation] Sender::fetchTranslation: Ignoring dynamic translation for source: {");
-                    v_r12_31 = stk_5;
-                    "[DFLog::DynamicTranslation] Sender::fetchTranslation: Ignoring dynamic translation for source: {";
-                    }
-                    v_r12_54 = v_r12_31;
-                    goto L_0x12d1951;
-                  } else {
-                    int64_t stk_14;
-                    int64_t local_0x420;
-                    if (param_3->field_0x0 == 0) {
-                    stk_14 = 15;
-                    } else {
-                    local_0x420 = 0;
-                    call_0x6f7000(&local_0x420, param_3->field_0x0, param_3->field_0x8);
-                    stk_14 = local_0x438;
-                    }
-                    call_0x12ccee0(&local_0x290, &local_0x3a0, local_0x6e0);
-                    if (stk_14 >= 16) {
-                    void* v_rcx_15 = local_0x420;
-                    call_0x4955ac0(v_rcx_15);
-                    }
-                    call_0x12cdb40(&local_0x510, &local_0x290);
-                    if (DynamicTranslation >= 6 && DynamicTranslation >> 8 >= 6) {
-                    FLog::Log("[DFLog::DynamicTranslation] Sender::fetchTranslationV2: Parameterized source: {}, orig: {}");
-                    "[DFLog::DynamicTranslation] Sender::fetchTranslationV2: Parameterized source: {}, orig: {}";
-                    }
-                    auto ret_0x6dbfe0_11 = call_0x6dbfe0(local_0x6d0, &local_0x400);
-                    auto ret_0x6f7510_12 = call_0x6f7510(&local_0x3e0, &local_0x510);
-                    call_0x12dc140(this->field_0xc8, &local_0x130, ret_0x6f7510_12, ret_0x6dbfe0_11);
-                    if (DynamicTranslation >= 6 && DynamicTranslation >> 8 >= 6) {
-                    FLog::Log("[DFLog::DynamicTranslation] Sender::fetchTranslationV2: Fetched translation from client LRU cach");
-                    "[DFLog::DynamicTranslation] Sender::fetchTranslationV2: Fetched translation from client LRU cach";
-                    }
-                    call_0x6f7510(&local_0x460, &local_0x130);
-                    call_0xe0bbd0(&local_0x480, &local_0x530);
-                    call_0x12ce880(&local_0x4d0, &local_0x2a8);
-                    if (0 != 0) {
-                    int32_t v_r9_20 = (0 + (1 << local_0x49c) * 4)->field_0x4;
-                    if ((0 + (1 << local_0x49c) * 4)->field_0x4 != 0) {
-                    int32_t i_r9d = (0 + (1 << local_0x49c) * 4)->field_0x4;
-                    do { // L_0x12d1de0
-                    if (((0 + (1 << local_0x49c) * 4) + rax * 8)->field_0x18[((i_r9d - 1) >> 6) * 8] == 0) break;
-                    v_r9_20 = i_r9d - 1;
-                    } while ((i_r9d - 1) != 0); // loop -> L_0x12d1de0
-                    }
-                    (0 + (1 << local_0x49c) * 4)->field_0x4 = v_r9_20;
-                    if (v_r9_20 != 0) {
-                    auto i_edx = (1 << local_0x49c) * 4 + rdx * 8;
-                    do { // L_0x12d1e50
-                    if (i_edx[(0) * 8] == 0) {
-                    call_0x6f8fb0(32);
-                    call_0x6f8fb0(0);
-                    }
-                    } while ((v_r9_20 - 1) != 0); // loop -> L_0x12d1e50
-                    }
-                    }
-                    int64_t local_0x60;
-                    if (0 != 0) {
-                    local_0x60 = 0;
-                    auto local_0xb0 = (local_0x484 << 6) + 7 & 0xfffffff8;
-                    auto local_0xf0 = 0;
-                    local_0x4a0->vfunc_0x30(local_0x4a0, &local_0x60, &local_0xb0, &local_0xf0) // -> RBX::istreambuf_iterator::fn_0x1263750;
-                    }
-                    call_0x6fdb30(local_0x484);
-                    if (0 != 0) {
-                    local_0x60 = 0;
-                    local_0x4a0->vfunc_0x30(local_0x4a0, &local_0x60, &local_0x80, &local_0x90) // -> RBX::istreambuf_iterator::fn_0x1263750;
-                    }
-                    if (global_0x75ac990 >= 16) {
-                    void* v_rcx_27 = 0;
-                    if (global_0x75ac990 + 1 >= 0x1000) {
-                    }
-                    call_0x4955ac0(v_rcx_27);
-                    }
-                    call_0x6f7510(param_2, &local_0x4d0);
-                    param_2->field_0x20 = 1;
-                    param_2->field_0x28 = local_0x158;
-                  }
-                }
-              }
+                i_esi++;
+                i_r13d += 0x40;
+                i_ecx = v_rcx_16 - 1;
+                i_edx = v_rdx_17;
+                i_edi = rotl(i_edi, 1);
+              } while (v_rcx_16 != 1); // loop -> L_0x12d1e50
             }
           }
+          int64_t local_0x60;
+          if (0) {
+            local_0x60 = 0;
+            auto local_0xb0 = (local_0x484 << 6) + 7 & 0xfffffff8;
+            auto local_0xf0 = 0;
+            local_0x4a0->vfunc_0x30(local_0x4a0, &local_0x60, &local_0xb0, &local_0xf0) // -> RBX::istreambuf_iterator::fn_0x1263750;
+          }
+          call_0x6fdb30(local_0x484);
+          if (0) {
+            local_0x60 = 0;
+            local_0x4a0->vfunc_0x30(local_0x4a0, &local_0x60, &local_0x80, &local_0x90) // -> RBX::istreambuf_iterator::fn_0x1263750;
+          }
+          std::string::_Tidy_deallocate(0);
+          call_0x6f7510(param_2, &local_0x4d0);
+          param_2->field_0x20 = 1;
+          param_2->field_0x28 = local_0x158;
         }
       }
     }
@@ -1525,7 +2053,7 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
     0x12d1077 | 48 89 4c 24 50           | mov qword ptr [rsp + 0x50], rcx
     0x12d107c | 48 83 b8 c8 00 00 00 00  | cmp qword ptr [rax + 0xc8], 0x0
     0x12d1084 | 0f 85 36 01 00 00        | jne 0x12d11c0
-    0x12d108a | 48 c7 c6 ff ff ff ff     | mov rsi, 0xffffffff
+    0x12d108a | 48 c7 c6 ff ff ff ff     | mov rsi, -0x1
     0x12d1091 | 48 8b 05 f0 94 e1 06     | mov rax, qword ptr [rip + 0x6e194f0] ; DFLogDynamicTranslation
     0x12d1098 | 3c 06                    | cmp al, 0x6
     0x12d109a | 0f 82 e6 00 00 00        | jb 0x12d1186
@@ -1589,7 +2117,7 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
     L_0x12d11c0:
     0x12d11c0 | 48 83 b8 f8 00 00 00 00  | cmp qword ptr [rax + 0xf8], 0x0
     0x12d11c8 | 0f 85 0c 01 00 00        | jne 0x12d12da
-    0x12d11ce | 48 c7 c6 ff ff ff ff     | mov rsi, 0xffffffff
+    0x12d11ce | 48 c7 c6 ff ff ff ff     | mov rsi, -0x1
     0x12d11d5 | 48 8b 05 ac 93 e1 06     | mov rax, qword ptr [rip + 0x6e193ac] ; DFLogDynamicTranslation
     0x12d11dc | 3c 06                    | cmp al, 0x6
     0x12d11de | 72 a6                    | jb 0x12d1186
@@ -1656,7 +2184,7 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
     L_0x12d1317:
     0x12d1317 | 48 83 7c 24 40 00        | cmp qword ptr [rsp + 0x40], 0x0
     0x12d131d | 0f 85 79 01 00 00        | jne 0x12d149c
-    0x12d1323 | 48 c7 c6 ff ff ff ff     | mov rsi, 0xffffffff
+    0x12d1323 | 48 c7 c6 ff ff ff ff     | mov rsi, -0x1
     0x12d132a | 48 8b 05 57 92 e1 06     | mov rax, qword ptr [rip + 0x6e19257] ; DFLogDynamicTranslation
     0x12d1331 | 3c 06                    | cmp al, 0x6
     0x12d1333 | 0f 82 04 01 00 00        | jb 0x12d143d
@@ -1745,7 +2273,7 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
     0x12d14d9 | 48 8b 44 24 30           | mov rax, qword ptr [rsp + 0x30]
     0x12d14de | 48 05 d8 c9 cc ff        | add rax, 0xffccc9d8
     0x12d14e4 | 48 89 45 b0              | mov qword ptr [rbp - 0x50], rax
-    0x12d14e8 | 48 c7 c6 ff ff ff ff     | mov rsi, 0xffffffff
+    0x12d14e8 | 48 c7 c6 ff ff ff ff     | mov rsi, -0x1
     0x12d14ef | 90                       | nop
     L_0x12d14f0:
     0x12d14f0 | 48 ff c6                 | inc rsi
@@ -1791,7 +2319,7 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
     0x12d159a | 48 8b 44 24 30           | mov rax, qword ptr [rsp + 0x30]
     0x12d159f | 48 05 56 3a ca ff        | add rax, 0xffca3a56
     0x12d15a5 | 48 89 45 d0              | mov qword ptr [rbp - 0x30], rax
-    0x12d15a9 | 48 c7 c6 ff ff ff ff     | mov rsi, 0xffffffff
+    0x12d15a9 | 48 c7 c6 ff ff ff ff     | mov rsi, -0x1
     L_0x12d15b0:
     0x12d15b0 | 48 ff c6                 | inc rsi
     0x12d15b3 | 80 3c 30 00              | cmp byte ptr [rax + rsi], 0x0
@@ -1833,7 +2361,7 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
     0x12d165c | 48 8b 44 24 30           | mov rax, qword ptr [rsp + 0x30]
     0x12d1661 | 48 05 ee 2d c8 ff        | add rax, 0xffc82dee
     0x12d1667 | 48 89 45 f0              | mov qword ptr [rbp - 0x10], rax
-    0x12d166b | 48 c7 c6 ff ff ff ff     | mov rsi, 0xffffffff
+    0x12d166b | 48 c7 c6 ff ff ff ff     | mov rsi, -0x1
     L_0x12d1672:
     0x12d1672 | 48 ff c6                 | inc rsi
     0x12d1675 | 44 38 34 30              | cmp byte ptr [rax + rsi], r14b
@@ -1955,7 +2483,7 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
     0x12d185f | 48 8b 44 24 40           | mov rax, qword ptr [rsp + 0x40]
     0x12d1864 | 48 8b 40 68              | mov rax, qword ptr [rax + 0x68]
     0x12d1868 | 48 89 8d 40 03 00 00     | mov qword ptr [rbp + 0x340], rcx
-    0x12d186f | 48 c7 c6 ff ff ff ff     | mov rsi, 0xffffffff
+    0x12d186f | 48 c7 c6 ff ff ff ff     | mov rsi, -0x1
     L_0x12d1876:
     0x12d1876 | 48 ff c6                 | inc rsi
     0x12d1879 | 80 3c 31 00              | cmp byte ptr [rcx + rsi], 0x0
@@ -2067,7 +2595,7 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
     0x12d1a71 | 48 8d 8d 10 04 00 00     | lea rcx, [rbp + 0x410]
     0x12d1a78 | e8 c3 c0 ff ff           | call 0x12cdb40
     0x12d1a7d | 90                       | nop
-    0x12d1a7e | 48 c7 c6 ff ff ff ff     | mov rsi, 0xffffffff
+    0x12d1a7e | 48 c7 c6 ff ff ff ff     | mov rsi, -0x1
     0x12d1a85 | 48 8b 05 fc 8a e1 06     | mov rax, qword ptr [rip + 0x6e18afc] ; DFLogDynamicTranslation
     0x12d1a8c | 3c 06                    | cmp al, 0x6
     0x12d1a8e | 0f 82 06 01 00 00        | jb 0x12d1b9a
@@ -2492,6 +3020,103 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
   0x12d05a4: e8 f7 2b 47 ff | 90 | 48 8d 8d c0 00 00 00 | e8 1a a2 3f ff
   0x12d05b6: 48 8d 15 03 b6 df 06 | 48 8d 8d c0 00 00 00 | e8 27 61 b3 04
 
+  [Child Bytecode Hex 0x12c3480..0x12c3658]
+  0x12c3480: 48 89 54 24 10 | 48 89 4c 24 08 | 53 | 55
+  0x12c348c: 56 | 57 | 41 56 | 48 83 ec 40
+  0x12c3494: 48 8b f2 | 48 8b f9 | 45 33 f6 | 4c 89 31
+  0x12c34a0: 4c 89 71 08 | 48 8d 41 10 | 48 85 c0 | cc cc
+  0x12c34ad: 48 c7 00 01 00 00 00 | 4c 89 71 18 | 4c 89 71 20 | 48 8b 02
+  0x12c34bf: 48 89 41 18 | 48 8b 42 08 | 48 89 41 20 | 4c 89 32
+  0x12c34ce: 4c 89 72 08 | e8 b9 fc b4 01 | 48 89 47 48 | 4c 89 77 38
+  0x12c34df: 4c 89 77 28 | 4c 89 77 30 | 4c 89 77 40 | 48 8d 5f 50
+  0x12c34ef: 48 89 9c 24 80 00 00 00 | e8 94 fc b4 01 | 48 89 43 20 | 4c 89 73 10
+  0x12c3504: 4c 89 33 | 4c 89 73 08 | 4c 89 73 18 | 48 8d 5f 78
+  0x12c3513: 48 89 9c 24 80 00 00 00 | e8 70 fc b4 01 | 48 89 43 20 | 4c 89 73 10
+  0x12c3528: 4c 89 33 | 4c 89 73 08 | 4c 89 73 18 | e8 58 fc b4 01
+  0x12c3538: 48 89 87 c0 00 00 00 | 4c 89 b7 b0 00 00 00 | 4c 89 b7 a0 00 00 00 | 4c 89 b7 a8 00 00 00
+  0x12c3554: 4c 89 b7 b8 00 00 00 | 48 8d 9f c8 00 00 00 | 48 89 9c 24 88 00 00 00 | 48 63 2d 3f 70 e2 06
+  0x12c3571: 48 8d 05 28 ac d3 05 | 48 89 03 | 4c 89 73 08 | 4c 89 73 10
+  0x12c3583: b9 c0 00 00 00 | e8 b3 2a 69 03 | 48 85 c0 | 0f 84 a7 00 00 00
+  0x12c3596: 48 89 00 | 48 89 40 08 | 48 89 43 08 | 48 8d 4b 18
+  0x12c35a5: 48 89 8c 24 80 00 00 00 | 0f 57 c0 | f3 0f 11 84 24 80 00 00 00 | 48 8d 94 24 80 00 00 00
+  0x12c35c1: e8 6a 2e 00 00 | 4c 89 73 58 | 48 8d 05 f7 ab d3 05 | 48 89 03
+  0x12c35d4: 48 89 6b 60 | 4c 89 b7 30 01 00 00 | 4c 89 b7 38 01 00 00 | 48 8d 9f 40 01 00 00
+  0x12c35ed: 48 89 5c 24 78 | e8 99 fb b4 01 | 48 89 43 20 | 4c 89 73 10
+  0x12c35ff: 4c 89 33 | 4c 89 73 08 | 4c 89 73 18 | 48 8b 4e 08
+  0x12c360e: 48 85 c9 | 74 1c | b8 ff ff ff ff | f0 0f c1 41 0c
+  0x12c361d: 83 f8 01 | 75 0d | 48 8b 01 | 48 8b 40 08
+  0x12c3629: ff 15 11 67 17 05 | 48 8b c7 | 48 83 c4 40 | 41 5e
+  0x12c3638: 5f | 5e | 5d | 5b
+  0x12c363c: c3 | 48 8d 4c 24 20 | e8 89 71 40 ff | 48 8d 15 72 85 e0 06
+  0x12c364e: 48 8d 4c 24 20 | e8 98 30 b4 04
+
+  [Child Bytecode Hex 0x12c3070..0x12c3475]
+  0x12c3070: 48 89 5c 24 10 | 48 89 74 24 18 | 48 89 7c 24 20 | 55
+  0x12c3080: 41 54 | 41 55 | 41 56 | 41 57
+  0x12c3088: 48 8d 6c 24 e0 | 48 81 ec 20 01 00 00 | 48 8b 05 45 56 e1 06 | 48 33 c4
+  0x12c309e: 48 89 45 10 | 48 8b f1 | 45 33 ed | 44 89 6c 24 24
+  0x12c30ad: 48 8d 51 10 | 45 33 c0 | 48 8d 4d 08 | e8 63 09 b5 01
+  0x12c30bd: 90 | 0f 57 c0 | f3 0f 7f 44 24 48 | 48 8b 56 20
+  0x12c30cb: 48 85 d2 | 74 22 | 8b 42 08 | 85 c0
+  0x12c30d5: 74 1b | 66 0f 1f 84 00 00 00 00 00 | 8d 48 01 | f0 0f b1 4a 08
+  0x12c30e8: 0f 84 3d 03 00 00 | 85 c0 | 75 ee | 48 8b 4c 24 48
+  0x12c30f7: bb 01 00 00 00 | 48 85 c9 | 0f 84 c3 02 00 00 | 4c 8d b1 f0 01 00 00
+  0x12c310c: 49 8b 06 | 49 8b ce | 48 8b 80 68 02 00 00 | ff 15 21 6c 17 05
+  0x12c311f: 84 c0 | 75 20 | e8 58 0f 50 01 | 4c 89 6c 24 78
+  0x12c312d: 48 c7 45 90 0f 00 00 00 | 4c 89 6d 88 | 48 8d 4c 24 78 | e8 6d 5e 43 ff
+  0x12c3143: 49 8b ce | e8 35 dc b4 ff | 48 8d b8 e0 07 00 00 | 48 8b d6
+  0x12c3155: 48 8d 4d b8 | e8 32 34 00 00 | 90 | 4c 8b 38
+  0x12c3162: 4c 89 7c 24 58 | 4c 8b 60 08 | 4c 89 64 24 60 | 4c 89 28
+  0x12c3173: 4c 89 68 08 | 8b 0d ef c0 20 07 | e8 ee 1c 69 03 | 8b d8
+  0x12c3184: 89 44 24 30 | 48 8b cf | e8 40 75 6a 03 | b9 40 00 00 00
+  0x12c3195: e8 a6 2e 69 03 | 48 85 c0 | 0f 84 b9 02 00 00 | 44 89 28
+  0x12c31a6: c7 40 04 01 00 00 00 | 48 8d 0d cc 46 00 00 | 48 89 48 08 | 4c 89 68 10
+  0x12c31bc: 4c 89 68 18 | 48 8b 0f | 48 89 48 20 | 48 85 c9
+  0x12c31ca: 74 08 | f0 ff 41 04 | 8b 5c 24 30 | 48 83 48 18 04
+  0x12c31d9: 48 8d 0d a0 45 54 ff | 48 89 48 28 | 4c 89 78 30 | 4c 89 60 38
+  0x12c31ec: 0f 57 c0 | f3 0f 7f 44 24 58 | 4c 8b c0 | 48 8d 54 24 38
+  0x12c31fd: 48 8b 0f | e8 cb 66 6a 03 | c7 44 24 24 01 00 00 00 | 8b cb
+  0x12c320f: e8 5c 1c 69 03 | 90 | 48 8d 8e 30 01 00 00 | 48 8d 54 24 38
+  0x12c3221: e8 7a 63 44 ff | 44 89 6c 24 24 | bf ff ff ff ff | 48 8b 4c 24 38
+  0x12c3235: 48 85 c9 | 74 12 | 8b c7 | f0 0f c1 41 04
+  0x12c3241: 83 f8 01 | 75 06 | e8 95 72 6a 03 | 90
+  0x12c324c: 48 8b 4d c0 | 48 85 c9 | 74 19 | 8b c7
+  0x12c3257: f0 0f c1 41 0c | 83 f8 01 | 75 0d | 48 8b 01
+  0x12c3264: 48 8b 40 08 | ff 15 d2 6a 17 05 | 49 8b 06 | 49 8b ce
+  0x12c3274: 48 8b 80 68 02 00 00 | ff 15 bf 6a 17 05 | 84 c0 | 75 1e
+  0x12c3285: e8 f6 0d 50 01 | 4c 89 6d 98 | 48 c7 45 b0 0f 00 00 00 | 4c 89 6d a8
+  0x12c329a: 48 8d 4d 98 | e8 0d 5d 43 ff | 49 8b ce | e8 d5 da b4 ff
+  0x12c32ab: 4c 8d b0 e8 07 00 00 | 48 8b d6 | 48 8d 4d c8 | e8 d2 32 00 00
+  0x12c32be: 90 | 4c 8b 38 | 4c 89 7c 24 68 | 4c 8b 60 08
+  0x12c32cb: 4c 89 64 24 70 | 4c 89 28 | 4c 89 68 08 | 8b 0d 8f bf 20 07
+  0x12c32dd: e8 8e 1b 69 03 | 8b d8 | 89 44 24 34 | 49 8b ce
+  0x12c32eb: e8 e0 73 6a 03 | b9 40 00 00 00 | e8 46 2d 69 03 | 48 85 c0
+  0x12c32fd: 0f 84 3f 01 00 00 | 44 89 28 | c7 40 04 01 00 00 00 | 48 8d 0d 7c 44 00 00
+  0x12c3314: 48 89 48 08 | 4c 89 68 10 | 4c 89 68 18 | 49 8b 0e
+  0x12c3323: 48 89 48 20 | 48 85 c9 | 74 08 | f0 ff 41 04
+  0x12c3330: 8b 5c 24 34 | 48 83 48 18 04 | 48 8d 0d 40 44 54 ff | 48 89 48 28
+  0x12c3344: 4c 89 78 30 | 4c 89 60 38 | 0f 57 c0 | f3 0f 7f 44 24 68
+  0x12c3355: 4c 8b c0 | 48 8d 54 24 40 | 49 8b 0e | e8 6b 65 6a 03
+  0x12c3365: c7 44 24 24 02 00 00 00 | 8b cb | e8 fc 1a 69 03 | 90
+  0x12c3375: 48 8d 8e 38 01 00 00 | 48 8d 54 24 40 | e8 1a 62 44 ff | 90
+  0x12c3387: 48 8b 4c 24 40 | 48 85 c9 | 74 12 | 8b c7
+  0x12c3393: f0 0f c1 41 04 | 83 f8 01 | 75 06 | e8 3e 71 6a 03
+  0x12c33a2: 90 | 48 8b 4d d0 | 48 85 c9 | 74 17
+  0x12c33ac: f0 0f c1 79 0c | 83 ff 01 | 75 0d | 48 8b 01
+  0x12c33b9: 48 8b 40 08 | ff 15 7d 69 17 05 | bb 01 00 00 00 | 48 8b 4c 24 50
+  0x12c33cd: 48 85 c9 | 74 06 | e8 69 7b 41 ff | 90
+  0x12c33d8: 48 8b 4d 08 | 0f b6 c1 | 24 01 | 74 1b
+  0x12c33e3: 48 83 e1 fe | 48 8b 01 | 90 | 48 83 f8 03
+  0x12c33ef: 75 07 | f0 48 0f b1 19 | 74 06 | e8 c3 a6 d4 fe
+  0x12c33fd: 90 | 48 8b 4d 10 | 48 33 cc | e8 96 14 b2 04
+  0x12c340a: 4c 8d 9c 24 20 01 00 00 | 49 8b 5b 38 | 49 8b 73 40 | 49 8b 7b 48
+  0x12c341e: 49 8b e3 | 41 5f | 41 5e | 41 5d
+  0x12c3427: 41 5c | 5d | c3 | 48 8b 4e 18
+  0x12c342f: 48 89 4c 24 48 | 48 8b 46 20 | 48 89 44 24 50 | e9 b5 fc ff ff
+  0x12c3442: 48 8d 4d d8 | e8 85 73 40 ff | 48 8d 15 6e 87 e0 06 | 48 8d 4d d8
+  0x12c3456: e8 95 32 b4 04 | 90 | 48 8d 4d f0 | e8 6b 73 40 ff
+  0x12c3465: 48 8d 15 54 87 e0 06 | 48 8d 4d f0 | e8 7b 32 b4 04
+
   [Child Bytecode Hex 0x12d83d0..0x12d85a0]
   0x12d83d0: 48 89 5c 24 08 | 48 89 74 24 10 | 48 89 7c 24 18 | 55
   0x12d83e0: 41 56 | 41 57 | 48 8d 6c 24 b9 | 48 81 ec b0 00 00 00
@@ -2804,11 +3429,11 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
   * [DFLog::DynamicTranslation] Sender::fetchTranslationV2: Fetched translation from client LRU cach
 
 [Co-Flags na mesma função]
+  * DFIntDynamicTranslationSenderServerLRUMaxSizeBytes = 100000000 (default)
   * DFIntTextSafetyAnalyticsSenderClientToHttpScale = 0 (default) [vizinha em .data]
   * DFFlagTextSafetyAnalyticsSenderUseAdaptiveClientToHttpSamplingRate = false (default) [vizinha em .data]
   * FFlagDynamicTranslationUseRuntimeMutex = false (default) [vizinha em .data]
   * DFIntDynamicTranslationSenderServerResendFrequencySeconds = 10 (default) [vizinha em .data]
   * DFIntDynamicTranslationSenderMaxServerToClientQueueSize = 5000 (default) [vizinha em .data]
-  * DFIntDynamicTranslationSenderServerLRUMaxSizeBytes = 100000000 (default) [vizinha em .data]
   * DFIntDynamicTranslationSenderMaxBytesPerHttpMessage = 1000000 (default) [vizinha em .data]
   * DFFlagDynamicTranslationSenderRequeueFailedEntries = false (default) [vizinha em .data]

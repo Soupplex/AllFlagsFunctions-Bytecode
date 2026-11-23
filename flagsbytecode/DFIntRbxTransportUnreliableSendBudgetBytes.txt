@@ -15,7 +15,7 @@ Operação  : 0x205577c: mov/math reg, [flag] ; fn=0x2055710..0x205598f
     [Child @0x2063880] Papel   : Parâmetro de configuração lido diretamente pela rotina
     [XREF #2 @0x2058f9e] Classe  : RBX::RbxTransport (RTTI Resolvido)
     [XREF #2 @0x2058f9e] Fórmula : param_4 == 0 ? QuicInitialMaxStreamDataUni : RbxTransportUnreliableSendBudgetBytes
-    [XREF #2 @0x2058f9e] Altera  : this->field_0x11ca8->field_0x0, this->field_0x11ca8->field_0x4
+    [XREF #2 @0x2058f9e] Altera  : this->field_0x11ca8->field_0x0, this->field_0x11ca8->field_0x4, this->field_0x11ca8
   
   === [Decompilacao C++ da Funcao 0x2055710..0x205598f] ===
     // Flag defaults: RbxTransportUnreliableSendBudgetBytes = 65535, RbxTransportRnaExpConnection = 6
@@ -26,15 +26,18 @@ Operação  : 0x205577c: mov/math reg, [flag] ; fn=0x2055710..0x205598f
       param_3->field_0x90 = RbxTransportUnreliableSendBudgetBytes;
       auto ret_0x4956040_1 = call_0x4956040(1104);
       auto ret_0x2045f90_2 = call_0x2045f90(ret_0x4956040_1, -selected_ebx_1, param_4);
+      void* v_rax_1;
       void* prev_0xb0_1;
       if (&param_3->field_0xb0 != &local_0x90) {
         prev_0xb0_1 = param_3->field_0xb0;
         param_3->field_0xb0 = ret_0x2045f90_2;
         if (prev_0xb0_1 != 0) {
-          prev_0xb0_1->vfunc(prev_0xb0_1, 1);
+          v_rax_1 = param_3->field_0xb0->field_0x0;
+          v_rax_1->vfunc_0x0(prev_0xb0_1, 1) // -> RBX::ostreambuf_iterator::fn_0x1bde3e0;
         }
       } else if (ret_0x2045f90_2 != 0) {
-        prev_0xb0_1->vfunc(prev_0xb0_1, 1);
+        v_rax_1 = ret_0x2045f90_2->field_0x0;
+        v_rax_1->vfunc_0x0(prev_0xb0_1, 1) // -> RBX::ostreambuf_iterator::fn_0x1bde3e0;
       }
       auto local_0x30 = -selected_ebx_1;
       auto ret_0x205e530_4 = call_0x205e530(&this->field_0x11170, &local_0x30);
@@ -44,7 +47,7 @@ Operação  : 0x205577c: mov/math reg, [flag] ; fn=0x2055710..0x205598f
         f_10e38->vfunc_0xe8(f_10e38, &local_0x100) // -> RBX::RbxTransport::Protocol::fn_0x20441a0;
         FLog::Log("[DFLog::RbxTransportRnaExpConnection] {}. Unreliable send channel opened: {} wireId: {}");
         call_0x4971cd0(&local_0x40, 5, &local_0x50, &local_0x60);
-        std::string::_Tidy_deallocate(v_rcx_3);
+        std::string::_Tidy_deallocate(local_0xb0);
       }
       return param_2;
     }
@@ -140,7 +143,7 @@ Operação  : 0x205577c: mov/math reg, [flag] ; fn=0x2055710..0x205598f
     0x2055865 | e8 16 1b 07 00           | call 0x20c7380
     0x205586a | 48 8b c8                 | mov rcx, rax
     0x205586d | 48 89 5c 24 40           | mov qword ptr [rsp + 0x40], rbx
-    0x2055872 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x2055872 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x2055879 | 0f 1f 80 00 00 00 00     | nop
     L_0x2055880:
     0x2055880 | 48 ff c0                 | inc rax
@@ -324,15 +327,13 @@ Operação  : 0x205577c: mov/math reg, [flag] ; fn=0x2055710..0x205598f
       if ((this->field_0x8 + 1) * 4 >= this->field_0x10 + this->field_0x10 * 2) {
         call_0x20642c0(this, this->field_0x10 * 2);
         call_0x2061b00(this, param_2, &local_0x40);
-      } else {
-        if (this->field_0x10 - this->field_0xc - (this->field_0x8 + 1) <= this->field_0x10 >> 3) {
-          call_0x20642c0(this, this->field_0x10 * 2);
-          call_0x2061b00(this, param_2, &local_0x40);
-        }
-        this->field_0x8 = this->field_0x8 + 1;
-        if (local_0x40->field_0x0 != -2147483648) {
-          this->field_0xc = this->field_0xc - 1;
-        }
+      } else if (this->field_0x10 - this->field_0xc - (this->field_0x8 + 1) <= this->field_0x10 >> 3) {
+        call_0x20642c0(this, this->field_0x10 * 2);
+        call_0x2061b00(this, param_2, &local_0x40);
+      }
+      this->field_0x8++;
+      if (local_0x40->field_0x0 != -2147483648) {
+        this->field_0xc--;
       }
     }
   
@@ -439,19 +440,19 @@ Operação  : 0x205577c: mov/math reg, [flag] ; fn=0x2055710..0x205598f
     void RBX::RbxTransport::func_0x2058f40(RBX::RbxTransport* this, int64_t param_2, void* param_3, void* param_4) {
       call_0x2047d80(this, param_2);
       call_0x20526e0(this, param_2, param_3, param_4);
-      auto* f_11ca8 = this->field_0x11ca8;
-      if (f_11ca8 != this->field_0x11cb0) {
-        f_11ca8->field_0x0 = param_2;
-        f_11ca8->field_0x4 = param_3;
-        call_0x746580(&f_11ca8->field_0x8, &local_0x60);
+      if (this->field_0x11ca8 != this->field_0x11cb0) {
+        this->field_0x11ca8->field_0x0 = param_2;
+        this->field_0x11ca8->field_0x4 = param_3;
+        call_0x746580(&this->field_0x11ca8->field_0x8, &local_0x60);
+        this->field_0x11ca8 = this->field_0x11ca8 + 0x28;
       } else {
         auto local_0x58 = param_2;
         auto local_0x5c = param_3;
-        call_0x20617a0(&this->field_0x11c98, f_11ca8, &local_0x58);
+        call_0x20617a0(&this->field_0x11c98, this->field_0x11ca8, &local_0x58);
       }
       if ((local_0x78 & 0xfffffffc & 0xfffffff8) != 0) {
         if ((~((local_0x78 & 0xfffffffc) >> 2) & 0x1) == 0) {
-          local_0x60->vfunc(local_0x60);
+          (((local_0x78 & 0xfffffffc) & 0xfffffff8))->vfunc_0x10(local_0x60) // -> RBX::AnimationKinematicJoint::fn_0x1dc46c0;
         }
         if ((local_0x78 >> 1 & 0x1) == 0) {
           call_0x4955ac0(local_0x60);

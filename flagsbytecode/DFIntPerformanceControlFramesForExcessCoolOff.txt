@@ -16,7 +16,7 @@ Operação  : 0x2007b31: mov/math reg, [flag] ; fn=0x20078c0..0x2007cf5
     [Child @0x200cba0] Papel   : Parâmetro de configuração lido diretamente pela rotina
     [XREF #2 @0x20084b9] Classe  : RBX::PerformanceControl (RTTI Resolvido)
     [XREF #2 @0x20084b9] Fórmula : PerformanceControlFramesForExcessCoolOff
-    [XREF #2 @0x20084b9] Altera  : this->field_0xb00->field_0x0
+    [XREF #2 @0x20084b9] Altera  : this->field_0xb00->field_0x0, this->field_0xb00
   
   === [Decompilacao C++ da Funcao 0x20078c0..0x2007cf5] ===
     struct RBX::PerformanceControl {
@@ -35,7 +35,7 @@ Operação  : 0x2007b31: mov/math reg, [flag] ; fn=0x20078c0..0x2007cf5
       call_0x2e12fd0(this);
       int32_t v_r14_5 = 0;
       void* v_rbx_9;
-      int32_t v_rsi_10;
+      uint8_t v_sil_10;
       int32_t v_r14_11;
       int64_t local_0xa8;
       if (this->field_0x1a0 != 0) {
@@ -65,38 +65,34 @@ Operação  : 0x2007b31: mov/math reg, [flag] ; fn=0x20078c0..0x2007cf5
           if (ret_0x200edc0_7->field_0x4 != 0) {
             v_rbx_7 = local_0xa8;
             v_rbx_9 = v_rbx_7;
-            v_rsi_10 = 1;
+            v_sil_10 = 1;
             v_r14_11 = 1;
           } else {
             v_r14_5 = 1;
             v_rbx_9 = local_0xa8;
-            v_rsi_10 = 0;
+            v_sil_10 = 0;
             v_r14_11 = v_r14_5;
           }
         } else {
           v_rbx_9 = v_rbx_7;
-          v_rsi_10 = 1;
+          v_sil_10 = 1;
           v_r14_11 = 1;
         }
       } else {
         v_rbx_9 = local_0xa8;
-        v_rsi_10 = 0;
+        v_sil_10 = 0;
         v_r14_11 = v_r14_5;
       }
       if ((v_r14_11 & 0x1) != 0 && v_rbx_9 != &local_0xc0) {
         call_0x4955ac0(v_rbx_9);
       }
-      auto expr_1 = atomic_cas(&this->field_0x0, this->field_0x0, 1) != 0;
-      if (v_rsi_10 != 0) {
-        if (this->field_0x0 == 3) {
-          if expr_1 {
-            call_0xdac0(this);
-          }
-        } else {
+      int32_t v_r15_14 = 0;
+      if (v_sil_10 != 0) {
+        if (this->field_0x0 != 3 || atomic_cas(&this->field_0x0, this->field_0x0, 1) != 0) {
           call_0xdac0(this);
         }
       } else {
-        this->field_0x10 = this->field_0x10 + 1;
+        this->field_0x10++;
         auto local_0x24 = this->field_0x10;
         call_0x200cca0(&this->field_0x150, &local_0x40, &local_0x24);
         if (local_0x44 != 0) {
@@ -127,11 +123,7 @@ Operação  : 0x2007b31: mov/math reg, [flag] ; fn=0x20078c0..0x2007cf5
         if (PerformanceControlManageComputeEnabled10 && PerformanceControlComputePrimaryTunablesEnabled3 && (param_3 & 0x4) != 0) {
           call_0x20186b0(&this->field_0x390, local_0x24, &local_0x80);
         }
-        if (this->field_0x0 == 3) {
-          if expr_1 {
-            call_0xdac0(this);
-          }
-        } else {
+        if (this->field_0x0 != 3 || atomic_cas(&this->field_0x0, this->field_0x0, 1) != 0) {
           call_0xdac0(this);
         }
         auto* f_8 = this->field_0x8;
@@ -157,16 +149,13 @@ Operação  : 0x2007b31: mov/math reg, [flag] ; fn=0x20078c0..0x2007cf5
             ret_0x200a550_19->field_0x18 = &sym_0x6fefb38 & 0xfffffffb | 0x2;
           }
         }
-        if (f_8 == 3) {
-          if (atomic_cas(&&f_8->field_0x0, f_8, 1) != 0) {
-            call_0xdac0(&f_8);
-          }
-        } else {
+        if (f_8 != 3 || atomic_cas(&&f_8->field_0x0, f_8, 1) != 0) {
           call_0xdac0(&f_8);
         }
+        v_r15_14 = local_0x24;
       }
       call_0x4954e70(local_0x3c);
-      return v_r15_16;
+      return v_r15_14;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -489,59 +478,107 @@ Operação  : 0x2007b31: mov/math reg, [flag] ; fn=0x20078c0..0x2007cf5
       int32_t v_r10_1 = 0;
       if (param_3->field_0x0 != param_3->field_0x8 + param_3->field_0x0) {
         int32_t i_r10d = 0;
+        void* i_r11d = param_3->field_0x0;
         do { // L_0x200ee00
-          v_r10_1 = i_r10d ^ param_3->field_0x0->field_0x0 + (i_r10d >> 2) + (i_r10d << 6) - 0x61c88647;
-        } while ((param_3->field_0x0 + 1) != (param_3->field_0x8 + param_3->field_0x0)); // loop -> L_0x200ee00
+          i_r11d++;
+          i_r10d = i_r10d ^ i_r11d->field_0x0 + (i_r10d >> 2) + (i_r10d << 6) - 0x61c88647;
+        } while (i_r11d != param_3->field_0x8 + param_3->field_0x0); // loop -> L_0x200ee00
       }
       int32_t i_edx = v_r10_1 * -1640531535 >> (32 - this->field_0x1c);
       int32_t i_esi = -1;
+      auto* f_8 = this->field_0x8;
+      void* i_r8d = f_8;
       int32_t i_r9d = v_r10_1 * -1640531535 << this->field_0x1c;
       int32_t i_r13d = v_r10_1 * -1640531535 >> (32 - this->field_0x1c) & 0xfffffff0;
-      int32_t v_rbx_5;
-      int32_t i_eax;
-      auto* f_8 = this->field_0x8;
+      int32_t v_rbx_4;
+      int32_t i_edi;
+      uint64_t i_eax;
       do { // L_0x200ee5e
         i_eax = 0x4d72eb980136af5c;
+        i_edi = 0;
         do { // L_0x200ee70
-          v_rbx_5 = (i_edx + (i_eax) & 0xf) + i_r13d;
-          if (f_8->field_0x0[rbx * 4] == -1) break;
-          if (f_8->field_0x0[rbx * 4] == 0x7fffffff) {
+          v_rbx_4 = (i_edx + (i_eax >> i_edi * 4) & 0xf) + i_r13d;
+          if (i_r8d[((i_edx + (i_eax >> i_edi * 4) & 0xf) + i_r13d) * 4] == -1) break;
+          int32_t v_rdx_6 = i_edx;
+          int32_t v_rsi_7 = i_esi;
+          void* v_r8_8 = i_r8d;
+          int32_t v_r9_9 = i_r9d;
+          if (i_r8d[((i_edx + (i_eax >> i_edi * 4) & 0xf) + i_r13d) * 4] == 0x7fffffff) {
+            int32_t selected_ebx_1 = i_esi != -1 ? i_esi : (i_edx + (i_eax >> i_edi * 4) & 0xf) + i_r13d;
+            v_rsi_7 = selected_ebx_1;
+            L_0x200eee7:
+            i_edi++;
+            i_r8d = v_r8_8;
+            i_eax = 0x4d72eb980136af5c;
+            i_edx = v_rdx_6;
+            i_esi = v_rsi_7;
+            i_r9d = v_r9_9;
+            i_edx = v_r10_1 * -1640531535 >> (32 - this->field_0x1c);
+            i_esi = v_rsi_7;
+            i_r8d = v_r8_8;
+            i_r9d = v_r9_9;
+            i_r13d = (1 << this->field_0x1c) - 1 & i_r13d + 0x10;
             break;
+          } else {
+            int32_t v_r9_5 = i_r9d;
+            if ((~this->field_0x18 & (i_r8d[((i_edx + (i_eax >> i_edi * 4) & 0xf) + i_r13d) * 4] ^ i_r9d)) == 0 && param_3->field_0x8 == rdx->field_0x8) {
+              auto ret_0x5e06820_3 = memcmp(param_3->field_0x0, rdx->field_0x0, param_3->field_0x8);
+              if (ret_0x5e06820_3 == 0) break;
+              v_r9_5 = v_r10_1 * -1640531535 << this->field_0x1c;
+              v_rdx_6 = v_r10_1 * -1640531535 >> (32 - this->field_0x1c);
+              v_r8_8 = f_8;
+              v_r9_9 = v_r9_5;
+              i_edi++;
+              i_r8d = v_r8_8;
+              i_eax = 0x4d72eb980136af5c;
+              i_edx = v_rdx_6;
+              i_esi = v_rsi_7;
+              i_r9d = v_r9_9;
+              i_edx = v_r10_1 * -1640531535 >> (32 - this->field_0x1c);
+              i_esi = v_rsi_7;
+              i_r8d = v_r8_8;
+              i_r9d = v_r9_9;
+              i_r13d = (1 << this->field_0x1c) - 1 & i_r13d + 0x10;
+              break;
+            } else {
+              v_rdx_6 = v_r10_1 * -1640531535 >> (32 - this->field_0x1c);
+              v_r8_8 = f_8;
+              v_r9_9 = v_r9_5;
+              goto L_0x200eee7;
+            }
           }
-          if ((~this->field_0x18 & (f_8->field_0x0[rbx * 4] ^ i_r9d)) == 0 && param_3->field_0x8 == rdx->field_0x8) {
-            auto ret_0x5e06820_3 = memcmp(param_3->field_0x0, rdx->field_0x0, param_3->field_0x8);
-            if (ret_0x5e06820_3 == 0) break;
-          }
-        } while ((edi + 1) < 16); // loop -> L_0x200ee70
+          return param_2;
+        } while (i_edi < 16); // loop -> L_0x200ee70
+        goto L_0x200eefc;
       } while (true); // loop -> L_0x200ee5e
-      int32_t v_rbx_4 = (i_edx + (i_eax) & 0xf) + i_r13d;
+      int32_t v_rbx_3 = (i_edx + (i_eax >> i_edi * 4) & 0xf) + i_r13d;
       if (param_4 != 0) {
         if (global_0x84a44d6 != 0 && SplitHashNoRehashOnExistingKey && param_4 == 1 && this->field_0x0 == this->field_0x4) {
           call_0x20107b0(this, param_2, param_3);
         } else {
-          int32_t v_rbx_2 = (i_edx + (i_eax) & 0xf) + i_r13d;
+          int32_t v_rbx_2 = (i_edx + (i_eax >> i_edi * 4) & 0xf) + i_r13d;
           if (i_esi != -1) {
-            f_8->field_0x8[(1 << this->field_0x1c) * 4] = f_8->field_0x8[(1 << this->field_0x1c) * 4] - 1;
+            i_r8d->field_0x8[(1 << this->field_0x1c) * 4]--;
             v_rbx_2 = i_esi;
           }
           f_8->field_0x0[(v_rbx_2 * 4)] = i_r9d;
           if (param_4 == 1) {
             auto ret_0x703ba0_1 = call_0x703ba0(this);
             f_8->field_0x0[(v_rbx_2 * 4)] = f_8->field_0x0[v_rbx_2 * 4] | ret_0x703ba0_1;
-            this->field_0x0 = this->field_0x0 + 1;
-            v_rbx_4 = v_rbx_2;
+            this->field_0x0++;
+            v_rbx_3 = v_rbx_2;
           } else {
-            v_rbx_4 = v_rbx_2;
+            v_rbx_3 = v_rbx_2;
           }
           param_2->field_0x4 = 1;
-          v_rbx_5 = v_rbx_4;
-          param_2->field_0x0 = v_rbx_5;
+          v_rbx_4 = v_rbx_3;
+          param_2->field_0x0 = v_rbx_4;
         }
-        return param_2;
+      } else {
+        param_2->field_0x4 = 1;
+        v_rbx_4 = v_rbx_3;
+        param_2->field_0x0 = v_rbx_4;
       }
-      param_2->field_0x4 = 1;
-      v_rbx_5 = v_rbx_4;
-      param_2->field_0x0 = v_rbx_5;
       return param_2;
     }
   
@@ -721,12 +758,12 @@ Operação  : 0x2007b31: mov/math reg, [flag] ; fn=0x20078c0..0x2007cf5
     
     // Flag defaults: PerformanceControlFramesForExcessCoolOff = 0, SplitHashNoRehashOnExistingKey = true
     void RBX::PerformanceControl::func_0x200cca0(RBX::PerformanceControl* this, int64_t param_2, void* param_3) {
-      auto expr_1 = this->field_0x0 + rdx * 4 >= 1 << this->field_0x1c;
+      auto* f_8 = this->field_0x8;
       if (global_0x84a44d6 != 0 && SplitHashNoRehashOnExistingKey) {
         if (this->field_0x4 == 0) {
           call_0x200f740(this, 16);
         } else {
-          if expr_1 {
+          if (this->field_0x0 + f_8->field_0x8[(1 << this->field_0x1c) * 4] * 4 >= 1 << this->field_0x1c) {
             call_0x200d650(this);
           }
         }
@@ -738,13 +775,12 @@ Operação  : 0x2007b31: mov/math reg, [flag] ; fn=0x20078c0..0x2007cf5
           }
           call_0x200f740(this, this->field_0x4 + v_rcx_1);
         } else if (this->field_0x4 != 0) {
-          if expr_1 {
+          if (this->field_0x0 + f_8->field_0x8[(1 << this->field_0x1c) * 4] * 4 >= 1 << this->field_0x1c) {
             call_0x200d650(this);
           }
         }
       }
       call_0x200e4e0(this, &local_0x40, param_3, 1);
-      auto* f_8 = this->field_0x8;
       if (local_0x44 != 0) {
         auto* f_10 = this->field_0x10;
         ((f_8->field_0x0[local_0x40 * 4] & this->field_0x18) * 208)[f_10] = 0;
@@ -905,12 +941,12 @@ Operação  : 0x2007b31: mov/math reg, [flag] ; fn=0x20078c0..0x2007cf5
     
     // Flag defaults: PerformanceControlFramesForExcessCoolOff = 0, SplitHashNoRehashOnExistingKey = true
     void RBX::PerformanceControl::func_0x200cba0(RBX::PerformanceControl* this, int64_t param_2, void* param_3) {
-      auto expr_1 = this->field_0x0 + rdx * 4 >= 1 << this->field_0x1c;
+      auto* f_8 = this->field_0x8;
       if (global_0x84a44d6 != 0 && SplitHashNoRehashOnExistingKey) {
         if (this->field_0x4 == 0) {
           call_0x1d9b5c0(this, 16);
         } else {
-          if expr_1 {
+          if (this->field_0x0 + f_8->field_0x8[(1 << this->field_0x1c) * 4] * 4 >= 1 << this->field_0x1c) {
             call_0x1d9abe0(this);
           }
         }
@@ -922,7 +958,7 @@ Operação  : 0x2007b31: mov/math reg, [flag] ; fn=0x20078c0..0x2007cf5
           }
           call_0x1d9b5c0(this, this->field_0x4 + v_rcx_1);
         } else if (this->field_0x4 != 0) {
-          if expr_1 {
+          if (this->field_0x0 + f_8->field_0x8[(1 << this->field_0x1c) * 4] * 4 >= 1 << this->field_0x1c) {
             call_0x1d9abe0(this);
           }
         }
@@ -930,12 +966,12 @@ Operação  : 0x2007b31: mov/math reg, [flag] ; fn=0x20078c0..0x2007cf5
       call_0x1d9a770(this, &local_0x30, param_3, 1);
       if (local_0x34 != 0) {
         auto* f_10 = this->field_0x10;
-        f_10->field_0x0[(rdx + rdx * 2) * 8] = 0;
-        f_10->field_0x8[(rdx + rdx * 2) * 8] = 0;
-        f_10->field_0x10[(rdx + rdx * 2) * 8] = 0;
+        f_10->field_0x0[(rdx + idx_1 * 2) * 8] = 0;
+        f_10->field_0x8[(rdx + idx_1 * 2) * 8] = 0;
+        f_10->field_0x10[(rdx + idx_1 * 2) * 8] = 0;
       }
       param_2->field_0x4 = local_0x34;
-      param_2->field_0x0 = this->field_0x8->field_0x0[local_0x30 * 4] & this->field_0x18;
+      param_2->field_0x0 = f_8->field_0x0[local_0x30 * 4] & this->field_0x18;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x200cba0..0x200cc99)] ===
@@ -1078,29 +1114,15 @@ Operação  : 0x2007b31: mov/math reg, [flag] ; fn=0x20078c0..0x2007cf5
           if (PerformanceControlManageComputeEnabled10 && PerformanceControlComputePrimaryTunablesEnabled3 && (param_3 & 0x4) != 0) {
             auto local_0xb0 = local_0xb8;
             call_0x200dc90(&this->field_0x928, &local_0x48, &local_0xb0);
-            auto* f_b00 = this->field_0xb00;
-            auto expr_1 = param_4->field_0x20 <= param_4->field_0x30;
-            if (local_0x48 == 0) {
-              if (local_0x50 != 0) {
-                if expr_1 {
-                  if (local_0x48->field_0x10->field_0x95[local_0x50 * 152] == 0) {
-                    if (f_b00 != this->field_0xb08) {
-                    f_b00->field_0x0 = local_0xb0;
-                    } else {
-                    auto local_0x38 = local_0xb0;
-                    call_0x1d9a0c0(&this->field_0xaf0, f_b00, &local_0x38);
-                    }
-                  }
-                }
-              }
-            } else {
-              if expr_1 {
+            if (local_0x48 != 0 || local_0x50 != 0) {
+              if (param_4->field_0x20 <= param_4->field_0x30) {
                 if (local_0x48->field_0x10->field_0x95[local_0x50 * 152] == 0) {
-                  if (f_b00 != this->field_0xb08) {
-                    f_b00->field_0x0 = local_0xb0;
+                  if (this->field_0xb00 != this->field_0xb08) {
+                    this->field_0xb00->field_0x0 = local_0xb0;
+                    this->field_0xb00 = this->field_0xb00 + 0x10;
                   } else {
                     auto local_0x38 = local_0xb0;
-                    call_0x1d9a0c0(&this->field_0xaf0, f_b00, &local_0x38);
+                    call_0x1d9a0c0(&this->field_0xaf0, this->field_0xb00, &local_0x38);
                   }
                 }
               }
@@ -1108,14 +1130,9 @@ Operação  : 0x2007b31: mov/math reg, [flag] ; fn=0x20078c0..0x2007cf5
           }
         }
       }
-      if (this->field_0x0 == 3) {
-        if (atomic_cas(&this->field_0x0, this->field_0x0, 1) != 0) {
-          call_0xdac0(this);
-        }
-        call_0x4954e70(ret_0x4954e70_1);
-        return;
+      if (this->field_0x0 != 3 || atomic_cas(&this->field_0x0, this->field_0x0, 1) != 0) {
+        call_0xdac0(this);
       }
-      call_0xdac0(this);
       call_0x4954e70(ret_0x4954e70_1);
     }
   
@@ -1508,14 +1525,12 @@ Operação  : 0x2007b31: mov/math reg, [flag] ; fn=0x20078c0..0x2007cf5
   0x2008660: 5d | c3
 
 [Strings .rdata na função]
-  * 0Vn
-  * Bad iterator given to `erase`
+  (Nenhuma string literal direta neste bloco)
 
 [Co-Flags na mesma função]
   * DFIntPerformanceControlFramesToReallocateExcess = 0 (default)
   * FFlagPerformanceControlManageComputeEnabled10 = true (default)
   * FFlagPerformanceControlComputePrimaryTunablesEnabled3 = true (default)
-  * FFlagPerformanceControlHandleInvalidTunableIdRegistration = false (default)
   * FFlagSplitHashNoRehashOnExistingKey = true (default)
   * FFlagPerformanceControlAddSupportForOomBox = false (default) [vizinha em .data]
   * FFlagPerformanceControlOomBoxEnabled = false (default) [vizinha em .data]

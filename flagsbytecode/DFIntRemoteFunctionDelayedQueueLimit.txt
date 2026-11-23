@@ -45,16 +45,17 @@ Operação  : 0x343d207: mov/math reg, [flag] ; fn=0x343d150..0x343d3c9
           }
           this->field_0x13c = this->field_0x13c + param_3->field_0x0;
           this->field_0x140 = this->field_0x140 + param_3->field_0x4;
-          if (this->field_0x164 != 0 && param_3->field_0x0 > MaxVariantCountRRS) {
-            return 1;
-          }
-          if (this->field_0x166 != 0 && EnforceLuaAppsRemoteAllowList) {
-            call_0x3366ea0(&this->field_0x118, "dropped because remote is not in allow list", "onServerInvoke", this);
-            return 1;
-          }
-          return 0;
         }
-      } else if (param_2 == &sym_0x854f7f0) {
+        if (this->field_0x164 != 0 && param_3->field_0x0 > MaxVariantCountRRS) {
+          return 1;
+        }
+        if (this->field_0x166 != 0 && EnforceLuaAppsRemoteAllowList) {
+          call_0x3366ea0(&this->field_0x118, "dropped because remote is not in allow list", "onServerInvoke", this);
+          return 1;
+        }
+        return 0;
+      }
+      if (param_2 == &sym_0x854f7f0) {
         if ((this->field_0xd0 & 0xfffffff8) == 0) {
           if (RemoteFunctionMaxQueueMemBytes != 0 && ((this->field_0x13c + this->field_0x13c * 4) << 4) + this->field_0x140 > RemoteFunctionMaxQueueMemBytes) {
             call_0x3366ea0(&this->field_0x118, "queue memory usage exceeded", "onClientInvoke", this);
@@ -67,8 +68,8 @@ Operação  : 0x343d207: mov/math reg, [flag] ; fn=0x343d150..0x343d3c9
           this->field_0x13c = this->field_0x13c + param_3->field_0x0;
           this->field_0x140 = this->field_0x140 + param_3->field_0x4;
         }
-        return 0;
       }
+      return 0;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -231,7 +232,7 @@ Operação  : 0x343d207: mov/math reg, [flag] ; fn=0x343d150..0x343d3c9
     
     // Flag defaults: RemoteFunctionDelayedQueueLimit = 256
     void RBX::RemoteFunction::func_0x3366ea0(RBX::RemoteFunction* this, int64_t param_2, void* param_3, void* param_4) {
-      this->field_0x20 = this->field_0x20 + 1;
+      this->field_0x20++;
       if (param_4 != 0) {
         void* v_rdi_2 = param_4->field_0x60;
         if (param_4->field_0x60 != 0) {
@@ -242,13 +243,13 @@ Operação  : 0x343d207: mov/math reg, [flag] ; fn=0x343d150..0x343d3c9
           v_rdi_2 = param_4;
         }
         if (v_rdi_2 != 0) {
-          call_0x27c5150();
-          void* sel_rcx_1 = v_rdi_2->field_0x18->field_0x1c0 - rax->field_0x1c0 <= rax->field_0x1c2 ? v_rdi_2 : 0;
+          auto ret_0x27c5150_2 = call_0x27c5150();
+          void* sel_rcx_1 = v_rdi_2->field_0x18->field_0x1c0 - ret_0x27c5150_2->field_0x1c0 <= ret_0x27c5150_2->field_0x1c2 ? v_rdi_2 : 0;
           if (sel_rcx_1 != 0) {
             auto ret_0xcbc790_3 = call_0xcbc790(sel_rcx_1);
             void* sel_rax_2 = ret_0xcbc790_3->field_0x0 == 0 ? 0 : ret_0xcbc790_3->field_0x0->field_0x528;
             if (sel_rax_2 != 0) {
-              sel_rax_2->field_0x120 = sel_rax_2->field_0x120 + 1;
+              sel_rax_2->field_0x120++;
             }
           }
         }
@@ -270,16 +271,25 @@ Operação  : 0x343d207: mov/math reg, [flag] ; fn=0x343d150..0x343d3c9
         v_rax_3->field_0x18 = 15;
         v_rax_3->field_0x0 = 0;
         int32_t v_rbx_6 = v_rbx_4;
-        std::string::_Tidy_deallocate(v_rcx_5);
-        v_rbx_6 = v_rbx_4 & 0xfffffffd;
-        if ((v_rbx_6 & 0x1) != 0) {
-          if (local_0x90 >= 16) {
-            void* v_rcx_8 = local_0x78;
-            call_0x4955ac0(v_rcx_8);
+        if ((v_rbx_4 & 0x2) != 0) {
+          if (local_0x70 >= 16) {
+            void* v_rcx_5 = local_0x58;
+            if (local_0x70 + 1 >= 0x1000) {
+              if (local_0x58 - local_0x58->field_m0x8 < 8 || local_0x58 - local_0x58->field_m0x8 > 39) {
+                call_0x5e14580();
+              }
+            }
+            call_0x4955ac0(v_rcx_5);
+            v_rbx_6 = v_rbx_4 & 0xfffffffd;
+          } else {
+            v_rbx_6 = v_rbx_4 & 0xfffffffd;
           }
         }
+        if ((v_rbx_6 & 0x1) != 0) {
+          std::string::_Tidy_deallocate(local_0x78);
+        }
         call_0x1bf4f90(3, "Remote function invocation %s for %s; did you forget to implement %s ? (%u events dropped)", param_2, param_3);
-        std::string::_Tidy_deallocate(v_rcx_11);
+        std::string::_Tidy_deallocate(v_rax_3->field_0x0);
         return;
       }
     }
@@ -479,17 +489,18 @@ Operação  : 0x343d207: mov/math reg, [flag] ; fn=0x343d150..0x343d3c9
     
     // Flag defaults: RemoteFunctionDelayedQueueLimit = 256, MaxVariantCountRRSPerMyriad = 5000
     void RBX::RemoteFunction::func_0x3439b80(RBX::RemoteFunction* this, int64_t param_2) {
-      int32_t v_r8_2 = global_0x81a88d4;
+      int32_t v_r8_1 = global_0x81a88d4;
       if (global_0x81a88d4 == -1) {
         auto ret_0x4975550_1 = call_0x4975550(this);
         global_0x81a88d4 = ret_0x4975550_1 - (rdx >> 13) * 10000;
-        v_r8_2 = ret_0x4975550_1 - (rdx >> 13) * 10000;
+        v_r8_1 = ret_0x4975550_1 - (rdx >> 13) * 10000;
       }
-      if (v_r8_2 < MaxVariantCountRRSPerMyriad) {
+      if (v_r8_1 < MaxVariantCountRRSPerMyriad) {
+        auto local_0x50 = local_0x50 | 0x1;
         call_0x2964930(&local_0x50);
         if ((global_0x88b9080 & 0xfffffffc & 0xfffffff8) != 0) {
           void* sel_rdx_1 = (global_0x88b9080 >> 1 & 0x1) == 0 ? global_0x88b9068 : sym_0x88b9068;
-          &local_0x2a8->vfunc(&local_0x2a8, sel_rdx_1);
+          ((global_0x88b9080 & 0xfffffff8))->vfunc_0x0(&local_0x2a8, sel_rdx_1) // -> RBX::ModelInstance::BackpackItem::fn_0x3343dc0;
         }
         auto ret_0x2963eb0_4 = call_0x2963eb0(&local_0x50, "VariantCount", 0);
         if (ret_0x2963eb0_4 != 0) {
@@ -499,43 +510,29 @@ Operação  : 0x343d207: mov/math reg, [flag] ; fn=0x343d150..0x343d3c9
           }
         }
         auto* f_68 = this->field_0x68;
-        void* v_rbx_3 = f_68;
+        void* v_rbx_2 = f_68;
         if (f_68->field_0x18 >= 16) {
-          v_rbx_3 = f_68->field_0x0;
+          v_rbx_2 = f_68->field_0x0;
         }
         auto ret_0x2963eb0_7 = call_0x2963eb0(&local_0x50, "RemoteName", 0);
         if (ret_0x2963eb0_7 != 0) {
-          void* sel_rdx_2 = v_rbx_3 != 0 ? v_rbx_3 : sym_0x6647145;
-          call_0x295e9a0(ret_0x2963eb0_7, sel_rdx_2, min(r8 + 1, 61440));
+          void* sel_rdx_2 = v_rbx_2 != 0 ? v_rbx_2 : sym_0x6647145;
+          call_0x295e9a0(ret_0x2963eb0_7, sel_rdx_2, min(0, 61440));
           if (local_0x2a8 != 0) {
-            local_0x2a8->vfunc_0x8(local_0x2a8, &local_0x30, v_rbx_3, 1) // -> boost::program_options::invalid_option_value::fn_0x35074e0;
+            local_0x2a8->vfunc_0x8(local_0x2a8, &local_0x30, v_rbx_2, 1) // -> boost::program_options::invalid_option_value::fn_0x35074e0;
           }
         }
         auto ret_0x6fd950_10 = call_0x6fd950(32);
-        ret_0x6fd950_10->field_0x0 = "RobloxRemoteVariantCountLimit";
-        ret_0x6fd950_10->field_0x10 = "antCountLimit";
-        ret_0x6fd950_10->field_0x18 = "Limit";
+        memcpy(ret_0x6fd950_10, "RobloxRemoteVariantCountLimit", 29);
         ret_0x6fd950_10->field_0x1c = global_0x739cb5c;
         auto local_0x30 = ret_0x6fd950_10;
         call_0x2963230(&local_0x50, &local_0x30, MaxVariantCountRRSPerMyriad, 1);
-        std::string::_Tidy_deallocate(v_rcx_5);
+        std::string::_Tidy_deallocate(local_0x30);
         if (local_0x2b0 != 0) {
           call_0x6daf40(local_0x2b0);
         }
-        if (global_0x75ac990 >= 16) {
-          void* v_rcx_6 = 0;
-          if (global_0x75ac990 + 1 >= 0x1000 && -0->field_m0x8 < 8 || -0->field_m0x8 > 39) {
-            call_0x5e14580();
-          }
-          call_0x4955ac0(v_rcx_6);
-        }
-        if (global_0x75ac990 >= 16) {
-          void* v_rcx_8 = 0;
-          if (global_0x75ac990 + 1 >= 0x1000 && -0->field_m0x8 < 8 || -0->field_m0x8 > 39) {
-            call_0x5e14580();
-          }
-          call_0x4955ac0(v_rcx_8);
-        }
+        std::string::_Tidy_deallocate(0);
+        std::string::_Tidy_deallocate(0);
         call_0x732520(&local_0x50);
         if ((local_0x50 & 0x1) == 0) {
           call_0x4955ac0(local_0x58);
@@ -644,7 +641,7 @@ Operação  : 0x343d207: mov/math reg, [flag] ; fn=0x343d150..0x343d3c9
     0x3439d2b | 48 8d 15 13 d4 20 03     | lea rdx, [rip + 0x320d413]
     0x3439d32 | 48 85 db                 | test rbx, rbx
     0x3439d35 | 48 0f 45 d3              | cmovnz rdx, rbx
-    0x3439d39 | 49 c7 c0 ff ff ff ff     | mov r8, 0xffffffff
+    0x3439d39 | 49 c7 c0 ff ff ff ff     | mov r8, -0x1
     L_0x3439d40:
     0x3439d40 | 49 ff c0                 | inc r8
     0x3439d43 | 42 80 3c 02 00           | cmp byte ptr [rdx + r8], 0x0

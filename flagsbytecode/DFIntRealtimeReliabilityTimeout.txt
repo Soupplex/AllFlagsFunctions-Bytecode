@@ -9,7 +9,7 @@ Operação  : 0x48dfbaf: mov/math reg, [flag] ; fn=0x48dfa30..0x48dfdfb
     Classe  : RBX::RealtimeReliability (RTTI Resolvido)
     Padrão  : DFIntRealtimeReliabilityTimeout = 95000 (default) [int, mode=2]
     Papel   : Parâmetro de configuração lido diretamente pela rotina
-    Fórmula : RealtimeReliabilityTimeout / 1000.0
+    Fórmula : (double)RealtimeReliabilityTimeout / 1000.0
     Altera  : this->field_0x59, this->field_0x38, this->field_0x48, this->field_0x8->field_0xc, this->field_0x18, this->field_0x20
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
@@ -34,14 +34,9 @@ Operação  : 0x48dfbaf: mov/math reg, [flag] ; fn=0x48dfa30..0x48dfdfb
     // Flag defaults: RealtimeReliabilityTimeout = 95000, RealtimeReliabilityMeasurement = 6
     void RBX::RealtimeReliability::func_0x48dfa30(RBX::RealtimeReliability* this) {
       call_0x2e12fd0(&this->field_0x10);
-      auto expr_1 = atomic_cas(&this->field_0x10, this->field_0x10, 1) != 0;
       if (this->field_0x58 != 0 && this->field_0x59 == 0) {
         this->field_0x59 = 1;
-        if (this->field_0x10 == 3) {
-          if expr_1 {
-            call_0xdac0(&this->field_0x10);
-          }
-        } else {
+        if (this->field_0x10 != 3 || atomic_cas(&this->field_0x10, this->field_0x10, 1) != 0) {
           call_0xdac0(&this->field_0x10);
         }
         auto ret_0x4975550_4 = call_0x4975550();
@@ -51,34 +46,31 @@ Operação  : 0x48dfbaf: mov/math reg, [flag] ; fn=0x48dfa30..0x48dfdfb
           this->field_0x38 = ret_0x707b10_5->field_0x0;
           this->field_0x48 = ret_0x707b10_5->field_0x10;
         }
-        if (local_0x108 >= 16) {
-          void* v_rcx_1 = local_0xf0;
-          call_0x4955ac0(v_rcx_1);
-        }
+        std::string::_Tidy_deallocate(local_0xf0);
         auto* f_8 = this->field_0x8;
         do { // L_0x48dfb63
           atomic_try_incref(&f_8->field_0x8);
-          if (atomic_cas(&f_8->field_0x8, f_8->field_0x8, (f_8->field_0x8 + 1)) == 0) break;
+          if (atomic_cas(&f_8->field_0x8, f_8->field_0x8, f_8->field_0x8 + 1) == 0) break;
         } while (true); // loop -> L_0x48dfb63
+        void* stk_2;
         void* stk_3;
-        void* stk_4;
         if (f_8 != 0) {
-          f_8->field_0xc = f_8->field_0xc + 1;
-          stk_3 = this->field_0x0;
-          stk_4 = f_8;
+          f_8->field_0xc++;
+          stk_2 = this->field_0x0;
+          stk_3 = f_8;
         } else {
+          stk_2 = 0.0;
           stk_3 = 0.0;
-          stk_4 = 0.0;
         }
         if (f_8 != 0) {
           call_0x6daf40(f_8);
         }
-        void* v_rax_5 = 0;
-        if (stk_4 != 0) {
-          stk_4->field_0xc = stk_4->field_0xc + 1;
-          v_rax_5 = stk_3;
+        void* v_rax_4 = 0;
+        if (stk_3 != 0) {
+          stk_3->field_0xc++;
+          v_rax_4 = stk_2;
         }
-        auto local_0xd0 = v_rax_5;
+        auto local_0xd0 = v_rax_4;
         auto* f_70 = this->field_0x70;
         auto vret_9 = f_70->vfunc_0x8(f_70, &local_0x90, &local_0xd0) // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66540;
         void* prev_0x0_3 = vret_9->field_0x0;
@@ -97,11 +89,11 @@ Operação  : 0x48dfbaf: mov/math reg, [flag] ; fn=0x48dfa30..0x48dfdfb
         if ((local_0xe8 & 0xfffffffc & 0xfffffff8) != 0) {
           if ((local_0xe8 >> 1 & 0x1) != 0) {
             if ((~((local_0xe8 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0xe8 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-              &local_0xd0->vfunc(&local_0xd0);
+              ((~((local_0xe8 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0xe8 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0xd0) // -> RBX::Path2D::fn_0x3ee3920;
             }
           } else {
             if ((~((local_0xe8 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0xe8 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-              local_0xd0->vfunc(local_0xd0);
+              ((~((local_0xe8 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0xe8 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(local_0xd0) // -> RBX::Path2D::fn_0x3ee3920;
             }
             call_0x4955ac0(local_0xd0);
           }
@@ -110,17 +102,13 @@ Operação  : 0x48dfbaf: mov/math reg, [flag] ; fn=0x48dfa30..0x48dfdfb
         if (RealtimeReliabilityMeasurement >= 6 && RealtimeReliabilityMeasurement >> 8 >= 3) {
           FLog::Log("[DFLog::RealtimeReliabilityMeasurement] Trigger new realtime reliability measurement message wit");
         }
-        if (stk_4 != 0 && atomic_fetch_add(&stk_4->field_0xc, this) == 1) {
-          stk_4->vfunc_0x8() // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66540;
+        if (stk_3 != 0 && atomic_fetch_sub(&stk_3->field_0xc, 1) == 1) {
+          stk_3->vfunc_0x8() // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66540;
         }
       } else {
-        if (this->field_0x10 == 3) {
-          if expr_1 {
-            call_0xdac0(&this->field_0x10);
-          }
-          return;
+        if (this->field_0x10 != 3 || atomic_cas(&this->field_0x10, this->field_0x10, 1) != 0) {
+          call_0xdac0(&this->field_0x10);
         }
-        call_0xdac0(&this->field_0x10);
       }
     }
   
@@ -319,7 +307,7 @@ Operação  : 0x48dfbaf: mov/math reg, [flag] ; fn=0x48dfa30..0x48dfdfb
     L_0x48dfcba:
     0x48dfcba | 48 8b cf                 | mov rcx, rdi
     0x48dfcbd | e8 ee f8 ff ff           | call 0x48df5b0
-    0x48dfcc2 | 48 c7 c7 ff ff ff ff     | mov rdi, 0xffffffff
+    0x48dfcc2 | 48 c7 c7 ff ff ff ff     | mov rdi, -0x1
     0x48dfcc9 | 48 8b 05 e0 94 85 03     | mov rax, qword ptr [rip + 0x38594e0] ; DFLogRealtimeReliabilityMeasurement
     0x48dfcd0 | 3c 06                    | cmp al, 0x6
     0x48dfcd2 | 0f 82 aa 00 00 00        | jb 0x48dfd82
@@ -424,11 +412,11 @@ Operação  : 0x48dfbaf: mov/math reg, [flag] ; fn=0x48dfa30..0x48dfdfb
       if (f_8 != 0) {
         do { // L_0x48df5f2
           atomic_try_incref(&f_8->field_0x8);
-          if (atomic_cas(&f_8->field_0x8, f_8->field_0x8, (f_8->field_0x8 + 1)) == 0) break;
+          if (atomic_cas(&f_8->field_0x8, f_8->field_0x8, f_8->field_0x8 + 1) == 0) break;
         } while (true); // loop -> L_0x48df5f2
         void* stk_1;
         if (f_8 != 0) {
-          f_8->field_0xc = f_8->field_0xc + 1;
+          f_8->field_0xc++;
           stk_1 = this->field_0x0;
           stk_2 = f_8;
         } else {
@@ -439,9 +427,9 @@ Operação  : 0x48dfbaf: mov/math reg, [flag] ; fn=0x48dfa30..0x48dfdfb
           call_0x6daf40(f_8);
         }
         if ((this->field_0x98 & 0xfffffff8) != 0) {
-          &this->field_0x80->vfunc();
+          ((this->field_0x98 & 0xfffffff8))->vfunc_0x0() // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66420;
           if (stk_2 != 0) {
-            stk_2->field_0xc = stk_2->field_0xc + 1;
+            stk_2->field_0xc++;
             v_rcx_3 = stk_1;
           } else {
             v_rcx_3 = 0;
@@ -458,11 +446,11 @@ Operação  : 0x48dfbaf: mov/math reg, [flag] ; fn=0x48dfa30..0x48dfdfb
       if ((local_0xa0 & 0xfffffffc & 0xfffffff8) != 0) {
         if ((local_0xa0 >> 1 & 0x1) != 0) {
           if ((~((local_0xa0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0xa0 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-            &local_0x88->vfunc(&local_0x88);
+            ((~((local_0xa0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0xa0 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0x88) // -> RBX::Path2D::fn_0x3ee3920;
           }
         } else {
           if ((~((local_0xa0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0xa0 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-            local_0x88->vfunc(local_0x88);
+            ((~((local_0xa0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0xa0 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(local_0x88) // -> RBX::Path2D::fn_0x3ee3920;
           }
           call_0x4955ac0(local_0x88);
         }

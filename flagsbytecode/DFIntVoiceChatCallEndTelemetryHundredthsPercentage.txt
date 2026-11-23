@@ -10,7 +10,7 @@ Operação  : 0x5190031: mov/math reg, [flag] ; fn=0x5190000..0x51900f1 [via DFI
     Classe  : RBX::VoiceChat (RTTI Resolvido)
     Padrão  : DFIntVoiceChatMaxReportedIncomingJitterMs = 500 (default) [int, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : (param_2 + rsi)->field_0x48 > param_4 && VoiceChatMaxReportedIncomingJitterMs >= (param_2 + rsi)->field_0x48
+    Fórmula : (param_2 + ((param_2 >> 8) & 0xFF))->field_0x48 > param_4 && (double)VoiceChatMaxReportedIncomingJitterMs >= (param_2 + ((param_2 >> 8) & 0xFF))->field_0x48
     Altera  : this->field_0xb0, this->field_0xc8, this->field_0xc0
   
   === [Decompilacao C++ da Funcao 0x5190000..0x51900f1] ===
@@ -24,23 +24,17 @@ Operação  : 0x5190031: mov/math reg, [flag] ; fn=0x5190000..0x51900f1 [via DFI
     // Flag defaults: VoiceChatMinIncomingPacketsForPacketLoss = 10, VoiceChatMaxReportedIncomingJitterMs = 500, VoiceChatMaxReportedIncomingPacketLoss = 50
     void RBX::VoiceChat::func_0x5190000(RBX::VoiceChat* this, double param_2, void* param_3, double param_4) {
       rax->field_0x0 = rax->field_0x0 + rax;
-      double ftmp_1 = (param_2 + rsi)->field_0x0 - param_2;
+      double ftmp_1 = (param_2 + ((param_2 >> 8) & 0xFF))->field_0x0 - param_2;
       this->field_0xb0 = ftmp_1 / (double)this->field_0xb8 + param_2;
-      if ((param_2 + rsi)->field_0x48 > param_4 && VoiceChatMaxReportedIncomingJitterMs >= (param_2 + rsi)->field_0x48) {
-        this->field_0xc8 = this->field_0xc8 + 1;
-        double ftmp_2 = (param_2 + rsi)->field_0x48 - this->field_0xc0;
+      if ((param_2 + ((param_2 >> 8) & 0xFF))->field_0x48 > param_4 && (double)VoiceChatMaxReportedIncomingJitterMs >= (param_2 + ((param_2 >> 8) & 0xFF))->field_0x48) {
+        this->field_0xc8++;
+        double ftmp_2 = (param_2 + ((param_2 >> 8) & 0xFF))->field_0x48 - this->field_0xc0;
         this->field_0xc0 = ftmp_2 / (double)this->field_0xc8 + this->field_0xc0;
       }
-      if ((param_2 + rsi)->field_0x20 != 0 && (param_2 + rsi)->field_0x20 > VoiceChatMinIncomingPacketsForPacketLoss) {
-        double fxmm0_1;
-        if ((param_2 + rsi)->field_0x20 >= 0) {
-          fxmm0_1 = (double)(param_2 + rsi)->field_0x20;
-        } else {
-          double ftmp_3 = (double)((param_2 + rsi)->field_0x20 >> 1 | (param_2 + rsi)->field_0x20 & 0x1);
-          fxmm0_1 = ftmp_3 * 2;
-        }
-        double ftmp_4 = (param_2 + rsi)->field_0x30 / fxmm0_1;
-        if (VoiceChatMaxReportedIncomingPacketLoss > ftmp_4) {
+      if ((param_2 + ((param_2 >> 8) & 0xFF))->field_0x20 != 0 && (param_2 + ((param_2 >> 8) & 0xFF))->field_0x20 > VoiceChatMinIncomingPacketsForPacketLoss) {
+        double fxmm0_1 = (double)(uint64_t)(param_2 + ((param_2 >> 8) & 0xFF))->field_0x20;
+        double ftmp_4 = (double)(param_2 + ((param_2 >> 8) & 0xFF))->field_0x30 / fxmm0_1;
+        if ((double)VoiceChatMaxReportedIncomingPacketLoss > ftmp_4) {
           param_3->field_0xd0 = min(ftmp_4, param_3->field_0xd0);
           return;
         }

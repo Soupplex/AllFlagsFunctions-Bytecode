@@ -9,7 +9,11 @@ Operação  : 0x32d68b4: mov/math reg, [flag] ; fn=0x32d68b0..0x32d6a6e [via DFI
   === [Resumo do Efeito da FFlag no Engine (RBX::AuroraPhysics)] ===
     Classe  : RBX::AuroraPhysics (RTTI Resolvido)
     Padrão  : DFIntAuroraPhysicsVelocityToleranceMultiplier = 1 (default) [int, mode=2]
-    Papel   : Parâmetro de configuração lido diretamente pela rotina
+    Papel   : Multiplicador / Escala aplicado sobre limites ou métricas da função
+    Fórmula : (float)(AuroraPhysicsVelocityToleranceMultiplier * 4) * 0.00416667
+    Fórmula : param_3 / (float)(AuroraPhysicsVelocityToleranceMultiplier * 4) * 0.00416667
+    Fórmula : ((float)(AuroraPhysicsVelocityToleranceMultiplier * 4) + (float)(AuroraPhysicsVelocityToleranceMultiplier * 4)) * 0.00416667
+    Fórmula : param_3 / (((float)(AuroraPhysicsVelocityToleranceMultiplier * 4) + (float)(AuroraPhysicsVelocityToleranceMultiplier * 4)) * 0.00416667)
   
   === [Decompilacao C++ da Funcao 0x32d68b0..0x32d6a6e] ===
     struct RBX::AuroraPhysics {
@@ -27,7 +31,7 @@ Operação  : 0x32d68b4: mov/math reg, [flag] ; fn=0x32d68b0..0x32d6a6e [via DFI
     
     // Flag defaults: AuroraPhysicsVelocityToleranceMultiplier = 1
     void RBX::AuroraPhysics::func_0x32d68b0(RBX::AuroraPhysics* this, int64_t param_2, float param_3) {
-      float ftmp_1 = (float)(rax * 4) * 0.00416667;
+      float ftmp_1 = (float)(AuroraPhysicsVelocityToleranceMultiplier * 4) * 0.00416667;
       float ftmp_2 = this->field_0x0 - param_2->field_0x0;
       float ftmp_3 = this->field_0x4 - param_2->field_0x4;
       float ftmp_4 = this->field_0x8 - param_2->field_0x8;
@@ -45,24 +49,39 @@ Operação  : 0x32d68b4: mov/math reg, [flag] ; fn=0x32d68b0..0x32d6a6e [via DFI
           float ftmp_17 = param_3 / (ftmp_1 * 2) * (param_3 / (ftmp_1 * 2));
           float ftmp_18 = fabsf(ftmp_13 * ftmp_13 + ftmp_14 * ftmp_14 + ftmp_15 * ftmp_15);
           if (ftmp_17 >= ftmp_18) {
-            auto i_eax = &this->field_0xc;
+            void* i_eax = &this->field_0xc;
+            int32_t i_ecx = 0;
             do { // L_0x32d6a00
-              if (!isnan(this->field_0xc) && !isnan((param_2 - &this->field_0xc)->field_0xc[i_eax])) {
-                if (this->field_0xc == (param_2 - &this->field_0xc)->field_0xc[i_eax]) {
+              if (!isnan(i_eax->field_0x0) && !isnan((param_2 - &this->field_0xc)->field_0xc[i_eax])) {
+                if (i_eax->field_0x0 != (param_2 - &this->field_0xc)->field_0xc[i_eax]) {
+                  float fxmm0_1;
+                  if (!isnan(fabsf(i_eax->field_0x0) + 1.0) && !isnan(global_0x75a0f30) && fabsf(i_eax->field_0x0) + 1.0 == global_0x75a0f30) {
+                    fxmm0_1 = param_3 * 0.5;
+                  } else {
+                    fxmm0_1 = (fabsf(i_eax->field_0x0) + 1.0) * param_3 * 0.5;
+                  }
+                  float ftmp_19 = fabsf(i_eax->field_0x0 - (param_2 - &this->field_0xc)->field_0xc[i_eax]);
+                  if (fxmm0_1 < ftmp_19) {
+                    return;
+                  }
+                }
+                i_ecx++;
+                i_eax += 4;
+              } else {
+                float fxmm0_1;
+                if (!isnan(fabsf(i_eax->field_0x0) + 1.0) && !isnan(global_0x75a0f30) && fabsf(i_eax->field_0x0) + 1.0 == global_0x75a0f30) {
+                  fxmm0_1 = param_3 * 0.5;
+                } else {
+                  fxmm0_1 = (fabsf(i_eax->field_0x0) + 1.0) * param_3 * 0.5;
+                }
+                float ftmp_19 = fabsf(i_eax->field_0x0 - (param_2 - &this->field_0xc)->field_0xc[i_eax]);
+                if (fxmm0_1 < ftmp_19) {
                   return;
                 }
+                i_ecx++;
+                i_eax += 4;
               }
-              float fxmm0_1;
-              if (!isnan(fabsf(this->field_0xc) + 1.0) && !isnan(global_0x75a0f30) && fabsf(this->field_0xc) + 1.0 == global_0x75a0f30) {
-                fxmm0_1 = param_3 * 0.5;
-              } else {
-                fxmm0_1 = (fabsf(this->field_0xc) + 1.0) * param_3 * 0.5;
-              }
-              float ftmp_19 = fabsf(this->field_0xc - (param_2 - &this->field_0xc)->field_0xc[i_eax]);
-              if (fxmm0_1 < ftmp_19) {
-                return;
-              }
-            } while ((ecx + 1) < 7); // loop -> L_0x32d6a00
+            } while (i_ecx < 7); // loop -> L_0x32d6a00
             return;
           }
         }

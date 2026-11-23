@@ -21,22 +21,13 @@ Operação  : 0x4803ddd: mov/math reg, [flag] ; fn=0x4803dc0..0x4803e73
   === [Decompilacao C++ da Funcao 0x4803dc0..0x4803e73] ===
     // Flag defaults: RemoteEventSendSizeLimitBytes = 0, RemoteEventSendSizeLimitLogToUser = false
     void RBX::RemoteEvent::func_0x4803dc0(RBX::RemoteEvent* this, int64_t param_2, void* param_3, void* param_4) {
-      if (this == 0) {
-        if (param_2 == 0) {
-          if (RemoteEventSendSizeLimitBytes > 0 && param_4 > RemoteEventSendSizeLimitBytes) {
-            call_0x4803c90(&local_0x30, param_3);
-            call_0x480f080(2, this, RemoteEventSendSizeLimitLogToUser, param_4);
-            std::string::_Tidy_deallocate(v_rcx_1);
-            return;
-          }
+      if (this != 0 || param_2 == 0) {
+        if (RemoteEventSendSizeLimitBytes > 0 && param_4 > RemoteEventSendSizeLimitBytes) {
+          call_0x4803c90(&local_0x30, param_3);
+          call_0x480f080(2, this, RemoteEventSendSizeLimitLogToUser, param_4);
+          std::string::_Tidy_deallocate(local_0x30);
           return;
         }
-        return;
-      }
-      if (RemoteEventSendSizeLimitBytes > 0 && param_4 > RemoteEventSendSizeLimitBytes) {
-        call_0x4803c90(&local_0x30, param_3);
-        call_0x480f080(2, this, RemoteEventSendSizeLimitLogToUser, param_4);
-        std::string::_Tidy_deallocate(v_rcx_1);
       }
     }
   
@@ -198,35 +189,29 @@ Operação  : 0x4803ddd: mov/math reg, [flag] ; fn=0x4803dc0..0x4803e73
   === [Sub-Rotina Chamada: 0x480f080..0x480f422 via call @0x4803e1e (rcx = this (Direct Engine Sub-Call))] ===
     // Flag defaults: RemoteEventSendSizeLimitBytes = 0, Network = 7, EnableSendItemLimitDisconnect = false
     void RBX::RemoteEvent::func_0x480f080(RBX::RemoteEvent* this, int64_t param_2, void* param_3, void* param_4) {
-      auto expr_1 = "[FLog::Network] {} exceeds maximum {} size ({} > {} bytes). {}";
       if ((this & 0xfffffffd) != 0) {
         if (Network >= 6 && Network >> 8 >= 3) {
-          expr_1;
-          expr_1 + 1;
+          "[FLog::Network] {} exceeds maximum {} size ({} > {} bytes). {}";
           L_0x480f1b4:
-          FLog::Log(expr_1);
+          FLog::Log("[FLog::Network] {} exceeds maximum {} size ({} > {} bytes). {}");
+        }
+      } else if ((this & 0xfffffffd) == 0) {
+        if (Network >= 6 && Network >> 8 >= 2) {
+          if (local_0x2b8->field_0x18 >= 16) {
+            FLog::Log("[FLog::Network] {} exceeds maximum {} size ({} > {} bytes). {}");
+            if (param_3 != 0) {
+              call_0x1bf4900(3, &local_0xe0, &local_0xb0);
+            }
+            call_0x480ec70(this, param_2, EnableSendItemLimitDisconnect, param_4);
+            return;
+          }
+          "[FLog::Network] {} exceeds maximum {} size ({} > {} bytes). {}";
+          goto L_0x480f1b4;
         }
       } else {
-        if ((this & 0xfffffffd) == 0) {
-          if (Network >= 6 && Network >> 8 >= 2) {
-            if (local_0x2b8->field_0x18 >= 16) {
-              FLog::Log(expr_1);
-              if (param_3 != 0) {
-                call_0x1bf4900(3, &local_0xe0, &local_0xb0);
-              }
-              call_0x480ec70(this, param_2, EnableSendItemLimitDisconnect, param_4);
-              return;
-            }
-            expr_1;
-            expr_1 + 1;
-            goto L_0x480f1b4;
-          }
-        } else {
-          if (Network >= 6 && Network >> 8 >= 3) {
-            expr_1;
-            expr_1 + 1;
-            goto L_0x480f1b4;
-          }
+        if (Network >= 6 && Network >> 8 >= 3) {
+          "[FLog::Network] {} exceeds maximum {} size ({} > {} bytes). {}";
+          goto L_0x480f1b4;
         }
       }
       if (param_3 != 0) {
@@ -274,7 +259,7 @@ Operação  : 0x4803ddd: mov/math reg, [flag] ; fn=0x4803dc0..0x4803e73
     0x480f116 | 0f 82 e4 00 00 00        | jb 0x480f200
     0x480f11c | 48 8d 05 07 71 e2 02     | lea rax, [rip + 0x2e27107] ; "[FLog::Network] {} exceeds maximum {} size ({} > {} bytes). {}"
     0x480f123 | 48 89 44 24 40           | mov qword ptr [rsp + 0x40], rax
-    0x480f128 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x480f128 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x480f12f | 48 8b 4c 24 40           | mov rcx, qword ptr [rsp + 0x40]
     0x480f134 | 48 81 c1 9e db e4 ff     | add rcx, 0xffe4db9e
     0x480f13b | 48 89 4d 80              | mov qword ptr [rbp - 0x80], rcx
@@ -399,7 +384,7 @@ Operação  : 0x4803ddd: mov/math reg, [flag] ; fn=0x4803dc0..0x4803e73
     0x480f338 | 0f 82 c2 fe ff ff        | jb 0x480f200
     0x480f33e | 48 8d 05 b1 68 e1 02     | lea rax, [rip + 0x2e168b1] ; "[FLog::Network] {} exceeds maximum {} size ({} > {} bytes). {}"
     0x480f345 | 48 89 44 24 40           | mov qword ptr [rsp + 0x40], rax
-    0x480f34a | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x480f34a | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x480f351 | 48 8b 4c 24 40           | mov rcx, qword ptr [rsp + 0x40]
     0x480f356 | 48 81 c1 d2 e1 e5 ff     | add rcx, 0xffe5e1d2
     0x480f35d | 48 89 4d a0              | mov qword ptr [rbp - 0x60], rcx

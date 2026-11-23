@@ -9,7 +9,7 @@ Operação  : 0x42ac5be: cmp byte [flag], imm8 ; fn=0x42ac580..0x42ac60f
     Classe  : RBX::LuauMemory (RTTI Resolvido)
     Padrão  : FFlagLuauMemoryCageAutoScaling = true (default) [bool, mode=1]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
-    Fórmula : LuauMemoryCageAutoScaling && v_r8_1 == 0
+    Fórmula : LuauMemoryCageAutoScaling
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x42ac668 (in fn_0x42ac610): call 0x42ac580  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
@@ -20,14 +20,16 @@ Operação  : 0x42ac5be: cmp byte [flag], imm8 ; fn=0x42ac580..0x42ac60f
       auto ret_0x293ae10_1 = call_0x293ae10(this);
       int32_t v_r8_1 = 0;
       if (ret_0x293ae10_1 >= max(0, LuauMemoryLowTierThresholdMiB)) {
-        v_r8_1 = (ret_0x293ae10_1 != 0 ? -1 : 0) + 2;
+        v_r8_1 = (ret_0x293ae10_1 < max(0, LuauMemoryMidTierThresholdMiB) ? -1 : 0) + 2;
       }
       int32_t v_rcx_2 = LuauMemoryCageFixedSizeMiB;
-      if (LuauMemoryCageAutoScaling && v_r8_1 == 0) {
-        v_rcx_2 = LuauMemoryCageLowTierSizeMiB;
-      } else {
-        int32_t selected_ecx_1 = v_r8_1 == 1 ? LuauMemoryCageMidTierSizeMiB : LuauMemoryCageFixedSizeMiB;
-        v_rcx_2 = selected_ecx_1;
+      if (LuauMemoryCageAutoScaling) {
+        if (v_r8_1 == 0) {
+          v_rcx_2 = LuauMemoryCageLowTierSizeMiB;
+        } else {
+          int32_t selected_ecx_1 = v_r8_1 == 1 ? LuauMemoryCageMidTierSizeMiB : LuauMemoryCageFixedSizeMiB;
+          v_rcx_2 = selected_ecx_1;
+        }
       }
       int32_t v_rcx_3;
       if (v_rcx_2 > 0) {
@@ -40,23 +42,20 @@ Operação  : 0x42ac5be: cmp byte [flag], imm8 ; fn=0x42ac580..0x42ac60f
             } else {
               v_rcx_3 = v_rcx_2 > 0 ? v_rcx_2 : LuauMemoryCageFixedSizeMiB;
             }
-            L_0x42ac604:
-            return v_rcx_3 << 20;
+          } else {
+            v_rcx_3 = 16384;
           }
-          v_rcx_3 = 16384;
-          return v_rcx_3 << 20;
-        }
-        if ((v_rcx_2 > 0 ? v_rcx_2 : LuauMemoryCageFixedSizeMiB & (v_rcx_2 > 0 ? v_rcx_2 : LuauMemoryCageFixedSizeMiB - 1)) != 0) {
+        } else if ((v_rcx_2 > 0 ? v_rcx_2 : LuauMemoryCageFixedSizeMiB & (v_rcx_2 > 0 ? v_rcx_2 : LuauMemoryCageFixedSizeMiB - 1)) != 0) {
           goto L_0x42ac5ff;
         } else {
           v_rcx_3 = v_rcx_2 > 0 ? v_rcx_2 : LuauMemoryCageFixedSizeMiB;
         }
-        goto L_0x42ac604;
-      }
-      if (LuauMemoryCageFixedSizeMiB > 0) {
+      } else if (LuauMemoryCageFixedSizeMiB > 0) {
         goto L_0x42ac5f8;
+      } else {
+        goto L_0x42ac5ff;
       }
-      goto L_0x42ac5ff;
+      return v_rcx_3 << 20;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===

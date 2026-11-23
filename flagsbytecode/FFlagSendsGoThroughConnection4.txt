@@ -21,6 +21,7 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
     [XREF #2 @0x2767f7c] Classe  : RakNet::BitStream (RTTI Resolvido)
     [XREF #2 @0x2767f7c] Fórmula : SendsGoThroughConnection4
     [XREF #3 @0x2786996] Classe  : RBX::CLI139085 (RTTI Resolvido)
+    [XREF #3 @0x2786996] Altera  : this->field_0x0
     [XREF #4 @0x39bd8ea] Classe  : RBX::SendsGo (RTTI Resolvido)
     [XREF #4 @0x39bd8ea] Fórmula : !SendsGoThroughConnection4
     [XREF #4 @0x39bd8ea] Altera  : this->field_0x18
@@ -36,7 +37,6 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
     [XREF #8 @0x462224a] Fórmula : !SendsGoThroughConnection4
     [XREF #9 @0x462fd9c] Classe  : RBX::DebugNetwork (RTTI Resolvido)
     [XREF #9 @0x462fd9c] Fórmula : SendsGoThroughConnection4
-    [XREF #9 @0x462fd9c] Fórmula : RbxTransportNetworkTracing && 0 != 0 && SendsGoThroughConnection4
     [XREF #9 @0x462fd9c] Fórmula : RbxTransportNetworkTracing && local_0xc8 != 0 && SendsGoThroughConnection4
     [XREF #9 @0x462fd9c] Altera  : this->field_0x108->field_0xa20, this->field_0x52b0, this->field_0x5738, this->field_0x3c18, this->field_0x344c, this->field_0x3448
   
@@ -60,10 +60,10 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
     void RBX::Network::NetworkStream::func_0x275fd90(RBX::Network::NetworkStream* this, int64_t param_2) {
       auto ret_0x2798db0_1 = call_0x2798db0(this);
       if (this->field_0x360 != 0) {
-        this->field_0xa60 = this->field_0xa60 + 1;
-        call_0x2936b10();
-        double ftmp_1 = RakNetStoppedProductionThresholdMs / 1000.0 * rax;
-        if (this->field_0xa60 > ftmp_1) {
+        this->field_0xa60++;
+        auto ret_0x2936b10_2 = call_0x2936b10();
+        double ftmp_1 = (double)RakNetStoppedProductionThresholdMs / 1000.0 * (double)ret_0x2936b10_2;
+        if ((double)this->field_0xa60 > ftmp_1) {
           if (ret_0x2798db0_1 - this->field_0xa70 > RakNetStoppedProductionIntervalMs) {
             this->field_0xa70 = ret_0x2798db0_1;
             if (RakNetStoppedProduction >= 6 && RakNetStoppedProduction >> 8 >= 6) {
@@ -83,13 +83,11 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
           }
         }
       }
-      auto expr_1 = DebugRakPeerReceiveCountDistributedPackets;
       if (param_2 != 0) {
         if (ClientRecvFromRaknet >= 6 && ClientRecvFromRaknet >> 8 >= 3) {
           FLog::Log("[DFLog::ClientRecvFromRaknet] RakPeer has distributed %d packets to plugins since last debug tim");
-          "[DFLog::ClientRecvFromRaknet] RakPeer has distributed %d packets to plugins since last debug tim";
         }
-        if expr_1 {
+        if (DebugRakPeerReceiveCountDistributedPackets) {
           this->field_0x910 = 0;
         }
       }
@@ -107,79 +105,93 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
               FLog::Log("[DFLog::ClientRecvFromRaknet] PacketReturnQueue is empty, no work to do");
             }
           } else {
-            auto i_r14d = local_0x48;
+            void* i_r14d = local_0x48;
             L_0x2760160:
             int64_t ret_0x275fc20_23;
             do { // L_0x2760160
-              L_0x2760160:
               this->field_0xa68 = ret_0x2798db0_1;
               this->field_0xa60 = 0;
-              void* v_r14_6 = i_r14d;
-              if (DebugNetworkProfiler && DebugNetworkProfilerRakPeer && local_0x48->field_0x30 > 0) {
+              void* v_r14_2 = i_r14d;
+              if (DebugNetworkProfiler && DebugNetworkProfilerRakPeer && i_r14d->field_0x30 > 0) {
                 auto ret_0x2767680_13 = call_0x2767680(this, i_r14d);
                 if (ret_0x2767680_13 < this->field_0x370) {
                   if (f_368->field_0x1048[ret_0x2767680_13 * 4176] != 0) {
-                    call_0x526b4f0(&f_368->field_0x820 + ret_0x2767680_13 * 4176, local_0x48->field_0x38->field_0x0, local_0x48->field_0x30);
-                    v_r14_6 = local_0x48;
+                    call_0x526b4f0(&f_368->field_0x820 + ret_0x2767680_13 * 4176, local_0x48->field_0x38->field_0x0, i_r14d->field_0x30);
+                    v_r14_2 = local_0x48;
                   } else {
-                    v_r14_6 = local_0x48;
+                    v_r14_2 = local_0x48;
                   }
                 }
               }
               if (local_0x50 == 0) {
-                v_r14_6->field_0x50 = ret_0x2798db0_1;
+                v_r14_2->field_0x50 = ret_0x2798db0_1;
               }
-              if (v_r14_6->field_0x30 >= 9 && v_r14_6->field_0x38->field_0x0 == 27) {
+              if (v_r14_2->field_0x30 >= 9 && v_r14_2->field_0x38->field_0x0 == 27) {
                 auto ret_0x2767010_15 = call_0x2767010(this, &local_0x170);
-                (v_r14_6->field_0x38 + 1)->field_0x0 = (v_r14_6->field_0x38 + 1)->field_0x0 - ret_0x2767010_15;
+                (v_r14_2->field_0x38 + 1)->field_0x0 = (v_r14_2->field_0x38 + 1)->field_0x0 - ret_0x2767010_15;
               }
-              if expr_1 {
-                this->field_0x910 = this->field_0x910 + 1;
+              if (DebugRakPeerReceiveCountDistributedPackets) {
+                this->field_0x910++;
               }
               auto* f_990 = this->field_0x990;
-              if (f_990 != 0 && DataPingTrace2 && v_r14_6->field_0x60 != 0) {
-                if (SendsGoThroughConnection4) {
-                  this->vfunc_0xc0(this) // -> RakNet::RakPeer::fn_0x277fd10;
-                  call_0x39dd570(global_0x8cdb5d8 != 0 ? global_0x8cdb5d8->field_0x18 : 0, v_r14_6->field_0x60, rax, 72);
-                } else {
-                  call_0x2798db0();
-                  this->vfunc_0xc0(this) // -> RakNet::RakPeer::fn_0x277fd10;
-                  call_0x39dd340(global_0x8cdb5d8 != 0 ? global_0x8cdb5d8->field_0x18 : 0, v_r14_6->field_0x60, rax, 72);
+              if (f_990 != 0) {
+                if (DataPingTrace2 && v_r14_2->field_0x60 != 0) {
+                  if (SendsGoThroughConnection4) {
+                    auto vret_19 = this->vfunc_0xc0(this) // -> RakNet::RakPeer::fn_0x277fd10;
+                    call_0x39dd570(global_0x8cdb5d8 != 0 ? global_0x8cdb5d8->field_0x18 : 0, v_r14_2->field_0x60, vret_19, 72);
+                  } else {
+                    call_0x2798db0();
+                    auto vret_17 = this->vfunc_0xc0(this) // -> RakNet::RakPeer::fn_0x277fd10;
+                    call_0x39dd340(global_0x8cdb5d8 != 0 ? global_0x8cdb5d8->field_0x18 : 0, v_r14_2->field_0x60, vret_17, 72);
+                  }
                 }
-                auto vret_21 = f_990->vfunc_0x10(f_990, v_r14_6) // -> RBX::Hint::fn_0x3024460;
+                auto vret_21 = f_990->vfunc_0x10(f_990, v_r14_2) // -> RBX::Hint::fn_0x3024460;
                 if (vret_21 != 2) {
-                  this->vfunc_0xe8(this, v_r14_6) // -> RakNet::RakPeer::fn_0x2760490;
+                  this->vfunc_0xe8(this, v_r14_2) // -> RakNet::RakPeer::fn_0x2760490;
                 }
               } else {
-                this->vfunc_0xe8(this, v_r14_6) // -> RakNet::RakPeer::fn_0x2760490;
+                this->vfunc_0xe8(this, v_r14_2) // -> RakNet::RakPeer::fn_0x2760490;
               }
               ret_0x275fc20_23 = call_0x275fc20(this, &local_0x60);
+              i_r14d = ret_0x275fc20_23->field_0x0;
             } while (ret_0x275fc20_23->field_0x0 != 0); // loop -> L_0x2760160
           }
         } else if (local_0x48 != 0) {
-          auto i_r14d = local_0x48;
+          void* i_r14d = local_0x48;
           goto L_0x2760160;
         }
         if (DebugNetworkProfiler && DebugNetworkProfilerRakPeer) {
           void* sel_r14_1 = this->field_0xae8 != 0 ? "S:RakPeerRecv" : "C:RakPeerRecv";
           if (this->field_0x370 > 0) {
+            void* i_eax = "S:RakPeerRecv";
             int32_t i_ebx = 0;
+            int32_t i_edi = 0;
             do { // L_0x27603c0
-              void* v_rcx_9 = (f_368 + i_ebx)->field_0x820;
-              int32_t v_rdx_10 = 0;
+              void* v_rcx_4 = (f_368 + i_ebx)->field_0x820;
+              int32_t v_rdx_5 = 0;
+              void* v_rax_6 = i_eax;
               if ((f_368 + i_ebx)->field_0x820 == 0) {
+                int32_t i_edx = 0;
                 do { // L_0x27603e0
-                  if ((edx + 1) == 4) break;
-                  v_rcx_9 = (f_368 + i_ebx)->field_0x820[(edx + 1) * 8];
-                  v_rdx_10 = edx + 1;
-                  if (((v_rdx_10 << 6) + bsr(((-v_rcx_9) & v_rcx_9))) == -1) break;
-                  call_0x526b600(&f_368->field_0x820 + i_ebx, sel_r14_1, f_368->field_0x1044[i_ebx], this->field_0x378);
-                  break;
-                } while ((f_368 + i_ebx)->field_0x820[(edx + 1) * 8] == 0); // loop -> L_0x27603e0
-              } else if ((v_rdx_10 << 6) + ctz(v_rcx_9) != -1) {
-                call_0x526b600(&f_368->field_0x820 + i_ebx, sel_r14_1, f_368->field_0x1044[i_ebx], this->field_0x378);
+                  i_edx++;
+                  if (i_edx == 4) break;
+                } while ((f_368 + i_ebx)->field_0x820[i_edx * 8] == 0); // loop -> L_0x27603e0
+                if ((v_rdx_5 << 6) + ctz(v_rcx_4) != -1) {
+                  auto ret_0x526b600_24 = call_0x526b600(&f_368->field_0x820 + i_ebx, sel_r14_1, f_368->field_0x1044[i_ebx], this->field_0x378);
+                  v_rax_6 = ret_0x526b600_24;
+                } else {
+                  v_rax_6 = -v_rcx_4 & v_rcx_4;
+                }
+              } else if ((v_rdx_5 << 6) + ctz(v_rcx_4) != -1) {
+                auto ret_0x526b600_24 = call_0x526b600(&f_368->field_0x820 + i_ebx, sel_r14_1, f_368->field_0x1044[i_ebx], this->field_0x378);
+                v_rax_6 = ret_0x526b600_24;
+              } else {
+                v_rax_6 = -v_rcx_4 & v_rcx_4;
               }
-            } while ((edi + 1) < this->field_0x370); // loop -> L_0x27603c0
+              i_edi++;
+              i_ebx += 0x1050;
+              i_eax = v_rax_6;
+            } while (i_edi < this->field_0x370); // loop -> L_0x27603c0
           }
         }
       }
@@ -238,7 +250,7 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
     0x275fe77 | 48 8b 4c 24 40           | mov rcx, qword ptr [rsp + 0x40]
     0x275fe7c | 48 81 e9 97 b0 f8 01     | sub rcx, 0x1f8b097
     0x275fe83 | 48 89 4d 80              | mov qword ptr [rbp - 0x80], rcx
-    0x275fe87 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x275fe87 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x275fe8e | 66 90                    | nop
     L_0x275fe90:
     0x275fe90 | 48 ff c0                 | inc rax
@@ -606,8 +618,21 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
   === [Sub-Rotina Chamada: 0x2798db0..0x2798e10 via call @0x275fdce (rcx = this (Direct Engine Sub-Call))] ===
     // Flag defaults: SendsGoThroughConnection4 = true
     auto RBX::SendsGo::func_0x2798db0(RBX::SendsGo* this) {
-      call_0x4959ee0(this);
-      return (rdx + rcx) >> 9;
+      auto ret_0x4959ee0_1 = call_0x4959ee0(this);
+      int32_t v_rax_1 = 0;
+      double fxmm0_2;
+      if (ret_0x4959ee0_1 * 1000000.0 >= 9.22337e+18) {
+        double ftmp_1 = ret_0x4959ee0_1 * 1000000.0 - 9.22337e+18;
+        if (ftmp_1 < 9.22337e+18) {
+          v_rax_1 = 0x8000000000000000;
+          fxmm0_2 = ftmp_1;
+        } else {
+          fxmm0_2 = ftmp_1;
+        }
+      } else {
+        fxmm0_2 = ret_0x4959ee0_1 * 1000000.0;
+      }
+      return (rdx + (((int64_t)fxmm0_2 + v_rax_1 - rdx) >> 1)) >> 9;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x2798db0..0x2798e10)] ===
@@ -615,7 +640,7 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
     0x2798db4 | e8 27 11 1c 02           | call 0x4959ee0
     0x2798db9 | f2 0f 59 05 ef 79 e0 04  | mulsd xmm0, qword ptr [rip + 0x4e079ef] ; 1000000.0
     0x2798dc1 | 33 c0                    | xor eax, eax
-    0x2798dc3 | f2 0f 10 0d 5d 7e e0 04  | movsd xmm1, qword ptr [rip + 0x4e07e5d]
+    0x2798dc3 | f2 0f 10 0d 5d 7e e0 04  | movsd xmm1, qword ptr [rip + 0x4e07e5d] ; 9.22337e+18
     0x2798dcb | 66 0f 2f c1              | comisd xmm0, xmm1
     0x2798dcf | 72 17                    | jb 0x2798de8
     0x2798dd1 | f2 0f 5c c1              | subsd xmm0, xmm1
@@ -638,6 +663,7 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
   === [Sub-Rotina Chamada: 0x2936b10..0x2936bb9 via call @0x275fdf4 (rcx = this (Direct Engine Sub-Call))] ===
     // Flag defaults: SendsGoThroughConnection4 = true, TaskSchedulerTargetFps = 0
     float RBX::SendsGo::func_0x2936b10(RBX::SendsGo* this) {
+      float fxmm0_1;
       if (global_0x8da5d90 > rbp->field_0x58->field_0x0->field_0x0[40]) {
         do { // L_0x2936b6f
           call_0x12e0(&sym_0x8da5d90);
@@ -645,7 +671,7 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
           auto ret_0x4956040_2 = call_0x4956040(552);
           if (ret_0x4956040_2 != 0) {
             global_0x8da5d98 = call_0x2931010(ret_0x4956040_2);
-            call_0x14f0(&sym_0x8da5d90);
+            fxmm0_1 = call_0x14f0(&sym_0x8da5d90);
             break;
           } else {
             call_0x6ca7d0(&local_0x20);
@@ -719,15 +745,15 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
     void RBX::RakNet::func_0x275fc20(RBX::RakNet* this, int64_t param_2) {
       call_0x2e12fd0(&this->field_0x808);
       if (this->field_0x818 != this->field_0x81c) {
-        this->field_0x818 = this->field_0x818 + 1;
+        this->field_0x818++;
         int32_t v_rax_1;
-        if (this->field_0x818 + 1 == this->field_0x820) {
+        if (this->field_0x818 == this->field_0x820) {
           this->field_0x818 = 0;
           v_rax_1 = this->field_0x820 - 1;
-        } else if (this->field_0x818 == -1) {
+        } else if (this->field_0x818 == 0) {
           v_rax_1 = this->field_0x820 - 1;
         } else {
-          v_rax_1 = this->field_0x818 + 1 - 1;
+          v_rax_1 = this->field_0x818 - 1;
         }
         auto* f_810 = this->field_0x810;
         param_2->field_0x0 = f_810->field_0x0[v_rax_1 * 8];
@@ -741,13 +767,9 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
           }
         }
       }
-      if (this->field_0x808 == 3) {
-        if (atomic_cas(&this->field_0x808, this->field_0x808, 1) != 0) {
-          call_0xdac0(&this->field_0x808);
-        }
-        return;
+      if (this->field_0x808 != 3 || atomic_cas(&this->field_0x808, this->field_0x808, 1) != 0) {
+        call_0xdac0(&this->field_0x808);
       }
-      call_0xdac0(&this->field_0x808);
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x275fc20..0x275fd86)] ===
@@ -865,7 +887,7 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
       auto ret_0x2767260_1 = call_0x2767260(this, param_2);
       auto* f_380 = this->field_0x380;
       if (f_380->field_0x0[ret_0x2767260_1 * 8] != 0) {
-        auto i_r8d = f_380->field_0x0[ret_0x2767260_1 * 8];
+        void* i_r8d = f_380->field_0x0[ret_0x2767260_1 * 8];
         do { // L_0x27676c0
           if (((i_r8d->field_0x0 * 5280) + this->field_0x350)->field_0x6 == param_2->field_0x2 && ((i_r8d->field_0x0 * 5280) + this->field_0x350)->field_0x4 == param_2->field_0x0) {
             if (((i_r8d->field_0x0 * 5280) + this->field_0x350)->field_0x4 == 2) {
@@ -878,6 +900,7 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
               }
             }
           }
+          i_r8d = i_r8d->field_0x8;
         } while (i_r8d->field_0x8 != 0); // loop -> L_0x27676c0
       }
       return -1;
@@ -951,21 +974,20 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
     // Flag defaults: RakNetPingTrace = false, RakNetPingTracePointsEventThrottlePerMillion = 1, SendsGoThroughConnection4 = true
     void RakNet::BitStream::func_0x27679a0(RakNet::BitStream* this, int64_t param_2, void* param_3, void* param_4) {
       this->vfunc_0x78(this) // -> RBX::Instance::StateMachineTransitionDefinition::fn_0x1c3cdf0;
-      if (param_2->field_0x0 >> 16 == global_0x81b7b3a && param_2->field_0x0 == global_0x81b7b38) {
-        if (param_2->field_0x0 == 2) {
-        } else if (param_2->field_0x0 == 23 && param_2->field_0x8 == global_0x81b7b40) {
-        }
-      }
       int32_t v_rbx_1 = this->field_0x112;
       if (this->field_0x112 == 0) {
         v_rbx_1 = 1;
       }
       auto ret_0x2799d70_2 = call_0x2799d70(&local_0x82, 2, 2);
       call_0x2799d70(r11 != 2 ? &local_0x88 : &local_0x84, 16, ret_0x2799d70_2);
-      auto i_edx = this->field_0x380->field_0x0[rax % (v_rbx_1 * 8) * 8];
+      void* i_edx = this->field_0x380->field_0x0[rax % (v_rbx_1 * 8) * 8];
       do { // L_0x2767ae0
         if ((i_edx->field_0x0 * 5280)->field_0x6[this->field_0x350] != local_0x82) {
           L_0x2767b20:
+          i_edx = i_edx->field_0x8;
+        }
+        if ((i_edx->field_0x0 * 5280)->field_0x4[this->field_0x350] != r11) {
+          i_edx = i_edx->field_0x8;
         }
         if ((i_edx->field_0x0 * 5280)->field_0x4[this->field_0x350] != 2) {
           if (!((i_edx->field_0x0 * 5280)->field_0x4[this->field_0x350] == 23 && (i_edx->field_0x0 * 5280)->field_0xc[this->field_0x350] == param_2->field_0x8)) {
@@ -975,53 +997,40 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
         if ((i_edx->field_0x0 * 5280)->field_0x8[this->field_0x350] == param_2->field_0x4) break;
         goto L_0x2767b20;
       } while (true); // loop -> L_0x2767ae0
-      if ((this->field_0x350 + (i_edx->field_0x0 * 5280))->field_0x1408 >= 40 && (this->field_0x350 + (i_edx->field_0x0 * 5280))->field_0x1408 <= 296) {
-      } else {
+      if (!((this->field_0x350 + (i_edx->field_0x0 * 5280))->field_0x1408 >= 40 && (this->field_0x350 + (i_edx->field_0x0 * 5280))->field_0x1408 <= 296)) {
         call_0x4956170(local_0x260 != 0 ? (this->field_0x350 + (i_edx->field_0x0 * 5280))->field_0x1408 - 0x28 : 9);
       }
+      int32_t i_ebx;
       int32_t i_r9d;
       int64_t local_0xd0;
-      if (param_4 != 0 && param_4 != 1) {
-        if (param_4 - 1 != 1) {
+      switch (param_4) {
+        case 0:
           local_0xd0 = &sym_0x704f628;
           call_0x2786410(&local_0xd0, 8);
           if ((local_0xe0 & 0x7) == 0) {
-            (local_0xe0 >> 3)[local_0xf0] = 81;
-            L_0x2767c12:
+            (local_0xe0 >> 3)[local_0xf0] = local_0xe0 & 0x7;
+            goto L_0x2767c12;
           } else {
-            do { // L_0x2767c32
-              uint8_t v_r9b_10 = i_r9d;
-              if (8 < 8) {
-                v_r9b_10 = i_r9d << (0);
+            i_ebx = 8;
+            i_r9d = 0;
+            do { // L_0x2767e31
+              uint8_t v_r9b_4 = i_r9d;
+              if (i_ebx < 8) {
+                v_r9b_4 = i_r9d << (8 - i_ebx);
               }
-              (i_edx >> 3)[local_0xf0] = (i_edx >> 3)[local_0xf0] | v_r9b_10 >> (local_0xe0 & 0x7);
-              if (8 - (local_0xe0 & 0x7) < 8 && 8 - (local_0xe0 & 0x7) < 8) {
-                (local_0xe0 >> 3)->field_0x1[local_0xf0] = v_r9b_10 << (8 - (local_0xe0 & 0x7));
+              (i_edx >> 3)[local_0xf0] = (i_edx >> 3)[local_0xf0] | v_r9b_4 >> (local_0xe0 & 0x7);
+              if (8 - (local_0xe0 & 0x7) < 8 && 8 - (local_0xe0 & 0x7) < i_ebx) {
+                (local_0xe0 >> 3)->field_0x1[local_0xf0] = v_r9b_4 << (8 - (local_0xe0 & 0x7));
               }
-              if (8 < 8) break;
-              if ((8 - 8) == 0) break;
-            } while (true); // loop -> L_0x2767c32
+              if (i_ebx < 8) break;
+              i_ebx -= 8;
+              if (i_ebx == 0) break;
+              i_edx = local_0xe0 + 8;
+              i_r9d = local_0x71;
+            } while (true); // loop -> L_0x2767e31
           }
-        } else {
-          local_0xd0 = &sym_0x704f628;
-          call_0x2786410(&local_0xd0, 8);
-          if ((local_0xe0 & 0x7) == 0) {
-            (local_0xe0 >> 3)[local_0xf0] = 82;
-          } else {
-            do { // L_0x2767cd7
-              uint8_t v_r9b_8 = i_r9d;
-              if (8 < 8) {
-                v_r9b_8 = i_r9d << (0);
-              }
-              (i_edx >> 3)[local_0xf0] = (i_edx >> 3)[local_0xf0] | v_r9b_8 >> (local_0xe0 & 0x7);
-              if (8 - (local_0xe0 & 0x7) < 8 && 8 - (local_0xe0 & 0x7) < 8) {
-                (local_0xe0 >> 3)->field_0x1[local_0xf0] = v_r9b_8 << (8 - (local_0xe0 & 0x7));
-              }
-              if (8 < 8) break;
-              if ((8 - 8) == 0) break;
-            } while (true); // loop -> L_0x2767cd7
-          }
-        } else {
+          break;
+        case 1:
           local_0xd0 = &sym_0x704f628;
           call_0x2786410(&local_0xd0, 8);
           if ((local_0xe0 & 0x7) == 0) {
@@ -1029,49 +1038,77 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
             goto L_0x2767c12;
           } else {
             do { // L_0x2767d84
-              uint8_t v_r9b_6 = i_r9d;
-              if (8 < 8) {
-                v_r9b_6 = i_r9d << (0);
+              uint8_t v_r9b_5 = i_r9d;
+              if (i_ebx < 8) {
+                v_r9b_5 = i_r9d << (8 - i_ebx);
               }
-              (i_edx >> 3)[local_0xf0] = (i_edx >> 3)[local_0xf0] | v_r9b_6 >> (local_0xe0 & 0x7);
-              if (8 - (local_0xe0 & 0x7) < 8 && 8 - (local_0xe0 & 0x7) < 8) {
-                (local_0xe0 >> 3)->field_0x1[local_0xf0] = v_r9b_6 << (8 - (local_0xe0 & 0x7));
+              (i_edx >> 3)[local_0xf0] = (i_edx >> 3)[local_0xf0] | v_r9b_5 >> (local_0xe0 & 0x7);
+              if (8 - (local_0xe0 & 0x7) < 8 && 8 - (local_0xe0 & 0x7) < i_ebx) {
+                (local_0xe0 >> 3)->field_0x1[local_0xf0] = v_r9b_5 << (8 - (local_0xe0 & 0x7));
               }
-              if (8 < 8) break;
-              if ((8 - 8) == 0) break;
+              if (i_ebx < 8) break;
+              i_ebx -= 8;
+              if (i_ebx == 0) break;
+              i_edx = local_0xe0 + 8;
+              i_r9d = local_0x71;
             } while (true); // loop -> L_0x2767d84
           }
-        }
-      } else {
-        local_0xd0 = &sym_0x704f628;
-        call_0x2786410(&local_0xd0, 8);
-        if ((local_0xe0 & 0x7) == 0) {
-          (local_0xe0 >> 3)[local_0xf0] = local_0xe0 & 0x7;
-          goto L_0x2767c12;
-        } else {
-          i_r9d = 0;
-          do { // L_0x2767e31
-            int32_t v_r9_4 = i_r9d;
-            if (8 < 8) {
-              v_r9_4 = i_r9d << (0);
-            }
-            (i_edx >> 3)[local_0xf0] = (i_edx >> 3)[local_0xf0] | v_r9_4 >> (local_0xe0 & 0x7);
-            if (8 - (local_0xe0 & 0x7) < 8 && 8 - (local_0xe0 & 0x7) < 8) {
-              (local_0xe0 >> 3)->field_0x1[local_0xf0] = v_r9_4 << (8 - (local_0xe0 & 0x7));
-            }
-            if (8 < 8) break;
-            if ((8 - 8) == 0) break;
-          } while (true); // loop -> L_0x2767e31
-        }
+          break;
+        case 2:
+          local_0xd0 = &sym_0x704f628;
+          call_0x2786410(&local_0xd0, 8);
+          if ((local_0xe0 & 0x7) == 0) {
+            (local_0xe0 >> 3)[local_0xf0] = 82;
+          } else {
+            do { // L_0x2767cd7
+              uint8_t v_r9b_6 = i_r9d;
+              if (i_ebx < 8) {
+                v_r9b_6 = i_r9d << (8 - i_ebx);
+              }
+              (i_edx >> 3)[local_0xf0] = (i_edx >> 3)[local_0xf0] | v_r9b_6 >> (local_0xe0 & 0x7);
+              if (8 - (local_0xe0 & 0x7) < 8 && 8 - (local_0xe0 & 0x7) < i_ebx) {
+                (local_0xe0 >> 3)->field_0x1[local_0xf0] = v_r9b_6 << (8 - (local_0xe0 & 0x7));
+              }
+              if (i_ebx < 8) break;
+              i_ebx -= 8;
+              if (i_ebx == 0) break;
+              i_edx = local_0xe0 + 8;
+              i_r9d = local_0x71;
+            } while (true); // loop -> L_0x2767cd7
+          }
+          break;
+        default:
+          local_0xd0 = &sym_0x704f628;
+          call_0x2786410(&local_0xd0, 8);
+          if ((local_0xe0 & 0x7) == 0) {
+            (local_0xe0 >> 3)[local_0xf0] = 81;
+            L_0x2767c12:
+          } else {
+            do { // L_0x2767c32
+              uint8_t v_r9b_7 = i_r9d;
+              if (i_ebx < 8) {
+                v_r9b_7 = i_r9d << (8 - i_ebx);
+              }
+              (i_edx >> 3)[local_0xf0] = (i_edx >> 3)[local_0xf0] | v_r9b_7 >> (local_0xe0 & 0x7);
+              if (8 - (local_0xe0 & 0x7) < 8 && 8 - (local_0xe0 & 0x7) < i_ebx) {
+                (local_0xe0 >> 3)->field_0x1[local_0xf0] = v_r9b_7 << (8 - (local_0xe0 & 0x7));
+              }
+              if (i_ebx < 8) break;
+              i_ebx -= 8;
+              if (i_ebx == 0) break;
+              i_edx = local_0xe0 + 8;
+              i_r9d = local_0x71;
+            } while (true); // loop -> L_0x2767c32
+          }
       }
-      int64_t stk_15;
+      int64_t stk_12;
       if (param_3 == 2) {
-        stk_15 = 0;
+        stk_12 = 0;
       } else {
         auto ret_0x2798e10_9 = call_0x2798e10(0);
-        stk_15 = (((ret_0x2798e10_9 - rdx) >> 1) + rdx) >> 9;
+        stk_12 = (((ret_0x2798e10_9 - rdx) >> 1) + rdx) >> 9;
       }
-      auto local_0x78 = stk_15;
+      auto local_0x78 = stk_12;
       call_0x2780bf0(&local_0xd0, &local_0x78);
       if (local_0x260 != 0) {
         call_0x27864d0(&local_0xd0, (this->field_0x350 + (i_edx->field_0x0 * 5280))->field_0x1408 - 0x28);
@@ -1084,11 +1121,11 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
         if (ret_0x4975550_14 - (ret_0x4975550_14 / 1000000 >> 18) * 1000000 < RakNetPingTracePointsEventThrottlePerMillion) {
           auto ret_0x39dc4b0_15 = call_0x39dc4b0(global_0x8cdb5d8 != 0 ? global_0x8cdb5d8->field_0x18 : 0, &local_0x80);
           if (SendsGoThroughConnection4) {
-            this->vfunc_0xc0(this) // -> RakNet::RakPeer::fn_0x277fd10;
-            call_0x39dd570(global_0x8cdb5d8 != 0 ? global_0x8cdb5d8->field_0x18 : 0, ret_0x39dc4b0_15->field_0x0, rax, 73);
+            auto vret_18 = this->vfunc_0xc0(this) // -> RakNet::RakPeer::fn_0x277fd10;
+            call_0x39dd570(global_0x8cdb5d8 != 0 ? global_0x8cdb5d8->field_0x18 : 0, ret_0x39dc4b0_15->field_0x0, vret_18, 73);
           } else {
-            this->vfunc_0xc0(this) // -> RakNet::RakPeer::fn_0x277fd10;
-            call_0x39dd340(global_0x8cdb5d8 != 0 ? global_0x8cdb5d8->field_0x18 : 0, ret_0x39dc4b0_15->field_0x0, rax, 73);
+            auto vret_16 = this->vfunc_0xc0(this) // -> RakNet::RakPeer::fn_0x277fd10;
+            call_0x39dd340(global_0x8cdb5d8 != 0 ? global_0x8cdb5d8->field_0x18 : 0, ret_0x39dc4b0_15->field_0x0, vret_16, 73);
           }
         }
       }
@@ -1570,113 +1607,140 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
   
   === [Decompilacao C++ do XREF Runtime #3: 0x2784e00..0x2786c8b (insn @0x2786996: cmp byte [flag], imm8)] ===
     struct RBX::CLI139085 {
-      /* +0x10 */ int32_t field_0x10;
-      /* +0x18 */ int32_t field_0x18;
-      /* +0x20 */ void*   field_0x20;
+      /* +0x0 */ void*   field_0x0;
     };
     
-    // Flag defaults: CLI139085 = false
-    void RBX::CLI139085::func_0x2786860(RBX::CLI139085* this, int64_t param_2) {
-      auto* f_18 = this->field_0x18;
-      if (f_18 + 0x20 > this->field_0x10) {
-        return;
+    // Flag defaults: CLI139085 = false, RbxTransportPeerClock = true, DebugForceStreamingEnabled = false, NetworkPerfTestAnalysis5 = true, SendsGoThroughConnection4 = true, NetworkPerfTestClientAnalysis6 = true, NetworkPerfTestServerAnalysis6 = false, RaknetPacketTracing = false
+    auto RBX::CLI139085::func_0x2786950(RBX::CLI139085* this, int64_t param_2) {
+      void* v_r9_1 = this->field_0x0 | 0x2;
+      if (RbxTransportPeerClock) {
+        v_r9_1 = this->field_0x0 | 0x2 | 0x4;
       }
-      auto ret_0x2759870_1 = call_0x2759870(this);
-      int32_t v_rcx_1;
-      auto* f_20 = this->field_0x20;
-      if (ret_0x2759870_1 == 0) {
-        param_2->field_0x0 = ((f_18 >> 3) + 3)[f_20];
-        param_2->field_0x1 = ((f_18 >> 3) + 2)[f_20];
-        param_2->field_0x2 = ((f_18 >> 3) + 1)[f_20];
-        v_rcx_1 = f_18 >> 3;
+      int64_t v_r8_2 = v_r9_1 | 0x20000000000 | 0x4000b10810;
+      if (DebugEnableStreamOutToDisk8) {
+        v_r8_2 = v_r9_1 | 0x20000000000 | 0x4000b10810 | 0x40000000000;
+      }
+      int64_t v_r8_3 = v_r8_2;
+      if (EnableStreamingBitStreamStateFlags) {
+        v_r8_3 = v_r8_2 | 0x80000000000;
+      }
+      int64_t v_r8_4 = v_r8_3;
+      if (EnableSharedStringCaching7) {
+        v_r8_4 = v_r8_3 | 0x100000000000;
+      }
+      int64_t v_r8_5 = v_r8_4;
+      if (SimParentPrimSpacePVsRead) {
+        v_r8_5 = v_r8_4 | 0x200000000000;
+      }
+      int64_t v_rdx_6;
+      if (!WrapDecompInTryCatch) {
+        if (param_2 != 1) {
+          if (AddCompressionInConnectionInternalSend6 && !DebugDisableCompressionInConnectionInternalSend) {
+            if (AddHashToCompressedPayload2) {
+              v_rdx_6 = v_r8_5 | 0x800000000;
+            } else {
+              v_rdx_6 = v_r8_5;
+            }
+          } else {
+            v_rdx_6 = v_r8_5;
+          }
+        } else {
+          v_rdx_6 = v_r8_5;
+        }
+      } else if (AddCompressionInConnectionInternalSend6 && !DebugDisableCompressionInConnectionInternalSend) {
+        if (AddHashToCompressedPayload2) {
+          v_rdx_6 = v_r8_5 | 0x800000000;
+        } else {
+          v_rdx_6 = v_r8_5;
+        }
       } else {
-        param_2->field_0x0 = (f_18 >> 3)[f_20];
-        param_2->field_0x1 = ((f_18 >> 3) + 1)[f_20];
-        param_2->field_0x2 = ((f_18 >> 3) + 2)[f_20];
-        v_rcx_1 = (f_18 >> 3) + 3;
-        param_2->field_0x3 = f_20->field_0x0[v_rcx_1];
+        v_rdx_6 = v_r8_5;
+      }
+      int64_t v_rdx_7 = v_rdx_6;
+      if (SupportPacketHashes) {
+        v_rdx_7 = v_rdx_6 | 0x80000000000000;
+      }
+      int64_t v_rdx_8 = v_rdx_7;
+      if (BatchNetAssetJoinBlob) {
+        v_rdx_8 = v_rdx_7 | -2147483648;
+      }
+      int64_t v_rdx_9 = v_rdx_8 | 0x1000400000000;
+      if (PlayerControlStateEnabled) {
+        v_rdx_9 = v_rdx_8 | 0x1000400000000 | 0x40000000000000;
+      }
+      int64_t v_rdx_10 = v_rdx_9;
+      if (InputReplicatorDedupRedundantFrames) {
+        v_rdx_10 = v_rdx_9 | 0x1000000000000000;
+      }
+      int64_t v_rdx_11 = v_rdx_10;
+      if (ISRPreserveHumanoidStateWhileGrounded2) {
+        v_rdx_11 = v_rdx_10 | 0x8;
+      }
+      int64_t v_rdx_12 = v_rdx_11;
+      if (ISRTimestampHandshakeOnConnect) {
+        v_rdx_12 = v_rdx_11 | 0x10000000000;
+      }
+      int64_t v_rdx_13 = v_rdx_12;
+      if (DebugNetworkProfiler) {
+        if (param_2 != 1) {
+          if (DebugNetworkProfilerForce) {
+            L_0x2786b46:
+            v_rdx_13 = v_rdx_12 | 0x2000000000000000;
+          }
+        } else {
+          v_rdx_13 = v_rdx_12 | 0x2000000000000000;
+        }
+      } else if (DebugNetworkProfilerForce) {
+        goto L_0x2786b46;
+      }
+      int64_t v_rdx_14 = v_rdx_13 | 0x400000000000;
+      if (SupportGcRegionQuotaSource) {
+        v_rdx_14 = v_rdx_13 | 0x400000000000 | 0x2000000000;
+      }
+      int64_t v_rdx_15 = v_rdx_14 | 0x300000000;
+      if (StreamingAdaptiveRadius3) {
+        v_rdx_15 = v_rdx_14 | 0x300000000 | 0x100000000000000;
+      }
+      int64_t v_rdx_16 = v_rdx_15;
+      if (TeamCreateDataStreamTimestamp) {
+        v_rdx_16 = v_rdx_15 | 0x400000000000000;
+      }
+      int64_t v_rdx_17 = v_rdx_16 | 0x8000000000;
+      if (AndroidSurfaceCompositor) {
+        v_rdx_17 = v_rdx_16 | 0x8000000000 | 0x800000000000;
+      }
+      int64_t v_rdx_18 = v_rdx_17;
+      if (PingItemReportClientMemory) {
+        v_rdx_18 = v_rdx_17 | 0x8000000000000;
+      }
+      int64_t v_rdx_19 = v_rdx_18;
+      if (ServerDrivenObjectDeletion && (param_2 == 1 || ClientFiltersQueuedNewObjects)) {
+        v_rdx_19 = v_rdx_18 | 0x800000000000000;
+      }
+      this->field_0x0 = v_rdx_19 | 0x4000000000000;
+      int64_t v_rdx_21 = v_rdx_19 | 0x4000000000000;
+      if (TagRuleReplicationPipelineEnabled2 && TagRuleCoreEnabled4) {
+        this->field_0x0 = v_rdx_19 | 0x4000000000000 | 0x10000000000000;
+        v_rdx_21 = v_rdx_19 | 0x4000000000000 | 0x10000000000000;
+      }
+      int64_t v_rdx_23 = v_rdx_21;
+      if (UseCompressedPVSerialization2) {
+        this->field_0x0 = v_rdx_21 | 0x20000000000000;
+        v_rdx_23 = v_rdx_21 | 0x20000000000000;
+      }
+      if (param_2 != 1) {
+        if (param_2 == 0 && (rbp->field_0x60->field_0x20->field_0xc >> 28 & 0x1) != 0) {
+          this->field_0x0 = v_rdx_23 | 0x200000000000000;
+          return 0x200000000000000;
+        }
+        return rbp->field_0x60->field_0x20->field_0xc >> 28;
+      } else {
+        this->field_0x0 = v_rdx_23 | 0x200000000000000;
+        return 0x200000000000000;
       }
     }
   
   === [Instrucoes x86-64 do XREF Runtime #3 (0x2784e00..0x2786c8b)] ===
-    0x2786860 | 48 89 5c 24 08           | mov qword ptr [rsp + 0x8], rbx
-    0x2786865 | 57                       | push rdi
-    0x2786866 | 48 83 ec 20              | sub rsp, 0x20
-    0x278686a | 8b 41 18                 | mov eax, dword ptr [rcx + 0x18]
-    0x278686d | 48 8b fa                 | mov rdi, rdx
-    0x2786870 | 83 c0 20                 | add eax, 0x20
-    0x2786873 | 48 8b d9                 | mov rbx, rcx
-    0x2786876 | 3b 41 10                 | cmp eax, dword ptr [rcx + 0x10]
-    0x2786879 | 76 0d                    | jbe 0x2786888
-    0x278687b | 32 c0                    | xor al, al
-    0x278687d | 48 8b 5c 24 30           | mov rbx, qword ptr [rsp + 0x30]
-    0x2786882 | 48 83 c4 20              | add rsp, 0x20
-    0x2786886 | 5f                       | pop rdi
-    0x2786887 | c3                       | ret
-    L_0x2786888:
-    0x2786888 | e8 e3 2f fd ff           | call 0x2759870
-    0x278688d | 8b 4b 18                 | mov ecx, dword ptr [rbx + 0x18]
-    0x2786890 | 48 8b 53 20              | mov rdx, qword ptr [rbx + 0x20]
-    0x2786894 | 84 c0                    | test al, al
-    0x2786896 | 75 3c                    | jne 0x27868d4
-    0x2786898 | c1 e9 03                 | shr ecx, 0x3
-    0x278689b | 83 c1 03                 | add ecx, 0x3
-    0x278689e | 0f b6 0c 11              | movzx ecx, byte ptr [rcx + rdx]
-    0x27868a2 | 88 0f                    | mov byte ptr [rdi], cl
-    0x27868a4 | 8b 4b 18                 | mov ecx, dword ptr [rbx + 0x18]
-    0x27868a7 | 48 8b 43 20              | mov rax, qword ptr [rbx + 0x20]
-    0x27868ab | c1 e9 03                 | shr ecx, 0x3
-    0x27868ae | 83 c1 02                 | add ecx, 0x2
-    0x27868b1 | 0f b6 0c 01              | movzx ecx, byte ptr [rcx + rax]
-    0x27868b5 | 88 4f 01                 | mov byte ptr [rdi + 0x1], cl
-    0x27868b8 | 8b 4b 18                 | mov ecx, dword ptr [rbx + 0x18]
-    0x27868bb | 48 8b 43 20              | mov rax, qword ptr [rbx + 0x20]
-    0x27868bf | c1 e9 03                 | shr ecx, 0x3
-    0x27868c2 | ff c1                    | inc ecx
-    0x27868c4 | 0f b6 0c 01              | movzx ecx, byte ptr [rcx + rax]
-    0x27868c8 | 88 4f 02                 | mov byte ptr [rdi + 0x2], cl
-    0x27868cb | 8b 4b 18                 | mov ecx, dword ptr [rbx + 0x18]
-    0x27868ce | 48 c1 e9 03              | shr rcx, 0x3
-    0x27868d2 | eb 3d                    | jmp 0x2786911
-    L_0x27868d4:
-    0x27868d4 | 48 8b c1                 | mov rax, rcx
-    0x27868d7 | 48 c1 e8 03              | shr rax, 0x3
-    0x27868db | 0f b6 04 10              | movzx eax, byte ptr [rax + rdx]
-    0x27868df | 88 07                    | mov byte ptr [rdi], al
-    0x27868e1 | 8b 4b 18                 | mov ecx, dword ptr [rbx + 0x18]
-    0x27868e4 | 48 8b 43 20              | mov rax, qword ptr [rbx + 0x20]
-    0x27868e8 | c1 e9 03                 | shr ecx, 0x3
-    0x27868eb | ff c1                    | inc ecx
-    0x27868ed | 0f b6 0c 01              | movzx ecx, byte ptr [rcx + rax]
-    0x27868f1 | 88 4f 01                 | mov byte ptr [rdi + 0x1], cl
-    0x27868f4 | 8b 4b 18                 | mov ecx, dword ptr [rbx + 0x18]
-    0x27868f7 | 48 8b 43 20              | mov rax, qword ptr [rbx + 0x20]
-    0x27868fb | c1 e9 03                 | shr ecx, 0x3
-    0x27868fe | 83 c1 02                 | add ecx, 0x2
-    0x2786901 | 0f b6 0c 01              | movzx ecx, byte ptr [rcx + rax]
-    0x2786905 | 88 4f 02                 | mov byte ptr [rdi + 0x2], cl
-    0x2786908 | 8b 4b 18                 | mov ecx, dword ptr [rbx + 0x18]
-    0x278690b | c1 e9 03                 | shr ecx, 0x3
-    0x278690e | 83 c1 03                 | add ecx, 0x3
-    L_0x2786911:
-    0x2786911 | 48 8b 43 20              | mov rax, qword ptr [rbx + 0x20]
-    0x2786915 | 0f b6 14 01              | movzx edx, byte ptr [rcx + rax]
-    0x2786919 | b0 01                    | mov al, 0x1
-    0x278691b | 88 57 03                 | mov byte ptr [rdi + 0x3], dl
-    0x278691e | 83 43 18 20              | add dword ptr [rbx + 0x18], 0x20
-    0x2786922 | 48 8b 5c 24 30           | mov rbx, qword ptr [rsp + 0x30]
-    0x2786927 | 48 83 c4 20              | add rsp, 0x20
-    0x278692b | 5f                       | pop rdi
-    0x278692c | c3                       | ret
-    0x2786930 | 80 3d 81 da 96 05 00     | cmp byte ptr [rip + 0x596da81], 0x0 ; FFlagTagRuleReplicationPipelineEnabled2
-    0x2786937 | 74 0c                    | je 0x2786945
-    0x2786939 | 80 3d 08 d8 96 05 00     | cmp byte ptr [rip + 0x596d808], 0x0 ; FFlagTagRuleCoreEnabled4
-    0x2786940 | 74 03                    | je 0x2786945
-    0x2786942 | b0 01                    | mov al, 0x1
-    0x2786944 | c3                       | ret
-    L_0x2786945:
-    0x2786945 | 32 c0                    | xor al, al
-    0x2786947 | c3                       | ret
     0x2786950 | 4c 8b 09                 | mov r9, qword ptr [rcx]
     0x2786953 | 44 8b d2                 | mov r10d, edx
     0x2786956 | 49 83 c9 02              | or r9, 0x2
@@ -1889,7 +1953,7 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
     
     // Flag defaults: SendsGoThroughConnection4 = true
     void RBX::SendsGo::func_0x39bd8a0(RBX::SendsGo* this, int64_t param_2, void* param_3, void* param_4) {
-      this->field_0x18 = this->field_0x18 + 1;
+      this->field_0x18++;
       auto prev_0x30_1 = param_2->field_0x0->field_0x30;
       param_2->field_0x0->field_0x30 = 5;
       auto local_0x80 = param_4;
@@ -1976,41 +2040,37 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
         if (param_2->field_0x8 != 0) {
           call_0x6daf40(param_2->field_0x8);
         }
-      } else {
-        if (local_0xc0 == 0) {
-          auto* f_830 = this->field_0x830;
-          auto vret_1 = f_830->vfunc_0x8() // -> boost::program_options::invalid_option_value::fn_0x35074e0;
-          auto vret_2 = param_2->field_0x0->vfunc_0x10(param_2->field_0x0) // -> RBX::Path2D::fn_0x3ee38d0;
-          if (vret_1 - vret_2 <= 0) {
-            if (ISRTimestampHeartbeat) {
-              param_2->field_0x0->vfunc_0x10() // -> RBX::Path2D::fn_0x3ee38d0;
-              call_0x39bd8a0(this, param_2, param_3, param_4);
-            } else {
-              this->field_0x18 = this->field_0x18 + 1;
-              param_2->field_0x0->vfunc_0x10() // -> RBX::Path2D::fn_0x3ee38d0;
-              auto prev_0x30_1 = param_2->field_0x0->field_0x30;
-              param_2->field_0x0->field_0x30 = 5;
-              auto local_0xb8 = param_4;
-              call_0x1c2a620(param_2->field_0x0, &local_0xb8, 4);
-              param_2->field_0x0->field_0x30 = prev_0x30_1;
-              if (param_2->field_0x8 != 0) {
-                param_2->field_0x8->field_0x8 = param_2->field_0x8->field_0x8 + 1;
-              }
-              auto vret_5 = f_830->vfunc_0x38() // -> RBX::ModelInstance::BackpackItem::fn_0x3345220;
-              this->vfunc_0x18(this, vret_5, param_3) // -> boost::program_options::invalid_option_value::fn_0x3507e00;
-              if (param_2->field_0x8 != 0) {
-                call_0x6daf40(param_2->field_0x8);
-              }
+      } else if (local_0xc0 == 0) {
+        auto* f_830 = this->field_0x830;
+        auto vret_1 = f_830->vfunc_0x8() // -> boost::program_options::invalid_option_value::fn_0x35074e0;
+        auto vret_2 = param_2->field_0x0->vfunc_0x10(param_2->field_0x0) // -> RBX::Path2D::fn_0x3ee38d0;
+        if (vret_1 - vret_2 <= 0) {
+          if (ISRTimestampHeartbeat) {
+            param_2->field_0x0->vfunc_0x10() // -> RBX::Path2D::fn_0x3ee38d0;
+            call_0x39bd8a0(this, param_2, param_3, param_4);
+          } else {
+            this->field_0x18++;
+            param_2->field_0x0->vfunc_0x10() // -> RBX::Path2D::fn_0x3ee38d0;
+            auto prev_0x30_1 = param_2->field_0x0->field_0x30;
+            param_2->field_0x0->field_0x30 = 5;
+            auto local_0xb8 = param_4;
+            call_0x1c2a620(param_2->field_0x0, &local_0xb8, 4);
+            param_2->field_0x0->field_0x30 = prev_0x30_1;
+            if (param_2->field_0x8 != 0) {
+              param_2->field_0x8->field_0x8++;
+            }
+            auto vret_5 = f_830->vfunc_0x38() // -> RBX::ModelInstance::BackpackItem::fn_0x3345220;
+            this->vfunc_0x18(this, vret_5, param_3) // -> boost::program_options::invalid_option_value::fn_0x3507e00;
+            if (param_2->field_0x8 != 0) {
+              call_0x6daf40(param_2->field_0x8);
             }
           }
-          return;
         }
-        if (ISRTimestampHeartbeat) {
-          param_2->field_0x0->vfunc_0x10() // -> RBX::Path2D::fn_0x3ee38d0;
-          call_0x39bd8a0(this, param_2, param_3, param_4);
-        } else {
-          goto L_0x39bda42;
-        }
+      } else if (ISRTimestampHeartbeat) {
+        param_2->field_0x0->vfunc_0x10() // -> RBX::Path2D::fn_0x3ee38d0;
+        call_0x39bd8a0(this, param_2, param_3, param_4);
+      } else {
+        goto L_0x39bda42;
       }
     }
   
@@ -2164,7 +2224,7 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
       call_0x1c2a620(local_0x30, &local_0xa8, 1);
       f_830->vfunc_0x40() // -> RBX::SurfaceGuiBase::Ads::fn_0x3e61610;
       call_0x39d3650(local_0x30, param_2, &local_0xb0);
-      this->field_0x18 = this->field_0x18 + 1;
+      this->field_0x18++;
       local_0xa8 = 0;
       call_0x1c2a620(local_0x30, &local_0xa8, 4);
       auto vret_7 = f_830->vfunc_0x38() // -> RBX::ModelInstance::BackpackItem::fn_0x3345220;
@@ -2547,59 +2607,50 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
     
     // Flag defaults: SendsGoThroughConnection4 = true
     void RBX::SendsGo::func_0x4621fb0(RBX::SendsGo* this, int64_t param_2, void* param_3, void* param_4) {
-      if (this->field_0xda == param_2->field_0x2 && this->field_0xd8 == param_2->field_0x0 && this->field_0xd8 == 2) {
-        if (this->field_0xdc != param_2->field_0x4) {
-          L_0x4622021:
-          auto vret_1 = this->vfunc_0x280(this) // -> RBX::UIDragDetector::fn_0x45863d0;
-          if (vret_1 != 0) {
-            call_0x6f7510(&local_0xe0, &vret_1->field_0xe0);
-            uint8_t v_r12b_1;
-            if (local_0xf0 == 7) {
-              auto ret_0x5e06820_3 = memcmp(local_0xe0, "Enabled", 7);
-              if (ret_0x5e06820_3 == 0) {
-                v_r12b_1 = 0;
-              } else {
-                L_0x46220dc:
-                v_r12b_1 = 1;
-              }
-            } else {
-              v_r12b_1 = 1;
-            }
-            std::string::_Tidy_deallocate(v_rbx_2);
-            if (v_r12b_1 == 0 && vret_1->field_0x37c != 1) {
-              call_0x39bc6d0(&local_0x50);
-              auto vret_6 = param_3->field_0x0->vfunc_0x10() // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
-              auto vret_7 = param_3->field_0x0->vfunc_0x8() // -> RBX::NavigationService::PathUpdateJob::fn_0x4067bc0;
-              call_0x1c2a620(local_0x50, vret_7, vret_6);
-              auto ret_0x4663c70_9 = call_0x4663c70(this);
-              do { // L_0x4622190
-                atomic_try_incref(&vret_1->field_0x10->field_0x8);
-                if (atomic_cas(&vret_1->field_0x10->field_0x8, vret_1->field_0x10->field_0x8, (vret_1->field_0x10->field_0x8 + 1)) == 0) break;
-              } while (true); // loop -> L_0x4622190
-              auto local_0x80 = vret_1->field_0x8;
-              call_0x3e47310(&local_0x100, local_0x60, &local_0x80);
-              if (local_0x98 != 0) {
-                call_0x6daf40(local_0x98);
-              }
-              auto local_0xb0 = local_0x100.c_str();
-              call_0x1c2a6c0(local_0x50, &local_0xb0, ret_0x4663c70_9);
-              if (local_0x118 >= 16) {
-                void* v_rcx_3 = local_0x100;
-                call_0x4955ac0(v_rcx_3);
-              }
-              if (SendsGoThroughConnection4) {
-                auto* f_108 = this->field_0x108;
-                if (f_108 != 0) {
-                  if (local_0x58 != 0) {
-                    local_0x58->field_0x8 = local_0x58->field_0x8 + 1;
-                  }
-                  f_108->vfunc_0x38(f_108, 0, &local_0x60, &local_0xe0) // -> RBX::Solver::ConstraintAchievePosition::fn_0x4d35c30;
+      if (this->field_0xda == param_2->field_0x2 && this->field_0xd8 == param_2->field_0x0) {
+        if (this->field_0xd8 == 2) {
+          if (this->field_0xdc != param_2->field_0x4) {
+            L_0x4622021:
+            auto vret_1 = this->vfunc_0x280(this) // -> RBX::UIDragDetector::fn_0x45863d0;
+            if (vret_1 != 0) {
+              call_0x6f7510(&local_0xe0, &vret_1->field_0xe0);
+              uint8_t v_r12b_1;
+              if (local_0xf0 == 7) {
+                auto ret_0x5e06820_3 = memcmp(local_0xe0, "Enabled", 7);
+                if (ret_0x5e06820_3 == 0) {
+                  v_r12b_1 = 0;
+                } else {
+                  L_0x46220dc:
+                  v_r12b_1 = 1;
                 }
               } else {
-                if (this->field_0xc8 != 0) {
-                  if (local_0x58 != 0) {
-                    local_0x58->field_0x8 = local_0x58->field_0x8 + 1;
+                v_r12b_1 = 1;
+              }
+              std::string::_Tidy_deallocate(local_0xe0);
+              if (v_r12b_1 == 0 && vret_1->field_0x37c != 1) {
+                call_0x39bc6d0(&local_0x50);
+                auto vret_6 = param_3->field_0x0->vfunc_0x10() // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
+                auto vret_7 = param_3->field_0x0->vfunc_0x8() // -> RBX::NavigationService::PathUpdateJob::fn_0x4067bc0;
+                call_0x1c2a620(local_0x50, vret_7, vret_6);
+                auto ret_0x4663c70_9 = call_0x4663c70(this);
+                do { // L_0x4622190
+                  atomic_try_incref(&vret_1->field_0x10->field_0x8);
+                  if (atomic_cas(&vret_1->field_0x10->field_0x8, vret_1->field_0x10->field_0x8, vret_1->field_0x10->field_0x8 + 1) == 0) break;
+                } while (true); // loop -> L_0x4622190
+                auto local_0x80 = vret_1->field_0x8;
+                call_0x3e47310(&local_0x100, local_0x60, &local_0x80);
+                if (local_0x98 != 0) {
+                  call_0x6daf40(local_0x98);
+                }
+                auto local_0xb0 = local_0x100.c_str();
+                call_0x1c2a6c0(local_0x50, &local_0xb0, ret_0x4663c70_9);
+                std::string::_Tidy_deallocate(local_0x100);
+                if (SendsGoThroughConnection4) {
+                  auto* f_108 = this->field_0x108;
+                  if (f_108 != 0) {
+                    f_108->vfunc_0x38(f_108, 0, &local_0x60, &local_0xe0) // -> RBX::Solver::ConstraintAchievePosition::fn_0x4d35c30;
                   }
+                } else if (this->field_0xc8 != 0) {
                   call_0x47f2db0(this->field_0xc8, &local_0xa0, 1, 2);
                 }
                 if (local_0x58 != 0) {
@@ -2613,26 +2664,24 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
               }
             }
           }
-        } else {
-          if (!(this->field_0xd8 == 23 && this->field_0xe0 == param_2->field_0x8 && this->field_0xe8 == param_2->field_0x10)) {
-            auto vret_1 = this->vfunc_0x280(this) // -> RBX::UIDragDetector::fn_0x45863d0;
-            if (vret_1 != 0) {
-              call_0x6f7510(&local_0xe0, &vret_1->field_0xe0);
-              uint8_t v_r12b_1;
-              if (local_0xf0 == 7) {
-                auto ret_0x5e06820_3 = memcmp(local_0xe0, "Enabled", 7);
-                if (ret_0x5e06820_3 == 0) {
-                  v_r12b_1 = 0;
-                } else {
-                  goto L_0x46220dc;
-                }
+        } else if (!(this->field_0xd8 == 23 && this->field_0xe0 == param_2->field_0x8 && this->field_0xe8 == param_2->field_0x10)) {
+          auto vret_1 = this->vfunc_0x280(this) // -> RBX::UIDragDetector::fn_0x45863d0;
+          if (vret_1 != 0) {
+            call_0x6f7510(&local_0xe0, &vret_1->field_0xe0);
+            uint8_t v_r12b_1;
+            if (local_0xf0 == 7) {
+              auto ret_0x5e06820_3 = memcmp(local_0xe0, "Enabled", 7);
+              if (ret_0x5e06820_3 == 0) {
+                v_r12b_1 = 0;
               } else {
                 goto L_0x46220dc;
               }
-              std::string::_Tidy_deallocate(v_rbx_2);
-              if (v_r12b_1 == 0 && vret_1->field_0x37c != 1) {
-                goto L_0x4622129;
-              }
+            } else {
+              goto L_0x46220dc;
+            }
+            std::string::_Tidy_deallocate(local_0xe0);
+            if (v_r12b_1 == 0 && vret_1->field_0x37c != 1) {
+              goto L_0x4622129;
             }
           }
         }
@@ -2932,147 +2981,152 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
       if (vret_1 == 0) {
         return 0;
       }
-      int64_t stk_2;
+      int64_t stk_1;
       int32_t i_eax;
       if (DebugNetworkProfiler && this->field_0x3fb0 != 0) {
         call_0x5e051b0(&local_0x398, 0, 2080);
         i_eax = 0;
         do { // L_0x462f833
-        } while ((i_eax + 1) < 0x100); // loop -> L_0x462f833
+          i_eax++;
+        } while (i_eax < 0x100); // loop -> L_0x462f833
         if (DebugNetworkProfilerReplicator && this->field_0x108 != 0) {
           this->field_0x108->field_0xa20 = &local_0x398;
         }
-        stk_2 = 1;
+        stk_1 = 1;
       } else {
-        stk_2 = 0;
-        this->field_0x52b0 = 0;
-        call_0x1143a40(this + 0xf38, 0.0);
-        call_0x45d6100(this + 0xfd8, this->field_0x3bb8 - this->field_0x3c18);
-        call_0x39cd730(this + 0x5390, this->field_0x3be8);
-        call_0x39cd730(this + 0x53b8, this->field_0x3bb8);
-        auto* f_3b28 = this->field_0x3b28;
-        call_0x39cd730(this + 0x5430, f_3b28->field_0x870 - this->field_0x3fc0 + this->field_0x3bb8);
-        if (DebugAdditionalSendDataScopes) {
-          if (global_0x8def948 > rbp->field_0x58->field_0x0->field_0x0[40]) {
-            call_0x12e0(&sym_0x8def948);
-            if (global_0x8def948 == -1) {
-              global_0x8def950 = call_0x2924850("Network");
-              call_0x14f0(&sym_0x8def948);
-            }
+        stk_1 = 0;
+      }
+      this->field_0x52b0 = 0;
+      call_0x1143a40(this + 0xf38, 0.0);
+      call_0x45d6100(this + 0xfd8, this->field_0x3bb8 - this->field_0x3c18);
+      call_0x39cd730(this + 0x5390, this->field_0x3be8);
+      call_0x39cd730(this + 0x53b8, this->field_0x3bb8);
+      auto* f_3b28 = this->field_0x3b28;
+      call_0x39cd730(this + 0x5430, f_3b28->field_0x870 - this->field_0x3fc0 + this->field_0x3bb8);
+      if (DebugAdditionalSendDataScopes) {
+        if (global_0x8def948 > rbp->field_0x58->field_0x0->field_0x0[40]) {
+          call_0x12e0(&sym_0x8def948);
+          if (global_0x8def948 == -1) {
+            global_0x8def950 = call_0x2924850("Network");
+            call_0x14f0(&sym_0x8def948);
           }
-          call_0x2925220(global_0x8def950, "DataSender - sendItemsPacket High Priority Queue: %zu", this->field_0x3be8);
-          if (global_0x8def958 > rbp->field_0x58->field_0x0->field_0x0[40]) {
-            call_0x12e0(&sym_0x8def958);
-            if (global_0x8def958 == -1) {
-              global_0x8def960 = call_0x2924850("Network");
-              call_0x14f0(&sym_0x8def958);
-            }
-          }
-          call_0x2925220(global_0x8def960, "DataSender - sendItemsPacket Pending Queue: %zu", this->field_0x3bb8);
-          if (global_0x8def968 > rbp->field_0x58->field_0x0->field_0x0[40]) {
-            call_0x12e0(&sym_0x8def968);
-            if (global_0x8def968 == -1) {
-              global_0x8def970 = call_0x2924850("Network");
-              call_0x14f0(&sym_0x8def968);
-            }
-          }
-          call_0x2925220(global_0x8def970, "DataSender - sendItemsPacket Common Queue Backlog: %d", f_3b28->field_0x870 - this->field_0x3fc0);
         }
-        int32_t v_rsi_52 = 0;
-        int32_t v_r13_53 = param_2;
-        int32_t v_r15_54 = param_2;
-        int64_t local_0x70;
-        if (param_2 > 0) {
-          int32_t i_esi = 0;
-          int32_t i_r15d = param_2;
-          int32_t i_edi = 4;
-          auto i_r13d = "GPU";
-          int32_t v_r15_48;
-          do { // L_0x462fb40
-            int32_t v_rsi_50 = i_esi;
-            int32_t v_r15_51 = i_r15d;
-            if (this->field_0x3be8 == 0 && this->field_0x3bb8 == 0) {
-              if (f_3b28->field_0x870 == this->field_0x3fc0) break;
-              L_0x462fb73:
-              local_0x70 = this;
-              call_0x4632310(this, &local_0x70);
-              call_0x46327a0(this, &local_0x70);
-              auto vret_22 = this->vfunc_0x2e0(this) // -> RBX::DragDetector::fn_0x4597690;
-              int32_t v_rbx_5 = std::clamp(0, this->field_0x17c0 - 0xc8, i_r15d);
-              if (vret_22 == 0) {
-                int32_t v_rbx_4;
+        call_0x2925220(global_0x8def950, "DataSender - sendItemsPacket High Priority Queue: %zu", this->field_0x3be8);
+        if (global_0x8def958 > rbp->field_0x58->field_0x0->field_0x0[40]) {
+          call_0x12e0(&sym_0x8def958);
+          if (global_0x8def958 == -1) {
+            global_0x8def960 = call_0x2924850("Network");
+            call_0x14f0(&sym_0x8def958);
+          }
+        }
+        call_0x2925220(global_0x8def960, "DataSender - sendItemsPacket Pending Queue: %zu", this->field_0x3bb8);
+        if (global_0x8def968 > rbp->field_0x58->field_0x0->field_0x0[40]) {
+          call_0x12e0(&sym_0x8def968);
+          if (global_0x8def968 == -1) {
+            global_0x8def970 = call_0x2924850("Network");
+            call_0x14f0(&sym_0x8def968);
+          }
+        }
+        call_0x2925220(global_0x8def970, "DataSender - sendItemsPacket Common Queue Backlog: %d", f_3b28->field_0x870 - this->field_0x3fc0);
+      }
+      int32_t v_rsi_42 = 0;
+      int32_t v_r13_43 = param_2;
+      int32_t v_r15_44 = param_2;
+      int64_t stk_46;
+      int64_t stk_49;
+      int64_t local_0x70;
+      if (param_2 > 0) {
+        int32_t i_esi = 0;
+        int32_t i_r15d = param_2;
+        int32_t i_edi = 4;
+        void* i_r13d = "GPU";
+        int32_t v_r15_36;
+        int64_t stk_41;
+        int32_t v_r15_40;
+        int32_t v_rsi_39;
+        do { // L_0x462fb40
+          v_rsi_39 = i_esi;
+          v_r15_40 = i_r15d;
+          if (this->field_0x3be8 == 0 && this->field_0x3bb8 == 0) {
+            if (f_3b28->field_0x870 == this->field_0x3fc0) break;
+            L_0x462fb73:
+            local_0x70 = this;
+            call_0x4632310(this, &local_0x70);
+            call_0x46327a0(this, &local_0x70);
+            auto vret_22 = this->vfunc_0x2e0(this) // -> RBX::DragDetector::fn_0x4597690;
+            int32_t v_rbx_4 = std::clamp(this->field_0x17c0 - 0xc8, 0, i_r15d);
+            if (vret_22 == 0) {
+              int32_t v_rbx_3;
+              if (local_0x80 != 0) {
+                auto vret_23 = local_0x80->vfunc_0x10(local_0x80) // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
+                v_rbx_3 = vret_23;
+              } else {
+                v_rbx_3 = 0;
+              }
+              if (local_0x90 != 0) {
+                auto vret_24 = local_0x90->vfunc_0x10(local_0x90) // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
+                v_rbx_4 = v_rbx_3 + vret_24;
+              } else {
+                v_rbx_4 = v_rbx_3;
+              }
+            }
+            if (global_0x8def978 > rbp->field_0x58->field_0x0->field_0x0[40]) {
+              call_0x12e0(&sym_0x8def978);
+              if (global_0x8def978 == -1) {
+                do { // L_0x462fca0
+                  i_eax++;
+                  if ("Network"[i_eax] != i_eax->field_m0x1[i_r13d]) break;
+                } while (i_eax != i_edi); // loop -> L_0x462fca0
+                global_0x8def980 = call_0x29a3390("Network", "DataSender - trySendStreams", -1, "Network"[i_eax] == i_eax->field_m0x1[i_r13d]);
+                call_0x14f0(&sym_0x8def978);
+              }
+            }
+            if ((DebugAdditionalSendDataScopes ? global_0x8def980 : 0) != 0) {
+              call_0x2924c40(&local_0x1c0, DebugAdditionalSendDataScopes ? global_0x8def980 : 0, -1, 0);
+            }
+            int32_t v_rbx_34;
+            void* v_r13_35 = i_r13d;
+            v_r15_36 = i_r15d - v_rbx_4;
+            if (local_0xbc == 0) {
+              int32_t v_r15_30 = i_r15d - v_rbx_4;
+              if (SendsGoThroughConnection4) {
                 if (local_0x80 != 0) {
-                  auto vret_23 = local_0x80->vfunc_0x10(local_0x80) // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
-                  v_rbx_4 = vret_23;
-                } else {
-                  v_rbx_4 = 0;
-                }
-                if (local_0x90 != 0) {
-                  local_0x90->vfunc_0x10(local_0x90) // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
-                  v_rbx_5 = v_rbx_4 + rax;
-                } else {
-                  v_rbx_5 = v_rbx_4;
-                }
-              }
-              if (global_0x8def978 > rbp->field_0x58->field_0x0->field_0x0[40]) {
-                call_0x12e0(&sym_0x8def978);
-                if (global_0x8def978 == -1) {
-                  do { // L_0x462fca0
-                    if ("Network"[i_eax] != (i_eax + 1)->field_m0x1[i_r13d]) break;
-                    break;
-                  } while ((i_eax + 1) != i_edi); // loop -> L_0x462fca0
-                  global_0x8def980 = call_0x29a3390("Network", "DataSender - trySendStreams", -1, "Network"[i_eax] == (i_eax + 1)->field_m0x1[i_r13d]);
-                  call_0x14f0(&sym_0x8def978);
-                }
-              }
-              void* sel_rdx_1 = DebugAdditionalSendDataScopes ? global_0x8def980 : 0;
-              if (sel_rdx_1 != 0) {
-                call_0x2924c40(&local_0x1c0, sel_rdx_1, -1, 0);
-              }
-              int32_t v_rbx_46;
-              v_r15_48 = i_r15d - v_rbx_5;
-              if (local_0xbc == 0) {
-                int32_t v_r15_43 = i_r15d - v_rbx_5;
-                if (SendsGoThroughConnection4) {
-                  if (local_0x80 != 0) {
-                    auto vret_45 = local_0x80->vfunc_0x10(local_0x80, (local_0xbc + 0)) // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
-                    int32_t v_rdi_23 = i_edi;
-                    if (vret_45 > 1) {
-                    int32_t v_rdi_22 = i_edi;
-                    if (RbxTransportNetworkTracing && 0 != 0 && SendsGoThroughConnection4) {
+                  auto vret_45 = local_0x80->vfunc_0x10(local_0x80, (local_0xbc + 0)) // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
+                  int32_t v_rdi_10 = i_edi;
+                  if (vret_45 > 1) {
+                    int32_t v_rdi_9 = i_edi;
+                    if (0) {
                     auto vret_46 = local_0x70->field_0x108->vfunc_0x40() // -> RBX::Solver::ConstraintSingleAxisSpring::fn_0x4d4cf90;
                     if ((vret_46 & 1ULL << 49) < 0) {
-                    if (0 != 0 && global_0x8cdb5d8 != 0 ? global_0x8cdb5d8->field_0x18 : 0 != 0) {
+                    if (0 ? global_0x8cdb5d8->field_0x18 : 0) {
                     auto ret_0x39dd120_47 = call_0x39dd120(global_0x8cdb5d8 != 0 ? global_0x8cdb5d8->field_0x18 : 0, 0);
                     if (ret_0x39dd120_47 != 0) {
                     call_0x39de7e0(ret_0x39dd120_47, (local_0x70->field_0x108->field_0x870 == 1) + 1, 96);
-                    call_0x1c2a180(local_0x80, (rax + rax * 2) * 2);
+                    int64_t idx_1 = (ret_0x39dd120_47->field_0x8 - ret_0x39dd120_47->field_0x0) >> 4;
+                    call_0x1c2a180(local_0x80, (rax + idx_1 * 2) * 2);
                     auto vret_50 = local_0x80->vfunc_0x8() // -> RBX::NavigationService::PathUpdateJob::fn_0x4067bc0;
                     auto local_0x150 = vret_50 + local_0x80->field_0x30;
                     call_0x39dd010(global_0x8cdb5d8 != 0 ? global_0x8cdb5d8->field_0x18 : 0, 0, &local_0x150);
                     call_0x39dcd80(global_0x8cdb5d8 != 0 ? global_0x8cdb5d8->field_0x18 : 0, 0);
                     }
                     }
-                    v_rdi_22 = 4;
+                    v_rdi_9 = 4;
                     }
                     }
                     auto local_0xc20 = 0;
                     call_0x1c2a620(local_0x80, &local_0xc20, 1);
-                    v_rdi_23 = v_rdi_22;
-                    }
-                    if (local_0x80 != 0) {
-                    int32_t v_r15_24 = 1;
+                    v_rdi_10 = v_rdi_9;
+                  }
+                  if (local_0x80 != 0) {
+                    int32_t v_r15_11 = 1;
                     if (local_0x80 == local_0x90) {
-                    v_r15_24 = 3;
+                    v_r15_11 = 3;
                     } else if (GameLoadDataStatistics) {
-                    v_r15_24 = 0 != 0 ? v_rdi_23 : 1;
+                    v_r15_11 = 0 ? v_rdi_10 : 1;
                     }
-                    void* v_rdi_25;
-                    void* fstk_27;
+                    void* v_rdi_12;
+                    void* fstk_14;
                     if ((local_0x80 == local_0x90) != 0) {
-                    if (local_0x88 != 0) {
-                    local_0x88->field_0x8 = local_0x88->field_0x8 + 1;
-                    }
                     auto local_0xf0 = local_0x80;
                     auto local_0xf4 = 0.0;
                     auto local_0xf8 = local_0x88;
@@ -3081,22 +3135,22 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
                     if (local_0x248 != 0) {
                     call_0x6daf40(local_0x248);
                     }
-                    v_rdi_25 = ret_0x480c160_54->field_0x8;
-                    fstk_27 = ret_0x480c160_54->field_0x8;
+                    v_rdi_12 = ret_0x480c160_54->field_0x8;
+                    fstk_14 = ret_0x480c160_54->field_0x8;
                     } else {
-                    v_rdi_25 = 0.0;
-                    fstk_27 = 0.0;
+                    v_rdi_12 = 0.0;
+                    fstk_14 = 0.0;
                     }
                     auto vret_56 = local_0x80->vfunc_0x10() // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
-                    void* v_rdi_33 = v_rdi_25;
+                    void* v_rdi_19 = v_rdi_12;
                     if (vret_56 > 1) {
-                    void* v_rdi_28 = v_rdi_25;
+                    void* v_rdi_15 = v_rdi_12;
                     if (ReplicationDataCaching >= 6 && ReplicationDataCaching >> 8 >= 3) {
                     local_0x80->vfunc_0x8() // -> RBX::NavigationService::PathUpdateJob::fn_0x4067bc0;
-                    local_0x80->vfunc_0x8() // -> RBX::NavigationService::PathUpdateJob::fn_0x4067bc0;
-                    local_0x80->vfunc_0x8() // -> RBX::NavigationService::PathUpdateJob::fn_0x4067bc0;
-                    call_0x4972020(&local_0x250, &&sym_0x799e6f3->field_m0x51aeb3, rax->field_0x0, rax->field_0x1);
-                    v_rdi_28 = fstk_27;
+                    auto vret_58 = local_0x80->vfunc_0x8() // -> RBX::NavigationService::PathUpdateJob::fn_0x4067bc0;
+                    auto vret_59 = local_0x80->vfunc_0x8() // -> RBX::NavigationService::PathUpdateJob::fn_0x4067bc0;
+                    call_0x4972020(&local_0x250, &&sym_0x799e6f3->field_m0x51aeb3, vret_59->field_0x0, vret_58->field_0x1);
+                    v_rdi_15 = fstk_14;
                     }
                     if (NetworkPerfTestAnalysis5) {
                     auto vret_61 = local_0x80->vfunc_0x8() // -> RBX::NavigationService::PathUpdateJob::fn_0x4067bc0;
@@ -3105,69 +3159,68 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
                     call_0x46248c0(local_0x70, vret_62);
                     }
                     }
-                    void* v_rdi_31;
+                    void* v_rdi_18;
                     if (GameStatsHasSpecificAckISR) {
-                    void* v_rdi_30 = v_rdi_28;
+                    void* v_rdi_17 = v_rdi_15;
                     if (local_0x88 != 0) {
-                    local_0x88->field_0x8 = local_0x88->field_0x8 + 1;
-                    v_rdi_30 = fstk_27;
+                    v_rdi_17 = fstk_14;
                     }
                     auto local_0x100 = local_0x80;
                     auto local_0x104 = 0.0;
                     auto local_0x108 = local_0x88;
                     auto local_0x10c = 0.0;
-                    local_0x70->field_0x108->vfunc_0x38(local_0x70->field_0x108, v_r15_24, &local_0x100, &local_0x270) // -> RBX::Solver::ConstraintAchievePosition::fn_0x4d35c30;
-                    if (0 != 0) {
-                    v_rdi_31 = v_rdi_30;
+                    local_0x70->field_0x108->vfunc_0x38(local_0x70->field_0x108, v_r15_11, &local_0x100, &local_0x270) // -> RBX::Solver::ConstraintAchievePosition::fn_0x4d35c30;
+                    if (0) {
+                    v_rdi_18 = v_rdi_17;
                     } else {
-                    v_rdi_31 = v_rdi_30;
+                    v_rdi_18 = v_rdi_17;
                     }
                     } else {
-                    void* v_rdi_29 = v_rdi_28;
+                    void* v_rdi_16 = v_rdi_15;
                     if (local_0x88 != 0) {
-                    local_0x88->field_0x8 = local_0x88->field_0x8 + 1;
-                    v_rdi_29 = fstk_27;
+                    v_rdi_16 = fstk_14;
                     }
                     auto local_0x110 = local_0x80;
                     auto local_0x114 = 0.0;
                     auto local_0x118 = local_0x88;
                     auto local_0x11c = 0.0;
-                    local_0x70->field_0x108->vfunc_0x38(local_0x70->field_0x108, v_r15_24, &local_0x110, &local_0x290) // -> RBX::Solver::ConstraintAchievePosition::fn_0x4d35c30;
-                    v_rdi_31 = v_rdi_29;
+                    local_0x70->field_0x108->vfunc_0x38(local_0x70->field_0x108, v_r15_11, &local_0x110, &local_0x290) // -> RBX::Solver::ConstraintAchievePosition::fn_0x4d35c30;
+                    v_rdi_18 = v_rdi_16;
                     }
                     call_0x296f040(&local_0x70->field_0xef8);
                     call_0x39cd730(&local_0x70->field_0xf60, vret_56);
                     if ((local_0x80 == local_0x90) != 0) {
                     call_0x39c8c00(&local_0x70->field_0x5280, vret_56);
-                    v_rdi_33 = v_rdi_31;
+                    v_rdi_19 = v_rdi_18;
                     } else {
-                    v_rdi_33 = v_rdi_31;
+                    v_rdi_19 = v_rdi_18;
                     }
                     }
-                    void* v_rdi_34 = v_rdi_33;
-                    if (v_rdi_33 != 0) {
-                    v_rdi_33->field_0x8 = v_rdi_33->field_0x8 + 1;
-                    v_rdi_34 = fstk_27;
+                    void* v_rdi_21 = v_rdi_19;
+                    if (v_rdi_19 != 0) {
+                    v_rdi_19->field_0x8++;
+                    v_rdi_21 = fstk_14;
                     }
                     if (local_0x88 != 0) {
                     call_0x6daf40(local_0x88);
                     }
-                    if (v_rdi_34 != 0) {
-                    call_0x6daf40(v_rdi_34);
-                    }
+                    if (v_rdi_21 != 0) {
+                    call_0x6daf40(v_rdi_21);
                     }
                   }
-                  if (local_0x90 != 0) {
-                    auto vret_71 = local_0x90->vfunc_0x10(local_0x90) // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
-                    if (vret_71 > 1) {
+                }
+                if (local_0x90 != 0) {
+                  auto vret_71 = local_0x90->vfunc_0x10(local_0x90) // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
+                  if (vret_71 > 1) {
                     if (RbxTransportNetworkTracing && local_0xc8 != 0 && SendsGoThroughConnection4) {
                     auto vret_72 = local_0x70->field_0x108->vfunc_0x40() // -> RBX::Solver::ConstraintSingleAxisSpring::fn_0x4d4cf90;
                     if ((vret_72 & 1ULL << 49) < 0) {
-                    if (local_0xc8 != 0 && global_0x8cdb5d8 != 0 ? global_0x8cdb5d8->field_0x18 : 0 != 0) {
+                    if (local_0xc8 != 0 && global_0x8cdb5d8 != 0 ? global_0x8cdb5d8->field_0x18 : 0) {
                     auto ret_0x39dd120_73 = call_0x39dd120(global_0x8cdb5d8 != 0 ? global_0x8cdb5d8->field_0x18 : 0, local_0xc8);
                     if (ret_0x39dd120_73 != 0) {
                     call_0x39de7e0(ret_0x39dd120_73, (local_0x70->field_0x108->field_0x870 == 1) + 1, 96);
-                    call_0x1c2a180(local_0x90, (rax + rax * 2) * 2);
+                    int64_t idx_2 = (ret_0x39dd120_73->field_0x8 - ret_0x39dd120_73->field_0x0) >> 4;
+                    call_0x1c2a180(local_0x90, (rax + idx_2 * 2) * 2);
                     auto vret_76 = local_0x90->vfunc_0x8(local_0x90) // -> RBX::NavigationService::PathUpdateJob::fn_0x4067bc0;
                     auto local_0x180 = vret_76 + local_0x90->field_0x30;
                     call_0x39dd010(global_0x8cdb5d8 != 0 ? global_0x8cdb5d8->field_0x18 : 0, local_0xc8, &local_0x180);
@@ -3178,10 +3231,10 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
                     }
                     auto local_0xc38 = 0;
                     call_0x1c2a620(local_0x90, &local_0xc38, 1);
-                    }
-                    if (local_0x90 != 0) {
-                    if (0 != 0) {
-                    0->field_0x8 = 0->field_0x8 + 1;
+                  }
+                  if (local_0x90 != 0) {
+                    if (0) {
+                    0->field_0x8++;
                     }
                     auto local_0x120 = local_0x90;
                     auto local_0x124 = 0.0;
@@ -3194,9 +3247,9 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
                     if (vret_82 > 1) {
                     if (ReplicationDataCaching >= 6 && ReplicationDataCaching >> 8 >= 3) {
                     local_0x90->vfunc_0x8() // -> RBX::NavigationService::PathUpdateJob::fn_0x4067bc0;
-                    local_0x90->vfunc_0x8() // -> RBX::NavigationService::PathUpdateJob::fn_0x4067bc0;
-                    local_0x90->vfunc_0x8() // -> RBX::NavigationService::PathUpdateJob::fn_0x4067bc0;
-                    call_0x4972020(&local_0x2b0, &&sym_0x799e6f3->field_m0x51aeb3, rax->field_0x0, rax->field_0x1);
+                    auto vret_84 = local_0x90->vfunc_0x8() // -> RBX::NavigationService::PathUpdateJob::fn_0x4067bc0;
+                    auto vret_85 = local_0x90->vfunc_0x8() // -> RBX::NavigationService::PathUpdateJob::fn_0x4067bc0;
+                    call_0x4972020(&local_0x2b0, &&sym_0x799e6f3->field_m0x51aeb3, vret_85->field_0x0, vret_84->field_0x1);
                     }
                     if (NetworkPerfTestAnalysis5) {
                     auto vret_87 = local_0x90->vfunc_0x8() // -> RBX::NavigationService::PathUpdateJob::fn_0x4067bc0;
@@ -3206,240 +3259,264 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
                     }
                     }
                     if (GameStatsHasSpecificAckISR) {
-                    if (0 != 0) {
-                    0->field_0x8 = 0->field_0x8 + 1;
+                    if (0) {
+                    0->field_0x8++;
                     }
                     auto local_0x130 = local_0x90;
                     auto local_0x134 = 0.0;
                     auto local_0x13c = 0.0;
                     local_0x70->field_0x108->vfunc_0x38(local_0x70->field_0x108, 3, &local_0x130, &local_0x2d0) // -> RBX::Solver::ConstraintAchievePosition::fn_0x4d35c30;
                     } else {
-                    if (ConnectionSendPushesTracerIdThrough) {
-                    } else {
-                    }
-                    if (0 != 0) {
-                    0->field_0x8 = 0->field_0x8 + 1;
+                    if (0) {
+                    0->field_0x8++;
                     }
                     auto local_0x140 = local_0x90;
                     auto local_0x144 = 0.0;
                     auto local_0x14c = 0.0;
                     local_0x70->field_0x108->vfunc_0x38(local_0x70->field_0x108, 3, &local_0x140, &local_0x2f0) // -> RBX::Solver::ConstraintAchievePosition::fn_0x4d35c30;
                     }
-                    if (TrackNetworkSenderStall) {
-                    }
                     call_0x296f040(&local_0x70->field_0xef8);
                     call_0x39cd730(&local_0x70->field_0xf60, vret_82);
                     call_0x39c8c00(&local_0x70->field_0x5280, vret_82);
                     }
                     if (ret_0x480c160_80->field_0x8 != 0) {
-                    ret_0x480c160_80->field_0x8->field_0x8 = ret_0x480c160_80->field_0x8->field_0x8 + 1;
+                    ret_0x480c160_80->field_0x8->field_0x8++;
                     }
-                    if (0 != 0) {
+                    if (0) {
                     call_0x6daf40(0);
                     }
                     if (ret_0x480c160_80->field_0x8 != 0) {
                     call_0x6daf40(ret_0x480c160_80->field_0x8);
-                    } else {
                     }
-                    } else {
-                    }
-                  } else {
                   }
-                  v_r15_43 = local_0xc28;
-                  v_rbx_46 = 2;
-                  v_r15_48 = v_r15_43;
-                } else {
-                  if (local_0x80 != 0) {
-                    auto vret_39 = local_0x80->vfunc_0x10(local_0x80, (local_0xbc + 0)) // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
-                    if (vret_39 > 1) {
+                }
+                v_r15_30 = local_0xc28;
+                v_rbx_34 = 2;
+                v_r13_35 = "GPU";
+                v_r15_36 = v_r15_30;
+              } else {
+                if (local_0x80 != 0) {
+                  auto vret_39 = local_0x80->vfunc_0x10(local_0x80, (local_0xbc + 0)) // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
+                  if (vret_39 > 1) {
                     auto local_0x48 = 0;
                     call_0x1c2a620(local_0x80, &local_0x48, 1);
-                    }
-                    call_0x4808bc0(&local_0x70, &local_0x80, 2, 0);
                   }
-                  if (local_0x90 != 0) {
-                    auto vret_42 = local_0x90->vfunc_0x10(local_0x90) // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
-                    if (vret_42 > 1) {
+                  call_0x4808bc0(&local_0x70, &local_0x80, 2, 0);
+                }
+                if (local_0x90 != 0) {
+                  auto vret_42 = local_0x90->vfunc_0x10(local_0x90) // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
+                  if (vret_42 > 1) {
                     auto local_0x50 = 0;
                     call_0x1c2a620(local_0x90, &local_0x50, 1);
-                    }
-                    call_0x4808bc0(&local_0x70, &local_0x90, 2, 0);
-                    v_rbx_46 = 2;
-                  } else {
-                    v_rbx_46 = 2;
-                    v_r15_48 = v_r15_43;
                   }
+                  call_0x4808bc0(&local_0x70, &local_0x90, 2, 0);
+                  v_rbx_34 = 2;
+                  v_r13_35 = "GPU";
+                } else {
+                  v_rbx_34 = 2;
+                  v_r13_35 = "GPU";
+                  v_r15_36 = v_r15_30;
                 }
+              }
+            } else {
+              uint8_t v_dil_5;
+              if (local_0x80 != 0) {
+                auto vret_29 = local_0x80->vfunc_0x10(local_0x80, (local_0xbc + 0)) // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
+                v_dil_5 = vret_29 >= std::clamp(this->field_0x17c0 - 0xc8, 0, param_2);
               } else {
-                uint8_t v_dil_10;
-                if (local_0x80 != 0) {
-                  auto vret_29 = local_0x80->vfunc_0x10(local_0x80, (local_0xbc + 0)) // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
-                  v_dil_10 = vret_29 >= std::clamp(0, this->field_0x17c0 - 0xc8, param_2);
+                v_dil_5 = 0;
+              }
+              uint8_t v_sil_6;
+              if (local_0x90 != 0) {
+                auto vret_30 = local_0x90->vfunc_0x10(local_0x90) // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
+                v_sil_6 = vret_30 >= std::clamp(this->field_0x17c0 - 0xc8, 0, param_2);
+              } else {
+                v_sil_6 = 0;
+              }
+              int32_t v_rbx_7 = 3;
+              if (v_dil_5 != 0 || local_0xb5 != v_dil_5) {
+                if (SendsGoThroughConnection4) {
+                  call_0x4809360(&local_0x70, &local_0x80, 1);
                 } else {
-                  v_dil_10 = 0;
-                }
-                uint8_t v_sil_12;
-                if (local_0x90 != 0) {
-                  auto vret_30 = local_0x90->vfunc_0x10(local_0x90) // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
-                  v_sil_12 = vret_30 >= std::clamp(0, this->field_0x17c0 - 0xc8, param_2);
-                } else {
-                  v_sil_12 = 0;
-                }
-                int32_t v_rbx_16 = 3;
-                if (v_dil_10 == 0) {
-                  if (local_0xb5 != v_dil_10) {
-                    if (SendsGoThroughConnection4) {
-                    call_0x4809360(&local_0x70, &local_0x80, 1);
-                    L_0x46308bc:
-                    } else {
-                    if (local_0x80 != 0) {
+                  if (local_0x80 != 0) {
                     auto vret_31 = local_0x80->vfunc_0x10(local_0x80) // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
                     if (vret_31 > 1) {
                     auto local_0x58 = 0;
                     call_0x1c2a620(local_0x80, &local_0x58, 1);
                     }
                     call_0x4808bc0(&local_0x70, &local_0x80, 2, 0);
-                    }
-                    }
-                    v_rbx_16 = 1;
                   }
-                } else {
-                  if (SendsGoThroughConnection4) {
-                    call_0x4809360(&local_0x70, &local_0x80, 1);
-                    goto L_0x46308bc;
-                  } else {
-                    if (local_0x80 != 0) {
-                    auto vret_31 = local_0x80->vfunc_0x10(local_0x80) // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
-                    if (vret_31 > 1) {
-                    auto local_0x58 = 0;
-                    call_0x1c2a620(local_0x80, &local_0x58, 1);
-                    }
-                    call_0x4808bc0(&local_0x70, &local_0x80, 2, 0);
-                    goto L_0x46308bc;
-                    }
-                  }
-                  v_rbx_16 = 1;
                 }
-                int32_t v_rbx_19 = v_rbx_16;
-                if (v_sil_12 != 0) {
-                  if (SendsGoThroughConnection4) {
-                    call_0x4809360(&local_0x70, &local_0x90, 1);
-                  } else {
-                    if (local_0x90 != 0) {
+                v_rbx_7 = 1;
+              }
+              int32_t v_rbx_8 = v_rbx_7;
+              if (v_sil_6 != 0) {
+                if (SendsGoThroughConnection4) {
+                  call_0x4809360(&local_0x70, &local_0x90, 1);
+                } else {
+                  if (local_0x90 != 0) {
                     auto vret_35 = local_0x90->vfunc_0x10(local_0x90) // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
                     if (vret_35 > 1) {
                     auto local_0x60 = 0;
                     call_0x1c2a620(local_0x90, &local_0x60, 1);
                     }
                     call_0x4808bc0(&local_0x70, &local_0x90, local_0xa0, 0);
-                    }
                   }
-                  v_rbx_19 = 1;
                 }
-                v_rbx_46 = v_rbx_19;
+                v_rbx_8 = 1;
               }
-              if (local_0x1d0 != 0) {
-                call_0x2925410(&local_0x1c0, -1, 0);
-              }
-              if (v_rbx_46 == 2) break;
-              v_rsi_50 = local_0xd0;
-              v_r15_51 = v_r15_48;
-              v_rsi_52 = v_rsi_50;
-              v_r13_53 = local_0xd4;
-              v_r15_54 = v_r15_51;
-              break;
-            } else {
-              goto L_0x462fb73;
+              v_rbx_34 = v_rbx_8;
             }
-            if (local_0x98 == 0) break;
-            call_0x6daf40(local_0x98);
+            if (local_0x1d0 != 0) {
+              call_0x2925410(&local_0x1c0, -1, 0);
+            }
+            if (v_rbx_34 == 2) break;
+            i_esi = local_0xd0;
+            i_r15d = v_r15_36;
+            i_edi = 4;
+            i_r13d = v_r13_35;
+            v_rsi_42 = v_rsi_39;
+            v_r13_43 = local_0xd4;
+            v_r15_44 = v_r15_40;
+            stk_46 = stk_41;
             break;
-          } while (v_r15_48 > 0); // loop -> L_0x462fb40
-          call_0x39c8ba0(this + 0x5248, this->field_0x52b0);
+          } else {
+            goto L_0x462fb73;
+          }
+          if (local_0x98 == 0) break;
+          call_0x6daf40(local_0x98);
+          break;
+        } while (v_r15_36 > 0); // loop -> L_0x462fb40
+        v_rsi_42 = v_rsi_39;
+        v_r13_43 = local_0xd4;
+        v_r15_44 = v_r15_40;
+        stk_46 = stk_41;
+        if (global_0x8def988 > rbp->field_0x58->field_0x0->field_0x0[40]) {
+          call_0x12e0(&sym_0x8def988);
+          if (global_0x8def988 == -1) {
+            auto ret_0x29247f0_100 = call_0x29247f0("Network", "DataSender - forceSendStreams", -1, 255);
+            global_0x8def990 = ret_0x29247f0_100;
+            call_0x14f0(&sym_0x8def988);
+          }
+        }
+        call_0x6e1aa0(&local_0x310, DebugAdditionalSendDataScopes ? global_0x8def990 : 0);
+        if (SendsGoThroughConnection4) {
+          call_0x4809360(&local_0x70, &local_0x80, local_0xa8);
+          call_0x4809360(&local_0x70, &local_0x90, local_0xa8);
         } else {
-          if (global_0x8def988 > rbp->field_0x58->field_0x0->field_0x0[40]) {
-            call_0x12e0(&sym_0x8def988);
-            if (global_0x8def988 == -1) {
-              global_0x8def990 = call_0x29247f0("Network", "DataSender - forceSendStreams", -1, 255);
-              call_0x14f0(&sym_0x8def988);
+          if (local_0x80 != 0) {
+            auto vret_103 = local_0x80->vfunc_0x10() // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
+            if (vret_103 > 1) {
+              auto local_0x40 = 0;
+              call_0x1c2a620(local_0x80, &local_0x40, 1);
             }
+            call_0x4808bc0(&local_0x70, &local_0x80, local_0xa0, local_0xa4);
           }
-          void* sel_rdx_2 = DebugAdditionalSendDataScopes ? global_0x8def990 : 0;
-          call_0x6e1aa0(&local_0x310, sel_rdx_2);
-          if (SendsGoThroughConnection4) {
-            call_0x4809360(&local_0x70, &local_0x80, local_0xa8);
-            call_0x4809360(&local_0x70, &local_0x90, local_0xa8);
-          } else {
-            int64_t local_0x40;
-            if (local_0x80 != 0) {
-              auto vret_103 = local_0x80->vfunc_0x10() // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
-              if (vret_103 > 1) {
-                local_0x40 = 0;
-                call_0x1c2a620(local_0x80, &local_0x40, 1);
-              }
-              call_0x4808bc0(&local_0x70, &local_0x80, local_0xa0, local_0xa4);
+          if (local_0x90 != 0) {
+            auto vret_106 = local_0x90->vfunc_0x10() // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
+            if (vret_106 > 1) {
+              local_0x40 = 0;
+              call_0x1c2a620(local_0x90, &local_0x40, 1);
             }
-            if (local_0x90 != 0) {
-              auto vret_106 = local_0x90->vfunc_0x10() // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
-              if (vret_106 > 1) {
-                local_0x40 = 0;
-                call_0x1c2a620(local_0x90, &local_0x40, 1);
-              }
-              call_0x4808bc0(&local_0x70, &local_0x90, local_0xa0, local_0xa4);
-            }
+            call_0x4808bc0(&local_0x70, &local_0x90, local_0xa0, local_0xa4);
           }
-          if (local_0x320 != 0) {
-            call_0x2925410(&local_0x310, -1, 0);
-          }
-          call_0x39cd730(this + 0x53e0, this->field_0x3bb8);
-          call_0x39cd730(this + 0x5408, v_rsi_52);
-          call_0x39cd730(this + 0x5458, f_3b28->field_0x870 - this->field_0x3fc0 + this->field_0x3bb8);
-          call_0x39c8ba0(this + 0x5248, this->field_0x52b0);
-          call_0x45d6100(this + 0xff0, v_rsi_52);
-          this->field_0x5738 = this->field_0x5738 + v_rsi_52;
-          this->field_0x3c18 = this->field_0x3bb8;
-          int32_t v_rdi_56;
-          if (LargeReplicatorUseDynamicBandwidthTarget2) {
-            v_rdi_56 = max(this->field_0x3440, min(this->field_0x3444, v_r13_53) > 0 ? min(this->field_0x3444, v_r13_53) : 0);
-          } else {
-            v_rdi_56 = std::clamp(this->field_0x3440, v_r15_54, this->field_0x3444);
-          }
-          int32_t v_rdi_57 = v_rdi_56;
-          if (DebugLRCustomBwLimit) {
-            v_rdi_57 = global_0x8cddceb != 0 ? 10240 : v_rdi_56;
-          }
-          auto* f_2e18 = this->field_0x2e18;
-          auto* f_33c8 = this->field_0x33c8;
-          if (this->field_0x4bd7 == 0) {
-            auto vret_117 = this->vfunc_0x3d0(this) // -> RBX::Network::ClientReplicator::fn_0x468cbf0;
-            if (vret_117 != 0) {
-              auto ret_0x2937a50_118 = call_0x2937a50(&local_0x300);
-              call_0x39bfeb0(f_2e18, v_rdi_57, ret_0x2937a50_118->field_0x0);
-              if (ReportBandwidthCapHit && f_2e18->field_0x1ad9 != 0 && this->field_0x344c != f_33c8->field_0x3b28->field_0x978) {
-                this->field_0x344c = f_33c8->field_0x3b28->field_0x978;
-                this->field_0x3448 = this->field_0x3448 + 1;
-              }
-            }
-          } else {
+        }
+        if (local_0x320 != 0) {
+          call_0x2925410(&local_0x310, -1, 0);
+        }
+        L_0x4630b29:
+        call_0x39cd730(this + 0x53e0, this->field_0x3bb8);
+        call_0x39cd730(this + 0x5408, v_rsi_42);
+        call_0x39cd730(this + 0x5458, f_3b28->field_0x870 - this->field_0x3fc0 + this->field_0x3bb8);
+        call_0x39c8ba0(this + 0x5248, this->field_0x52b0);
+        call_0x45d6100(this + 0xff0, v_rsi_42);
+        this->field_0x5738 = this->field_0x5738 + v_rsi_42;
+        this->field_0x3c18 = this->field_0x3bb8;
+        int32_t v_rdi_47;
+        if (LargeReplicatorUseDynamicBandwidthTarget2) {
+          v_rdi_47 = max(this->field_0x3440, min(this->field_0x3444, v_r13_43) > stk_46 ? min(this->field_0x3444, v_r13_43) - stk_46 : 0);
+        } else {
+          v_rdi_47 = std::clamp(this->field_0x3440, v_r15_44, this->field_0x3444);
+        }
+        int32_t v_rdi_48 = v_rdi_47;
+        if (DebugLRCustomBwLimit) {
+          v_rdi_48 = global_0x8cddceb != 0 ? 10240 : v_rdi_47;
+        }
+        auto* f_2e18 = this->field_0x2e18;
+        auto* f_33c8 = this->field_0x33c8;
+        if (this->field_0x4bd7 == 0) {
+          auto vret_117 = this->vfunc_0x3d0(this) // -> RBX::Network::ClientReplicator::fn_0x468cbf0;
+          if (vret_117 != 0) {
             auto ret_0x2937a50_118 = call_0x2937a50(&local_0x300);
-            call_0x39bfeb0(f_2e18, v_rdi_57, ret_0x2937a50_118->field_0x0);
+            call_0x39bfeb0(f_2e18, v_rdi_48, ret_0x2937a50_118->field_0x0);
             if (ReportBandwidthCapHit && f_2e18->field_0x1ad9 != 0 && this->field_0x344c != f_33c8->field_0x3b28->field_0x978) {
               this->field_0x344c = f_33c8->field_0x3b28->field_0x978;
-              this->field_0x3448 = this->field_0x3448 + 1;
+              this->field_0x3448++;
+              stk_49 = stk_46;
+            } else {
+              stk_49 = stk_46;
             }
+          } else {
+            stk_49 = stk_46;
+          }
+        } else {
+          auto ret_0x2937a50_118 = call_0x2937a50(&local_0x300);
+          call_0x39bfeb0(f_2e18, v_rdi_48, ret_0x2937a50_118->field_0x0);
+          if (ReportBandwidthCapHit && f_2e18->field_0x1ad9 != 0 && this->field_0x344c != f_33c8->field_0x3b28->field_0x978) {
+            this->field_0x344c = f_33c8->field_0x3b28->field_0x978;
+            this->field_0x3448++;
+            stk_49 = stk_46;
+          } else {
+            stk_49 = stk_46;
           }
         }
-        if (local_0x98 != 0) {
-          call_0x6daf40(local_0x98);
+      } else {
+        stk_46 = 0;
+        if (global_0x8def988 > rbp->field_0x58->field_0x0->field_0x0[40]) {
+          call_0x12e0(&sym_0x8def988);
+          if (global_0x8def988 == -1) {
+            auto ret_0x29247f0_100 = call_0x29247f0("Network", "DataSender - forceSendStreams", -1, 255);
+            global_0x8def990 = ret_0x29247f0_100;
+            call_0x14f0(&sym_0x8def988);
+          }
         }
-        if (local_0x88 != 0) {
-          call_0x6daf40(local_0x88);
+        call_0x6e1aa0(&local_0x310, DebugAdditionalSendDataScopes ? global_0x8def990 : 0);
+        if (SendsGoThroughConnection4) {
+          call_0x4809360(&local_0x70, &local_0x80, local_0xa8);
+          call_0x4809360(&local_0x70, &local_0x90, local_0xa8);
+        } else {
+          if (local_0x80 != 0) {
+            auto vret_103 = local_0x80->vfunc_0x10() // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
+            if (vret_103 > 1) {
+              auto local_0x40 = 0;
+              call_0x1c2a620(local_0x80, &local_0x40, 1);
+            }
+            call_0x4808bc0(&local_0x70, &local_0x80, local_0xa0, local_0xa4);
+          }
+          if (local_0x90 != 0) {
+            auto vret_106 = local_0x90->vfunc_0x10() // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
+            if (vret_106 > 1) {
+              local_0x40 = 0;
+              call_0x1c2a620(local_0x90, &local_0x40, 1);
+            }
+            call_0x4808bc0(&local_0x70, &local_0x90, local_0xa0, local_0xa4);
+          }
         }
-        if (stk_2 != 0) {
-          call_0x467f8e0(&local_0x390);
+        if (local_0x320 != 0) {
+          call_0x2925410(&local_0x310, -1, 0);
         }
-        return 0;
+        goto L_0x4630b29;
       }
+      if (local_0x98 != 0) {
+        call_0x6daf40(local_0x98);
+      }
+      if (local_0x88 != 0) {
+        call_0x6daf40(local_0x88);
+      }
+      if (stk_1 != 0) {
+        call_0x467f8e0(&local_0x390);
+      }
+      return stk_49;
     }
   
   === [Instrucoes x86-64 do XREF Runtime #9 (0x462f7b0..0x4630cee)] ===
@@ -3739,7 +3816,7 @@ Operação  : 0x276029f: cmp byte [flag], imm8 ; fn=0x275fd90..0x2760489
     0x462fd08 | 4c 89 b5 d0 00 00 00     | mov qword ptr [rbp + 0xd0], r14
     0x462fd0f | 4c 89 b5 d8 00 00 00     | mov qword ptr [rbp + 0xd8], r14
     0x462fd16 | 4c 89 b5 e0 00 00 00     | mov qword ptr [rbp + 0xe0], r14
-    0x462fd1d | 48 c7 85 e8 00 00 00 ff.. | mov qword ptr [rbp + 0xe8], 0xffffffff
+    0x462fd1d | 48 c7 85 e8 00 00 00 ff.. | mov qword ptr [rbp + 0xe8], -0x1
     0x462fd28 | 4c 89 b5 f0 00 00 00     | mov qword ptr [rbp + 0xf0], r14
     0x462fd2f | 4c 89 b5 f8 00 00 00     | mov qword ptr [rbp + 0xf8], r14
     0x462fd36 | 4c 89 b5 00 01 00 00     | mov qword ptr [rbp + 0x100], r14

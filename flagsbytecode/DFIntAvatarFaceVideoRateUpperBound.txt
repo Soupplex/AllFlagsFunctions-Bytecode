@@ -10,7 +10,7 @@ Operação  : 0x191ac05: mov/math reg, [flag] ; fn=0x191a980..0x191acf2
     Padrão  : DFIntAvatarFaceVideoRateUpperBound = 23 (default) [int, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : ret_0x191ae20_2 > (float)AvatarFaceVideoRateUpperBound && this->field_0x228 >> 32 != 0
-    Altera  : this->field_0x1e0, this->field_0x1f8->field_0x0[rdx * 4], this->field_0x1f0, this->field_0x218, this->field_0x210
+    Altera  : this->field_0x1e0, this->field_0x1f8->field_0x0[(&this->field_0x1f0->field_m0x1 % this->field_0x1e8) * 4], this->field_0x1f0, this->field_0x218, this->field_0x210
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x191ad3c (in fn_0x191ad00): call 0x191a980  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
@@ -33,28 +33,29 @@ Operação  : 0x191ac05: mov/math reg, [flag] ; fn=0x191a980..0x191acf2
     void RBX::AvatarFace::func_0x191a980(RBX::AvatarFace* this) {
       call_0x495a220(&local_0x38);
       if (this->field_0x218 != 0) {
-        float ftmp_1 = 1.0 / (local_0x38 - this->field_0x210);
+        float ftmp_1 = 1.0 / (float)(local_0x38 - this->field_0x210);
         float fxmm1_1;
-        if (ftmp_1 <= 60.0 && 0.0 <= ftmp_1) {
-          fxmm1_1 = ftmp_1;
+        if (ftmp_1 <= 60.0) {
+          if (0.0 <= ftmp_1) {
+            fxmm1_1 = ftmp_1;
+          } else {
+            fxmm1_1 = 0.0;
+          }
         } else {
-          fxmm1_1 = 0.0;
+          fxmm1_1 = 60.0;
         }
-        void* v_rcx_2;
         auto* f_1f8 = this->field_0x1f8;
         if (this->field_0x1f0 <= this->field_0x1e8) {
           this->field_0x1e0 = fxmm1_1 + this->field_0x1e0;
-          f_1f8->field_0x0[rdx * 4] = fxmm1_1;
-          this->field_0x1f0 = this->field_0x1f0 + 1;
-          v_rcx_2 = this->field_0x1f0;
+          f_1f8->field_0x0[(&this->field_0x1f0->field_m0x1 % this->field_0x1e8) * 4] = fxmm1_1;
+          this->field_0x1f0++;
         } else {
-          float ftmp_2 = this->field_0x1e0 - f_1f8->field_0x0[rdx * 4];
+          float ftmp_2 = this->field_0x1e0 - f_1f8->field_0x0[&this->field_0x1f0->field_m0x1 % this->field_0x1e8 * 4];
           this->field_0x1e0 = ftmp_2 + fxmm1_1;
-          f_1f8->field_0x0[rdx * 4] = fxmm1_1;
-          this->field_0x1f0 = this->field_0x1f0 + 1;
-          v_rcx_2 = this->field_0x1f0 + 1;
+          f_1f8->field_0x0[(&this->field_0x1f0->field_m0x1 % this->field_0x1e8) * 4] = fxmm1_1;
+          this->field_0x1f0++;
         }
-        void* sel_rcx_1 = min(v_rcx_2 - 1, this->field_0x1e8);
+        void* sel_rcx_1 = min(this->field_0x1f0 - 1, this->field_0x1e8);
         if (sel_rcx_1 == AvatarFaceVideoRateWindow) {
           auto ret_0x191ae20_2 = call_0x191ae20(&this->field_0x1e0);
           auto* f_40 = this->field_0x40;
@@ -65,11 +66,7 @@ Operação  : 0x191ac05: mov/math reg, [flag] ; fn=0x191a980..0x191acf2
             }
             void* sel_rbx_3 = this == 0 ? 0 : f_40;
             call_0x2e12fd0(&sel_rbx_3->field_0xc8);
-            if (sel_rbx_3->field_0xc8 == 3) {
-              if (atomic_cas(&sel_rbx_3->field_0xc8, sel_rbx_3->field_0xc8, 1) != 0) {
-                call_0xdac0(&sel_rbx_3->field_0xc8);
-              }
-            } else {
+            if (sel_rbx_3->field_0xc8 != 3 || atomic_cas(&sel_rbx_3->field_0xc8, sel_rbx_3->field_0xc8, 1) != 0) {
               call_0xdac0(&sel_rbx_3->field_0xc8);
             }
             call_0xe4b300(&f_40->field_0x98, 1);
@@ -80,11 +77,7 @@ Operação  : 0x191ac05: mov/math reg, [flag] ; fn=0x191a980..0x191acf2
             if (ret_0x191ae20_2 > (float)AvatarFaceVideoRateUpperBound && this->field_0x228 >> 32 != 0) {
               void* sel_rbx_2 = this == 0 ? 0 : f_40;
               call_0x2e12fd0(&sel_rbx_2->field_0xc8);
-              if (sel_rbx_2->field_0xc8 == 3) {
-                if (atomic_cas(&sel_rbx_2->field_0xc8, sel_rbx_2->field_0xc8, 1) != 0) {
-                  call_0xdac0(&sel_rbx_2->field_0xc8);
-                }
-              } else {
+              if (sel_rbx_2->field_0xc8 != 3 || atomic_cas(&sel_rbx_2->field_0xc8, sel_rbx_2->field_0xc8, 1) != 0) {
                 call_0xdac0(&sel_rbx_2->field_0xc8);
               }
               if (sel_rbx_2->field_0xa4 == 1) {
@@ -92,17 +85,15 @@ Operação  : 0x191ac05: mov/math reg, [flag] ; fn=0x191a980..0x191acf2
               }
               this->field_0x1e0 = this->field_0x1e4;
               this->field_0x1f0 = 1;
-              atomic_exchange(&this->field_0x228, local_0x30);
             }
           }
         }
         if (this->field_0x218 == 0) {
           this->field_0x218 = 1;
         }
-        this->field_0x210 = local_0x38;
-        return;
+      } else {
+        this->field_0x218 = 1;
       }
-      this->field_0x218 = 1;
       this->field_0x210 = local_0x38;
     }
   
@@ -193,7 +184,7 @@ Operação  : 0x191ac05: mov/math reg, [flag] ; fn=0x191a980..0x191acf2
     0x191aaef | e8 2c 03 00 00           | call 0x191ae20
     0x191aaf4 | 0f 28 d0                 | movaps xmm2, xmm0
     0x191aaf7 | 4c 89 4c 24 60           | mov qword ptr [rsp + 0x60], r9
-    0x191aafc | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x191aafc | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     L_0x191ab03:
     0x191ab03 | 48 ff c0                 | inc rax
     0x191ab06 | 41 80 3c 01 00           | cmp byte ptr [r9 + rax], 0x0
@@ -330,9 +321,6 @@ Operação  : 0x191ac05: mov/math reg, [flag] ; fn=0x191a980..0x191acf2
         if (this->field_0x10 >= 0) {
           return;
         }
-        return;
-      }
-      if (this->field_0x8 >= 0) {
         return;
       }
     }

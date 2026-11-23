@@ -9,16 +9,15 @@ Operação  : 0x38b19a4: mov/math reg, [flag] ; fn=0x38b1300..0x38b1a1e
     Classe  : RBX::TerrainArray (RTTI Resolvido)
     Padrão  : FIntTerrainAtlasTileSize = 256 (default) [int, mode=1]
     Papel   : Parâmetro de configuração lido diretamente pela rotina
-    Fórmula : call_0x38b1020(&local_0x1a0, v_r14_8, (this->field_0x160 - this->field_0x158) >> 6, TerrainAtlasTileSize)
+    Fórmula : call_0x38b1020(&local_0x1a0, v_r14_6, (this->field_0x160 - this->field_0x158) >> 6, TerrainAtlasTileSize)
     Altera  : this->field_0x0, this->field_0x8, this->field_0x10, this->field_0x14, this->field_0x18, this->field_0x1c
     Wasm    : .data=0x27100 [via FIntMVTerrainHeightMapBlendMax]
     [Wasm]  : ((local_3 + 128) != &MVTerrainHeightMapBlendMax)
     [Wasm]  : w2c_WebClient_f158173((local_4 + "[FLog::Photo2Avatar] Photo2AvatarJob2D resolvedTemplate: {}, resolvedHair: {}"), "FIntMVTerrainHeightMapBlendMax")
-    [Child @0x38b1020] Papel   : Divisor / Taxa de frequência (Hz) usado em cálculos de intervalo e orçamento
+    [Child @0x38b1020] Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     [Child @0x38b1020] Fórmula : TerrainAtlasTileSize < 4
-    [Child @0x38b1020] Fórmula : i_r8d / (TerrainAtlasTileSize + i_eax * 2) < 1
-    [Child @0x38b1020] Fórmula : ((tmp_2 >> 1 | tmp_2) + 1) * ((tmp_1 >> 1 | tmp_1) + 1) - (TerrainAtlasTileSize + i_eax * 2) * (TerrainAtlasTileSize + i_eax * 2) * param_3 >= i_esi
     [Child @0x38b1020] Fórmula : TerrainAtlasTileSize
+    [Child @0x38b1020] Fórmula : TerrainAtlasTileSize >> 1 >= 4
     [Child @0x38b9b10] Papel   : Parâmetro de configuração lido diretamente pela rotina
     [Child @0x38b4de0] Papel   : Parâmetro de configuração lido diretamente pela rotina
     [Child @0x38b9760] Papel   : Parâmetro de configuração lido diretamente pela rotina
@@ -94,16 +93,17 @@ Operação  : 0x38b19a4: mov/math reg, [flag] ; fn=0x38b1300..0x38b1a1e
       call_0x38b4de0(this);
       this->field_0x68 = 0;
       this->field_0x70 = 0;
-      void* v_r14_8 = param_2;
-      int32_t i_ebx;
+      void* v_r14_6 = param_2;
+      uint64_t i_ebx;
       int64_t local_0x30;
       int64_t local_0x110;
+      int32_t i_r15d;
       if (EnableMaterialSlotTable && local_0x230 != 0) {
         if (((this->field_0x110 - this->field_0x100) / 152 >> 2) + (((this->field_0x110 - this->field_0x100) / 152 >> 2) >> 63) < 192) {
           call_0x38b9760(&this->field_0x100, 192);
         }
         do { // L_0x38b14c0
-          auto ret_0x4b9d420_12 = call_0x4b9d420(local_0x230, 0);
+          auto ret_0x4b9d420_12 = call_0x4b9d420(local_0x230, i_r15d);
           int64_t local_0x38;
           if (ret_0x4b9d420_12->field_0x80 != 0) {
             auto ret_0x38b0ae0_18 = call_0x38b0ae0(&local_0x110);
@@ -114,6 +114,7 @@ Operação  : 0x38b19a4: mov/math reg, [flag] ; fn=0x38b1300..0x38b1a1e
               r10->field_0x90 = -1;
               call_0x6f8fb0(rdx + 0x60);
               call_0x6f8fb0(ret_0x38b0e80_20);
+              this->field_0x108 = this->field_0x108 + 0x98;
             } else {
               local_0x38 = 0;
               call_0x38b9cd0(&this->field_0x100, this->field_0x108, ret_0x38b0ae0_18, &local_0x38);
@@ -127,11 +128,14 @@ Operação  : 0x38b19a4: mov/math reg, [flag] ; fn=0x38b1300..0x38b1a1e
             this->field_0x108->field_0x90 = -1;
             call_0x6f8fb0(rdx + 0x60);
             call_0x6f8fb0(ret_0x38b6e70_14);
+            this->field_0x108 = this->field_0x108 + 0x98;
           } else {
             local_0x38 = 0;
             call_0x38b9ea0(&this->field_0x100, this->field_0x108, ret_0x4b9d420_12, &local_0x38);
           }
-        } while ((r15d + 1) < 186); // loop -> L_0x38b14c0
+          i_r15d++;
+        } while (i_r15d < 186); // loop -> L_0x38b14c0
+        int32_t i_r12d = 186;
         do { // L_0x38b15e0
           if (this->field_0x108 != this->field_0x110) {
             local_0x110 = 0;
@@ -141,19 +145,18 @@ Operação  : 0x38b19a4: mov/math reg, [flag] ; fn=0x38b1300..0x38b1a1e
             r10->field_0x90 = -1;
             call_0x6f8fb0(rdx + 0x60);
             call_0x6f8fb0(ret_0x38b0e80_27);
+            this->field_0x108 = this->field_0x108 + 0x98;
           } else {
             local_0x110 = 0;
             local_0x30 = 0;
             call_0x38b9cd0(&this->field_0x100, this->field_0x108, &local_0x110, &local_0x30);
           }
-          std::string::_Tidy_deallocate(v_rcx_5);
-          if (local_0x128 >= 16) {
-            void* v_rcx_6 = local_0x110;
-            call_0x4955ac0(v_rcx_6);
-          }
-          if ((186 + 1) >= 192) break;
+          std::string::_Tidy_deallocate(0);
+          std::string::_Tidy_deallocate(local_0x110);
+          i_r12d++;
+          if (i_r12d >= 192) break;
         } while (true); // loop -> L_0x38b15e0
-        v_r14_8 = local_0x60;
+        v_r14_6 = local_0x60;
       } else {
         auto expr_2 = (param_4->field_0x48 - param_4->field_0x40) / 136 >> 6;
         auto expr_1 = expr_2 >> 63;
@@ -161,42 +164,48 @@ Operação  : 0x38b19a4: mov/math reg, [flag] ; fn=0x38b1300..0x38b1a1e
           call_0x38b9760(&this->field_0x100, expr_1 + expr_2);
         }
         i_ebx = 0x7878787878787879;
-        auto i_r9d = param_4->field_0x40;
+        void* i_r9d = param_4->field_0x40;
+        i_r15d = 0;
         if (expr_2 + expr_1 != 0) {
           do { // L_0x38b1850
+            int64_t v_rbx_1 = i_ebx;
             if (this->field_0x108 != this->field_0x110) {
-              auto ret_0x38b6e70_7 = call_0x38b6e70(&local_0x110, i_r9d);
+              auto ret_0x38b6e70_7 = call_0x38b6e70(&local_0x110, i_r15d * 136 + i_r9d);
               call_0x38b0e80(this->field_0x108, ret_0x38b6e70_7);
               this->field_0x108->field_0x88 = 0;
               this->field_0x108->field_0x90 = -1;
               call_0x6f8fb0(rdx + 0x60);
               call_0x6f8fb0(ret_0x38b6e70_7);
+              this->field_0x108 = this->field_0x108 + 0x98;
+              v_rbx_1 = 0x7878787878787879;
             } else {
               local_0x30 = 0;
-              call_0x38b9ea0(&this->field_0x100, this->field_0x108, i_r9d, &local_0x30);
+              call_0x38b9ea0(&this->field_0x100, this->field_0x108, i_r15d * 136 + i_r9d, &local_0x30);
             }
-          } while ((r15d + 1) < ((rdx >> 6) + ((rdx >> 6) >> 63))); // loop -> L_0x38b1850
-          v_r14_8 = local_0x60;
+            i_r15d++;
+            i_ebx = v_rbx_1;
+            i_r9d = param_4->field_0x40;
+          } while (i_r15d < (rdx >> 6) + ((rdx >> 6) >> 63)); // loop -> L_0x38b1850
+          v_r14_6 = local_0x60;
         }
       }
       call_0x38b8c30(this);
       if (local_0x238 != 0) {
-        auto vret_35 = v_r14_8->field_0xd8->vfunc_0xe8() // -> RBX::Ixp::IxpController::fn_0x398fcb0;
-        void* sel_rcx_1 = max(4, vret_35->field_0x4c);
-        int32_t v_rbx_9 = TerrainArraySliceSize;
-        if (TerrainArraySliceSize > sel_rcx_1->field_0x0) {
+        auto vret_35 = v_r14_6->field_0xd8->vfunc_0xe8() // -> RBX::Ixp::IxpController::fn_0x398fcb0;
+        int32_t v_rbx_7 = TerrainArraySliceSize;
+        if (TerrainArraySliceSize > max(4, vret_35->field_0x4c)) {
           do { // L_0x38b1960
-            v_rbx_9 = i_ebx >> 1;
-          } while ((i_ebx >> 1) > sel_rcx_1->field_0x0); // loop -> L_0x38b1960
+            i_ebx = i_ebx >> 1;
+          } while (i_ebx >> 1 > max(4, vret_35->field_0x4c)); // loop -> L_0x38b1960
         }
-        this->field_0x14 = v_rbx_9;
+        this->field_0x14 = v_rbx_7;
         this->field_0x1c = (this->field_0x160 - this->field_0x158) >> 6;
         if (this->field_0x30 != 0) {
           this->field_0x30 = 0;
         }
-        this->field_0x10 = v_rbx_9;
+        this->field_0x10 = v_rbx_7;
       } else {
-        auto ret_0x38b1020_34 = call_0x38b1020(&local_0x1a0, v_r14_8, (this->field_0x160 - this->field_0x158) >> 6, TerrainAtlasTileSize);
+        auto ret_0x38b1020_34 = call_0x38b1020(&local_0x1a0, v_r14_6, (this->field_0x160 - this->field_0x158) >> 6, TerrainAtlasTileSize);
         this->field_0x14 = ret_0x38b1020_34->field_0x0;
         this->field_0x24 = ret_0x38b1020_34->field_0x10;
         this->field_0x2c = ret_0x38b1020_34->field_0x18;
@@ -662,70 +671,137 @@ Operação  : 0x38b19a4: mov/math reg, [flag] ; fn=0x38b1300..0x38b1a1e
     void RBX::TerrainAtlas::func_0x38b1020(RBX::TerrainAtlas* this, int64_t param_2, void* param_3, int32_t TerrainAtlasTileSize) {
       auto vret_1 = param_2->field_0xd8->vfunc_0xe8() // -> RBX::Ixp::IxpController::fn_0x398fcb0;
       int32_t v_r8_1;
+      int32_t stk_2;
       int32_t i_eax;
       if (min(vret_1->field_0x4c, TerrainOTAMaxTextureSize) == 0) {
         v_r8_1 = 0;
+        stk_2 = 0;
       } else if (min(vret_1->field_0x4c, TerrainOTAMaxTextureSize) >= 2) {
         i_eax = 2;
         do { // L_0x38b1090
-        } while ((i_eax + i_eax) <= min(vret_1->field_0x4c, TerrainOTAMaxTextureSize)); // loop -> L_0x38b1090
+          i_eax = i_eax * 2;
+        } while (i_eax * 2 <= min(vret_1->field_0x4c, TerrainOTAMaxTextureSize)); // loop -> L_0x38b1090
         v_r8_1 = i_eax;
+        stk_2 = i_eax;
       } else {
         v_r8_1 = 1;
+        stk_2 = 1;
       }
       int32_t i_r8d = v_r8_1;
+      int32_t i_ecx = TerrainAtlasTileSize;
       int32_t i_ebx = 1;
-      int32_t v_rbx_23 = 1;
+      int32_t v_rbx_22 = 1;
       if (TerrainAtlasTileSize >= 4) {
-        int32_t v_rbx_20;
         do { // L_0x38b10e2
-          v_rbx_20 = i_ebx;
-          if (i_r8d / (TerrainAtlasTileSize + i_eax * 2) >= 1) {
-            int32_t i_edx = TerrainAtlasTileSize + i_eax * 2 - 1;
-            int32_t i_r14d = TerrainAtlasTileSize + i_eax * 2 - 1;
+          int32_t v_rbx_19 = i_ebx;
+          int32_t v_r8_20 = i_r8d;
+          if (i_r8d / (i_ecx + i_eax * 2) >= 1) {
+            int32_t i_edx = i_ecx + i_eax * 2 - 1;
+            int32_t i_r11d = 0;
             int32_t i_esi = -1;
-            int32_t v_rbx_12;
-            int32_t v_rax_10;
-            int32_t v_rsi_13;
+            int32_t i_r12d = 0;
+            int32_t i_r13d = 0;
+            int32_t i_r14d = i_ecx + i_eax * 2 - 1;
+            int32_t i_r15d = 0;
+            int32_t v_rsi_12;
+            int32_t v_rbx_11;
+            int32_t v_rax_9;
             do { // L_0x38b1120
-              v_rax_10 = i_eax;
-              v_rbx_12 = i_ebx;
-              v_rsi_13 = i_esi;
-              if (i_ebx >= 1) {
-                int32_t i_r9d = i_ebx;
+              v_rax_9 = i_eax;
+              int32_t v_rdx_10 = i_edx;
+              v_rbx_11 = i_ebx;
+              v_rsi_12 = i_esi;
+              int32_t v_r11_13 = i_r11d;
+              int32_t v_r12_14 = i_r12d;
+              int32_t v_r13_15 = i_r13d;
+              int32_t v_r15_16 = i_r15d;
+              if (i_ecx >= 1) {
+                int32_t i_r9d = i_ecx;
                 int32_t i_r10d = i_edx;
-                int32_t v_rsi_4;
+                int32_t v_r15_7;
+                int32_t v_r13_6;
+                int32_t v_r12_5;
+                int32_t v_r11_4;
+                int32_t v_rsi_3;
                 do { // L_0x38b1132
-                  v_rsi_4 = i_esi;
+                  v_rsi_3 = i_esi;
+                  v_r11_4 = i_r11d;
+                  v_r12_5 = i_r12d;
+                  v_r13_6 = i_r13d;
+                  v_r15_7 = i_r15d;
                   if (i_r9d >= param_3) {
                     int32_t tmp_1 = i_r14d >> 16 | i_r14d | (i_r14d >> 16 | i_r14d) >> 8 | (i_r14d >> 16 | i_r14d | (i_r14d >> 16 | i_r14d) >> 8) >> 4 | (i_r14d >> 16 | i_r14d | (i_r14d >> 16 | i_r14d) >> 8 | (i_r14d >> 16 | i_r14d | (i_r14d >> 16 | i_r14d) >> 8) >> 4) >> 2;
                     int32_t tmp_2 = i_r10d >> 16 | i_r10d | (i_r10d >> 16 | i_r10d) >> 8 | (i_r10d >> 16 | i_r10d | (i_r10d >> 16 | i_r10d) >> 8) >> 4 | (i_r10d >> 16 | i_r10d | (i_r10d >> 16 | i_r10d) >> 8 | (i_r10d >> 16 | i_r10d | (i_r10d >> 16 | i_r10d) >> 8) >> 4) >> 2;
-                    if (((tmp_2 >> 1 | tmp_2) + 1) * ((tmp_1 >> 1 | tmp_1) + 1) - (TerrainAtlasTileSize + i_eax * 2) * (TerrainAtlasTileSize + i_eax * 2) * param_3 < i_esi) {
-                    v_rsi_4 = ((tmp_2 >> 1 | tmp_2) + 1) * ((tmp_1 >> 1 | tmp_1) + 1) - (TerrainAtlasTileSize + i_eax * 2) * (TerrainAtlasTileSize + i_eax * 2) * param_3;
+                    if (((tmp_2 >> 1 | tmp_2) + 1) * ((tmp_1 >> 1 | tmp_1) + 1) - (i_ecx + i_eax * 2) * (i_ecx + i_eax * 2) * param_3 < i_esi) {
+                    v_rsi_3 = ((tmp_2 >> 1 | tmp_2) + 1) * ((tmp_1 >> 1 | tmp_1) + 1) - (i_ecx + i_eax * 2) * (i_ecx + i_eax * 2) * param_3;
+                    v_r11_4 = i_r8d;
+                    v_r12_5 = (tmp_2 >> 1 | tmp_2) + 1;
+                    v_r13_6 = i_ecx;
+                    v_r15_7 = (tmp_1 >> 1 | tmp_1) + 1;
+                    } else {
+                    v_r11_4 = 0;
                     }
                   }
-                } while ((i_ebx + 1) <= i_ebx); // loop -> L_0x38b1132
-                v_rax_10 = i_r8d / (TerrainAtlasTileSize + i_eax * 2);
-                v_rbx_12 = 1;
-                v_rsi_13 = v_rsi_4;
+                  i_r8d++;
+                  i_esi = v_rsi_3;
+                  i_r9d = i_r9d + i_ecx;
+                  i_r10d = i_r10d + i_ecx + i_eax * 2;
+                  i_r11d = v_r11_4;
+                  i_r12d = v_r12_5;
+                  i_r13d = v_r13_6;
+                  i_r15d = v_r15_7;
+                } while (i_r8d <= i_ecx); // loop -> L_0x38b1132
+                v_rax_9 = i_r8d / (i_ecx + i_eax * 2);
+                v_rdx_10 = i_ecx + i_eax * 2 - 1;
+                v_rbx_11 = 1;
+                v_rsi_12 = v_rsi_3;
+                v_r11_13 = v_r11_4;
+                v_r12_14 = v_r12_5;
+                v_r13_15 = v_r13_6;
+                v_r15_16 = v_r15_7;
               }
-            } while ((i_ebx + 1) <= v_rax_10); // loop -> L_0x38b1120
-            if (v_rsi_13 < -1) break;
-            v_rbx_20 = v_rbx_12;
+              i_ecx++;
+              i_eax = v_rax_9;
+              i_edx = v_rdx_10;
+              i_r11d = v_r11_13;
+              i_ebx = v_rbx_11;
+              i_esi = v_rsi_12;
+              i_r12d = v_r12_14;
+              i_r13d = v_r13_15;
+              i_r14d = i_r14d + i_ecx + i_eax * 2;
+              i_r15d = v_r15_16;
+            } while (i_ecx <= v_rax_9); // loop -> L_0x38b1120
+            if (v_rsi_12 < -1) break;
+            v_rbx_19 = v_rbx_11;
+            v_r8_20 = stk_2;
+            i_r8d = v_r8_20;
+            i_eax = max(local_0xb0 >> 1, 4);
+            i_ecx = TerrainAtlasTileSize >> 1;
+            i_ebx = v_rbx_19;
+            v_rbx_22 = v_rbx_19;
+            break;
+          } else {
+            i_r8d = v_r8_20;
+            i_eax = max(local_0xb0 >> 1, 4);
+            i_ecx = TerrainAtlasTileSize >> 1;
+            i_ebx = v_rbx_19;
+            v_rbx_22 = v_rbx_19;
+            break;
           }
-        } while ((TerrainAtlasTileSize >> 1) >= 4); // loop -> L_0x38b10e2
-        v_rbx_23 = v_rbx_20;
+        } while (TerrainAtlasTileSize >> 1 >= 4); // loop -> L_0x38b10e2
+        goto L_0x38b1218;
+      } else {
+        if (Graphics >= 6 && Graphics >> 8 >= 3) {
+          FLog::Log("[FLog::Graphics] Unable to fit terrain layers to texture atlas. maxTextureSize:%u, texSlotCount:");
+          "[FLog::Graphics] Unable to fit terrain layers to texture atlas. maxTextureSize:%u, texSlotCount:";
+        }
+        this->field_0x0 = v_rbx_22;
+        this->field_0x4 = v_rbx_22;
+        this->field_0x8 = v_rbx_22;
+        this->field_0xc = v_rbx_22;
+        this->field_0x10 = 1;
+        this->field_0x18 = v_rbx_22;
       }
-      if (Graphics >= 6 && Graphics >> 8 >= 3) {
-        FLog::Log("[FLog::Graphics] Unable to fit terrain layers to texture atlas. maxTextureSize:%u, texSlotCount:");
-        "[FLog::Graphics] Unable to fit terrain layers to texture atlas. maxTextureSize:%u, texSlotCount:";
-      }
-      this->field_0x0 = v_rbx_23;
-      this->field_0x4 = v_rbx_23;
-      this->field_0x8 = v_rbx_23;
-      this->field_0xc = v_rbx_23;
-      this->field_0x10 = 1;
-      this->field_0x18 = v_rbx_23;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x38b1020..0x38b12f5)] ===
@@ -956,6 +1032,7 @@ Operação  : 0x38b19a4: mov/math reg, [flag] ; fn=0x38b1300..0x38b1a1e
       this->field_0x8 = 0;
       void* v_rbx_1;
       void* v_rsi_2;
+      float fxmm0_3;
       if (global_0x84a44d6 != 0) {
         auto ret_0x2e13190_7 = call_0x2e13190(this);
         auto vret_8 = ret_0x2e13190_7->vfunc_0x8(ret_0x2e13190_7, (0 + 0x40), (0 + 8)) // -> boost::program_options::invalid_option_value::fn_0x35074e0;
@@ -967,48 +1044,58 @@ Operação  : 0x38b19a4: mov/math reg, [flag] ; fn=0x38b1300..0x38b1a1e
         vret_8->field_0x18 = 0.0;
         vret_8->field_0x28 = 0.0;
         vret_8->field_0x38 = 0;
-        vret_8->field_0x18 = call_0x4956040(3264);
+        auto ret_0x4956040_9 = call_0x4956040(3264);
+        vret_8->field_0x18 = ret_0x4956040_9;
         vret_8->field_0x20 = 8;
         vret_8->field_0x28 = 0;
         vret_8->field_0x30 = 0;
         vret_8->field_0x38 = 0;
         v_rbx_1 = &vret_8->field_0x18;
         v_rsi_2 = vret_8;
+        fxmm0_3 = ret_0x4956040_9;
         this->field_0x0 = v_rbx_1;
         void* prev_0x8_1 = this->field_0x8;
         this->field_0x8 = v_rsi_2;
+        float fxmm0_4;
         if (prev_0x8_1 != 0) {
-          call_0x6daf40(prev_0x8_1);
+          auto ret_0x6daf40_10 = call_0x6daf40(prev_0x8_1);
+          fxmm0_4 = ret_0x6daf40_10;
+        } else {
+          fxmm0_4 = fxmm0_3;
         }
         return fxmm0_4;
-      } else {
-        auto ret_0x4956040_1 = call_0x4956040(56);
-        if (ret_0x4956040_1 != 0) {
-          ret_0x4956040_1->field_0x8 = 1;
-          ret_0x4956040_1->field_0xc = 1;
-          ret_0x4956040_1->field_0x0 = &sym_0x70b4130;
-          ret_0x4956040_1->field_0x10 = 0.0;
-          ret_0x4956040_1->field_0x20 = 0.0;
-          auto ret_0x4956040_2 = call_0x4956040(3264);
-          if (ret_0x4956040_2 != 0) {
-            ret_0x4956040_1->field_0x10 = ret_0x4956040_2;
-            ret_0x4956040_1->field_0x18 = 8;
-            v_rbx_1 = &ret_0x4956040_1->field_0x10;
-            v_rsi_2 = ret_0x4956040_1;
-            this->field_0x0 = v_rbx_1;
-            void* prev_0x8_1 = this->field_0x8;
-            this->field_0x8 = v_rsi_2;
-            if (prev_0x8_1 != 0) {
-              call_0x6daf40(prev_0x8_1);
-            }
-            return fxmm0_4;
-          }
-          call_0x6ca7d0(&local_0x40);
-          call_0x5e066f0(&local_0x40, &sym_0x80cbbc0);
-        }
-        call_0x6ca7d0(&local_0x28);
-        call_0x5e066f0(&local_0x28, &sym_0x80cbbc0);
       }
+      auto ret_0x4956040_1 = call_0x4956040(56);
+      if (ret_0x4956040_1 != 0) {
+        ret_0x4956040_1->field_0x8 = 1;
+        ret_0x4956040_1->field_0xc = 1;
+        ret_0x4956040_1->field_0x0 = &sym_0x70b4130;
+        ret_0x4956040_1->field_0x10 = 0.0;
+        ret_0x4956040_1->field_0x20 = 0.0;
+        auto ret_0x4956040_2 = call_0x4956040(3264);
+        if (ret_0x4956040_2 != 0) {
+          ret_0x4956040_1->field_0x10 = ret_0x4956040_2;
+          ret_0x4956040_1->field_0x18 = 8;
+          v_rbx_1 = &ret_0x4956040_1->field_0x10;
+          v_rsi_2 = ret_0x4956040_1;
+          fxmm0_3 = ret_0x4956040_2;
+          this->field_0x0 = v_rbx_1;
+          void* prev_0x8_1 = this->field_0x8;
+          this->field_0x8 = v_rsi_2;
+          float fxmm0_4;
+          if (prev_0x8_1 != 0) {
+            auto ret_0x6daf40_10 = call_0x6daf40(prev_0x8_1);
+            fxmm0_4 = ret_0x6daf40_10;
+          } else {
+            fxmm0_4 = fxmm0_3;
+          }
+          return fxmm0_4;
+        }
+        call_0x6ca7d0(&local_0x40);
+        call_0x5e066f0(&local_0x40, &sym_0x80cbbc0);
+      }
+      call_0x6ca7d0(&local_0x28);
+      call_0x5e066f0(&local_0x28, &sym_0x80cbbc0);
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x38b9b10..0x38b9ccb)] ===
@@ -1175,11 +1262,13 @@ Operação  : 0x38b19a4: mov/math reg, [flag] ; fn=0x38b1300..0x38b1a1e
       if (param_2 <= 0x1af286bca1af286) {
         auto ret_0x6fd950_2 = call_0x6fd950(param_2 * 152);
         if (this->field_0x0 != this->field_0x8) {
+          void* i_r9d = &ret_0x6fd950_2->field_0x90;
           do { // L_0x38b97d0
-            call_0x38b0e80(ret_0x6fd950_2, this->field_0x0);
+            call_0x38b0e80(i_r9d - 0x90, this->field_0x0);
             r9->field_m0x8 = rdx->field_0x88;
             r9->field_0x0 = rdx->field_0x90;
-          } while ((rdx + 0x98) != r10); // loop -> L_0x38b97d0
+            i_r9d = r9 + 0x98;
+          } while (rdx + 0x98 != r10); // loop -> L_0x38b97d0
         }
         return tailcall_0x38b9970(this, ret_0x6fd950_2, (param_2 >> 2) + ((param_2 >> 2) >> 63), param_2);
       }
@@ -1271,23 +1360,22 @@ Operação  : 0x38b19a4: mov/math reg, [flag] ; fn=0x38b1300..0x38b1a1e
         auto* f_0 = this->field_0x0;
         if (this->field_0x30 == 0) {
           auto vret_3 = f_0->field_0xd8->vfunc_0xe8() // -> RBX::Ixp::IxpController::fn_0x398fcb0;
-          int32_t v_rsi_2 = TerrainArraySliceSize;
+          int32_t v_rsi_1 = TerrainArraySliceSize;
           if (TerrainArraySliceSize > max(vret_3->field_0x4c, 4)) {
             int32_t i_esi = TerrainArraySliceSize;
             do { // L_0x38b8690
-              v_rsi_2 = i_esi >> 1;
-            } while ((i_esi >> 1) > max(vret_3->field_0x4c, 4)); // loop -> L_0x38b8690
+              i_esi = i_esi >> 1;
+            } while (i_esi >> 1 > max(vret_3->field_0x4c, 4)); // loop -> L_0x38b8690
           }
-          auto expr_1 = "[FLog::Graphics] Terrain TextureArray%s (%u) %ux%u;
-          if (this->field_0x14 == v_rsi_2 && this->field_0x18 == v_rsi_2 >> 32) {
+          if (this->field_0x14 == v_rsi_1 && this->field_0x18 == v_rsi_1 >> 32) {
             if (this->field_0x1c != (this->field_0x160 - this->field_0x158) >> 6) {
-              this->field_0x14 = v_rsi_2;
+              this->field_0x14 = v_rsi_1;
               this->field_0x1c = (this->field_0x160 - this->field_0x158) >> 6;
               if (this->field_0x30 != 0) {
                 this->field_0x30 = 0;
               }
               if (Graphics >= 6 && Graphics >> 8 >= 3) {
-                FLog::Log(expr_1, arraySize: %u, mip: %u");
+                FLog::Log("[FLog::Graphics] Terrain TextureArray%s (%u) %ux%u, arraySize: %u, mip: %u");
               }
               L_0x38b88c9:
               this->field_0x88 = 0;
@@ -1301,11 +1389,13 @@ Operação  : 0x38b19a4: mov/math reg, [flag] ; fn=0x38b1300..0x38b1a1e
               if (local_0x88 != 0) {
                 call_0x6daf40(local_0x88);
               }
+              int32_t i_ebx = 0;
               do { // L_0x38b8914
-                if (this->field_0x68[0] != 0) {
-                  call_0x38b1d70(this, 0, 1);
+                if (this->field_0x68[i_ebx * 4] != 0) {
+                  call_0x38b1d70(this, i_ebx, 1);
                 }
-              } while ((ebx + 1) < 3); // loop -> L_0x38b8914
+                i_ebx++;
+              } while (i_ebx < 3); // loop -> L_0x38b8914
               call_0x38b8c30(this);
               this->field_0xe8 = 0;
               this->field_0xc0 = 0.0;
@@ -1317,37 +1407,33 @@ Operação  : 0x38b19a4: mov/math reg, [flag] ; fn=0x38b1300..0x38b1a1e
             } else {
               L_0x38b8976:
             }
-            L_0x38b8978:
-            return;
-          }
-          this->field_0x14 = v_rsi_2;
-          this->field_0x1c = (this->field_0x160 - this->field_0x158) >> 6;
-          if (this->field_0x30 != 0) {
-            this->field_0x30 = 0;
-          }
-          if (Graphics >= 6 && Graphics >> 8 >= 3) {
-            FLog::Log(expr_1, arraySize: %u, mip: %u");
-          }
-          goto L_0x38b88c9;
-        } else {
-          if (this != 0 && this->field_0x30 == 1) {
-            auto ret_0x38b1020_2 = call_0x38b1020(&local_0x60, f_0, (this->field_0x160 - this->field_0x158) >> 6, TerrainAtlasTileSize);
-            auto expr_2 = "[FLog::Graphics] Terrain TextureAtlas%s (%u) %ux%u;
-            if (this->field_0x14 == ret_0x38b1020_2->field_0x0 && this->field_0x18 == ret_0x38b1020_2->field_0x0 >> 32 && this->field_0x1c == ret_0x38b1020_2->field_0x8 && this->field_0x20 == ret_0x38b1020_2->field_0x8 >> 32 && this->field_0x24 == ret_0x38b1020_2->field_0x10 && this->field_0x28 == ret_0x38b1020_2->field_0x10 >> 32) {
-              if (this->field_0x2c != ret_0x38b1020_2->field_0x18) {
-                this->field_0x14 = ret_0x38b1020_2->field_0x0;
-                this->field_0x24 = ret_0x38b1020_2->field_0x10;
-                this->field_0x2c = ret_0x38b1020_2->field_0x18;
-                if (this->field_0x30 != 1) {
-                  this->field_0x30 = 1;
-                }
-                if (Graphics >= 6 && Graphics >> 8 >= 3) {
-                  FLog::Log(expr_2, tileCount: %ux%u, tileSize: %ux%u, border: %");
-                }
-                goto L_0x38b88c9;
-              }
-              return;
+          } else {
+            this->field_0x14 = v_rsi_1;
+            this->field_0x1c = (this->field_0x160 - this->field_0x158) >> 6;
+            if (this->field_0x30 != 0) {
+              this->field_0x30 = 0;
             }
+            if (Graphics >= 6 && Graphics >> 8 >= 3) {
+              FLog::Log("[FLog::Graphics] Terrain TextureArray%s (%u) %ux%u, arraySize: %u, mip: %u");
+            }
+            goto L_0x38b88c9;
+          }
+        } else if (this != 0 && this->field_0x30 == 1) {
+          auto ret_0x38b1020_2 = call_0x38b1020(&local_0x60, f_0, (this->field_0x160 - this->field_0x158) >> 6, TerrainAtlasTileSize);
+          if (this->field_0x14 == ret_0x38b1020_2->field_0x0 && this->field_0x18 == ret_0x38b1020_2->field_0x0 >> 32 && this->field_0x1c == ret_0x38b1020_2->field_0x8 && this->field_0x20 == ret_0x38b1020_2->field_0x8 >> 32 && this->field_0x24 == ret_0x38b1020_2->field_0x10 && this->field_0x28 == ret_0x38b1020_2->field_0x10 >> 32) {
+            if (this->field_0x2c != ret_0x38b1020_2->field_0x18) {
+              this->field_0x14 = ret_0x38b1020_2->field_0x0;
+              this->field_0x24 = ret_0x38b1020_2->field_0x10;
+              this->field_0x2c = ret_0x38b1020_2->field_0x18;
+              if (this->field_0x30 != 1) {
+                this->field_0x30 = 1;
+              }
+              if (Graphics >= 6 && Graphics >> 8 >= 3) {
+                FLog::Log("[FLog::Graphics] Terrain TextureAtlas%s (%u) %ux%u, tileCount: %ux%u, tileSize: %ux%u, border: %");
+              }
+              goto L_0x38b88c9;
+            }
+          } else {
             this->field_0x14 = ret_0x38b1020_2->field_0x0;
             this->field_0x24 = ret_0x38b1020_2->field_0x10;
             this->field_0x2c = ret_0x38b1020_2->field_0x18;
@@ -1355,15 +1441,16 @@ Operação  : 0x38b19a4: mov/math reg, [flag] ; fn=0x38b1300..0x38b1a1e
               this->field_0x30 = 1;
             }
             if (Graphics >= 6 && Graphics >> 8 >= 3) {
-              FLog::Log(expr_2, tileCount: %ux%u, tileSize: %ux%u, border: %");
+              FLog::Log("[FLog::Graphics] Terrain TextureAtlas%s (%u) %ux%u, tileCount: %ux%u, tileSize: %ux%u, border: %");
             }
             goto L_0x38b88c9;
           }
+        } else {
           goto L_0x38b8976;
         }
-        goto L_0x38b8978;
+      } else {
+        goto L_0x38b8976;
       }
-      goto L_0x38b8976;
     }
   
   === [Instrucoes x86-64 do XREF Runtime #2 (0x38b8610..0x38b8990)] ===

@@ -9,7 +9,7 @@ Operação  : 0x362bc49: mov/math reg, [flag] ; fn=0x362bb30..0x362c1de
     Classe  : RBX::RenderMesh (RTTI Resolvido)
     Padrão  : FIntRenderMeshRetryStuckFrames = 600 (default) [int, mode=1]
     Papel   : Parâmetro de configuração lido diretamente pela rotina
-    Altera  : this->field_0x98->field_0x3c, this->field_0x8->field_0x3c, this->field_0x8->field_0x10->field_0xbe8->field_0x728->field_0x51, this->field_0x8->field_0x10->field_0xbe8->field_0x760->field_0xc8->field_0x20, this->field_0x8->field_0x10->field_0xbe8->field_0x760->field_0xc8->field_0x30, this->field_0x8->field_0x10->field_0xbe8->field_0x760->field_0xc8->field_0x0
+    Altera  : this->field_0x98->field_0x3c, this->field_0x80, this->field_0x8->field_0x3c, this->field_0x8->field_0x10->field_0xbe8->field_0x728->field_0x51, this->field_0x8->field_0x10->field_0xbe8->field_0x760->field_0xd0->field_0x0, this->field_0x8->field_0x10->field_0xbe8->field_0x760->field_0xd0->field_0x10
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x362cb8d (in fn_0x362cb10): call 0x362bb30  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
@@ -42,10 +42,12 @@ Operação  : 0x362bc49: mov/math reg, [flag] ; fn=0x362bb30..0x362c1de
             call_0x6daf40(local_0x98);
           }
         } else if (f_98->field_0x2c == 5 && f_8_10->field_0xb40->field_0x38 - f_98->field_0x38 > (f_98 >> 4 & 0x7) + (f_98->field_0x3c + 1) * RenderMeshRetryStuckFrames && atomic_cas(&f_98->field_0x2c, 5, 0) == 0) {
-          f_98->field_0x3c = f_98->field_0x3c + 1;
+          f_98->field_0x3c++;
         }
       }
+      uint64_t i_eax;
       if ((this->field_0x80 & 0x2) != 0 && f_98 != 0 && f_98->field_0x2c == 4) {
+        this->field_0x80 = this->field_0x80 & 0xfffffffd;
         f_8->field_0x3c = f_8_10->field_0xb40->field_0x38 + 1;
         if (f_8_10->field_0xb40->field_0x540->field_0xcc8 != 0) {
           f_8_10->field_0xb40->field_0x540->field_0xcc8->vfunc_0x30(f_8_10->field_0xb40->field_0x540->field_0xcc8, &this->field_0xb8, 0) // -> RBX::ModelInstance::BackpackItem::fn_0x3344150;
@@ -57,72 +59,85 @@ Operação  : 0x362bc49: mov/math reg, [flag] ; fn=0x362bb30..0x362c1de
           }
         }
         if (RenderFixShadowOnMeshStreamIn) {
-          int64_t i_eax;
           if (f_8_10->field_0xbe8->field_0x760 != 0) {
-            if (Graphics >= 6 && Graphics >> 8 >= 4) {
-              do { // L_0x362bdf0
-              } while (rcx[(i_eax + 1)] != 0); // loop -> L_0x362bdf0
-              FLog::Log("[FLog::Graphics] RenderFixShadowOnMeshStreamIn: mesh ready, queuing shadow invalidation bounds=(");
+            if (Graphics >= 6) {
+              if (Graphics >> 8 >= 4) {
+                do { // L_0x362bdf0
+                  i_eax++;
+                } while (rcx[i_eax] != 0); // loop -> L_0x362bdf0
+                FLog::Log("[FLog::Graphics] RenderFixShadowOnMeshStreamIn: mesh ready, queuing shadow invalidation bounds=(");
+              }
             }
             if (f_8_10->field_0xbe8->field_0x760->field_0xc8 != f_8_10->field_0xbe8->field_0x760->field_0xd0) {
-              float ftmp_1;
+              void* i_ecx = f_8_10->field_0xbe8->field_0x760->field_0xc8;
               do { // L_0x362bf10
-                ftmp_1 = f_8_10->field_0xbe8->field_0x760->field_0xc8->field_0x20;
-                int32_t tmp_2 = pmovmskb(64.0 + f_8_10->field_0xbe8->field_0x760->field_0xc8->field_0x30 < this->field_0xb8 | this->field_0xc4 < ftmp_1 - 64.0);
-                if ((tmp_2 & 0xfff) == 0) break;
-                if (f_8_10->field_0xbe8->field_0x760->field_0xd0 == f_8_10->field_0xbe8->field_0x760->field_0xd8) break;
+                if ((pmovmskb(64.0 + i_ecx->field_0x30 < this->field_0xb8 | this->field_0xc4 < i_ecx->field_0x20 - 64.0) & 0xfff) == 0) break;
+                i_ecx += 0x50;
+              } while (i_ecx != f_8_10->field_0xbe8->field_0x760->field_0xd0); // loop -> L_0x362bf10
+              if (f_8_10->field_0xbe8->field_0x760->field_0xd0 != f_8_10->field_0xbe8->field_0x760->field_0xd8) {
                 f_8_10->field_0xbe8->field_0x760->field_0xd0->field_0x0 = this->field_0xb8;
                 f_8_10->field_0xbe8->field_0x760->field_0xd0->field_0x10 = this->field_0xc4;
                 f_8_10->field_0xbe8->field_0x760->field_0xd0->field_0x20 = this->field_0xb8;
                 f_8_10->field_0xbe8->field_0x760->field_0xd0->field_0x30 = this->field_0xc4;
                 f_8_10->field_0xbe8->field_0x760->field_0xd0->field_0x40 = 1;
-                break;
-              } while (&f_8_10->field_0xbe8->field_0x760->field_0xc8->field_0x50 != f_8_10->field_0xbe8->field_0x760->field_0xd0); // loop -> L_0x362bf10
-              f_8_10->field_0xbe8->field_0x760->field_0xc8->field_0x20 = min(ftmp_1, this->field_0xb8);
-              float ftmp_5 = f_8_10->field_0xbe8->field_0x760->field_0xc8->field_0x30;
-              f_8_10->field_0xbe8->field_0x760->field_0xc8->field_0x30 = max(ftmp_5, this->field_0xc4);
-              f_8_10->field_0xbe8->field_0x760->field_0xc8->field_0x0 = f_8_10->field_0xbe8->field_0x760->field_0xc8->field_0x20;
-              f_8_10->field_0xbe8->field_0x760->field_0xc8->field_0x10 = f_8_10->field_0xbe8->field_0x760->field_0xc8->field_0x30;
+                f_8_10->field_0xbe8->field_0x760->field_0xd0 = f_8_10->field_0xbe8->field_0x760->field_0xd0 + 0x50;
+              } else {
+                call_0x37fd790(&f_8_10->field_0xbe8->field_0x760->field_0xc8, f_8_10->field_0xbe8->field_0x760->field_0xd0, &local_0xd0);
+              }
             } else if (f_8_10->field_0xbe8->field_0x760->field_0xd0 != f_8_10->field_0xbe8->field_0x760->field_0xd8) {
               goto L_0x362bf6a;
             } else {
               call_0x37fd790(&f_8_10->field_0xbe8->field_0x760->field_0xc8, f_8_10->field_0xbe8->field_0x760->field_0xd0, &local_0xd0);
             }
           } else if (Graphics >= 6 && Graphics >> 8 >= 3) {
-            i_eax = "[FLog::Graphics] RenderFixShadowOnMeshStreamIn: mesh ready but DispatchScene is null";
+            i_eax = -1;
             do { // L_0x362c000
-            } while (rcx[(i_eax + 1)] != 0); // loop -> L_0x362c000
+              i_eax++;
+            } while (rcx[i_eax] != 0); // loop -> L_0x362c000
             FLog::Log("[FLog::Graphics] RenderFixShadowOnMeshStreamIn: mesh ready but DispatchScene is null");
           }
         }
-        call_0x3533f00(f_98);
+        if ((this->field_0x88 & 0x20) == 0 && f_98->field_0x43 > 1) {
+          this->field_0x80 = this->field_0x80 | 0x20;
+        }
+        auto ret_0x3533f00_5 = call_0x3533f00(f_98);
+        if (ret_0x3533f00_5 != 0) {
+          this->field_0x80 = this->field_0x80 | 0x20;
+        }
       }
       if ((this->field_0x80 & 0x4) != 0) {
         if (this->field_0xa8->field_0x0 != this->field_0xa8->field_0x8) {
+          void* i_r8d = this->field_0xa8->field_0x0;
           do { // L_0x362c0d0
-            if (this->field_0xa8->field_0x0->field_0x40 != this->field_0xa8->field_0x0->field_0x48) {
+            if (i_r8d->field_0x40 != i_r8d->field_0x48) {
               do { // L_0x362c0e0
-                if (this->field_0xa8->field_0x0->field_0x40->field_0x0 != 0) {
-                  if (this->field_0xa8->field_0x0->field_0x40->field_0x0->field_0x90 == 1) {
-                    return;
-                  }
+                if (i_eax->field_0x0 == 0 || i_eax->field_0x0->field_0x90 != 1) {
+                  i_eax += 0x20;
+                  L_0x362c0fe:
+                  i_r8d += 0x88;
+                  if (i_r8d != this->field_0xa8->field_0x8) break;
+                  L_0x362c10a:
+                  this->field_0x80 = this->field_0x80 & 0xfffffffb;
+                  f_8->field_0x3c = f_8_10->field_0xb40->field_0x38 + 1;
+                  if (f_8_10->field_0xb40->field_0x540->field_0xcc8 == 0) break;
+                  f_8_10->field_0xb40->field_0x540->field_0xcc8->vfunc_0x30(f_8_10->field_0xb40->field_0x540->field_0xcc8, &this->field_0xb8, 0) // -> RBX::ModelInstance::BackpackItem::fn_0x3344150;
+                  break;
                 }
-              } while (&this->field_0xa8->field_0x0->field_0x40->field_0x20 != this->field_0xa8->field_0x0->field_0x48); // loop -> L_0x362c0e0
+                return;
+              } while (i_eax != i_r8d->field_0x48); // loop -> L_0x362c0e0
+              i_r8d += 0x88;
+              this->field_0x80 = this->field_0x80 & 0xfffffffb;
+              f_8->field_0x3c = f_8_10->field_0xb40->field_0x38 + 1;
+              if (f_8_10->field_0xb40->field_0x540->field_0xcc8 == 0) break;
+              f_8_10->field_0xb40->field_0x540->field_0xcc8->vfunc_0x30(f_8_10->field_0xb40->field_0x540->field_0xcc8, &this->field_0xb8, 0) // -> RBX::ModelInstance::BackpackItem::fn_0x3344150;
+              break;
+            } else {
+              goto L_0x362c0fe;
             }
-          } while (&this->field_0xa8->field_0x0->field_0x88 != this->field_0xa8->field_0x8); // loop -> L_0x362c0d0
-        }
-        this->field_0x80 = this->field_0x80 & 0xfffffffb;
-        f_8->field_0x3c = f_8_10->field_0xb40->field_0x38 + 1;
-        if (f_8_10->field_0xb40->field_0x540->field_0xcc8 != 0) {
-          f_8_10->field_0xb40->field_0x540->field_0xcc8->vfunc_0x30(f_8_10->field_0xb40->field_0x540->field_0xcc8, &this->field_0xb8, 0) // -> RBX::ModelInstance::BackpackItem::fn_0x3344150;
-        }
-        if (f_8_10 != 0 && f_8_10->field_0xbe8 != 0 && f_8_10->field_0xbe8->field_0x728 != 0 && f_8_10->field_0xbe8->field_0x728->field_0x51 == 0) {
-          int32_t tmp_4 = movmsk(f_8_10->field_0xbe8->field_0x728->field_0x64 < this->field_0xb8 | this->field_0xc4 < f_8_10->field_0xbe8->field_0x728->field_0x58);
-          if ((tmp_4 & 0x7) == 0) {
-            f_8_10->field_0xbe8->field_0x728->field_0x51 = 1;
-            return;
-          }
-          return;
+          } while (i_r8d != this->field_0xa8->field_0x8); // loop -> L_0x362c0d0
+          goto L_0x362c10a;
+        } else {
+          goto L_0x362c10a;
         }
       }
     }
@@ -287,7 +302,7 @@ Operação  : 0x362bc49: mov/math reg, [flag] ; fn=0x362bb30..0x362c1de
     0x362bdbf | 48 8d 05 e6 e9 bf 07     | lea rax, [rip + 0x7bfe9e6] ; "[FLog::Graphics] RenderFixShadowOnMeshStreamIn: mesh ready, queuing shadow invalidation bounds=("
     0x362bdc6 | 0f 29 b4 24 90 01 00 00  | movaps xmmword ptr [rsp + 0x190], xmm6
     0x362bdce | 48 89 44 24 30           | mov qword ptr [rsp + 0x30], rax
-    0x362bdd3 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x362bdd3 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x362bdda | 48 8b 4c 24 30           | mov rcx, qword ptr [rsp + 0x30]
     0x362bddf | 48 81 c1 f4 5f 19 fc     | add rcx, 0xfc195ff4
     0x362bde6 | 48 89 4c 24 50           | mov qword ptr [rsp + 0x50], rcx
@@ -408,7 +423,7 @@ Operação  : 0x362bc49: mov/math reg, [flag] ; fn=0x362bb30..0x362c1de
     0x362bfd7 | 72 7e                    | jb 0x362c057
     0x362bfd9 | 48 8d 05 2d 2f c1 07     | lea rax, [rip + 0x7c12f2d] ; "[FLog::Graphics] RenderFixShadowOnMeshStreamIn: mesh ready but DispatchScene is null"
     0x362bfe0 | 48 89 44 24 30           | mov qword ptr [rsp + 0x30], rax
-    0x362bfe5 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x362bfe5 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x362bfec | 48 8b 4c 24 30           | mov rcx, qword ptr [rsp + 0x30]
     0x362bff1 | 48 81 c1 33 18 18 fc     | add rcx, 0xfc181833
     0x362bff8 | 48 89 4c 24 40           | mov qword ptr [rsp + 0x40], rcx
@@ -544,14 +559,16 @@ Operação  : 0x362bc49: mov/math reg, [flag] ; fn=0x362bb30..0x362c1de
     
     // Flag defaults: RenderMeshRetryStuckFrames = 600, SolidMeshLODTranscode = false
     auto RBX::RenderMesh::func_0x3533f00(RBX::RenderMesh* this) {
-      if (SolidMeshLODTranscode && this->field_0x48 - 13 > 2 && (this->field_0x48 - 12 & 0xfb) != 0) {
-        L_0x3533f21:
+      if (SolidMeshLODTranscode) {
+        if (this->field_0x48 - 13 > 2 && (this->field_0x48 - 12 & 0xfb) != 0) {
+          L_0x3533f21:
+          return 0;
+        }
+        if (this->field_0x4d0 > 1) {
+          return 1;
+        }
         return 0;
       }
-      if (this->field_0x4d0 > 1) {
-        return 1;
-      }
-      return 0;
       if (this->field_0x48 - 13 <= 2 && this->field_0x4d0 > 1) {
         return 1;
       }

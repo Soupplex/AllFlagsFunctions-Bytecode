@@ -32,12 +32,12 @@ Operação  : 0x12b6193: mov/math reg, [flag] ; fn=0x12b5f70..0x12b61db
         if (TextSafetyAnalyticsSenderServerToHttpSampleRateHundrethsPercent > 0) {
           if (TextSafetyAnalyticsSenderServerToHttpSampleRateHundrethsPercent != 10000) {
             auto ret_0x7503f0_6 = call_0x7503f0(&this->field_0x78);
-            if (ret_0x7503f0_6 - (rdx >> 13) * 10000 >= TextSafetyAnalyticsSenderServerToHttpSampleRateHundrethsPercent) {
-              L_0x12b6043:
-              return 0;
+            if (ret_0x7503f0_6 - (rdx >> 13) * 10000 < TextSafetyAnalyticsSenderServerToHttpSampleRateHundrethsPercent) {
+              return 1;
             }
+          } else {
+            return 1;
           }
-          return 1;
         }
         return 0;
       }
@@ -49,43 +49,20 @@ Operação  : 0x12b6193: mov/math reg, [flag] ; fn=0x12b5f70..0x12b61db
         int32_t v_rbx_3;
         if (TextSafetyAnalyticsSenderUseAdaptiveClientToHttpSamplingRate) {
           auto* f_100 = this->field_0x100;
-          if (f_100 != 0 && f_100->field_0x8 != 0) {
-            do { // L_0x12b60b0
-              if (atomic_cas(&f_100->field_0x8, f_100->field_0x8, (f_100->field_0x8 + 1)) == 0) break;
+          if (f_100 != 0) {
+            if (f_100->field_0x8 != 0) {
+              do { // L_0x12b60b0
+                if (atomic_cas(&f_100->field_0x8, f_100->field_0x8, f_100->field_0x8 + 1) == 0) break;
+              } while (f_100->field_0x8 != 0); // loop -> L_0x12b60b0
               return f_100->field_0x8;
-            } while (f_100->field_0x8 != 0); // loop -> L_0x12b60b0
-            if (this->field_0xf8 != 0) {
-              if (local_0x28 != 0) {
-                int32_t v_rbx_2 = 10000;
-                if (TextSafetyAnalyticsSenderClientToHttpScale / max(1, TextSafetyAnalyticsSenderClientToHttpOffset + local_0x20) <= 10000) {
-                  void* sel_rax_1 = max(TextSafetyAnalyticsSenderClientToHttpScale / max(1, TextSafetyAnalyticsSenderClientToHttpOffset + local_0x20), TextSafetyAnalyticsSenderClientToHttpMinHundrethsPercent);
-                  v_rbx_2 = sel_rax_1;
-                }
-                if (f_100 != 0) {
-                  call_0x6daf40(f_100);
-                  v_rbx_3 = v_rbx_2;
-                } else {
-                  v_rbx_3 = v_rbx_2;
-                }
-                auto ret_0x12b3b20_4 = call_0x12b3b20(v_rbx_3, &this->field_0x98);
-                auto local_0x68 = ret_0x12b3b20_4;
-                call_0x12bef30(&this->field_0xb8, &local_0x40, &local_0x70, &local_0x68);
-                return local_0x68;
-              }
-              if (f_100 != 0) {
-                call_0x6daf40(f_100);
-                return 0;
-              }
-              goto L_0x12b6043;
-            } else {
-              v_rbx_3 = TextSafetyAnalyticsSenderClientToHttpStaticRateHundrethsPercent;
-              auto ret_0x12b3b20_4 = call_0x12b3b20(v_rbx_3, &this->field_0x98);
-              auto local_0x68 = ret_0x12b3b20_4;
-              call_0x12bef30(&this->field_0xb8, &local_0x40, &local_0x70, &local_0x68);
-              return local_0x68;
             }
           }
+          return 0;
         }
+        v_rbx_3 = TextSafetyAnalyticsSenderClientToHttpStaticRateHundrethsPercent;
+        auto local_0x68 = call_0x12b3b20(v_rbx_3, &this->field_0x98);
+        call_0x12bef30(&this->field_0xb8, &local_0x40, &local_0x70, &local_0x68);
+        return local_0x68;
       }
     }
   
@@ -266,9 +243,11 @@ Operação  : 0x12b6193: mov/math reg, [flag] ; fn=0x12b5f70..0x12b61db
       if (TextSafetyAnalyticsSenderClientToHttpStaticRateHundrethsPercent > 0) {
         if (TextSafetyAnalyticsSenderClientToHttpStaticRateHundrethsPercent != 10000) {
           auto ret_0x7503f0_1 = call_0x7503f0(param_2);
-          if (ret_0x7503f0_1 - (rdx >> 13) * 10000 >= TextSafetyAnalyticsSenderClientToHttpStaticRateHundrethsPercent) {
+          if (ret_0x7503f0_1 - (rdx >> 13) * 10000 < TextSafetyAnalyticsSenderClientToHttpStaticRateHundrethsPercent) {
             return;
           }
+        } else {
+          return;
         }
       }
     }
@@ -314,81 +293,80 @@ Operação  : 0x12b6193: mov/math reg, [flag] ; fn=0x12b5f70..0x12b61db
     
     // Flag defaults: TextSafetyAnalyticsSenderClientToHttpStaticRateHundrethsPercent = 0
     auto RBX::TextSafety::func_0x12bef30(RBX::TextSafety* this, int64_t param_2, void* param_3, void* param_4) {
+      uint64_t hash_rdi = fnv1a_hash64(key);
+      int64_t idx_1 = ((hash_rdi ^ param_3->field_0x7) * this & this->field_0x30) * 2;
       auto* f_18 = this->field_0x18;
       auto* f_8 = this->field_0x8;
-      if (f_18->field_0x8[rdx * 8] != f_8) {
-        auto i_eax = f_18->field_0x8[rdx * 8];
-        void* v_rax_10 = f_18->field_0x8[rdx * 8];
-        if (param_3->field_0x0 != (f_18->field_0x8[rdx * 8])->field_0x10) {
+      if (f_18->field_0x8[idx_1 * 8] != f_8) {
+        void* i_eax = f_18->field_0x8[idx_1 * 8];
+        void* v_rax_8 = f_18->field_0x8[idx_1 * 8];
+        if (param_3->field_0x0 != (f_18->field_0x8[idx_1 * 8])->field_0x10) {
           do { // L_0x12beff8
-            if (i_eax == f_18->field_0x0[rdx * 8]) break;
-            v_rax_10 = i_eax->field_0x8;
-            param_2->field_0x0 = v_rax_10;
-            return param_2;
+            if (i_eax == f_18->field_0x0[idx_1 * 8]) break;
+            i_eax = i_eax->field_0x8;
           } while (param_3->field_0x0 != i_eax->field_0x8->field_0x10); // loop -> L_0x12beff8
-        } else {
-          param_2->field_0x0 = v_rax_10;
+          param_2->field_0x0 = v_rax_8;
+          L_0x12bf00f:
           return param_2;
         }
+        param_2->field_0x0 = v_rax_8;
+        return param_2;
       }
-      if (this->field_0x10 != 0x7ffffffffffffff) {
+      auto* f_10 = this->field_0x10;
+      if (f_10 != 0x7ffffffffffffff) {
         auto ret_0x4956040_2 = call_0x4956040(32);
         ret_0x4956040_2->field_0x10 = param_3->field_0x0;
         ret_0x4956040_2->field_0x18 = param_4->field_0x0;
-        float fxmm0_1;
-        if (&this->field_0x10->field_0x1 >= 0) {
-          fxmm0_1 = (float)&this->field_0x10->field_0x1;
-        } else {
-          float ftmp_1 = (float)(&this->field_0x10->field_0x1 >> 1 | &this->field_0x10->field_0x1 & 0x1);
-          fxmm0_1 = ftmp_1 * 2;
-        }
+        float fxmm0_1 = (float)(uint64_t)&f_10->field_0x1;
         float fxmm1_2;
         if (this->field_0x38 >= 0) {
           fxmm1_2 = (float)this->field_0x38;
         } else {
-          fxmm1_2 = (float)(this->field_0x38 >> 1 | this->field_0x38 & 0x1) + (float)(this->field_0x38 >> 1 | this->field_0x38 & 0x1);
+          fxmm1_2 = (float)(this->field_0x38 >> 1 | this->field_0x38 & 0x1) * 2;
         }
         if (fxmm0_1 / fxmm1_2 > this->field_0x0) {
           call_0x9af320(this);
-          if (f_18->field_0x8[rax * 8] == f_8) {
-          } else {
-            if (ret_0x4956040_2->field_0x10 != (f_18->field_0x8[rax * 8])->field_0x10) {
+          int64_t idx_2 = ((hash_rdi ^ param_3->field_0x7) * this & this->field_0x30) * 2;
+          if (f_18->field_0x8[idx_2 * 8] != f_8) {
+            void* i_ecx = f_18->field_0x8[idx_2 * 8];
+            if (ret_0x4956040_2->field_0x10 != (f_18->field_0x8[idx_2 * 8])->field_0x10) {
               do { // L_0x12bf120
-                if (f_18->field_0x8[rax * 8] == f_18->field_0x0[rax * 8]) break;
-                break;
-              } while (ret_0x4956040_2->field_0x10 != ((f_18->field_0x8[rax * 8])->field_0x8)->field_0x10); // loop -> L_0x12bf120
+                if (i_ecx == f_18->field_0x0[idx_2 * 8]) break;
+                i_ecx = i_ecx->field_0x8;
+              } while (ret_0x4956040_2->field_0x10 != i_ecx->field_0x8->field_0x10); // loop -> L_0x12bf120
             }
           }
         }
-        this->field_0x10 = this->field_0x10 + 1;
+        f_10++;
         ret_0x4956040_2->field_0x0 = f_8;
         ret_0x4956040_2->field_0x8 = f_8->field_0x8;
         f_8->field_0x8->field_0x0 = ret_0x4956040_2;
         f_8->field_0x8 = ret_0x4956040_2;
-        if (f_18->field_0x0[rdi * 8] == f_8) {
-          void* prev_0x0[rdi * 8]_2 = f_18->field_0x0[rdi * 8];
-          f_18->field_0x0[rdi * 8] = ret_0x4956040_2;
-          f_18->field_0x8[rdi * 8] = ret_0x4956040_2;
+        int64_t idx_3 = ((hash_rdi ^ param_3->field_0x7) * this & this->field_0x30) * 2;
+        if (f_18->field_0x0[idx_3 * 8] == f_8) {
+          void* prev_0x0[idx_3 * 8]_2 = f_18->field_0x0[idx_3 * 8];
+          f_18->field_0x0[idx_3 * 8] = ret_0x4956040_2;
+          f_18->field_0x8[idx_3 * 8] = ret_0x4956040_2;
           param_2->field_0x0 = ret_0x4956040_2;
           param_2->field_0x8 = 1;
           return param_2;
         }
-        if (f_18->field_0x0[rdi * 8] == f_8) {
-          void* prev_0x0[rdi * 8]_1 = f_18->field_0x0[rdi * 8];
-          f_18->field_0x0[rdi * 8] = ret_0x4956040_2;
+        if (f_18->field_0x0[idx_3 * 8] == f_8) {
+          void* prev_0x0[idx_3 * 8]_1 = f_18->field_0x0[idx_3 * 8];
+          f_18->field_0x0[idx_3 * 8] = ret_0x4956040_2;
           param_2->field_0x0 = ret_0x4956040_2;
           param_2->field_0x8 = 1;
           return param_2;
         }
-        if (f_18->field_0x8[rdi * 8] == f_8->field_0x8) {
-          f_18->field_0x8[rdi * 8] = ret_0x4956040_2;
+        if (f_18->field_0x8[idx_3 * 8] == f_8->field_0x8) {
+          f_18->field_0x8[idx_3 * 8] = ret_0x4956040_2;
           param_2->field_0x0 = ret_0x4956040_2;
           param_2->field_0x8 = 1;
           return param_2;
         }
         param_2->field_0x0 = ret_0x4956040_2;
         param_2->field_0x8 = 1;
-        return param_2;
+        goto L_0x12bf00f;
       } else {
         call_0x5de6850("unordered_map/set too long");
       }

@@ -10,8 +10,8 @@ Operação  : 0x39cc327: mov/math reg, [flag] ; fn=0x39cc310..0x39cc45a
     Padrão  : DFIntNetworkStreamingBufferShrinkMinCapacity = 64 (default) [int, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : (this->field_0x10 - this->field_0x0) >> 3 <= NetworkStreamingBufferShrinkMinCapacity
-    Fórmula : max(0, NetworkStreamingBufferShrinkMinCapacity)
-    Fórmula : max(max(0, NetworkStreamingBufferShrinkMinCapacity), ((tmp_1 >> 1) + ((this->field_0x10 - this->field_0x0) >> 3)) >> 6)
+    Fórmula : max(max(0, NetworkStreamingBufferShrinkMinCapacity), ((tmp_1 >> 1) + ((this->field_0x10 - this->field_0x0) >> 3)) >> 6) == 0
+    Fórmula : max(max(0, NetworkStreamingBufferShrinkMinCapacity), ((tmp_1 >> 1) + ((this->field_0x10 - this->field_0x0) >> 3)) >> 6) > 0x1fffffffffffffff
     Fórmula : call_0x1caa4c0(&local_0x20, max(max(0, NetworkStreamingBufferShrinkMinCapacity), ((tmp_1 >> 1) + ((this->field_0x10 - this->field_0x0) >> 3)) >> 6))
     Altera  : this->field_0x8, this->field_0x0, this->field_0x10
     Wasm    : .data=0x21d078 [via DFIntStreamingStatsCollectorGlobalCapThrottleHP]
@@ -27,12 +27,11 @@ Operação  : 0x39cc327: mov/math reg, [flag] ; fn=0x39cc310..0x39cc45a
     // Flag defaults: NetworkStreamingBufferShrinkMinCapacity = 64, NetworkStreamingBufferShrinkOccupancyPercent = 25, NetworkStreamingBufferShrinkRetainSizePercent = 200
     void RBX::NetworkStreaming::func_0x39cc310(RBX::NetworkStreaming* this) {
       if ((this->field_0x10 - this->field_0x0) >> 3 > NetworkStreamingBufferShrinkMinCapacity && ((this->field_0x8 - this->field_0x0) >> 3) * 100 < NetworkStreamingBufferShrinkOccupancyPercent * ((this->field_0x10 - this->field_0x0) >> 3)) {
-        void* sel_rax_1 = max(0, NetworkStreamingBufferShrinkMinCapacity);
         int64_t tmp_1 = max(0, NetworkStreamingBufferShrinkRetainSizePercent) * ((this->field_0x8 - this->field_0x0) >> 3) - ((this->field_0x10 - this->field_0x0) >> 3);
-        void* sel_rcx_2 = max(sel_rax_1, ((tmp_1 >> 1) + ((this->field_0x10 - this->field_0x0) >> 3)) >> 6);
         void* v_r9_1 = 0;
-        if (sel_rcx_2 != 0) {
-          call_0x1caa4c0(&local_0x20, sel_rcx_2);
+        auto expr_1 = max(0, NetworkStreamingBufferShrinkMinCapacity);
+        if (max(expr_1, ((tmp_1 >> 1) + ((this->field_0x10 - this->field_0x0) >> 3)) >> 6) != 0) {
+          call_0x1caa4c0(&local_0x20, max(expr_1, ((tmp_1 >> 1) + ((this->field_0x10 - this->field_0x0) >> 3)) >> 6));
           v_r9_1 = local_0x30;
         }
         void* v_rcx_3;
@@ -58,9 +57,9 @@ Operação  : 0x39cc327: mov/math reg, [flag] ; fn=0x39cc310..0x39cc45a
           call_0x4955ac0(v_rcx_5);
           return;
         }
-      } else {
-        this->field_0x8 = this->field_0x0;
+        return;
       }
+      this->field_0x8 = this->field_0x0;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===

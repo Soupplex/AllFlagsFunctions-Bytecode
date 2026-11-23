@@ -12,8 +12,8 @@ Operação  : 0x191b232: mov/math reg, [flag] ; fn=0x191b170..0x191b336 [via DFL
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : LoomTrackerEngineTrace < 6
     Fórmula : LoomTrackerEngineTrace >> 8 < 5
-    Fórmula : "[DFLog::LoomTrackerEngineTrace] Destroyed Loom context."[rax] != 0
-    Altera  : this->field_0x10, this->field_0x18, this->field_0x8
+    Fórmula : "[DFLog::LoomTrackerEngineTrace] Destroyed Loom context."[0] != 0
+    Altera  : this->field_0x10, this->field_0x18, this->field_0x20, this->field_0x8
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x191b14e (in fn_0x191b130): jmp 0x191b170  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
@@ -29,43 +29,41 @@ Operação  : 0x191b232: mov/math reg, [flag] ; fn=0x191b170..0x191b336 [via DFL
     
     // Flag defaults: LoomTrackerEngineTrace = 6
     void RBX::LoomTracker::func_0x191b170(RBX::LoomTracker* this) {
-      L_0x191b1a0:
+      int32_t i_edi = 0;
       do { // L_0x191b1a0
-        L_0x191b1a0:
-        auto ret_0xc8a0_1 = call_0xc8a0(this);
+        auto ret_0xc8a0_1 = call_0xc8a0();
         if (this->field_0x8 == ret_0xc8a0_1) break;
         if (this->field_0x8 == 0) {
           auto ret_0xc8a0_2 = call_0xc8a0();
           if (atomic_cas(&this->field_0x8, 0, ret_0xc8a0_2) == 0) break;
-          if (0 >= 16) {
+          if (i_edi >= 16) {
             auto ret_0xc880_7 = call_0xc880(&local_0x60, 0, 0);
             if (ret_0xc880_7 != 0) {
               call_0xcb40(1);
+              i_edi++;
               continue;
             } else {
               L_0x191b1ea:
+              i_edi++;
             }
+          } else {
+            i_edi++;
           }
-          auto ret_0xc8a0_1 = call_0xc8a0(this);
-          if (this->field_0x8 == ret_0xc8a0_1) break;
-        } else {
-          if (0 >= 16) {
-            auto ret_0xc880_7 = call_0xc880(&local_0x60, 0, 0);
-            if (ret_0xc880_7 != 0) {
-              call_0xcb40(1);
-              continue;
-            } else {
-              goto L_0x191b1ea;
-            }
+        } else if (i_edi >= 16) {
+          auto ret_0xc880_7 = call_0xc880(&local_0x60, 0, 0);
+          if (ret_0xc880_7 != 0) {
+            call_0xcb40(1);
+            i_edi++;
+            continue;
           } else {
             goto L_0x191b1ea;
           }
-          goto L_0x191b1a0;
+        } else {
+          goto L_0x191b1ea;
         }
       } while (true); // loop -> L_0x191b1a0
-      this->field_0x10 = this->field_0x10 + 1;
-      auto expr_1 = atomic_cas(&this->field_0x20, -2147483648, -1073741824) == 0;
-      if expr_1 {
+      this->field_0x10++;
+      if (atomic_cas(&this->field_0x20, -2147483648, -1073741824) == 0) {
         if (this->field_0x18 != 0) {
           if (this->field_0x18->field_0x30 != 0) {
             call_0x2e27aa0(this->field_0x18->field_0x30);
@@ -78,8 +76,10 @@ Operação  : 0x191b232: mov/math reg, [flag] ; fn=0x191b170..0x191b336 [via DFL
           call_0x4955ac0(this->field_0x18);
         }
         this->field_0x18 = 0;
+        this->field_0x20 = this->field_0x20 & 0x3fffffff;
       }
-      if expr_1 {
+      this->field_0x10--;
+      if (this->field_0x10 == 1) {
         this->field_0x8 = 0;
       }
     }
@@ -150,7 +150,7 @@ Operação  : 0x191b232: mov/math reg, [flag] ; fn=0x191b170..0x191b336 [via DFL
     0x191b259 | 48 8b 4c 24 30           | mov rcx, qword ptr [rsp + 0x30]
     0x191b25e | 48 81 c1 1d f7 f3 ff     | add rcx, 0xfff3f71d
     0x191b265 | 48 89 4c 24 50           | mov qword ptr [rsp + 0x50], rcx
-    0x191b26a | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x191b26a | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     L_0x191b271:
     0x191b271 | 48 ff c0                 | inc rax
     0x191b274 | 80 3c 01 00              | cmp byte ptr [rcx + rax], 0x0
@@ -206,11 +206,13 @@ Operação  : 0x191b232: mov/math reg, [flag] ; fn=0x191b170..0x191b336 [via DFL
     
     // Flag defaults: LoomTrackerEngineTrace = 6
     auto RBX::LoomTracker::func_0x191aef0(RBX::LoomTracker* this) {
-      if (this->field_0x20 != 0 && (this->field_0x18 & 0xfffffffc & 0xfffffff8) != 0) {
-        this->vfunc(this);
-      } else {
-        call_0x6db790(&local_0x20, this->field_0x20);
-        call_0x5e066f0(&local_0x20, &sym_0x80cbfc8);
+      if (this->field_0x20 != 0) {
+        if ((this->field_0x18 & 0xfffffffc & 0xfffffff8) != 0) {
+          (((this->field_0x18 & 0xfffffffc) & 0xfffffff8))->vfunc_0x0(this) // -> RBX::AnimationClip::CurveAnimation::fn_0x1699310;
+        } else {
+          call_0x6db790(&local_0x20, this->field_0x20);
+          call_0x5e066f0(&local_0x20, &sym_0x80cbfc8);
+        }
       }
       return tailcall_0x6db7e0(this);
     }

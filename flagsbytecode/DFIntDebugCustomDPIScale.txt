@@ -10,7 +10,7 @@ Operação  : 0x3562e5a: mov/math reg, [flag] ; fn=0x3562e40..0x3562ffe
     Padrão  : DFIntDebugCustomDPIScale = 1 (default) [int, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : !isnan(param_2) && !isnan((float)DebugCustomDPIScale) && param_2 == (float)DebugCustomDPIScale
-    Altera  : this->field_0xd88
+    Altera  : this->field_0xd88, this->field_0xc20->field_0x188->field_0x30->field_0x4
     [Child @0x3561b50] Papel   : Parâmetro de configuração lido diretamente pela rotina
     [Child @0x3561fd0] Papel   : Parâmetro de configuração lido diretamente pela rotina
   
@@ -23,92 +23,90 @@ Operação  : 0x3562e5a: mov/math reg, [flag] ; fn=0x3562e40..0x3562ffe
     
     // Flag defaults: DebugOverrideDPIScale = false, DebugCustomDPIScale = 1, Graphics = 6, UITextureUsingNewJobFlow7 = false, UITextureRendererRedirectToMigration = false, UITextureRendererCoreEnabled3 = false, RelayoutTextOnScaleChange = false, EnableFontSubsystem13 = false
     void RBX::DebugOverride::func_0x3562e40(RBX::DebugOverride* this, float param_2) {
+      auto* f_dd8 = this->field_0xdd8;
+      auto* f_c20 = this->field_0xc20;
+      auto* f_c20_188 = f_c20->field_0x188;
       if (DebugOverrideDPIScale) {
         if (!isnan(param_2) && !isnan((float)DebugCustomDPIScale) && param_2 == (float)DebugCustomDPIScale) {
-          auto* f_dd8 = this->field_0xdd8;
-          auto expr_1 = "[FLog::Graphics] Setting screen DPI scale to %.2f (was %.2f)";
-          if (!isnan(param_2) && !isnan(this->field_0xd88)) {
-            if (param_2 != this->field_0xd88) {
-              L_0x3562e83:
-              if (Graphics >= 6 && Graphics >> 8 >= 3) {
-                FLog::Log(expr_1);
+          if (isnan(param_2) || isnan(this->field_0xd88) || param_2 != this->field_0xd88) {
+            if (Graphics >= 6 && Graphics >> 8 >= 3) {
+              FLog::Log("[FLog::Graphics] Setting screen DPI scale to %.2f (was %.2f)");
+            }
+            this->field_0xd88 = param_2;
+            if (f_c20 != 0 && UITextureUsingNewJobFlow7 && UITextureRendererRedirectToMigration && !UITextureRendererCoreEnabled3) {
+              f_c20_188->field_0x30->field_0x4 = f_c20_188->field_0x30->field_0x4 | 0x4;
+            }
+            void* sel_rcx_1 = f_dd8 == 0 ? 0 : f_dd8->field_0x1f0;
+            int32_t v_rdi_2 = 0;
+            if (sel_rcx_1 != 0) {
+              auto ret_0xe29720_1 = call_0xe29720(sel_rcx_1);
+              int32_t v_rdi_1 = 0;
+              if (ret_0xe29720_1 != 0) {
+                call_0x3e4bb00(ret_0xe29720_1, this->field_0xd88);
+                v_rdi_1 = RelayoutTextOnScaleChange ? ret_0xe29720_1 : 0;
               }
-              this->field_0xd88 = param_2;
-              void* sel_rcx_1 = f_dd8 == 0 ? 0 : f_dd8->field_0x1f0;
-              int32_t v_rdi_2 = 0;
-              if (sel_rcx_1 != 0) {
-                auto ret_0xe29720_1 = call_0xe29720(sel_rcx_1);
-                int32_t v_rdi_1 = 0;
-                if (ret_0xe29720_1 != 0) {
-                  call_0x3e4bb00(ret_0xe29720_1, this->field_0xd88);
-                  v_rdi_1 = RelayoutTextOnScaleChange ? ret_0xe29720_1 : 0;
+              v_rdi_2 = v_rdi_1;
+            }
+            if (f_dd8 != 0) {
+              auto ret_0x110ee80_3 = call_0x110ee80(f_dd8->field_0x240 & 0xfffffff8);
+              if (ret_0x110ee80_3 != 0) {
+                auto ret_0x110efc0_4 = call_0x110efc0(f_dd8->field_0x240 & 0xfffffff8);
+                ret_0x110efc0_4->field_0x10->field_0x78 = param_2;
+                if (ret_0x110efc0_4->field_0x10->field_0x8 != 0) {
+                  ret_0x110efc0_4->field_0x10->field_0x8->field_0x30 = param_2 * ret_0x110efc0_4->field_0x10->field_0x7c;
                 }
-                v_rdi_2 = v_rdi_1;
-              }
-              if (f_dd8 != 0) {
-                auto ret_0x110ee80_3 = call_0x110ee80(f_dd8->field_0x240 & 0xfffffff8);
-                if (ret_0x110ee80_3 != 0) {
-                  auto ret_0x110efc0_4 = call_0x110efc0(f_dd8->field_0x240 & 0xfffffff8);
-                  ret_0x110efc0_4->field_0x10->field_0x78 = param_2;
-                  if (ret_0x110efc0_4->field_0x10->field_0x8 != 0) {
-                    ret_0x110efc0_4->field_0x10->field_0x8->field_0x30 = param_2 * ret_0x110efc0_4->field_0x10->field_0x7c;
-                  }
-                  call_0x3561b50(this);
-                  if (!EnableFontSubsystem13) {
-                    call_0x3561fd0(this);
-                  }
+                call_0x3561b50(this);
+                if (!EnableFontSubsystem13) {
+                  call_0x3561fd0(this);
                 }
               }
-              if (v_rdi_2 != 0) {
-                call_0x3e4bd30(v_rdi_2);
-              }
-              return;
+            }
+            if (v_rdi_2 != 0) {
+              call_0x3e4bd30(v_rdi_2);
             }
             return;
-          }
-          if (Graphics >= 6 && Graphics >> 8 >= 3) {
-            FLog::Log(expr_1);
-          }
-          this->field_0xd88 = param_2;
-          void* sel_rcx_1 = f_dd8 == 0 ? 0 : f_dd8->field_0x1f0;
-          int32_t v_rdi_2 = 0;
-          if (sel_rcx_1 != 0) {
-            auto ret_0xe29720_1 = call_0xe29720(sel_rcx_1);
-            int32_t v_rdi_1 = 0;
-            if (ret_0xe29720_1 != 0) {
-              call_0x3e4bb00(ret_0xe29720_1, this->field_0xd88);
-              v_rdi_1 = RelayoutTextOnScaleChange ? ret_0xe29720_1 : 0;
-            }
-            v_rdi_2 = v_rdi_1;
-          }
-          if (f_dd8 != 0) {
-            auto ret_0x110ee80_3 = call_0x110ee80(f_dd8->field_0x240 & 0xfffffff8);
-            if (ret_0x110ee80_3 != 0) {
-              auto ret_0x110efc0_4 = call_0x110efc0(f_dd8->field_0x240 & 0xfffffff8);
-              ret_0x110efc0_4->field_0x10->field_0x78 = param_2;
-              if (ret_0x110efc0_4->field_0x10->field_0x8 != 0) {
-                ret_0x110efc0_4->field_0x10->field_0x8->field_0x30 = param_2 * ret_0x110efc0_4->field_0x10->field_0x7c;
-              }
-              call_0x3561b50(this);
-              if (!EnableFontSubsystem13) {
-                call_0x3561fd0(this);
-              }
-            }
-          }
-          if (v_rdi_2 != 0) {
-            call_0x3e4bd30(v_rdi_2);
           }
           return;
         }
         return;
       }
-      if (!isnan(param_2) && !isnan(this->field_0xd88)) {
-        if (param_2 != this->field_0xd88) {
-          goto L_0x3562e83;
+      if (isnan(param_2) || isnan(this->field_0xd88) || param_2 != this->field_0xd88) {
+        if (Graphics >= 6 && Graphics >> 8 >= 3) {
+          FLog::Log("[FLog::Graphics] Setting screen DPI scale to %.2f (was %.2f)");
         }
-        return;
+        this->field_0xd88 = param_2;
+        if (f_c20 != 0 && UITextureUsingNewJobFlow7 && UITextureRendererRedirectToMigration && !UITextureRendererCoreEnabled3) {
+          f_c20_188->field_0x30->field_0x4 = f_c20_188->field_0x30->field_0x4 | 0x4;
+        }
+        void* sel_rcx_1 = f_dd8 == 0 ? 0 : f_dd8->field_0x1f0;
+        int32_t v_rdi_2 = 0;
+        if (sel_rcx_1 != 0) {
+          auto ret_0xe29720_1 = call_0xe29720(sel_rcx_1);
+          int32_t v_rdi_1 = 0;
+          if (ret_0xe29720_1 != 0) {
+            call_0x3e4bb00(ret_0xe29720_1, this->field_0xd88);
+            v_rdi_1 = RelayoutTextOnScaleChange ? ret_0xe29720_1 : 0;
+          }
+          v_rdi_2 = v_rdi_1;
+        }
+        if (f_dd8 != 0) {
+          auto ret_0x110ee80_3 = call_0x110ee80(f_dd8->field_0x240 & 0xfffffff8);
+          if (ret_0x110ee80_3 != 0) {
+            auto ret_0x110efc0_4 = call_0x110efc0(f_dd8->field_0x240 & 0xfffffff8);
+            ret_0x110efc0_4->field_0x10->field_0x78 = param_2;
+            if (ret_0x110efc0_4->field_0x10->field_0x8 != 0) {
+              ret_0x110efc0_4->field_0x10->field_0x8->field_0x30 = param_2 * ret_0x110efc0_4->field_0x10->field_0x7c;
+            }
+            call_0x3561b50(this);
+            if (!EnableFontSubsystem13) {
+              call_0x3561fd0(this);
+            }
+          }
+        }
+        if (v_rdi_2 != 0) {
+          call_0x3e4bd30(v_rdi_2);
+        }
       }
-      goto L_0x3562e83;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -269,13 +267,17 @@ Operação  : 0x3562e5a: mov/math reg, [flag] ; fn=0x3562e40..0x3562ffe
         }
         int32_t v_rdi_2 = DevGlyphAtlasWidth;
         int32_t i_eax;
-        if (DevGlyphAtlasWidth > v_r14_1 && v_r14_1 < 0) {
-          v_rdi_2 = 0;
-        } else {
-          if ((v_r14_1 - 1 & v_r14_1) != 0) {
+        if (DevGlyphAtlasWidth > v_r14_1) {
+          if (v_r14_1 < 0) {
+            v_rdi_2 = 0;
+          } else if ((v_r14_1 - 1 & v_r14_1) != 0) {
+            int32_t prev_i_eax_2;
             do { // L_0x3561cc4
-            } while (((i_eax - 1) & i_eax) != 0); // loop -> L_0x3561cc4
-            v_rdi_2 = i_eax;
+              prev_i_eax_2 = i_eax;
+              i_eax--;
+              i_eax = i_eax & prev_i_eax_2;
+            } while ((i_eax & prev_i_eax_2) != 0); // loop -> L_0x3561cc4
+            v_rdi_2 = prev_i_eax_2;
           } else {
             v_rdi_2 = v_r14_1;
           }
@@ -283,67 +285,84 @@ Operação  : 0x3562e5a: mov/math reg, [flag] ; fn=0x3562e40..0x3562ffe
           v_rdi_2 = 0;
         } else if ((DevGlyphAtlasWidth - 1 & DevGlyphAtlasWidth) != 0) {
           i_eax = DevGlyphAtlasWidth - 1 & DevGlyphAtlasWidth;
+          int32_t prev_i_eax_1;
           do { // L_0x3561ce0
-            v_rdi_2 = i_eax;
-          } while (((i_eax - 1) & i_eax) != 0); // loop -> L_0x3561ce0
+            prev_i_eax_1 = i_eax;
+            i_eax--;
+            i_eax = i_eax & prev_i_eax_1;
+          } while ((i_eax & prev_i_eax_1) != 0); // loop -> L_0x3561ce0
         }
         int32_t v_rsi_3 = DevGlyphAtlasHeight;
-        if (DevGlyphAtlasHeight > v_r14_1 && v_r14_1 < 0) {
-          v_rsi_3 = 0;
-        } else {
-          if ((v_r14_1 - 1 & v_r14_1) != 0) {
+        if (DevGlyphAtlasHeight > v_r14_1) {
+          if (v_r14_1 < 0) {
+            v_rsi_3 = 0;
+          } else if ((v_r14_1 - 1 & v_r14_1) != 0) {
+            int32_t prev_i_eax_4;
             do { // L_0x3561d08
-            } while (((i_eax - 1) & i_eax) != 0); // loop -> L_0x3561d08
-            v_rsi_3 = i_eax;
+              prev_i_eax_4 = i_eax;
+              i_eax--;
+              i_eax = i_eax & prev_i_eax_4;
+            } while ((i_eax & prev_i_eax_4) != 0); // loop -> L_0x3561d08
+            v_rsi_3 = prev_i_eax_4;
           } else {
             v_rsi_3 = v_r14_1;
           }
         } else if (DevGlyphAtlasHeight < 0) {
           v_rsi_3 = 0;
         } else if ((DevGlyphAtlasHeight - 1 & DevGlyphAtlasHeight) != 0) {
+          int32_t prev_i_eax_3;
           do { // L_0x3561d21
-            v_rsi_3 = i_eax;
-          } while (((i_eax - 1) & i_eax) != 0); // loop -> L_0x3561d21
+            prev_i_eax_3 = i_eax;
+            i_eax--;
+            i_eax = i_eax & prev_i_eax_3;
+          } while ((i_eax & prev_i_eax_3) != 0); // loop -> L_0x3561d21
         }
         auto ret_0x4956040_3 = call_0x4956040(272);
         auto ret_0x6fd950_4 = call_0x6fd950(32);
         ret_0x6fd950_4->field_0x0 = "VisualEngine Fonts";
         ret_0x6fd950_4->field_0x10 = global_0x73b46e8;
         auto ret_0x36cd770_5 = call_0x36cd770(ret_0x4956040_3, this, v_rdi_2, v_rsi_3);
-        void* prev_0xce8_1 = this->field_0xce8;
+        void* prev_0xce8_5 = this->field_0xce8;
         this->field_0xce8 = ret_0x36cd770_5;
-        if (prev_0xce8_1 != 0) {
-          this->field_0xce8->vfunc_0x0(prev_0xce8_1, 1) // -> RBX::ModelInstance::BackpackItem::fn_0x3343dc0;
+        if (prev_0xce8_5 != 0) {
+          this->field_0xce8->vfunc_0x0(prev_0xce8_5, 1) // -> RBX::ModelInstance::BackpackItem::fn_0x3343dc0;
         }
-        std::string::_Tidy_deallocate(v_rcx_5);
+        std::string::_Tidy_deallocate(ret_0x6fd950_4);
         int32_t v_r14_7 = v_r14_1;
         if (CoreGlyphAtlasSize > v_r14_1) {
           if (v_r14_1 < 0) {
             v_r14_7 = 0;
           } else if ((v_r14_1 - 1 & v_r14_1) != 0) {
+            int32_t prev_i_eax_7;
             do { // L_0x3561e72
-            } while (((i_eax - 1) & i_eax) != 0); // loop -> L_0x3561e72
-            v_r14_7 = i_eax;
+              prev_i_eax_7 = i_eax;
+              i_eax--;
+              i_eax = i_eax & prev_i_eax_7;
+            } while ((i_eax & prev_i_eax_7) != 0); // loop -> L_0x3561e72
+            v_r14_7 = prev_i_eax_7;
           }
         } else if (CoreGlyphAtlasSize < 0) {
           v_r14_7 = 0;
         } else {
           int32_t v_rcx_6 = CoreGlyphAtlasSize;
           if ((CoreGlyphAtlasSize - 1 & CoreGlyphAtlasSize) != 0) {
+            int32_t prev_i_eax_6;
             do { // L_0x3561e90
-              v_rcx_6 = i_eax;
-            } while (((i_eax - 1) & i_eax) != 0); // loop -> L_0x3561e90
+              prev_i_eax_6 = i_eax;
+              i_eax--;
+              i_eax = i_eax & prev_i_eax_6;
+            } while ((i_eax & prev_i_eax_6) != 0); // loop -> L_0x3561e90
           }
           v_r14_7 = v_rcx_6;
         }
         auto ret_0x4956040_8 = call_0x4956040(272);
         auto ret_0x36cd770_9 = call_0x36cd770(ret_0x4956040_8, this, v_r14_7, v_r14_7);
-        void* prev_0xcf0_2 = this->field_0xcf0;
+        void* prev_0xcf0_8 = this->field_0xcf0;
         this->field_0xcf0 = ret_0x36cd770_9;
-        if (prev_0xcf0_2 != 0) {
-          this->field_0xcf0->vfunc_0x0(prev_0xcf0_2, 1) // -> RBX::ModelInstance::BackpackItem::fn_0x3343dc0;
+        if (prev_0xcf0_8 != 0) {
+          this->field_0xcf0->vfunc_0x0(prev_0xcf0_8, 1) // -> RBX::ModelInstance::BackpackItem::fn_0x3343dc0;
         }
-        std::string::_Tidy_deallocate(v_rcx_8);
+        std::string::_Tidy_deallocate(0);
       }
       call_0x4954e70(ret_0x4954e70_1);
     }

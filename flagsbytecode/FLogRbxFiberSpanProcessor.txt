@@ -11,7 +11,7 @@ Operação  : 0x4defd84: mov/math reg, [flag] ; fn=0x4defd50..0x4defe37
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : RbxFiberSpanProcessor < 6
     Fórmula : RbxFiberSpanProcessor >> 8 < 3
-    Fórmula : "[FLog::RbxFiberSpanProcessor] span queue is full - dropping span"[rax] != 0
+    Fórmula : "[FLog::RbxFiberSpanProcessor] span queue is full - dropping span"[0] != 0
     [Child @0x4df03c0] Papel   : Parâmetro de configuração lido diretamente pela rotina
   
   === [Decompilacao C++ da Funcao 0x4defd50..0x4defe37] ===
@@ -54,7 +54,7 @@ Operação  : 0x4defd84: mov/math reg, [flag] ; fn=0x4defd50..0x4defe37
     0x4defdab | 48 8b 4c 24 50           | mov rcx, qword ptr [rsp + 0x50]
     0x4defdb0 | 48 81 c1 e5 d1 ed ff     | add rcx, 0xffedd1e5
     0x4defdb7 | 48 89 4c 24 40           | mov qword ptr [rsp + 0x40], rcx
-    0x4defdbc | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x4defdbc | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     L_0x4defdc3:
     0x4defdc3 | 48 ff c0                 | inc rax
     0x4defdc6 | 80 3c 01 00              | cmp byte ptr [rcx + rax], 0x0
@@ -93,23 +93,29 @@ Operação  : 0x4defd84: mov/math reg, [flag] ; fn=0x4defd50..0x4defe37
     
     // Flag defaults: RbxFiberSpanProcessor = 6
     auto RBX::RbxFiber::func_0x4df03c0(RBX::RbxFiber* this, int64_t param_2) {
-      auto* f_10 = this->field_0x10;
+      uint8_t v_bl_1;
       auto* f_8 = this->field_0x8;
-      if (f_10 - this->field_0x18 < &f_8->field_m0x1) {
-        auto i_r8d = f_10;
-        auto i_r9d = f_8;
+      if (this->field_0x10 - this->field_0x18 < &f_8->field_m0x1) {
+        void* i_r8d = this->field_0x10;
+        void* i_r9d = f_8;
         do { // L_0x4df0400
           auto* f_0 = this->field_0x0;
           if (atomic_cas(&f_0->field_0x0[i_r8d % i_r9d * 8], 0, param_2->field_0x0) == 0) {
-            if (atomic_cas(&f_10, i_r8d, &f_10->field_0x1) == 0) break;
+            if (atomic_cas(&this->field_0x10, i_r8d, i_r8d + 1) == 0) break;
             void* prev_0x0_1 = param_2->field_0x0;
             param_2->field_0x0 = atomic_exchange(&f_0->field_0x0[i_r8d % i_r9d * 8], param_2->field_0x0);
             if (prev_0x0_1 != 0) {
               param_2->field_0x0->vfunc_0x0(prev_0x0_1, 1) // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66420;
             }
+            i_r8d = this->field_0x10;
+            i_r9d = f_8;
             L_0x4df0478:
+            v_bl_1 = 0;
             break;
           } else {
+            i_r8d = this->field_0x10;
+            i_r9d = f_8;
+            v_bl_1 = 0;
             break;
           }
           if (param_2->field_0x0 == 0) {
@@ -117,7 +123,7 @@ Operação  : 0x4defd84: mov/math reg, [flag] ; fn=0x4defd50..0x4defe37
           }
           param_2->field_0x0->vfunc_0x0(param_2->field_0x0, 1) // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66420;
           return v_bl_1;
-        } while ((f_10 - this->field_0x18) < &f_8->field_m0x1); // loop -> L_0x4df0400
+        } while (this->field_0x10 - this->field_0x18 < &f_8->field_m0x1); // loop -> L_0x4df0400
         goto L_0x4df0478;
       } else {
         goto L_0x4df0478;

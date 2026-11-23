@@ -68,11 +68,7 @@ Operação  : 0x27f05aa: movzx reg, byte [flag] ; fn=0x27f0520..0x27f07e5
         if (prev_0x28_1 != 0) {
           call_0x6daf40(prev_0x28_1);
         }
-        if (this->field_0x70 == 3) {
-          if (atomic_cas(&this->field_0x70, this->field_0x70, 1) != 0) {
-            call_0xdac0(&this->field_0x70);
-          }
-        } else {
+        if (this->field_0x70 != 3 || atomic_cas(&this->field_0x70, this->field_0x70, 1) != 0) {
           call_0xdac0(&this->field_0x70);
         }
         this->field_0x10 = param_2;
@@ -90,7 +86,7 @@ Operação  : 0x27f05aa: movzx reg, byte [flag] ; fn=0x27f0520..0x27f07e5
       if (local_0xc0 != 0 && local_0xc0 != &sym_0x27f0c00) {
         local_0xc8->vfunc(local_0xc8, local_0xc8);
       }
-      this->field_0x18 = this->field_0x18 + 1;
+      this->field_0x18++;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -298,9 +294,10 @@ Operação  : 0x27f05aa: movzx reg, byte [flag] ; fn=0x27f0520..0x27f07e5
       this->field_0x8 = 0;
       void* v_rsi_1 = 0;
       void* v_rsi_2;
+      int64_t vret_2;
       if (global_0x84a44d6 != 0) {
         auto ret_0x2e13190_1 = call_0x2e13190(this);
-        auto vret_2 = ret_0x2e13190_1->vfunc_0x8(ret_0x2e13190_1, (0 + 0x58), (0 + 8)) // -> RBX::dtQueryFilter::fn_0x24134b0;
+        vret_2 = ret_0x2e13190_1->vfunc_0x8(ret_0x2e13190_1, (0 + 0x58), (0 + 8)) // -> RBX::dtQueryFilter::fn_0x24134b0;
         vret_2->field_0x10 = ret_0x2e13190_1;
         vret_2->field_0x0 = 0.0;
         vret_2->field_0x8 = 1;
@@ -312,8 +309,8 @@ Operação  : 0x27f05aa: movzx reg, byte [flag] ; fn=0x27f0520..0x27f07e5
             if (vret_2->field_0x28->field_0x8 == 0) {
               v_rsi_1 = vret_2;
               L_0x27f0a23:
-              v_rsi_1->field_0x8 = v_rsi_1->field_0x8 + 1;
-              v_rsi_1->field_0xc = v_rsi_1->field_0xc + 1;
+              v_rsi_1->field_0x8++;
+              v_rsi_1->field_0xc++;
               vret_2->field_0x20 = &vret_2->field_0x18;
               void* prev_0x28_1 = vret_2->field_0x28;
               vret_2->field_0x28 = local_0x30;
@@ -327,22 +324,20 @@ Operação  : 0x27f05aa: movzx reg, byte [flag] ; fn=0x27f0520..0x27f07e5
             } else {
               v_rsi_2 = vret_2;
             }
-            this->field_0x0 = &vret_2->field_0x18;
-            void* prev_0x8_2 = this->field_0x8;
-            this->field_0x8 = v_rsi_2;
-            return tailcall_0x27f0b2e(prev_0x8_2);
+          } else {
+            v_rsi_1 = vret_2;
+            goto L_0x27f0a23;
           }
-          v_rsi_1 = vret_2;
-          goto L_0x27f0a23;
         } else {
           v_rsi_2 = vret_2;
         }
-        this->field_0x0 = &vret_2->field_0x18;
-        void* prev_0x8_2 = this->field_0x8;
-        this->field_0x8 = v_rsi_2;
-        return tailcall_0x27f0b2e(prev_0x8_2);
+      } else {
+        goto L_0x27f0a23;
       }
-      goto L_0x27f0a23;
+      this->field_0x0 = &vret_2->field_0x18;
+      void* prev_0x8_2 = this->field_0x8;
+      this->field_0x8 = v_rsi_2;
+      return tailcall_0x27f0b2e(prev_0x8_2);
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x27f0950..0x27f0a7b)] ===
@@ -434,15 +429,18 @@ Operação  : 0x27f05aa: movzx reg, byte [flag] ; fn=0x27f0520..0x27f07e5
     
     // Flag defaults: OpusEncoderComplexity = 10, CustomDspHandleChannelLayoutChanges = false
     void RBX::OpusEncoder::func_0x27d6090(RBX::OpusEncoder* this, int64_t param_2, void* param_3) {
-      this->field_0x1c = param_2;
-      this->field_0x1e = param_3;
-      auto ret_0x27dc920_1 = call_0x27dc920(param_3);
-      auto* f_20 = this->field_0x20;
-      if (f_20 != 0 && f_20->field_0x18 != 0) {
-        call_0x2801f00(f_20->field_0x18, param_2, r9, ret_0x27dc920_1);
-        if (CustomDspHandleChannelLayoutChanges) {
-          switch (this->field_0x0->field_0x60) {
+      if (this->field_0x1c != param_2 || this->field_0x1e != param_3) {
+        this->field_0x1c = param_2;
+        this->field_0x1e = param_3;
+        auto ret_0x27dc920_1 = call_0x27dc920(param_3);
+        auto* f_20 = this->field_0x20;
+        if (f_20 != 0 && f_20->field_0x18 != 0) {
+          call_0x2801f00(f_20->field_0x18, param_2, r9, ret_0x27dc920_1);
+          if (CustomDspHandleChannelLayoutChanges) {
+            switch (this->field_0x0->field_0x60) {
+            }
           }
+          return;
         }
       }
     }
@@ -499,20 +497,93 @@ Operação  : 0x27f05aa: movzx reg, byte [flag] ; fn=0x27f0520..0x27f07e5
       if (this->field_0x20 != 0 && this->field_0x20->field_0x18 != 0) {
         auto local_0x28 = 0;
         auto ret_0x28007b0_1 = call_0x28007b0(this->field_0x20->field_0x18, &local_0x28);
-        if (ret_0x28007b0_1 == 0 && local_0x28 != 0) {
-          if (local_0x28 != param_2) {
-            if (this->field_0x20 != 0) {
-              if (this->field_0x20->field_0x18 != 0) {
-                call_0x2801750(this->field_0x20->field_0x18, 0);
-                call_0x2800d90(this->field_0x20->field_0x18);
+        if (ret_0x28007b0_1 == 0) {
+          if (local_0x28 != 0) {
+            if (local_0x28 != param_2) {
+              if (this->field_0x20 != 0) {
+                if (this->field_0x20->field_0x18 != 0) {
+                  call_0x2801750(this->field_0x20->field_0x18, 0);
+                  call_0x2800d90(this->field_0x20->field_0x18);
+                }
+                this->field_0x20 = 0;
+                void* prev_0x28_1 = this->field_0x28;
+                this->field_0x28 = 0;
+                if (prev_0x28_1 != 0) {
+                  call_0x6daf40(prev_0x28_1);
+                }
               }
-              this->field_0x20 = 0;
-              void* prev_0x28_1 = this->field_0x28;
-              this->field_0x28 = 0;
-              if (prev_0x28_1 != 0) {
-                call_0x6daf40(prev_0x28_1);
+              L_0x27d5e53:
+              if (param_2 != 0) {
+                auto ret_0x2805810_5 = call_0x2805810(param_2, &local_0x30, &local_0x20, &local_0x24);
+                if (ret_0x2805810_5 == 0) {
+                  void* v_rax_3;
+                  void* stk_4;
+                  int64_t stk_5;
+                  if (this->field_0x1e == 0 && this->field_0x1c <= 0) {
+                    v_rax_3 = local_0x20;
+                    stk_4 = local_0x24;
+                    stk_5 = local_0x20;
+                  } else {
+                    auto ret_0x27dc920_6 = call_0x27dc920(this->field_0x1e);
+                    v_rax_3 = ret_0x27dc920_6;
+                    stk_4 = this->field_0x1c;
+                    stk_5 = ret_0x27dc920_6;
+                  }
+                  L_0x27d5ea7:
+                  this->field_0x18 = local_0x30;
+                  this->field_0x1c = local_0x24;
+                  this->field_0x1d = 4;
+                  this->field_0x1e = call_0x27dc9a0(v_rax_3);
+                  call_0x5e051b0(&local_0x64, 0, 212);
+                  this->vfunc_0x8(this, &local_0x38) // -> RBX::dtQueryFilter::fn_0x24134b0;
+                  call_0x5e27c50(&local_0x64, local_0x38, local_0x40);
+                  this->vfunc_0x10(this) // -> RBX::Hint::fn_0x3024460;
+                  this->vfunc_0x18(this) // -> RBX::GroundCastShape::fn_0x25283c0;
+                  this->vfunc_0x20(this) // -> RBX::GroundCastShape::fn_0x2528500;
+                  auto local_0x60 = 110;
+                  local_0x28 = 0;
+                  auto ret_0x2807a50_14 = call_0x2807a50(param_2, &local_0x60, &local_0x28);
+                  if (ret_0x2807a50_14 == 0) {
+                    auto ret_0x27d63a0_15 = call_0x27d63a0(&local_0x48, &local_0x28);
+                    this->field_0x20 = ret_0x27d63a0_15->field_0x0;
+                    void* prev_0x28_2 = this->field_0x28;
+                    this->field_0x28 = ret_0x27d63a0_15->field_0x8;
+                    if (prev_0x28_2 != 0) {
+                    call_0x6daf40(prev_0x28_2);
+                    }
+                    if (local_0x50 != 0) {
+                    call_0x6daf40(local_0x50);
+                    }
+                    auto ret_0x2801f00_18 = call_0x2801f00(this->field_0x20 != 0 ? this->field_0x20->field_0x18 : 0, ret_0x27d63a0_15->field_0x8, stk_4, stk_5);
+                    if (ret_0x2801f00_18 != 0) {
+                    if (this->field_0x20 != 0) {
+                    if (this->field_0x20->field_0x18 != 0) {
+                    call_0x2801750(this->field_0x20->field_0x18, 0);
+                    call_0x2800d90(this->field_0x20->field_0x18);
+                    }
+                    this->field_0x20 = 0;
+                    void* prev_0x28_3 = this->field_0x28;
+                    this->field_0x28 = 0;
+                    if (prev_0x28_3 != 0) {
+                    call_0x6daf40(prev_0x28_3);
+                    }
+                    }
+                    L_0x27d6037:
+                    } else {
+                    this->vfunc_0x60(this) // -> RBX::WedgePoly::fn_0x2dac180;
+                    return;
+                    }
+                  }
+                } else {
+                  goto L_0x27d6037;
+                }
+              } else {
+                goto L_0x27d6037;
               }
+            } else {
+              return;
             }
+          } else {
             if (param_2 != 0) {
               auto ret_0x2805810_5 = call_0x2805810(param_2, &local_0x30, &local_0x20, &local_0x24);
               if (ret_0x2805810_5 == 0) {
@@ -529,80 +600,20 @@ Operação  : 0x27f05aa: movzx reg, byte [flag] ; fn=0x27f0520..0x27f07e5
                   stk_4 = this->field_0x1c;
                   stk_5 = ret_0x27dc920_6;
                 }
-                L_0x27d5ea7:
-                this->field_0x18 = local_0x30;
-                this->field_0x1c = local_0x24;
-                this->field_0x1d = 4;
-                this->field_0x1e = call_0x27dc9a0(v_rax_3);
-                call_0x5e051b0(&local_0x64, 0, 212);
-                this->vfunc_0x8(this, &local_0x38) // -> RBX::dtQueryFilter::fn_0x24134b0;
-                call_0x5e27c50(&local_0x64, local_0x38, local_0x40);
-                this->vfunc_0x10(this) // -> RBX::Hint::fn_0x3024460;
-                this->vfunc_0x18(this) // -> RBX::GroundCastShape::fn_0x25283c0;
-                this->vfunc_0x20(this) // -> RBX::GroundCastShape::fn_0x2528500;
-                auto local_0x60 = 110;
-                local_0x28 = 0;
-                auto ret_0x2807a50_14 = call_0x2807a50(param_2, &local_0x60, &local_0x28);
-                if (ret_0x2807a50_14 == 0) {
-                  auto ret_0x27d63a0_15 = call_0x27d63a0(&local_0x48, &local_0x28);
-                  this->field_0x20 = ret_0x27d63a0_15->field_0x0;
-                  void* prev_0x28_2 = this->field_0x28;
-                  this->field_0x28 = ret_0x27d63a0_15->field_0x8;
-                  if (prev_0x28_2 != 0) {
-                    call_0x6daf40(prev_0x28_2);
-                  }
-                  if (local_0x50 != 0) {
-                    call_0x6daf40(local_0x50);
-                  }
-                  auto ret_0x2801f00_18 = call_0x2801f00(this->field_0x20 != 0 ? this->field_0x20->field_0x18 : 0, ret_0x27d63a0_15->field_0x8, stk_4, stk_5);
-                  if (ret_0x2801f00_18 != 0) {
-                    if (this->field_0x20 != 0) {
-                    if (this->field_0x20->field_0x18 != 0) {
-                    call_0x2801750(this->field_0x20->field_0x18, 0);
-                    call_0x2800d90(this->field_0x20->field_0x18);
-                    }
-                    this->field_0x20 = 0;
-                    void* prev_0x28_3 = this->field_0x28;
-                    this->field_0x28 = 0;
-                    if (prev_0x28_3 != 0) {
-                    call_0x6daf40(prev_0x28_3);
-                    }
-                    }
-                    L_0x27d6037:
-                  } else {
-                    this->vfunc_0x60(this) // -> RBX::WedgePoly::fn_0x2dac180;
-                    return;
-                  }
-                  L_0x27d6039:
-                  return;
-                }
+                goto L_0x27d5ea7;
+              } else {
+                goto L_0x27d6037;
               }
+            } else {
+              goto L_0x27d6037;
             }
-            return;
           }
-          goto L_0x27d6039;
+        } else {
+          goto L_0x27d5e53;
         }
+      } else {
+        goto L_0x27d5e53;
       }
-      if (param_2 != 0) {
-        auto ret_0x2805810_5 = call_0x2805810(param_2, &local_0x30, &local_0x20, &local_0x24);
-        if (ret_0x2805810_5 == 0) {
-          void* v_rax_3;
-          void* stk_4;
-          int64_t stk_5;
-          if (this->field_0x1e == 0 && this->field_0x1c <= 0) {
-            v_rax_3 = local_0x20;
-            stk_4 = local_0x24;
-            stk_5 = local_0x20;
-          } else {
-            auto ret_0x27dc920_6 = call_0x27dc920(this->field_0x1e);
-            v_rax_3 = ret_0x27dc920_6;
-            stk_4 = this->field_0x1c;
-            stk_5 = ret_0x27dc920_6;
-          }
-          goto L_0x27d5ea7;
-        }
-      }
-      goto L_0x27d6037;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x27d5db0..0x27d6088)] ===
@@ -815,48 +826,27 @@ Operação  : 0x27f05aa: movzx reg, byte [flag] ; fn=0x27f0520..0x27f07e5
   === [Sub-Rotina Chamada: 0x2808780..0x28088c4 via call @0x27f0685 (rcx = this (Direct Engine Sub-Call))] ===
     // Flag defaults: OpusEncoderComplexity = 10
     auto RBX::OpusEncoder::func_0x2808780(RBX::OpusEncoder* this, int64_t param_2) {
+      void* i_eax = &global_0x8100868->field_0x160;
+      int32_t i_edx = 0;
       do { // L_0x28087c0
         int32_t v_rdi_1;
-        if (this == global_0x8100868->field_0x160) break;
-        v_rdi_1 = 30;
-        break;
-      } while ((edx + 1) < 8); // loop -> L_0x28087c0
-      auto expr_1 = (global_0x8100868->field_0x10 & 0x80) != 0;
-      if (this == 0) {
-        v_rdi_1 = this + 0x1e;
-        L_0x2808804:
-        if expr_1 {
-          call_0x2819e10(&local_0x50, 256, &sym_0x718ee80, param_2);
-          if ((global_0x8100868->field_0x10 & 0x80) != 0 && global_0x8100868->field_0x8 != 0 && global_0x8100868->field_0x20 == 0) {
-            global_0x8100868->field_0x20 = 1;
-            auto local_0x30 = v_rdi_1;
-            auto local_0x34 = 1;
-            auto local_0x38 = this;
-            0->vfunc(0, 128, &local_0x30, 0);
-            global_0x8100868->field_0x20 = global_0x8100868->field_0x20 - 1;
-          }
+        if (this == i_eax->field_0x0) break;
+        i_edx++;
+        i_eax += 8;
+      } while (i_edx < 8); // loop -> L_0x28087c0
+      v_rdi_1 = 30;
+      if ((global_0x8100868->field_0x10 & 0x80) != 0) {
+        call_0x2819e10(&local_0x50, 256, &sym_0x718ee80, param_2);
+        if ((global_0x8100868->field_0x10 & 0x80) != 0 && global_0x8100868->field_0x8 != 0 && global_0x8100868->field_0x20 == 0) {
+          global_0x8100868->field_0x20 = 1;
+          auto local_0x30 = v_rdi_1;
+          auto local_0x34 = 1;
+          auto local_0x38 = this;
+          global_0x8100868->vfunc_0x8(0, 128, &local_0x30, 0) // -> RBX::dtQueryFilter::fn_0x24134b0;
+          global_0x8100868->field_0x20--;
         }
-        return v_rdi_1;
       }
-      if (param_2 == 0) {
-        v_rdi_1 = param_2 + 0x1f;
-        if expr_1 {
-          call_0x2819e10(&local_0x50, 256, &sym_0x718ee80, param_2);
-          if ((global_0x8100868->field_0x10 & 0x80) != 0 && global_0x8100868->field_0x8 != 0 && global_0x8100868->field_0x20 == 0) {
-            goto L_0x280886b;
-          }
-        }
-        return v_rdi_1;
-      }
-      auto* f_11738 = this->field_0x11738;
-      if (f_11738 == 0) {
-        param_2->field_0x0 = f_11738;
-        v_rdi_1 = f_11738 + 0x43;
-        goto L_0x2808804;
-      } else {
-        param_2->field_0x0 = f_11738;
-        return 0;
-      }
+      return v_rdi_1;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x2808780..0x28088c4)] ===

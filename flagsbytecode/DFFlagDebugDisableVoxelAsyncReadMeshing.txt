@@ -9,7 +9,6 @@ Operação  : 0x380e032: cmp byte [flag], imm8 ; fn=0x380e000..0x380e415
     Classe  : RBX::DebugDisable (RTTI Resolvido)
     Padrão  : DFFlagDebugDisableVoxelAsyncReadMeshing = false (default) [bool, mode=2]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
-    [Child @0x374f270] Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
   
   === [Decompilacao C++ da Funcao 0x380e000..0x380e415] ===
     // Flag defaults: DebugDisableVoxelAsyncReadMeshing = false
@@ -330,96 +329,6 @@ Operação  : 0x380e032: cmp byte [flag], imm8 ; fn=0x380e000..0x380e415
     0x380e412 | 5b                       | pop rbx
     0x380e413 | 5d                       | pop rbp
     0x380e414 | c3                       | ret
-  
-  === [Sub-Rotina Chamada: 0x374f270..0x374f368 via call @0x380e086 (rcx = this (Direct Engine Sub-Call))] ===
-    struct RBX::DebugDisable {
-      /* +0x0 */ uint8_t field_0x0;
-      /* +0x4 */ int32_t field_0x4;
-      /* +0x14 */ double  field_0x14;
-      /* +0x78 */ void*   field_0x78;
-      /* +0x80 */ void*   field_0x80;
-      /* +0x88 */ int32_t field_0x88;
-      /* +0x98 */ double  field_0x98;
-      /* +0xa0 */ int32_t field_0xa0;
-      /* +0xb0 */ int32_t field_0xb0;
-      /* +0x240 */ void*   field_0x240;
-    };
-    
-    // Flag defaults: DebugDisableVoxelAsyncReadMeshing = false
-    auto RBX::DebugDisable::func_0x374f270(RBX::DebugDisable* this, int64_t param_2) {
-      this->field_0x0 = param_2->field_0x0;
-      this->field_0x4 = param_2->field_0x4;
-      this->field_0x14 = param_2->field_0x14;
-      call_0x83b180(&this->field_0x20, &param_2->field_0x20);
-      this->field_0x78 = 0;
-      this->field_0x80 = 0;
-      if (param_2->field_0x80 != 0) {
-        param_2->field_0x80->field_0x8 = param_2->field_0x80->field_0x8 + 1;
-      }
-      this->field_0x78 = param_2->field_0x78;
-      this->field_0x80 = param_2->field_0x80;
-      this->field_0x88 = param_2->field_0x88;
-      this->field_0x98 = param_2->field_0x98;
-      this->field_0xa0 = param_2->field_0xa0;
-      this->field_0xb0 = param_2->field_0xb0;
-      call_0x5de50d4(&this->field_0xc0, &param_2->field_0xc0, 128, 3);
-      this->field_0x240 = param_2->field_0x240;
-      return this;
-    }
-  
-  === [Instrucoes x86-64 da Sub-Rotina Chamada (0x374f270..0x374f368)] ===
-    0x374f270 | 48 89 5c 24 10           | mov qword ptr [rsp + 0x10], rbx
-    0x374f275 | 48 89 4c 24 08           | mov qword ptr [rsp + 0x8], rcx
-    0x374f27a | 57                       | push rdi
-    0x374f27b | 48 83 ec 30              | sub rsp, 0x30
-    0x374f27f | 48 8b fa                 | mov rdi, rdx
-    0x374f282 | 48 8b d9                 | mov rbx, rcx
-    0x374f285 | 0f b6 02                 | movzx eax, byte ptr [rdx]
-    0x374f288 | 88 01                    | mov byte ptr [rcx], al
-    0x374f28a | 0f 10 42 04              | movups xmm0, xmmword ptr [rdx + 0x4]
-    0x374f28e | 0f 11 41 04              | movups xmmword ptr [rcx + 0x4], xmm0
-    0x374f292 | f2 0f 10 4a 14           | movsd xmm1, qword ptr [rdx + 0x14]
-    0x374f297 | f2 0f 11 49 14           | movsd qword ptr [rcx + 0x14], xmm1
-    0x374f29c | 48 83 c1 20              | add rcx, 0x20
-    0x374f2a0 | 48 83 c2 20              | add rdx, 0x20
-    0x374f2a4 | e8 d7 be 0e fd           | call 0x83b180
-    0x374f2a9 | 90                       | nop
-    0x374f2aa | 33 c0                    | xor eax, eax
-    0x374f2ac | 48 89 43 78              | mov qword ptr [rbx + 0x78], rax
-    0x374f2b0 | 48 89 83 80 00 00 00     | mov qword ptr [rbx + 0x80], rax
-    0x374f2b7 | 48 8b 87 80 00 00 00     | mov rax, qword ptr [rdi + 0x80]
-    0x374f2be | 48 85 c0                 | test rax, rax
-    0x374f2c1 | 74 04                    | je 0x374f2c7
-    0x374f2c3 | f0 ff 40 08              | lock inc dword ptr [rax + 0x8]
-    L_0x374f2c7:
-    0x374f2c7 | 48 8b 47 78              | mov rax, qword ptr [rdi + 0x78]
-    0x374f2cb | 48 89 43 78              | mov qword ptr [rbx + 0x78], rax
-    0x374f2cf | 48 8b 87 80 00 00 00     | mov rax, qword ptr [rdi + 0x80]
-    0x374f2d6 | 48 89 83 80 00 00 00     | mov qword ptr [rbx + 0x80], rax
-    0x374f2dd | 0f 10 87 88 00 00 00     | movups xmm0, xmmword ptr [rdi + 0x88]
-    0x374f2e4 | 0f 11 83 88 00 00 00     | movups xmmword ptr [rbx + 0x88], xmm0
-    0x374f2eb | f2 0f 10 8f 98 00 00 00  | movsd xmm1, qword ptr [rdi + 0x98]
-    0x374f2f3 | f2 0f 11 8b 98 00 00 00  | movsd qword ptr [rbx + 0x98], xmm1
-    0x374f2fb | 0f 10 87 a0 00 00 00     | movups xmm0, xmmword ptr [rdi + 0xa0]
-    0x374f302 | 0f 11 83 a0 00 00 00     | movups xmmword ptr [rbx + 0xa0], xmm0
-    0x374f309 | 0f 10 8f b0 00 00 00     | movups xmm1, xmmword ptr [rdi + 0xb0]
-    0x374f310 | 0f 11 8b b0 00 00 00     | movups xmmword ptr [rbx + 0xb0], xmm1
-    0x374f317 | 48 8d 97 c0 00 00 00     | lea rdx, [rdi + 0xc0]
-    0x374f31e | 48 8d 8b c0 00 00 00     | lea rcx, [rbx + 0xc0]
-    0x374f325 | 48 8d 05 e4 7d ff ff     | lea rax, [rip - 0x821c]
-    0x374f32c | 48 89 44 24 28           | mov qword ptr [rsp + 0x28], rax
-    0x374f331 | 48 8d 05 38 00 00 00     | lea rax, [rip + 0x38]
-    0x374f338 | 48 89 44 24 20           | mov qword ptr [rsp + 0x20], rax
-    0x374f33d | 41 b9 03 00 00 00        | mov r9d, 0x3
-    0x374f343 | 45 8d 41 7d              | lea r8d, [r9 + 0x7d]
-    0x374f347 | e8 88 5d 69 02           | call 0x5de50d4
-    0x374f34c | 48 8b 87 40 02 00 00     | mov rax, qword ptr [rdi + 0x240]
-    0x374f353 | 48 89 83 40 02 00 00     | mov qword ptr [rbx + 0x240], rax
-    0x374f35a | 48 8b c3                 | mov rax, rbx
-    0x374f35d | 48 8b 5c 24 48           | mov rbx, qword ptr [rsp + 0x48]
-    0x374f362 | 48 83 c4 30              | add rsp, 0x30
-    0x374f366 | 5f                       | pop rdi
-    0x374f367 | c3                       | ret
 
 [Bytecode Hex]
   0x380e000: 54 | 24 48 | 48 89 10 | 48 8b 44 24 48
@@ -489,21 +398,6 @@ Operação  : 0x380e032: cmp byte [flag], imm8 ; fn=0x380e000..0x380e415
   0x380e3f9: 48 33 cc | e8 9f 64 5d 02 | 48 81 c4 08 07 00 00 | 41 5f
   0x380e40a: 41 5e | 41 5d | 41 5c | 5f
   0x380e411: 5e | 5b | 5d | c3
-
-  [Child Bytecode Hex 0x374f270..0x374f368]
-  0x374f270: 48 89 5c 24 10 | 48 89 4c 24 08 | 57 | 48 83 ec 30
-  0x374f27f: 48 8b fa | 48 8b d9 | 0f b6 02 | 88 01
-  0x374f28a: 0f 10 42 04 | 0f 11 41 04 | f2 0f 10 4a 14 | f2 0f 11 49 14
-  0x374f29c: 48 83 c1 20 | 48 83 c2 20 | e8 d7 be 0e fd | 90
-  0x374f2aa: 33 c0 | 48 89 43 78 | 48 89 83 80 00 00 00 | 48 8b 87 80 00 00 00
-  0x374f2be: 48 85 c0 | 74 04 | f0 ff 40 08 | 48 8b 47 78
-  0x374f2cb: 48 89 43 78 | 48 8b 87 80 00 00 00 | 48 89 83 80 00 00 00 | 0f 10 87 88 00 00 00
-  0x374f2e4: 0f 11 83 88 00 00 00 | f2 0f 10 8f 98 00 00 00 | f2 0f 11 8b 98 00 00 00 | 0f 10 87 a0 00 00 00
-  0x374f302: 0f 11 83 a0 00 00 00 | 0f 10 8f b0 00 00 00 | 0f 11 8b b0 00 00 00 | 48 8d 97 c0 00 00 00
-  0x374f31e: 48 8d 8b c0 00 00 00 | 48 8d 05 e4 7d ff ff | 48 89 44 24 28 | 48 8d 05 38 00 00 00
-  0x374f338: 48 89 44 24 20 | 41 b9 03 00 00 00 | 45 8d 41 7d | e8 88 5d 69 02
-  0x374f34c: 48 8b 87 40 02 00 00 | 48 89 83 40 02 00 00 | 48 8b c3 | 48 8b 5c 24 48
-  0x374f362: 48 83 c4 30 | 5f | c3
 
 [Strings .rdata na função]
   (Nenhuma string literal direta neste bloco)

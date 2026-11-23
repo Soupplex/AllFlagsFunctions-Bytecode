@@ -31,7 +31,7 @@ Operação  : 0x34bf8f7: cmp byte [flag], imm8 ; fn=0x34bf780..0x34bfa84
       this->field_0x18 = 0;
       this->field_0x38 = 0;
       if (param_2->field_0x8 != 0) {
-        param_2->field_0x8->field_0x8 = param_2->field_0x8->field_0x8 + 1;
+        param_2->field_0x8->field_0x8++;
       }
       this->field_0x8 = param_2->field_0x0;
       void* prev_0x10_1 = this->field_0x10;
@@ -53,17 +53,8 @@ Operação  : 0x34bf8f7: cmp byte [flag], imm8 ; fn=0x34bf780..0x34bfa84
       if (this->field_0x8 != 0 && this->field_0x8->field_0xa50 != 0 && this->field_0x8->field_0xa50->field_0x8 != 0) {
         do { // L_0x34bf850
           atomic_try_incref(&this->field_0x8->field_0xa50->field_0x8);
-          if (atomic_cas(&this->field_0x8->field_0xa50->field_0x8, this->field_0x8->field_0xa50->field_0x8, (this->field_0x8->field_0xa50->field_0x8 + 1)) == 0) break;
-          break;
+          if (atomic_cas(&this->field_0x8->field_0xa50->field_0x8, this->field_0x8->field_0xa50->field_0x8, this->field_0x8->field_0xa50->field_0x8 + 1) == 0) break;
         } while (this->field_0x8->field_0xa50->field_0x8 != 0); // loop -> L_0x34bf850
-        if (this->field_0x8->field_0xa48 != 0) {
-          auto local_0x38 = this->field_0x8->field_0xa48;
-          call_0x1bf7f70(&local_0x48, &local_0x38);
-        } else {
-          if (this->field_0x8->field_0xa50 != 0) {
-            call_0x6daf40(this->field_0x8->field_0xa50);
-          }
-        }
       }
       call_0x1857a80(&this->field_0x20, &local_0x48);
       if (local_0x60 != 0) {
@@ -73,8 +64,8 @@ Operação  : 0x34bf8f7: cmp byte [flag], imm8 ; fn=0x34bf780..0x34bfa84
         if (this->field_0x8 != 0) {
           call_0x2976a30(&this->field_0x8->field_0x8);
         }
-      } else {
-        if (param_4 == 1 && this->field_0x8 != 0 && ThreadSplitDuringDmLockFlush) {
+      } else if (param_4 == 1 && this->field_0x8 != 0) {
+        if (ThreadSplitDuringDmLockFlush) {
           call_0x2976a30(&this->field_0x8->field_0x8);
           int64_t local_0xa0;
           if (StudioHandleExceptionInDMLock) {
@@ -90,15 +81,17 @@ Operação  : 0x34bf8f7: cmp byte [flag], imm8 ; fn=0x34bf780..0x34bfa84
             call_0x34bfc70(&local_0xb0, &local_0x20);
             local_0xa0 = &sym_0x34bfc70;
             call_0xcb30(&local_0xa0);
-            if (local_0xa0 != 0 && local_0xa0 == &sym_0x34bfc70) {
-              call_0x34bfc70(local_0xa8, local_0xa8);
-            } else {
-              local_0xa8->vfunc(local_0xa8, local_0xa8);
+            if (local_0xa0 != 0) {
+              if (local_0xa0 == &sym_0x34bfc70) {
+                call_0x34bfc70(local_0xa8, local_0xa8);
+              } else {
+                local_0xa8->vfunc(local_0xa8, local_0xa8);
+              }
             }
-          } else {
-            call_0x2976a30(&this->field_0x8->field_0x8);
-            call_0x4065910(this->field_0x8);
           }
+        } else {
+          call_0x2976a30(&this->field_0x8->field_0x8);
+          call_0x4065910(this->field_0x8);
         }
       }
       auto ret_0x34bf6c0_20 = call_0x34bf6c0();
@@ -340,61 +333,63 @@ Operação  : 0x34bf8f7: cmp byte [flag], imm8 ; fn=0x34bf780..0x34bfa84
     
     // Flag defaults: ThreadSplitDuringDmLockFlush = false, ValidateDescendantOfDataModel = true
     auto RBX::ThreadSplit::func_0x34bfc70(RBX::ThreadSplit* this, int64_t param_2) {
-      if (this != param_2 && param_2 != 0) {
-        if (this == 0) {
-          return 0;
+      if (this != param_2) {
+        if (param_2 != 0) {
+          if (this == 0) {
+            return 0;
+          }
+          this->field_0x0 = param_2->field_0x0;
+          return this;
         }
-        this->field_0x0 = param_2->field_0x0;
-        return this;
-      }
-      void* sel_rsi_1 = this->field_0x0->field_0x8 == 0 ? 0 : this->field_0x0->field_0x8->field_0x1f0;
-      if (global_0x84a44d6 != 0 && ValidateDescendantOfDataModel) {
-        call_0x4062200(sel_rsi_1);
-      }
-      void* v_rcx_5;
-      if (sel_rsi_1 != 0) {
-        void* v_rsi_2 = sel_rsi_1;
-        if (sel_rsi_1->field_0x60 != 0) {
-          auto ret_0x7571b0_2 = call_0x7571b0(sel_rsi_1->field_0x60);
-          if (ret_0x7571b0_2 != 0) {
-            v_rsi_2 = ret_0x7571b0_2;
-            call_0x4068600();
-            if (v_rsi_2->field_0x18->field_0x1c0 - rax->field_0x1c0 > rax->field_0x1c2) {
-              L_0x34bfd2c:
-              v_rcx_5 = 0;
+        void* sel_rsi_1 = this->field_0x0->field_0x8 == 0 ? 0 : this->field_0x0->field_0x8->field_0x1f0;
+        if (global_0x84a44d6 != 0 && ValidateDescendantOfDataModel) {
+          call_0x4062200(sel_rsi_1);
+        }
+        void* v_rcx_2;
+        if (sel_rsi_1 != 0) {
+          void* v_rsi_1 = sel_rsi_1;
+          if (sel_rsi_1->field_0x60 != 0) {
+            auto ret_0x7571b0_2 = call_0x7571b0(sel_rsi_1->field_0x60);
+            if (ret_0x7571b0_2 != 0) {
+              v_rsi_1 = ret_0x7571b0_2;
+              auto ret_0x4068600_3 = call_0x4068600();
+              if (v_rsi_1->field_0x18->field_0x1c0 - ret_0x4068600_3->field_0x1c0 > ret_0x4068600_3->field_0x1c2) {
+                L_0x34bfd2c:
+                v_rcx_2 = 0;
+              } else {
+                v_rcx_2 = &v_rsi_1->field_m0x1f0;
+              }
             } else {
-              v_rcx_5 = &v_rsi_2->field_m0x1f0;
+              v_rcx_2 = 0;
             }
           } else {
-            v_rcx_5 = 0;
+            auto ret_0x4068600_3 = call_0x4068600();
+            if (v_rsi_1->field_0x18->field_0x1c0 - ret_0x4068600_3->field_0x1c0 > ret_0x4068600_3->field_0x1c2) {
+              goto L_0x34bfd2c;
+            } else {
+              v_rcx_2 = &v_rsi_1->field_m0x1f0;
+            }
           }
         } else {
-          call_0x4068600();
-          if (v_rsi_2->field_0x18->field_0x1c0 - rax->field_0x1c0 > rax->field_0x1c2) {
-            goto L_0x34bfd2c;
-          } else {
-            v_rcx_5 = &v_rsi_2->field_m0x1f0;
-          } else {
-            goto L_0x34bfd2c;
-          }
-          if (v_rcx_5 != 0) {
-            call_0x1bf7ef0(&v_rcx_5->field_0xa48, &local_0x30);
-          }
-          int64_t stk_6;
-          if (v_rcx_5 != 0) {
-            stk_6 = call_0x4065f00(v_rcx_5);
-          } else {
-            stk_6 = 0;
-          }
-          call_0x4065910(this->field_0x0->field_0x8);
-          if (v_rcx_5 != 0) {
-            call_0x40660e0(v_rcx_5, stk_6);
-          }
-          if (local_0x48 != 0) {
-            call_0x1bf80e0(&local_0x30);
-          }
-          return 0;
+          goto L_0x34bfd2c;
         }
+        if (v_rcx_2 != 0) {
+          call_0x1bf7ef0(&v_rcx_2->field_0xa48, &local_0x30);
+        }
+        int64_t stk_3;
+        if (v_rcx_2 != 0) {
+          stk_3 = call_0x4065f00(v_rcx_2);
+        } else {
+          stk_3 = 0;
+        }
+        call_0x4065910(this->field_0x0->field_0x8);
+        if (v_rcx_2 != 0) {
+          call_0x40660e0(v_rcx_2, stk_3);
+        }
+        if (local_0x48 != 0) {
+          call_0x1bf80e0(&local_0x30);
+        }
+        return 0;
       }
       return 0;
     }

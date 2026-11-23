@@ -10,7 +10,7 @@ Operação  : 0x15739d7: mov/math reg, [flag] ; fn=0x1573880..0x1573ade
     Padrão  : FLogGlyphProviderCreation = 0 (default) [log, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : GlyphProviderCreationModernLogVersion >= 6 && GlyphProviderCreationModernLogVersion >> 8 >= 6
-    Altera  : this->field_0x20->field_0x0
+    Altera  : this->field_0x20->field_0x0, this->field_0x20
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x1571b69 (in fn_0x1571900): call 0x1573880  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
@@ -26,8 +26,8 @@ Operação  : 0x15739d7: mov/math reg, [flag] ; fn=0x1573880..0x1573ade
     [XREF #3 @0x3562945] Fórmula : GlyphProviderCreation < 6
     [XREF #3 @0x3562945] Fórmula : GlyphProviderCreation >> 8 < 3
     [XREF #3 @0x3562945] Fórmula : GlyphProviderCreation == 0
-    [XREF #3 @0x3562945] Fórmula : call_0x3760390(GlyphProviderCreation, ret_0x110efc0_7->field_0x10->field_0x18->field_0x18->field_0x0[rcx * 8], this->field_0xce8, this->field_0xcf0)
-    [XREF #3 @0x3562945] Altera  : this->field_0xcd8->field_0x0
+    [XREF #3 @0x3562945] Fórmula : call_0x3760390(GlyphProviderCreation, i_edi[i_ecx * 8], this->field_0xce8, this->field_0xcf0)
+    [XREF #3 @0x3562945] Altera  : this->field_0xcd8->field_0x0, this->field_0xcd8
   
   === [Decompilacao C++ da Funcao 0x1573880..0x1573ade] ===
     struct RBX::RefactorGlyph {
@@ -38,8 +38,7 @@ Operação  : 0x15739d7: mov/math reg, [flag] ; fn=0x1573880..0x1573ade
     
     // Flag defaults: RefactorGlyphProviderInitializationProcedure4 = false, GlyphProviderCreation = 0, GlyphProviderCreationModernLogVersion = 6
     void RBX::RefactorGlyph::func_0x1573880(RBX::RefactorGlyph* this, int64_t param_2) {
-      auto* f_20 = this->field_0x20;
-      if ((f_20 - this->field_0x18) >> 3 <= 254) {
+      if ((this->field_0x20 - this->field_0x18) >> 3 <= 254) {
         if (RefactorGlyphProviderInitializationProcedure4) {
           if (GlyphProviderCreationModernLogVersion >= 6 && GlyphProviderCreationModernLogVersion >> 8 >= 6) {
             FLog::Log("[DFLog::GlyphProviderCreationModernLogVersion] Created new GlyphProvider with index {} for font ");
@@ -47,10 +46,11 @@ Operação  : 0x15739d7: mov/math reg, [flag] ; fn=0x1573880..0x1573ade
         } else if (GlyphProviderCreation >= 6 && GlyphProviderCreation >> 8 >= 3) {
           FLog::Log("[FLog::GlyphProviderCreation] Created new GlyphProvider with index %d for font %s");
         }
-        if (f_20 != this->field_0x28) {
-          f_20->field_0x0 = param_2->field_0x0;
+        if (this->field_0x20 != this->field_0x28) {
+          this->field_0x20->field_0x0 = param_2->field_0x0;
+          this->field_0x20 = this->field_0x20 + 8;
         } else {
-          call_0x157bdb0(&this->field_0x18, f_20, param_2);
+          call_0x157bdb0(&this->field_0x18, this->field_0x20, param_2);
         }
         if (param_2->field_0x0 != 0) {
           call_0x156ec10(param_2->field_0x0);
@@ -112,7 +112,7 @@ Operação  : 0x15739d7: mov/math reg, [flag] ; fn=0x1573880..0x1573ade
     0x157393d | 4c 2b 06                 | sub r8, qword ptr [rsi]
     0x1573940 | 49 c1 f8 03              | sar r8, 0x3
     0x1573944 | 48 89 54 24 50           | mov qword ptr [rsp + 0x50], rdx
-    0x1573949 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x1573949 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     L_0x1573950:
     0x1573950 | 48 ff c0                 | inc rax
     0x1573953 | 80 3c 02 00              | cmp byte ptr [rdx + rax], 0x0
@@ -237,53 +237,68 @@ Operação  : 0x15739d7: mov/math reg, [flag] ; fn=0x1573880..0x1573ade
       if ((this->field_0x10 - this->field_0x0) >> 3 > 0x1fffffffffffffff - (((this->field_0x10 - this->field_0x0) >> 3) >> 1)) {
         v_rcx_1 = 0x1fffffffffffffff;
       } else {
-        v_rcx_1 = max(((this->field_0x8 - this->field_0x0) >> 3) + 1, (((this->field_0x10 - this->field_0x0) >> 3) >> 1) + rcx);
+        int64_t tmp_1 = max(((this->field_0x8 - this->field_0x0) >> 3) + 1, (((this->field_0x10 - this->field_0x0) >> 3) >> 1) + ((this->field_0x10 - this->field_0x0) >> 3));
+        v_rcx_1 = tmp_1;
       }
       auto ret_0x6fd950_1 = call_0x6fd950(v_rcx_1 * 8);
-      void* prev_0x0_1 = param_3->field_0x0;
+      void* prev_0x0_2 = param_3->field_0x0;
       param_3->field_0x0 = 0;
-      (ret_0x6fd950_1 + rdi * 8)->field_0x0 = prev_0x0_1;
+      (ret_0x6fd950_1 + ((param_2 - this->field_0x0) >> 3) * 8)->field_0x0 = prev_0x0_2;
+      void* i_ebx;
+      uint64_t i_edx;
+      void* i_ecx;
       if (param_2 == this->field_0x8) {
         if (this->field_0x0 != this->field_0x8) {
           do { // L_0x157be70
-            void* prev_0x0_3 = this->field_0x0->field_0x0;
-            this->field_0x0->field_0x0 = 0;
-            ret_0x6fd950_1->field_0x0 = prev_0x0_3;
-          } while (&this->field_0x0->field_0x8 != this->field_0x8); // loop -> L_0x157be70
+            void* prev_0x0_5 = i_ecx->field_0x0;
+            i_ecx->field_0x0 = 0;
+            i_edx->field_0x0 = prev_0x0_5;
+            i_ecx += 8;
+            i_edx = i_edx + 8;
+          } while (i_ecx != this->field_0x8); // loop -> L_0x157be70
         }
       } else {
         if (this->field_0x0 != param_2) {
+          i_ecx = this->field_0x0;
+          i_edx = ret_0x6fd950_1;
           do { // L_0x157beb0
-            void* prev_0x0_2 = this->field_0x0->field_0x0;
-            this->field_0x0->field_0x0 = 0;
-            ret_0x6fd950_1->field_0x0 = prev_0x0_2;
-          } while (&this->field_0x0->field_0x8 != param_2); // loop -> L_0x157beb0
+            void* prev_0x0_3 = i_ecx->field_0x0;
+            i_ecx->field_0x0 = 0;
+            i_edx->field_0x0 = prev_0x0_3;
+            i_ecx += 8;
+            i_edx = i_edx + 8;
+          } while (i_ecx != param_2); // loop -> L_0x157beb0
         }
         if (param_2 != this->field_0x8) {
+          i_ebx = param_2;
           do { // L_0x157bee0
-            (((ret_0x6fd950_1 + rdi * 8) + 8) - param_2)[param_2] = param_2->field_0x0;
-          } while (&param_2->field_0x8 != this->field_0x8); // loop -> L_0x157bee0
+            void* prev_0x0_4 = i_ebx->field_0x0;
+            i_ebx->field_0x0 = 0;
+            ((r12 + 8) - param_2)[i_ebx] = prev_0x0_4;
+            i_ebx += 8;
+          } while (i_ebx != this->field_0x8); // loop -> L_0x157bee0
         }
       }
       if (this->field_0x0 != 0) {
         if (this->field_0x0 != this->field_0x8) {
           do { // L_0x157bf04
-            if (this->field_0x0->field_0x0 != 0) {
-              call_0x156ec10(this->field_0x0->field_0x0);
-              call_0x4955ac0(this->field_0x0->field_0x0);
+            if (i_ebx->field_0x0 != 0) {
+              call_0x156ec10(i_ebx->field_0x0);
+              call_0x4955ac0(i_ebx->field_0x0);
             }
-          } while (&this->field_0x0->field_0x8 != this->field_0x8); // loop -> L_0x157bf04
+            i_ebx += 8;
+          } while (i_ebx != this->field_0x8); // loop -> L_0x157bf04
         }
-        void* v_rcx_6 = this->field_0x0;
-        if (rax * 8 >= 0x1000) {
-          v_rcx_6 = this->field_0x0->field_m0x8;
+        void* v_rcx_3 = this->field_0x0;
+        if (((this->field_0x10 - this->field_0x0) >> 3) * 8 >= 0x1000) {
+          v_rcx_3 = this->field_0x0->field_m0x8;
         }
-        call_0x4955ac0(v_rcx_6);
+        call_0x4955ac0(v_rcx_3);
       }
       this->field_0x0 = ret_0x6fd950_1;
-      this->field_0x8 = ret_0x6fd950_1 + rax * 8;
+      this->field_0x8 = ret_0x6fd950_1 + (((this->field_0x8 - this->field_0x0) >> 3) + 1) * 8;
       this->field_0x10 = ret_0x6fd950_1 + v_rcx_1 * 8;
-      return ret_0x6fd950_1 + rdi * 8;
+      return ret_0x6fd950_1 + ((param_2 - this->field_0x0) >> 3) * 8;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x157bdb0..0x157bfa8)] ===
@@ -464,7 +479,7 @@ Operação  : 0x15739d7: mov/math reg, [flag] ; fn=0x1573880..0x1573ade
     };
     
     // Flag defaults: GlyphProviderCreation = 0, RefactorGlyphProviderInitializationProcedure4 = false
-    void RBX::GlyphProvider::func_0x156ec10(RBX::GlyphProvider* this, int64_t param_2) {
+    void RBX::GlyphProvider::func_0x156ec10(RBX::GlyphProvider* this) {
       if (RefactorGlyphProviderInitializationProcedure4) {
         this->field_0x78 = 0;
         this->field_0x88 = 0;
@@ -487,10 +502,10 @@ Operação  : 0x15739d7: mov/math reg, [flag] ; fn=0x1573880..0x1573ade
         this->field_0x10 = 0;
         this->field_0xa0 = 0;
         this->field_0x0 = 0;
-        void* prev_0x8_7 = this->field_0x8;
+        void* prev_0x8_5 = this->field_0x8;
         this->field_0x8 = 0;
-        if (prev_0x8_7 != 0) {
-          call_0x6daf40(prev_0x8_7);
+        if (prev_0x8_5 != 0) {
+          call_0x6daf40(prev_0x8_5);
         }
       } else {
         if (this->field_0x20 != 0 && this->field_0x20->field_0x0 != 0 && atomic_fetch_sub(&this->field_0x20->field_0x0, 1) == 1) {
@@ -498,109 +513,101 @@ Operação  : 0x15739d7: mov/math reg, [flag] ; fn=0x1573880..0x1573ade
           if (this->field_0x20->field_0x8 != 0) {
             call_0x241d4d0(this->field_0x20->field_0x8);
             global_0x84bd7bb = 1;
-            this->field_0x20->field_0x8->vfunc(this->field_0x20->field_0x8);
+            (*global_0x81650e8)(this->field_0x20->field_0x8);
           }
           if (this->field_0x20->field_0x68 != 0) {
-            this->vfunc_0x20->field_0x68(this->field_0x20->field_0x60) // -> RBX::AnimatedMechanicalJoint::fn_0x148b030;
+            this->field_0x20->vfunc_0x68(this->field_0x20->field_0x60) // -> RBX::DataModelPatchConfigurer::fn_0x151a370;
           }
           call_0x242c190(this->field_0x20->field_0x10);
           call_0x242ac70(this->field_0x20->field_0x18);
           call_0x242bdc0(this->field_0x20->field_0x58);
           global_0x84bd7bb = 1;
-          this->field_0x20->field_0x48->vfunc(this->field_0x20->field_0x48);
+          (*global_0x81650e8)(this->field_0x20->field_0x48);
           global_0x84bd7bb = 1;
-          this->field_0x20->field_0x50->vfunc(this->field_0x20->field_0x50);
+          (*global_0x81650e8)(this->field_0x20->field_0x50);
           global_0x84bd7bb = 1;
-          this->field_0x20->vfunc(this->field_0x20);
+          (*global_0x81650e8)(this->field_0x20);
         }
+        void* i_ebx;
         if (this->field_0x28 != 0 && this->field_0x28->field_0x0 != 0 && atomic_fetch_sub(&this->field_0x28->field_0x0, 1) == 1) {
           this->field_0x28->field_0x0 = -57005;
           if (this->field_0x28->field_0x8 != 0) {
             call_0x241d4d0(this->field_0x28->field_0x8);
             global_0x84bd7bb = atomic_fetch_sub(&this->field_0x28->field_0x0, 1);
-            this->field_0x28->field_0x8->vfunc(this->field_0x28->field_0x8);
+            (*global_0x81650e8)(this->field_0x28->field_0x8);
           }
           if (this->field_0x28->field_0x190 != 0) {
-            auto i_ebx = this->field_0x28->field_0x190;
+            i_ebx = this->field_0x28->field_0x190;
             do { // L_0x156ee20
-              call_0x244ecb0(this->field_0x28->field_0x190->field_0x0);
+              call_0x244ecb0(i_ebx->field_0x0);
               global_0x84bd7bb = 1;
-              i_ebx->vfunc(i_ebx);
-            } while (this->field_0x28->field_0x190->field_0x8 != 0); // loop -> L_0x156ee20
+              (*global_0x81650e8)(i_ebx);
+              i_ebx = i_ebx->field_0x8;
+            } while (i_ebx->field_0x8 != 0); // loop -> L_0x156ee20
           }
           call_0x2435220(&this->field_0x28->field_0x50);
           if (this->field_0x28->field_0x20 != 0) {
-            this->vfunc_0x28->field_0x20(this->field_0x28->field_0x18) // -> RBX::AnimatedMechanicalJoint::fn_0x148b850;
+            this->field_0x28->vfunc_0x20(this->field_0x28->field_0x18) // -> RBX::AnimatedMechanicalJoint::fn_0x148b030;
           }
           global_0x84bd7bb = 1;
-          this->field_0x28->vfunc(this->field_0x28);
+          (*global_0x81650e8)(this->field_0x28);
         }
         if (this->field_0x18 != 0 && this->field_0x18->field_0x90 != 0) {
-          this->field_0x18->field_0xd0->field_0x60 = this->field_0x18->field_0xd0->field_0x60 - 1;
+          this->field_0x18->field_0xd0->field_0x60--;
           if (this->field_0x18->field_0xd0->field_0x60 <= 0 && this != 0) {
+            void* i_edx = this->field_0x18->field_0x90->field_0x20;
             if (this->field_0x18->field_0x90->field_0x20 != 0) {
               do { // L_0x156eed6
-                if (this->field_0x18->field_0x90->field_0x20->field_0x10 == this->field_0x18) break;
-                break;
-              } while (this->field_0x18->field_0x90->field_0x20->field_0x8 != 0); // loop -> L_0x156eed6
-              if (this->field_0x18->field_0x90->field_0x20->field_0x0 != 0) {
-                this->field_0x18->field_0x90->field_0x20->field_0x0->field_0x8 = this->field_0x18->field_0x90->field_0x20->field_0x8;
-              } else {
-                this->field_0x18->field_0x90->field_0x20 = this->field_0x18->field_0x90->field_0x20->field_0x8;
-              }
-              if (this->field_0x18->field_0x90->field_0x20->field_0x8 != 0) {
-                this->field_0x18->field_0x90->field_0x20->field_0x8->field_0x0 = this->field_0x18->field_0x90->field_0x20->field_0x0;
-              } else {
-                this->field_0x18->field_0x90->field_0x28 = this->field_0x18->field_0x90->field_0x20->field_0x0;
-              }
-              this->vfunc_0x18->field_0x90->field_0x10->field_0x10(this->field_0x18->field_0x90->field_0x10) // -> RBX::AnimatedMechanicalJoint::fn_0x148b830;
-              call_0x2483bf0(this->field_0x18->field_0x90->field_0x10, this->field_0x18, this->field_0x18->field_0x90);
+                if (i_edx->field_0x10 == this->field_0x18) break;
+                i_edx = i_edx->field_0x8;
+              } while (i_edx->field_0x8 != 0); // loop -> L_0x156eed6
             }
           }
         }
         if (this->field_0x10 != 0) {
-          this->field_0x10->field_0x160 = this->field_0x10->field_0x160 - 1;
+          this->field_0x10->field_0x160--;
           if (this->field_0x10->field_0x160 <= 0) {
             int32_t i_eax = 2;
-            void* v_rax_5;
+            void* v_rax_1;
             do { // L_0x156ef72
-              v_rax_5 = i_eax;
+              v_rax_1 = i_eax;
               if (this->field_0x10->field_0x14 != 0) {
                 do { // L_0x156ef81
                   if ("type42" != 0) {
                     do { // L_0x156efa0
-                    if ((i_eax->field_0x0 - rsi[i_eax]) != 0) break;
+                    if (i_eax->field_0x0 - rsi[i_eax] != 0) break;
+                    i_eax++;
                     } while (rsi[i_eax] != 0); // loop -> L_0x156efa0
                     if (i_eax->field_0x0 - rsi[i_eax] == 0) {
-                    if ((((this->field_0x10->field_0x18[eax * 8])->field_0x0)->field_0x0 & 0x1) != 0 && (this->field_0x10->field_0x18[eax * 8])->field_0x20 != 0) {
+                    if ((((this->field_0x10->field_0x18[i_ebx * 8])->field_0x0)->field_0x0 & 0x1) != 0 && (this->field_0x10->field_0x18[i_ebx * 8])->field_0x20 != 0) {
                     L_0x156efc5:
                     do { // L_0x156efc5
-                    L_0x156efc5:
                     call_0x2485d70(i_eax->field_0x10);
-                    } while ((this->field_0x10->field_0x18[eax * 8])->field_0x20 != 0); // loop -> L_0x156efc5
+                    i_eax = (this->field_0x10->field_0x18[i_ebx * 8])->field_0x20;
+                    } while ((this->field_0x10->field_0x18[i_ebx * 8])->field_0x20 != 0); // loop -> L_0x156efc5
                     }
                     }
-                  } else if ((((this->field_0x10->field_0x18[eax * 8])->field_0x0)->field_0x0 & 0x1) != 0 && (this->field_0x10->field_0x18[eax * 8])->field_0x20 != 0) {
+                  } else if ((((this->field_0x10->field_0x18[i_ebx * 8])->field_0x0)->field_0x0 & 0x1) != 0 && (this->field_0x10->field_0x18[i_ebx * 8])->field_0x20 != 0) {
                     goto L_0x156efc5;
                   }
-                } while ((ebx + 1) < this->field_0x10->field_0x14); // loop -> L_0x156ef81
-                v_rax_5 = 2;
+                  i_ebx++;
+                } while (i_ebx < this->field_0x10->field_0x14); // loop -> L_0x156ef81
+                v_rax_1 = 2;
               }
-            } while ((v_rax_5 - 1) != 0); // loop -> L_0x156ef72
+              i_r13d += 8;
+              i_eax = v_rax_1 - 1;
+            } while (v_rax_1 != 1); // loop -> L_0x156ef72
             if (this->field_0x10->field_0x14 != 0) {
+              int32_t i_ecx = this->field_0x10->field_0x14;
               do { // L_0x156f000
-                if (this->field_0x10->field_0x18[rsi * 8] != 0 && &this->field_0x10->field_0x18 < &this->field_0x10->field_0x18 + this->field_0x10->field_0x14 * 8) {
+                if (this->field_0x10->field_0x18[(i_ecx - 1) * 8] != 0 && &this->field_0x10->field_0x18 < &this->field_0x10->field_0x18 + i_ecx * 8) {
+                  void* i_edi = &this->field_0x10->field_0x18;
                   do { // L_0x156f020
-                    if (this->field_0x10->field_0x18 == this->field_0x10->field_0x18[rsi * 8]) break;
-                    break;
-                  } while (&this->field_0x10->field_0x20 < (&this->field_0x10->field_0x18 + this->field_0x10->field_0x14 * 8)); // loop -> L_0x156f020
-                  this->field_0x10->field_0x14 = this->field_0x10->field_0x14 - 1;
-                  if (&this->field_0x10->field_0x18 < &this->field_0x10->field_0x18 + this->field_0x10->field_0x14 * 8 - 8) {
-                    memcpy(&this->field_0x10->field_0x18, &this->field_0x10->field_0x20, ((&this->field_0x10->field_0x18 + this->field_0x10->field_0x14 * 8 - 8 - &this->field_0x10->field_0x18 - 1) >> 3) + 1);
-                  }
-                  ((&this->field_0x10->field_0x18 + this->field_0x10->field_0x14 * 8) - 8)->field_0x0 = 0;
-                  call_0x2486fa0(this->field_0x10->field_0x18[rsi * 8]);
+                    if (i_edi->field_0x0 == this->field_0x10->field_0x18[(i_ecx - 1) * 8]) break;
+                    i_edi += 8;
+                  } while (i_edi < &this->field_0x10->field_0x18 + i_ecx * 8); // loop -> L_0x156f020
                 }
+                i_ecx = this->field_0x10->field_0x14;
               } while (this->field_0x10->field_0x14 != 0); // loop -> L_0x156f000
             }
             this->field_0x10->vfunc_0x10(this->field_0x10->field_0x0, this->field_0x10) // -> RBX::PoseBase::VCFramePose::fn_0x1625fe0;
@@ -632,7 +639,7 @@ Operação  : 0x15739d7: mov/math reg, [flag] ; fn=0x1573880..0x1573ade
     0x156ec26 | 4c 8b f9                 | mov r15, rcx
     0x156ec29 | 48 8b 79 20              | mov rdi, qword ptr [rcx + 0x20]
     0x156ec2d | 80 3d 3c ee b7 06 00     | cmp byte ptr [rip + 0x6b7ee3c], 0x0 ; FFlagRefactorGlyphProviderInitializationProcedure4
-    0x156ec34 | 0f 84 aa 00 00 00        | je 0x156ece4
+    0x156ec34 | 0f 84 aa 00 00 00        | je 0x156ece4 ; [Nanomite Reconstructed: je +0xaa via cfg_exit_block_resolver]
     0x156ec3a | 45 33 e4                 | xor r12d, r12d
     0x156ec3d | 4c 89 60 bc              | mov qword ptr [rax - 0x44], r12
     0x156ec41 | 44 89 60 b8              | mov dword ptr [rax - 0x48], r12d
@@ -988,9 +995,10 @@ Operação  : 0x15739d7: mov/math reg, [flag] ; fn=0x1573880..0x1573ade
     void RBX::GlyphProvider::func_0x3562020(RBX::GlyphProvider* this, int64_t param_2) {
       if (RefactorGlyphProviderInitializationProcedure4) {
         if (GlyphProviderCreationModernLogVersion >= 6 && GlyphProviderCreationModernLogVersion >> 8 >= 3) {
-          auto i_eax = "[DFLog::GlyphProviderCreationModernLogVersion] Invalid typesetterId - {} is out of range of size";
+          uint64_t i_eax = -1;
           do { // L_0x35620a0
-          } while (rcx[(i_eax + 1)] != 0); // loop -> L_0x35620a0
+            i_eax++;
+          } while (rcx[i_eax] != 0); // loop -> L_0x35620a0
           FLog::Log("[DFLog::GlyphProviderCreationModernLogVersion] Invalid typesetterId - {} is out of range of size");
         }
       } else if (GlyphProviderCreation >= 6 && GlyphProviderCreation >> 8 >= 3) {
@@ -1000,7 +1008,7 @@ Operação  : 0x15739d7: mov/math reg, [flag] ; fn=0x1573880..0x1573ade
         call_0x746610(&local_0xf0, &sym_0x817d678);
         auto local_0xb0 = 0;
         call_0x2dc0a10(&local_0x3d0, &local_0xb0);
-        std::string::_Tidy_deallocate(v_rcx_1);
+        std::string::_Tidy_deallocate(local_0xb0);
         call_0x2dc1e30(&local_0x3d0);
         call_0x2dbd340(&local_0x3d0, &local_0x40, this, 1);
         call_0x2dbd340(&local_0x3d0, &local_0x40, param_2, 1);
@@ -1038,7 +1046,7 @@ Operação  : 0x15739d7: mov/math reg, [flag] ; fn=0x1573880..0x1573ade
     0x3562082 | 48 8b 4c 24 50           | mov rcx, qword ptr [rsp + 0x50]
     0x3562087 | 48 81 c1 a8 46 be fc     | add rcx, 0xfcbe46a8
     0x356208e | 48 89 4c 24 60           | mov qword ptr [rsp + 0x60], rcx
-    0x3562093 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x3562093 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x356209a | 66 0f 1f 44 00 00        | nop
     L_0x35620a0:
     0x35620a0 | 48 ff c0                 | inc rax
@@ -1185,25 +1193,21 @@ Operação  : 0x15739d7: mov/math reg, [flag] ; fn=0x1573880..0x1573ade
         if (global_0x8dbb1c4 == -1) {
           i_eax = 0;
           do { // L_0x35624a0
-            if (("StorageCapacityLowMB" - 0xf619b)[i_eax] != "GPU"->field_m0x1[(i_eax + 1)]) break;
-            break;
-          } while ((i_eax + 1) != 4); // loop -> L_0x35624a0
-          global_0x8dbb1c8 = call_0x29a3390("StorageCapacityLowMB" - 0xf619b, "update GlyphRenderer list", -1, ("StorageCapacityLowMB" - 0xf619b)[i_eax] == "GPU"->field_m0x1[i_eax + 1]);
+            i_eax++;
+            if (("StorageCapacityLowMB" - 0xf619b)[i_eax] != "GPU"->field_m0x1[i_eax]) break;
+          } while (i_eax != 4); // loop -> L_0x35624a0
+          global_0x8dbb1c8 = call_0x29a3390("StorageCapacityLowMB" - 0xf619b, "update GlyphRenderer list", -1, ("StorageCapacityLowMB" - 0xf619b)[i_eax] == "GPU"->field_m0x1[i_eax]);
           call_0x14f0(&sym_0x8dbb1c4);
         }
       }
       call_0x2924c40(&local_0x90, global_0x8dbb1c8, -1, 0);
       auto* f_dd8 = this->field_0xdd8;
-      void* v_rcx_27 = f_dd8;
       if (f_dd8 != 0) {
         auto ret_0x110ee80_6 = call_0x110ee80(f_dd8->field_0x240 & 0xfffffff8);
         if (ret_0x110ee80_6 != 0) {
           auto ret_0x110efc0_7 = call_0x110efc0(f_dd8->field_0x240 & 0xfffffff8);
           if (ret_0x110efc0_7->field_0x10->field_0x18 != 0) {
-            void* v_rcx_17;
-            void* v_rcx_23;
             int32_t i_esi;
-            auto* f_cd8 = this->field_0xcd8;
             if (RefactorGlyphProviderInitializationProcedure4) {
               if (global_0x8dbb1d0 > rbp->field_0x58->field_0x0->field_0x0[40]) {
                 call_0x12e0(&sym_0x8dbb1d0);
@@ -1212,52 +1216,73 @@ Operação  : 0x15739d7: mov/math reg, [flag] ; fn=0x1573880..0x1573ade
                   call_0x14f0(&sym_0x8dbb1d0);
                 }
               }
-              call_0x2925220(global_0x8dbb1d8, "GlyphRenderer count: %d -> %d", (f_cd8 - this->field_0xcd0) >> 3, (ret_0x110efc0_7->field_0x10->field_0x18->field_0x20 - ret_0x110efc0_7->field_0x10->field_0x18->field_0x18) >> 3);
-              if ((f_cd8 - this->field_0xcd0) >> 3 < (ret_0x110efc0_7->field_0x10->field_0x18->field_0x20 - ret_0x110efc0_7->field_0x10->field_0x18->field_0x18) >> 3) {
+              call_0x2925220(global_0x8dbb1d8, "GlyphRenderer count: %d -> %d", (this->field_0xcd8 - this->field_0xcd0) >> 3, (ret_0x110efc0_7->field_0x10->field_0x18->field_0x20 - ret_0x110efc0_7->field_0x10->field_0x18->field_0x18) >> 3);
+              if ((this->field_0xcd8 - this->field_0xcd0) >> 3 < (ret_0x110efc0_7->field_0x10->field_0x18->field_0x20 - ret_0x110efc0_7->field_0x10->field_0x18->field_0x18) >> 3) {
+                uint64_t i_ebx = (this->field_0xcd8 - this->field_0xcd0) >> 3;
                 int32_t i_r14d = ret_0x110efc0_7->field_0x10->field_0x18->field_0x100;
+                void* i_r13d = ret_0x110efc0_7->field_0x10->field_0x18->field_0x18;
                 do { // L_0x3562661
-                  auto expr_1 = "[DFLog::GlyphProviderCreationModernLogVersion] Creating GlyphRenderer for GlyphProvider {}";
-                  expr_1;
-                  int32_t v_rsi_9 = i_esi;
+                  "[DFLog::GlyphProviderCreationModernLogVersion] Creating GlyphRenderer for GlyphProvider {}";
+                  int32_t v_rsi_5 = i_esi;
                   if (GlyphProviderCreationModernLogVersion >= 6 && GlyphProviderCreationModernLogVersion >> 8 >= 4) {
-                    FLog::Log(expr_1);
-                    v_rsi_9 = 0;
+                    FLog::Log("[DFLog::GlyphProviderCreationModernLogVersion] Creating GlyphRenderer for GlyphProvider {}");
+                    v_rsi_5 = 0;
                   }
-                  void* v_rcx_14;
-                  if ((f_cd8 - this->field_0xcd0) >> 3 == i_r14d) {
-                    FLog::Log(expr_1);
+                  void* v_rcx_9;
+                  int32_t v_rsi_10;
+                  if (i_ebx == i_r14d) {
+                    FLog::Log("[DFLog::GlyphProviderCreationModernLogVersion] Creating GlyphRenderer for GlyphProvider {}");
                     auto ret_0x3760390_29 = call_0x3760390(GlyphProviderCreationModernLogVersion, &local_0x140, this->field_0xce8, this->field_0xcf0);
-                    if (((v_rsi_9 | 0x1 | 0x2) & 0x1) != 0 && local_0x148 != 0) {
+                    int32_t v_rsi_7 = v_rsi_5 | 0x1 | 0x2;
+                    if (((v_rsi_5 | 0x1 | 0x2) & 0x1) != 0) {
+                    if (local_0x148 != 0) {
                     call_0x6daf40(local_0x148);
+                    v_rsi_7 = (v_rsi_5 | 0x1 | 0x2) & 0xfffffffe;
+                    } else {
+                    v_rsi_7 = (v_rsi_5 | 0x1 | 0x2) & 0xfffffffe;
+                    }
                     }
                     int64_t local_0x60;
-                    if (f_cd8 != this->field_0xce0) {
-                    f_cd8->field_0x0 = ret_0x3760390_29;
+                    if (this->field_0xcd8 != this->field_0xce0) {
+                    this->field_0xcd8->field_0x0 = ret_0x3760390_29;
+                    this->field_0xcd8 = this->field_0xcd8 + 8;
                     } else {
                     local_0x60 = ret_0x3760390_29;
-                    call_0x356b540(&this->field_0xcd0, f_cd8, &local_0x60);
+                    call_0x356b540(&this->field_0xcd0, this->field_0xcd8, &local_0x60);
                     }
-                    v_rcx_14 = &local_0x60;
-                    call_0x3568240(v_rcx_14);
-                    if ((((f_cd8 - this->field_0xcd0) >> 3) + 1) >= local_0x78) break;
+                    v_rcx_9 = &local_0x60;
+                    v_rsi_10 = v_rsi_7;
+                    call_0x3568240(v_rcx_9);
+                    i_ebx++;
+                    if (i_ebx >= local_0x78) break;
+                    i_eax = i_ebx;
+                    i_r14d = ret_0x110efc0_7->field_0x10->field_0x18->field_0x100;
+                    i_esi = v_rsi_10;
+                    i_r13d = ret_0x110efc0_7->field_0x10->field_0x18->field_0x18;
                   } else {
-                    if (r13->field_0xa0 == 0) break;
-                    FLog::Log(expr_1);
-                    auto ret_0x3760390_27 = call_0x3760390(GlyphProviderCreationModernLogVersion, ret_0x110efc0_7->field_0x10->field_0x18->field_0x18->field_0x0[i_eax * 8], this->field_0xce8, this->field_0xcf0);
+                    if ((i_r13d[i_eax * 8])->field_0xa0 == 0) break;
+                    FLog::Log("[DFLog::GlyphProviderCreationModernLogVersion] Creating GlyphRenderer for GlyphProvider {}");
+                    auto ret_0x3760390_27 = call_0x3760390(GlyphProviderCreationModernLogVersion, i_r13d[i_eax * 8], this->field_0xce8, this->field_0xcf0);
                     int64_t local_0x68;
-                    if (f_cd8 != this->field_0xce0) {
-                    f_cd8->field_0x0 = ret_0x3760390_27;
+                    if (this->field_0xcd8 != this->field_0xce0) {
+                    this->field_0xcd8->field_0x0 = ret_0x3760390_27;
+                    this->field_0xcd8 = this->field_0xcd8 + 8;
                     } else {
                     local_0x68 = ret_0x3760390_27;
-                    call_0x356b540(&this->field_0xcd0, f_cd8, &local_0x68);
+                    call_0x356b540(&this->field_0xcd0, this->field_0xcd8, &local_0x68);
                     }
-                    v_rcx_14 = &local_0x68;
-                    call_0x3568240(v_rcx_14);
-                    if ((((f_cd8 - this->field_0xcd0) >> 3) + 1) >= local_0x78) break;
+                    v_rcx_9 = &local_0x68;
+                    v_rsi_10 = v_rsi_5 | 0x4;
+                    call_0x3568240(v_rcx_9);
+                    i_ebx++;
+                    if (i_ebx >= local_0x78) break;
+                    i_eax = i_ebx;
+                    i_r14d = ret_0x110efc0_7->field_0x10->field_0x18->field_0x100;
+                    i_esi = v_rsi_10;
+                    i_r13d = ret_0x110efc0_7->field_0x10->field_0x18->field_0x18;
                   }
                 } while (true); // loop -> L_0x3562661
               }
-              v_rcx_23 = v_rcx_17;
             } else {
               if (global_0x8dbb1e0 > rbp->field_0x58->field_0x0->field_0x0[40]) {
                 call_0x12e0(&sym_0x8dbb1e0);
@@ -1266,107 +1291,119 @@ Operação  : 0x15739d7: mov/math reg, [flag] ; fn=0x1573880..0x1573ade
                   call_0x14f0(&sym_0x8dbb1e0);
                 }
               }
-              call_0x2925220(global_0x8dbb1e8, "GlyphRenderer count: %d -> %d", (f_cd8 - this->field_0xcd0) >> 3, (ret_0x110efc0_7->field_0x10->field_0x18->field_0x20 - ret_0x110efc0_7->field_0x10->field_0x18->field_0x18) >> 3);
-              if ((f_cd8 - this->field_0xcd0) >> 3 < (ret_0x110efc0_7->field_0x10->field_0x18->field_0x20 - ret_0x110efc0_7->field_0x10->field_0x18->field_0x18) >> 3) {
-                auto expr_2 = "[FLog::GlyphProviderCreation] Creating GlyphRenderer for GlyphProvider %u";
-                expr_2;
+              call_0x2925220(global_0x8dbb1e8, "GlyphRenderer count: %d -> %d", (this->field_0xcd8 - this->field_0xcd0) >> 3, (ret_0x110efc0_7->field_0x10->field_0x18->field_0x20 - ret_0x110efc0_7->field_0x10->field_0x18->field_0x18) >> 3);
+              if ((this->field_0xcd8 - this->field_0xcd0) >> 3 < (ret_0x110efc0_7->field_0x10->field_0x18->field_0x20 - ret_0x110efc0_7->field_0x10->field_0x18->field_0x18) >> 3) {
+                int32_t i_ecx = (this->field_0xcd8 - this->field_0xcd0) >> 3;
+                "[FLog::GlyphProviderCreation] Creating GlyphRenderer for GlyphProvider %u";
                 i_esi = 0;
+                void* i_edi = ret_0x110efc0_7->field_0x10->field_0x18->field_0x18;
+                uint64_t i_r12d = (this->field_0xcd8 - this->field_0xcd0) >> 3;
                 do { // L_0x3562941
+                  int32_t v_rsi_1 = i_esi;
                   if (GlyphProviderCreation >= 6 && GlyphProviderCreation >> 8 >= 3) {
-                    FLog::Log(expr_2);
+                    FLog::Log("[FLog::GlyphProviderCreation] Creating GlyphRenderer for GlyphProvider %u");
+                    v_rsi_1 = 0;
                   }
-                  FLog::Log(expr_2);
-                  auto ret_0x3760390_12 = call_0x3760390(GlyphProviderCreation, ret_0x110efc0_7->field_0x10->field_0x18->field_0x18->field_0x0[rcx * 8], this->field_0xce8, this->field_0xcf0);
-                  void* v_rbx_4;
-                  if (f_cd8 != this->field_0xce0) {
-                    f_cd8->field_0x0 = ret_0x3760390_12;
-                    v_rbx_4 = 0;
+                  FLog::Log("[FLog::GlyphProviderCreation] Creating GlyphRenderer for GlyphProvider %u");
+                  auto ret_0x3760390_12 = call_0x3760390(GlyphProviderCreation, i_edi[i_ecx * 8], this->field_0xce8, this->field_0xcf0);
+                  void* v_rbx_2;
+                  if (this->field_0xcd8 != this->field_0xce0) {
+                    this->field_0xcd8->field_0x0 = ret_0x3760390_12;
+                    this->field_0xcd8 = this->field_0xcd8 + 8;
+                    v_rbx_2 = 0;
                   } else {
                     auto local_0x70 = ret_0x3760390_12;
-                    call_0x356b540(&this->field_0xcd0, f_cd8, &local_0x70);
-                    v_rbx_4 = local_0x70;
+                    call_0x356b540(&this->field_0xcd0, this->field_0xcd8, &local_0x70);
+                    v_rbx_2 = local_0x70;
                   }
-                  if (v_rbx_4 != 0) {
-                    if (v_rbx_4->field_0x8 != 0) {
-                    call_0x2485d70(v_rbx_4->field_0x8);
+                  if (v_rbx_2 != 0) {
+                    if (v_rbx_2->field_0x8 != 0) {
+                    call_0x2485d70(v_rbx_2->field_0x8);
                     }
-                    if (v_rbx_4->field_0x10 != 0) {
-                    call_0x58975a0(&v_rbx_4->field_0x10->field_0x40);
-                    call_0x58975a0(&v_rbx_4->field_0x10->field_0x70);
-                    v_rbx_4->field_0x10->field_0xa0 = 0;
-                    v_rbx_4->field_0x10->field_0xa0->vfunc_0x10(v_rbx_4->field_0x10->field_0xa0->field_0x0, v_rbx_4->field_0x10) // -> RBX::ModelInstance::BackpackItem::fn_0x3343db0;
+                    if (v_rbx_2->field_0x10 != 0) {
+                    call_0x58975a0(&v_rbx_2->field_0x10->field_0x40);
+                    call_0x58975a0(&v_rbx_2->field_0x10->field_0x70);
+                    v_rbx_2->field_0x10->field_0xa0 = 0;
+                    v_rbx_2->field_0x10->field_0xa0->vfunc_0x10(v_rbx_2->field_0x10->field_0xa0->field_0x0, v_rbx_2->field_0x10) // -> RBX::ModelInstance::BackpackItem::fn_0x3343db0;
                     }
-                    if (v_rbx_4->field_0x0 != 0) {
-                    call_0x2487160(v_rbx_4->field_0x0);
+                    if (v_rbx_2->field_0x0 != 0) {
+                    call_0x2487160(v_rbx_2->field_0x0);
                     }
-                    call_0x24ff7e0(&v_rbx_4->field_0x68);
-                    if (v_rbx_4->field_0x48 != 0) {
-                    call_0x6daf40(v_rbx_4->field_0x48);
+                    call_0x24ff7e0(&v_rbx_2->field_0x68);
+                    if (v_rbx_2->field_0x48 != 0) {
+                    call_0x6daf40(v_rbx_2->field_0x48);
                     }
-                    if (v_rbx_4->field_0x30 != 0) {
-                    call_0x6daf40(v_rbx_4->field_0x30);
+                    if (v_rbx_2->field_0x30 != 0) {
+                    call_0x6daf40(v_rbx_2->field_0x30);
                     }
-                    call_0x4955ac0(v_rbx_4);
+                    call_0x4955ac0(v_rbx_2);
                   }
-                  v_rcx_17 = ((f_cd8 - this->field_0xcd0) >> 3) + 1;
-                } while ((((f_cd8 - this->field_0xcd0) >> 3) + 1) < local_0x78); // loop -> L_0x3562941
-                v_rcx_23 = v_rcx_17;
-              } else {
-                v_rcx_23 = (f_cd8 - this->field_0xcd0) >> 3;
+                  i_r12d++;
+                  i_ecx = i_r12d;
+                  i_esi = v_rsi_1 | 0x8;
+                  i_edi = ret_0x110efc0_7->field_0x10->field_0x18->field_0x18;
+                } while (i_r12d < local_0x78); // loop -> L_0x3562941
               }
             }
-            v_rcx_27 = v_rcx_23;
-          } else {
-            v_rcx_27 = ret_0x110efc0_7->field_0x10;
           }
         }
       }
       if (global_0x75b2c80 != -1) {
-        if (0 != 0) {
-          call_0x29a42e0(33, ((0 == 1) + 2) << 48, 0, 0);
+        if (0) {
+          call_0x29a42e0(33, ((0) + 2) << 48, 0, 0);
         }
-        void* v_rcx_32 = v_rcx_27;
         if (global_0x84a44d6 != 0 && MicroProfilerMemoryScope) {
-          call_0x497fea0();
-          if (((0) << 24 | local_0xd4 & 0xffffff) == 0) {
-            if ((0.0) != 0) {
-              auto local_0x110 = 0.0;
-              call_0x29a42e0(20, (0) << 24 | local_0xd4 & 0xffffff, &local_0x110, 8);
-            } else {
-              v_rcx_32 = 0.0;
+          auto ret_0x497fea0_34 = call_0x497fea0();
+          void* v_rcx_25 = ret_0x497fea0_34->field_0x0;
+          if (ret_0x497fea0_34->field_0x0 == 0) {
+            v_rcx_25 = &ret_0x497fea0_34->field_0x8;
+          }
+          void* stk_26;
+          void* stk_27;
+          void* stk_28;
+          if (0) {
+            stk_26 = local_0xd0 + (v_rcx_25->field_0x0);
+            stk_27 = local_0xc0 + (v_rcx_25->field_0x8);
+            stk_28 = local_0xc8 + (v_rcx_25->field_0x10);
+          } else {
+            stk_26 = 0;
+            stk_27 = 0.0;
+            stk_28 = 0.0;
+          }
+          if (((stk_26 & 0xffffff) << 24 | local_0xd4 & 0xffffff) == 0) {
+            if ((stk_27 << 32 | stk_28) != 0) {
+              auto local_0x110 = stk_27 << 32 | stk_28;
+              call_0x29a42e0(20, (stk_26 & 0xffffff) << 24 | local_0xd4 & 0xffffff, &local_0x110, 8);
             }
           } else {
-            auto local_0x110 = 0.0;
-            call_0x29a42e0(20, (0) << 24 | local_0xd4 & 0xffffff, &local_0x110, 8);
+            auto local_0x110 = stk_27 << 32 | stk_28;
+            call_0x29a42e0(20, (stk_26 & 0xffffff) << 24 | local_0xd4 & 0xffffff, &local_0x110, 8);
           }
         }
-        void* v_rcx_37 = v_rcx_32;
         if (global_0x75b2c80 != -1) {
           auto ret_0x29a1bc0_36 = call_0x29a1bc0();
           if (ret_0x29a1bc0_36->field_0x0 != 0) {
             uint64_t tsc_0x3562c47 = rdtsc();
-            void* v_rcx_36;
-            if (global_0x816d648->field_0xb8 != 0) {
+            void* v_rcx_35;
+            if ((global_0x816d648->field_0xb8 & local_0xa0 >> 14) != 0) {
               if (ret_0x29a1bc0_36->field_0x0->field_0x565 != 0) {
-                int32_t v_r14_35 = -1;
+                int32_t v_r14_34 = -1;
                 if (global_0x816d648->field_0x26d5a0 != 0) {
-                  auto vret_37 = ret_0x29a1bc0_36->field_0x0->field_0x30->vfunc(ret_0x29a1bc0_36->field_0x0->field_0x30);
-                  v_r14_35 = vret_37;
+                  auto vret_37 = global_0x816d648->vfunc_0x26d5a0(ret_0x29a1bc0_36->field_0x0->field_0x30);
+                  v_r14_34 = vret_37;
                 }
-                call_0x29a3900(local_0xa0, v_r14_35, 0, global_0x8479b18);
-                v_rcx_36 = ret_0x29a1bc0_36->field_0x0->field_0x44;
-                call_0x29a3900(v_rcx_36, tsc_0x3562c47 - global_0x8cda630, 4, global_0x8479b18);
-              } else {
-                v_rcx_37 = local_0xa0 >> 14;
+                call_0x29a3900(local_0xa0, v_r14_34, 0, global_0x8479b18);
+                v_rcx_35 = ret_0x29a1bc0_36->field_0x0->field_0x44;
+                call_0x29a3900(v_rcx_35, tsc_0x3562c47 - global_0x8cda630, 4, global_0x8479b18);
               }
             } else {
-              v_rcx_36 = local_0xa0;
-              call_0x29a3900(v_rcx_36, tsc_0x3562c47 - global_0x8cda630, 4, global_0x8479b18);
+              v_rcx_35 = local_0xa0;
+              call_0x29a3900(v_rcx_35, tsc_0x3562c47 - global_0x8cda630, 4, global_0x8479b18);
             }
           }
         }
-        if (global_0x8629678 != 0 && global_0x84dcf68 != 0) {
-          v_rcx_37->vfunc();
+        if ((global_0x8629678 & local_0xa0 >> 14 & global_0x86295f8) != 0 && global_0x84dcf68 != 0) {
+          (*global_0x84dcf68)();
         }
       }
       auto ret_0x29243d0_41 = call_0x29243d0();
@@ -1375,7 +1412,9 @@ Operação  : 0x15739d7: mov/math reg, [flag] ; fn=0x1573880..0x1573ade
         call_0x494e780();
       } else {
         auto ret_0x4954c10_42 = call_0x4954c10();
-        if (ret_0x4954c10_42 == 0) {
+        if (ret_0x4954c10_42 != 0) {
+          ret_0x4954c10_42->field_0x0 = ret_0x4954c10_42->field_0x0 ^ (ret_0x4954c10_42->field_0x0 ^ ret_0x4954e70_1) & 0x3ff;
+        } else {
           call_0x4954d30(ret_0x4954e70_1, 1023);
         }
       }
@@ -1536,7 +1575,7 @@ Operação  : 0x15739d7: mov/math reg, [flag] ; fn=0x1573880..0x1573ade
     0x356268d | 48 8b 4c 24 58           | mov rcx, qword ptr [rsp + 0x58]
     0x3562692 | 48 81 c1 ea 72 b0 fc     | add rcx, 0xfcb072ea
     0x3562699 | 48 89 4d 30              | mov qword ptr [rbp + 0x30], rcx
-    0x356269d | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x356269d | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     L_0x35626a4:
     0x35626a4 | 48 ff c0                 | inc rax
     0x35626a7 | 80 3c 01 00              | cmp byte ptr [rcx + rax], 0x0
@@ -2096,85 +2135,85 @@ Operação  : 0x15739d7: mov/math reg, [flag] ; fn=0x1573880..0x1573ade
   0x156ec10: 48 8b c4 | 48 89 58 18 | 55 | 56
   0x156ec19: 57 | 41 54 | 41 55 | 41 56
   0x156ec20: 41 57 | 48 83 ec 30 | 4c 8b f9 | 48 8b 79 20
-  0x156ec2d: 80 3d 3c ee b7 06 00 | 0f 84 aa 00 00 00 | 45 33 e4 | 4c 89 60 bc
-  0x156ec41: 44 89 60 b8 | 0f 57 c0 | 0f 10 48 b8 | 0f c6 c9 93
-  0x156ec50: f3 0f 10 c8 | 0f c6 c9 39 | 0f 11 48 b8 | 0f 11 49 78
-  0x156ec60: 4c 89 60 b8 | f2 0f 10 40 b8 | f2 0f 11 81 88 00 00 00 | 44 89 a1 90 00 00 00
-  0x156ec78: 48 85 ff | 74 08 | 48 8b cf | e8 0b d5 eb 00
-  0x156ec85: 49 8b 4f 28 | 48 85 c9 | 74 05 | e8 dd bf eb 00
-  0x156ec93: 49 8b 4f 18 | 48 85 c9 | 74 05 | e8 cf 70 f1 00
-  0x156eca1: 49 8b 4f 10 | 48 85 c9 | 74 05 | e8 b1 84 f1 00
-  0x156ecaf: 4d 89 67 20 | 4d 89 67 28 | 4d 89 67 18 | 4d 89 67 10
-  0x156ecbf: 45 88 a7 a0 00 00 00 | 4d 89 27 | 49 8b 4f 08 | 4d 89 67 08
-  0x156ecd1: 48 85 c9 | 0f 84 a2 03 00 00 | e8 61 c2 16 ff | e9 98 03 00 00
-  0x156ece4: bb ff ff ff ff | 48 85 ff | 0f 84 cc 00 00 00 | 8b 07
-  0x156ecf4: 8b 07 | 85 c0 | 0f 84 c0 00 00 00 | 8b c3
-  0x156ed00: f0 0f c1 07 | 83 f8 01 | 0f 85 b1 00 00 00 | c7 07 53 21 ff ff
-  0x156ed13: 48 8b 77 08 | 90 | 48 85 f6 | 74 1f
-  0x156ed1d: 48 8b ce | e8 ab e7 ea 00 | c6 05 8f ea f4 06 01 | 48 8b ce
-  0x156ed2f: 48 8b 05 b2 63 bf 06 | ff 15 04 b0 ec 04 | 48 8b 47 78 | 90
-  0x156ed41: 48 8b 87 80 00 00 00 | 90 | 48 8b 47 68 | 48 85 c0
-  0x156ed50: 74 0a | 48 8b 4f 60 | ff 15 e4 af ec 04 | 48 8b 4f 10
-  0x156ed60: e8 2b d4 eb 00 | 48 8b 4f 18 | e8 02 bf eb 00 | 48 8b 4f 58
-  0x156ed72: e8 49 d0 eb 00 | c6 05 3d ea f4 06 01 | 48 8b 4f 48 | 48 8b 05 5f 63 bf 06
-  0x156ed89: ff 15 b1 af ec 04 | c6 05 25 ea f4 06 01 | 48 8b 4f 50 | 48 8b 05 47 63 bf 06
-  0x156eda1: ff 15 99 af ec 04 | c6 05 0d ea f4 06 01 | 48 8b cf | 48 8b 05 30 63 bf 06
-  0x156edb8: ff 15 82 af ec 04 | 49 8b 77 28 | 48 85 f6 | 0f 84 bd 00 00 00
-  0x156edcb: 8b 06 | 8b 06 | 85 c0 | 0f 84 b1 00 00 00
-  0x156edd7: f0 0f c1 1e | 83 fb 01 | 0f 85 a4 00 00 00 | c7 06 53 21 ff ff
-  0x156edea: 48 8b 7e 08 | 90 | 48 85 ff | 74 1e
-  0x156edf4: 48 8b cf | e8 d4 e6 ea 00 | 88 1d b9 e9 f4 06 | 48 8b cf
-  0x156ee05: 48 8b 05 dc 62 bf 06 | ff 15 2e af ec 04 | 48 8b 9e 90 01 00 00 | 90
-  0x156ee1a: 48 85 db | 74 2c | 90 | 48 8b 7b 08
-  0x156ee24: 48 8b 0b | e8 84 fe ed 00 | c6 05 88 e9 f4 06 01 | 48 8b cb
-  0x156ee36: 48 8b 05 ab 62 bf 06 | ff 15 fd ae ec 04 | 48 8b df | 48 85 ff
-  0x156ee49: 75 d5 | 48 8b 46 40 | 90 | 48 8b 46 48
-  0x156ee54: 90 | 48 8d 4e 50 | e8 c2 63 ec 00 | 48 8b 46 20
-  0x156ee62: 48 85 c0 | 74 0a | 48 8b 4e 18 | ff 15 cf ae ec 04
-  0x156ee71: c6 05 43 e9 f4 06 01 | 48 8b ce | 48 8b 05 66 62 bf 06 | ff 15 b8 ae ec 04
-  0x156ee88: 49 8b 7f 18 | 48 85 ff | 0f 84 90 00 00 00 | 48 83 bf 90 00 00 00 00
-  0x156ee9d: 0f 84 82 00 00 00 | 48 8b 87 d0 00 00 00 | ff 48 60 | 48 8b 87 d0 00 00 00
-  0x156eeb4: 83 78 60 00 | 7f 6b | 48 8b 9f 90 00 00 00 | 48 8b 6b 10
-  0x156eec5: 48 8d 73 20 | 48 85 f6 | 74 57 | 48 8b 16
-  0x156eed1: 48 85 d2 | 74 4f | 48 39 7a 10 | 74 0b
-  0x156eedc: 48 8b 52 08 | 48 85 d2 | 75 f1 | eb 3e
-  0x156eee7: 48 8b 0a | 48 8b 42 08 | 48 85 c9 | 74 06
-  0x156eef3: 48 89 41 08 | eb 03 | 48 89 06 | 48 85 c0
-  0x156eeff: 74 05 | 48 89 08 | eb 04 | 48 89 4e 08
-  0x156ef0a: 48 8b cd | 48 8b 45 10 | ff 15 29 ae ec 04 | 4c 8b c3
-  0x156ef1a: 48 8b d7 | 48 8b cd | e8 cb 4c f1 00 | 4d 8b 77 10
-  0x156ef29: 4d 85 f6 | 0f 84 4a 01 00 00 | 41 ff 8e 60 01 00 00 | 41 83 be 60 01 00 00 00
-  0x156ef41: 0f 8f 35 01 00 00 | 49 8b 06 | 48 89 44 24 78 | 48 8d 0d 6e 1e d5 05
-  0x156ef56: 48 89 4c 24 20 | 45 33 e4 | 4c 89 64 24 28 | 4c 8d 6c 24 20
-  0x156ef68: b8 02 00 00 00 | 48 89 44 24 70 | 41 8b dc | 41 8b 4e 14
-  0x156ef79: 85 c9 | 74 69 | 49 8b 6d 00 | 8b c3
-  0x156ef83: 49 8b 7c c6 18 | 4c 8b 07 | 49 8b 40 08 | 48 85 ed
-  0x156ef92: 74 22 | 48 8b f5 | 48 2b f0 | 66 0f 1f 44 00 00
-  0x156efa0: 0f b6 10 | 0f b6 0c 30 | 2b d1 | 75 07
-  0x156efab: 48 ff c0 | 85 c9 | 75 ee | 85 d2
-  0x156efb4: 75 21 | 41 f6 00 01 | 74 1b | 48 8b 47 20
-  0x156efc0: 48 85 c0 | 74 12 | 48 8b 48 10 | e8 a2 6d f1 00
-  0x156efce: 48 8b 47 20 | 48 85 c0 | 75 ee | ff c3
-  0x156efd9: 41 8b 4e 14 | 3b d9 | 72 a0 | 48 8b 44 24 70
-  0x156efe6: 49 83 c5 08 | 48 83 e8 01 | 48 89 44 24 70 | 0f 85 79 ff ff ff
-  0x156eff9: 85 c9 | 74 6a | 0f 1f 00 | 8d 71 ff
-  0x156f003: 4d 8b 44 f6 18 | 4d 85 c0 | 74 52 | 49 8d 7e 18
-  0x156f011: 8b c1 | 48 8d 14 c7 | 48 3b fa | 73 43
-  0x156f01c: 0f 1f 40 00 | 4c 39 07 | 74 0b | 48 83 c7 08
-  0x156f029: 48 3b fa | 72 f2 | eb 2f | 41 89 76 14
-  0x156f034: 48 83 ea 08 | 48 3b fa | 73 17 | 48 8d 77 08
-  0x156f041: 48 8b ca | 48 2b cf | 48 ff c9 | 48 c1 e9 03
-  0x156f04e: 48 ff c1 | f3 48 a5 | 4c 89 22 | 49 8b c8
-  0x156f05a: e8 41 7f f1 00 | 41 8b 4e 14 | 85 c9 | 75 99
-  0x156f067: 49 8b d6 | 48 8b 44 24 78 | 48 8b c8 | 48 8b 40 10
-  0x156f076: ff 15 c4 ac ec 04 | 49 8d 8f 98 00 00 00 | 48 8b 01 | a8 01
-  0x156f088: 75 06 | e8 11 dc a9 fe | 90 | 49 8b 4f 60
-  0x156f094: e8 27 6a 3e 03 | 90 | 49 8b 4f 48 | e8 1d 6a 3e 03
-  0x156f0a3: 90 | 49 8d 4f 30 | e8 73 e6 27 ff | 49 8b 4f 08
-  0x156f0b1: 48 85 c9 | 74 06 | e8 85 be 16 ff | 90
-  0x156f0bc: 48 8b 9c 24 80 00 00 00 | 48 83 c4 30 | 41 5f | 41 5e
-  0x156f0cc: 41 5d | 41 5c | 5f | 5e
-  0x156f0d2: 5d | c3
+  0x156ec2d: 80 3d 3c ee b7 06 00 | cc cc | cc cc | cc cc
+  0x156ec3a: 45 33 e4 | 4c 89 60 bc | 44 89 60 b8 | 0f 57 c0
+  0x156ec48: 0f 10 48 b8 | 0f c6 c9 93 | f3 0f 10 c8 | 0f c6 c9 39
+  0x156ec58: 0f 11 48 b8 | 0f 11 49 78 | 4c 89 60 b8 | f2 0f 10 40 b8
+  0x156ec69: f2 0f 11 81 88 00 00 00 | 44 89 a1 90 00 00 00 | 48 85 ff | 74 08
+  0x156ec7d: 48 8b cf | e8 0b d5 eb 00 | 49 8b 4f 28 | 48 85 c9
+  0x156ec8c: 74 05 | e8 dd bf eb 00 | 49 8b 4f 18 | 48 85 c9
+  0x156ec9a: 74 05 | e8 cf 70 f1 00 | 49 8b 4f 10 | 48 85 c9
+  0x156eca8: 74 05 | e8 b1 84 f1 00 | 4d 89 67 20 | 4d 89 67 28
+  0x156ecb7: 4d 89 67 18 | 4d 89 67 10 | 45 88 a7 a0 00 00 00 | 4d 89 27
+  0x156ecc9: 49 8b 4f 08 | 4d 89 67 08 | 48 85 c9 | 0f 84 a2 03 00 00
+  0x156ecda: e8 61 c2 16 ff | e9 98 03 00 00 | bb ff ff ff ff | 48 85 ff
+  0x156ecec: 0f 84 cc 00 00 00 | 8b 07 | 8b 07 | 85 c0
+  0x156ecf8: 0f 84 c0 00 00 00 | 8b c3 | f0 0f c1 07 | 83 f8 01
+  0x156ed07: 0f 85 b1 00 00 00 | c7 07 53 21 ff ff | 48 8b 77 08 | 90
+  0x156ed18: 48 85 f6 | 74 1f | 48 8b ce | e8 ab e7 ea 00
+  0x156ed25: c6 05 8f ea f4 06 01 | 48 8b ce | 48 8b 05 b2 63 bf 06 | ff 15 04 b0 ec 04
+  0x156ed3c: 48 8b 47 78 | 90 | 48 8b 87 80 00 00 00 | 90
+  0x156ed49: 48 8b 47 68 | 48 85 c0 | 74 0a | 48 8b 4f 60
+  0x156ed56: ff 15 e4 af ec 04 | 48 8b 4f 10 | e8 2b d4 eb 00 | 48 8b 4f 18
+  0x156ed69: e8 02 bf eb 00 | 48 8b 4f 58 | e8 49 d0 eb 00 | c6 05 3d ea f4 06 01
+  0x156ed7e: 48 8b 4f 48 | 48 8b 05 5f 63 bf 06 | ff 15 b1 af ec 04 | c6 05 25 ea f4 06 01
+  0x156ed96: 48 8b 4f 50 | 48 8b 05 47 63 bf 06 | ff 15 99 af ec 04 | c6 05 0d ea f4 06 01
+  0x156edae: 48 8b cf | 48 8b 05 30 63 bf 06 | ff 15 82 af ec 04 | 49 8b 77 28
+  0x156edc2: 48 85 f6 | 0f 84 bd 00 00 00 | 8b 06 | 8b 06
+  0x156edcf: 85 c0 | 0f 84 b1 00 00 00 | f0 0f c1 1e | 83 fb 01
+  0x156edde: 0f 85 a4 00 00 00 | c7 06 53 21 ff ff | 48 8b 7e 08 | 90
+  0x156edef: 48 85 ff | 74 1e | 48 8b cf | e8 d4 e6 ea 00
+  0x156edfc: 88 1d b9 e9 f4 06 | 48 8b cf | 48 8b 05 dc 62 bf 06 | ff 15 2e af ec 04
+  0x156ee12: 48 8b 9e 90 01 00 00 | 90 | 48 85 db | 74 2c
+  0x156ee1f: 90 | 48 8b 7b 08 | 48 8b 0b | e8 84 fe ed 00
+  0x156ee2c: c6 05 88 e9 f4 06 01 | 48 8b cb | 48 8b 05 ab 62 bf 06 | ff 15 fd ae ec 04
+  0x156ee43: 48 8b df | 48 85 ff | 75 d5 | 48 8b 46 40
+  0x156ee4f: 90 | 48 8b 46 48 | 90 | 48 8d 4e 50
+  0x156ee59: e8 c2 63 ec 00 | 48 8b 46 20 | 48 85 c0 | 74 0a
+  0x156ee67: 48 8b 4e 18 | ff 15 cf ae ec 04 | c6 05 43 e9 f4 06 01 | 48 8b ce
+  0x156ee7b: 48 8b 05 66 62 bf 06 | ff 15 b8 ae ec 04 | 49 8b 7f 18 | 48 85 ff
+  0x156ee8f: 0f 84 90 00 00 00 | 48 83 bf 90 00 00 00 00 | 0f 84 82 00 00 00 | 48 8b 87 d0 00 00 00
+  0x156eeaa: ff 48 60 | 48 8b 87 d0 00 00 00 | 83 78 60 00 | 7f 6b
+  0x156eeba: 48 8b 9f 90 00 00 00 | 48 8b 6b 10 | 48 8d 73 20 | 48 85 f6
+  0x156eecc: 74 57 | 48 8b 16 | 48 85 d2 | 74 4f
+  0x156eed6: 48 39 7a 10 | 74 0b | 48 8b 52 08 | 48 85 d2
+  0x156eee3: 75 f1 | eb 3e | 48 8b 0a | 48 8b 42 08
+  0x156eeee: 48 85 c9 | 74 06 | 48 89 41 08 | eb 03
+  0x156eef9: 48 89 06 | 48 85 c0 | 74 05 | 48 89 08
+  0x156ef04: eb 04 | 48 89 4e 08 | 48 8b cd | 48 8b 45 10
+  0x156ef11: ff 15 29 ae ec 04 | 4c 8b c3 | 48 8b d7 | 48 8b cd
+  0x156ef20: e8 cb 4c f1 00 | 4d 8b 77 10 | 4d 85 f6 | 0f 84 4a 01 00 00
+  0x156ef32: 41 ff 8e 60 01 00 00 | 41 83 be 60 01 00 00 00 | 0f 8f 35 01 00 00 | 49 8b 06
+  0x156ef4a: 48 89 44 24 78 | 48 8d 0d 6e 1e d5 05 | 48 89 4c 24 20 | 45 33 e4
+  0x156ef5e: 4c 89 64 24 28 | 4c 8d 6c 24 20 | b8 02 00 00 00 | 48 89 44 24 70
+  0x156ef72: 41 8b dc | 41 8b 4e 14 | 85 c9 | 74 69
+  0x156ef7d: 49 8b 6d 00 | 8b c3 | 49 8b 7c c6 18 | 4c 8b 07
+  0x156ef8b: 49 8b 40 08 | 48 85 ed | 74 22 | 48 8b f5
+  0x156ef97: 48 2b f0 | 66 0f 1f 44 00 00 | 0f b6 10 | 0f b6 0c 30
+  0x156efa7: 2b d1 | 75 07 | 48 ff c0 | 85 c9
+  0x156efb0: 75 ee | 85 d2 | 75 21 | 41 f6 00 01
+  0x156efba: 74 1b | 48 8b 47 20 | 48 85 c0 | 74 12
+  0x156efc5: 48 8b 48 10 | e8 a2 6d f1 00 | 48 8b 47 20 | 48 85 c0
+  0x156efd5: 75 ee | ff c3 | 41 8b 4e 14 | 3b d9
+  0x156efdf: 72 a0 | 48 8b 44 24 70 | 49 83 c5 08 | 48 83 e8 01
+  0x156efee: 48 89 44 24 70 | 0f 85 79 ff ff ff | 85 c9 | 74 6a
+  0x156effd: 0f 1f 00 | 8d 71 ff | 4d 8b 44 f6 18 | 4d 85 c0
+  0x156f00b: 74 52 | 49 8d 7e 18 | 8b c1 | 48 8d 14 c7
+  0x156f017: 48 3b fa | 73 43 | 0f 1f 40 00 | 4c 39 07
+  0x156f023: 74 0b | 48 83 c7 08 | 48 3b fa | 72 f2
+  0x156f02e: eb 2f | 41 89 76 14 | 48 83 ea 08 | 48 3b fa
+  0x156f03b: 73 17 | 48 8d 77 08 | 48 8b ca | 48 2b cf
+  0x156f047: 48 ff c9 | 48 c1 e9 03 | 48 ff c1 | f3 48 a5
+  0x156f054: 4c 89 22 | 49 8b c8 | e8 41 7f f1 00 | 41 8b 4e 14
+  0x156f063: 85 c9 | 75 99 | 49 8b d6 | 48 8b 44 24 78
+  0x156f06f: 48 8b c8 | 48 8b 40 10 | ff 15 c4 ac ec 04 | 49 8d 8f 98 00 00 00
+  0x156f083: 48 8b 01 | a8 01 | 75 06 | e8 11 dc a9 fe
+  0x156f08f: 90 | 49 8b 4f 60 | e8 27 6a 3e 03 | 90
+  0x156f09a: 49 8b 4f 48 | e8 1d 6a 3e 03 | 90 | 49 8d 4f 30
+  0x156f0a8: e8 73 e6 27 ff | 49 8b 4f 08 | 48 85 c9 | 74 06
+  0x156f0b6: e8 85 be 16 ff | 90 | 48 8b 9c 24 80 00 00 00 | 48 83 c4 30
+  0x156f0c8: 41 5f | 41 5e | 41 5d | 41 5c
+  0x156f0d0: 5f | 5e | 5d | c3
 
   [XREF #2 Bytecode Hex 0x3562020..0x35622c1]
   0x3562020: 48 89 5c 24 18 | 55 | 56 | 57

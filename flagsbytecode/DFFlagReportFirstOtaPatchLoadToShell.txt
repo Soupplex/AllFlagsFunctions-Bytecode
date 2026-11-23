@@ -31,7 +31,7 @@ Operação  : 0x151b80d: cmp byte [flag], imm8 ; fn=0x151b770..0x151b8d8
       call_0x2e12fd0(&f_0->field_0x108);
       auto* f_0_f8 = f_0->field_0xf8;
       if (f_0_f8 != 0) {
-        f_0_f8->field_0x8 = f_0_f8->field_0x8 + 1;
+        f_0_f8->field_0x8++;
       }
       auto local_0x20 = f_0->field_0xf0;
       auto local_0x24 = 0.0;
@@ -40,27 +40,17 @@ Operação  : 0x151b80d: cmp byte [flag], imm8 ; fn=0x151b770..0x151b8d8
       auto local_0x30 = &f_0->field_0x108;
       call_0x150b090(f_0->field_0xa8, &local_0x40, &local_0x20);
       if (ReportFirstOtaPatchLoadToShell && local_0x50 != 0) {
-        if (local_0x48 != 0) {
-          local_0x48->field_0x8 = local_0x48->field_0x8 + 1;
-        }
         f_0->field_0x140 = local_0x40;
         f_0->field_0x148 = local_0x48;
-      }
-      if (local_0x58 != 0) {
-        local_0x58->field_0x8 = local_0x58->field_0x8 + 1;
       }
       param_2->field_0x0 = local_0x50;
       param_2->field_0x8 = local_0x58;
       if (local_0x48 != 0) {
         call_0x6daf40(local_0x48);
       }
-      if (local_0x30->field_0x0 == 3) {
-        if (atomic_cas(&local_0x30->field_0x0, 3, 1) != 0) {
-          call_0xdac0(local_0x30);
-        }
-        return param_2;
+      if (local_0x30->field_0x0 != 3 || atomic_cas(&local_0x30->field_0x0, 3, 1) != 0) {
+        call_0xdac0(local_0x30);
       }
-      call_0xdac0(local_0x30);
       return param_2;
     }
   
@@ -184,7 +174,7 @@ Operação  : 0x151b80d: cmp byte [flag], imm8 ; fn=0x151b770..0x151b8d8
       auto* f_18 = this->field_0x18;
       if (this->field_0x40 == 0 && (local_0x50 - local_0x48) >> 4 == 1 && local_0x48->field_0x0 == param_3->field_0x0->field_0x40) {
         if (f_20 != 0) {
-          f_20->field_0x8 = f_20->field_0x8 + 1;
+          f_20->field_0x8++;
         }
         auto local_0x110 = f_18;
         auto local_0x114 = 0.0;
@@ -195,19 +185,16 @@ Operação  : 0x151b80d: cmp byte [flag], imm8 ; fn=0x151b770..0x151b8d8
           if (local_0x48 != 0) {
             if (local_0x48 != local_0x50) {
               do { // L_0x150b331
-                if (local_0x48->field_0x8 != 0 && atomic_fetch_add(&local_0x48->field_0x8->field_0x8, r14) == 1) {
-                  local_0x48->field_0x8->vfunc_0x0(local_0x48->field_0x8) // -> RBX::PoseBase::VCFramePose::fn_0x1625fe0;
-                  if (atomic_fetch_add(&local_0x48->field_0x8->field_0xc, r14) == 1) {
-                    local_0x48->field_0x8->vfunc_0x8(local_0x48->field_0x8) // -> RBX::AnimatedMechanicalJoint::fn_0x148c5f0;
-                  } else {
-                    atomic_fetch_add(&local_0x48->field_0x8->field_0xc, r14);
+                if (i_esi->field_0x8 != 0 && atomic_fetch_sub(&i_esi->field_0x8->field_0x8, 1) == 1) {
+                  i_esi->field_0x8->vfunc_0x0(i_esi->field_0x8) // -> RBX::PoseBase::VCFramePose::fn_0x1625fe0;
+                  if (atomic_fetch_sub(&i_esi->field_0x8->field_0xc, 1) == 1) {
+                    i_esi->field_0x8->vfunc_0x8(i_esi->field_0x8) // -> RBX::AnimatedMechanicalJoint::fn_0x148c5f0;
                   }
-                } else {
-                  atomic_fetch_add(&local_0x48->field_0x8->field_0x8, r14);
                 }
-              } while (&local_0x48->field_0x10 != local_0x50); // loop -> L_0x150b331
+                i_esi += 0x10;
+              } while (i_esi != local_0x50); // loop -> L_0x150b331
             }
-            void* v_rsi_69 = local_0x48;
+            void* v_rsi_59 = local_0x48;
             if ((local_0x58 - local_0x48 & 0xfffffff0) >= 0x1000) {
               if (local_0x48 - local_0x48->field_m0x8 < 8 || local_0x48 - local_0x48->field_m0x8 > 39) {
                 call_0x5e14580();
@@ -216,7 +203,7 @@ Operação  : 0x151b80d: cmp byte [flag], imm8 ; fn=0x151b770..0x151b8d8
                 call_0x5e14580();
               }
             }
-            call_0x4955ac0(v_rsi_69);
+            call_0x4955ac0(v_rsi_59);
           }
           if (param_3->field_0x8 != 0) {
             call_0x6daf40(param_3->field_0x8);
@@ -225,142 +212,126 @@ Operação  : 0x151b80d: cmp byte [flag], imm8 ; fn=0x151b770..0x151b8d8
         }
       }
       call_0x5de92ac(&local_0xf0);
-      auto i_esi = local_0x48;
+      void* i_ecx = DataModelPatchConfigurer;
+      void* i_esi = local_0x48;
+      void* i_r15d = param_2;
       auto* f_28 = this->field_0x28;
       do { // L_0x150b423
         if (i_esi == local_0x50) break;
-        auto expr_3 = "[FLog::DataModelPatchConfigurer] getCachedPatch: config: {}.{}";
-        if (DataModelPatchConfigurer >= 6 && DataModelPatchConfigurer >> 8 >= 3) {
-          FLog::Log(expr_3);
+        if (i_ecx >= 6 && i_ecx >> 8 >= 3) {
+          FLog::Log("[FLog::DataModelPatchConfigurer] getCachedPatch: config: {}.{}");
         }
         if (f_20 != 0) {
-          f_20->field_0x8 = f_20->field_0x8 + 1;
+          f_20->field_0x8++;
         }
-        void* fstk_10;
-        int32_t v_rsi_15;
-        float fstk_16;
-        auto expr_1 = "[FLog::DataModelPatchConfigurer] getCachedPatch: {} does not have content";
-        if (local_0x48->field_0x0->field_0x0 != 1) {
-          auto ret_0x15296e0_13 = call_0x15296e0(local_0x48->field_0x0, &local_0x1f0, param_3->field_0x0->field_0x40);
+        void* fstk_7;
+        int32_t v_rsi_10;
+        float fstk_11;
+        if (i_esi->field_0x0->field_0x0 != 1) {
+          auto ret_0x15296e0_13 = call_0x15296e0(i_esi->field_0x0, &local_0x1f0, param_3->field_0x0->field_0x40);
           if (ret_0x15296e0_13 != 0) {
-            v_rsi_15 = 0;
-            fstk_16 = 0.0;
+            v_rsi_10 = 0;
+            fstk_11 = 0.0;
             L_0x150b5d5:
-            if (fstk_16 != 0 && atomic_fetch_add(&fstk_16->field_0x8, r14) == 1) {
-              fstk_16->vfunc_0x0(fstk_16) // -> RBX::PoseBase::VCFramePose::fn_0x1625fe0;
-              if (atomic_fetch_add(&fstk_16->field_0xc, r14) == 1) {
-                fstk_16->vfunc_0x8(fstk_16) // -> RBX::AnimatedMechanicalJoint::fn_0x148c5f0;
-              } else {
-                atomic_fetch_add(&fstk_16->field_0xc, r14);
+            if (fstk_11 != 0 && atomic_fetch_sub(&fstk_11->field_0x8, 1) == 1) {
+              fstk_11->vfunc_0x0(fstk_11) // -> RBX::PoseBase::VCFramePose::fn_0x1625fe0;
+              if (atomic_fetch_sub(&fstk_11->field_0xc, 1) == 1) {
+                fstk_11->vfunc_0x8(fstk_11) // -> RBX::AnimatedMechanicalJoint::fn_0x148c5f0;
               }
-            } else {
-              atomic_fetch_add(&fstk_16->field_0x8, r14);
             }
             if (i_esi->field_0x0 != param_3->field_0x0->field_0x40) {
-              if (0 == 0) {
+              if (1) {
                 L_0x150b644:
                 f_28->field_0xa8 = 0;
                 call_0x150a2f0(this, i_esi->field_0x0);
-                auto i_ebx = param_3->field_0x0->field_0x40;
                 L_0x150b66a:
                 int64_t ret_0x150ab10_23;
-                void* stk_33;
-                void* stk_32;
-                auto expr_2 = "[FLog::DataModelPatchConfigurer] getCachedPatch: numAttemptsRemaining: {}";
+                void* stk_18;
+                void* stk_17;
                 do { // L_0x150b66a
-                  L_0x150b66a:
-                  expr_2;
-                  if (max(1, DataModelPatcherLoadAttempts) <= 0) break;
-                  expr_2;
+                  if (i_r15d <= 0) break;
                   if (DataModelPatchConfigurer >= 6 && DataModelPatchConfigurer >> 8 >= 3) {
-                    FLog::Log(expr_2);
+                    FLog::Log("[FLog::DataModelPatchConfigurer] getCachedPatch: numAttemptsRemaining: {}");
                   }
-                  FLog::Log(expr_2);
+                  i_r15d--;
+                  FLog::Log("[FLog::DataModelPatchConfigurer] getCachedPatch: numAttemptsRemaining: {}");
                   call_0x5de9250(&local_0xf0, &local_0x220);
                   call_0x5de9338(&local_0x220);
-                  if (local_0x48->field_0x8 != 0) {
-                    local_0x48->field_0x8->field_0x8 = local_0x48->field_0x8->field_0x8 + 1;
+                  if (i_esi->field_0x8 != 0) {
+                    i_esi->field_0x8->field_0x8++;
                   }
-                  auto local_0x120 = local_0x48->field_0x0;
+                  auto local_0x120 = i_esi->field_0x0;
                   auto local_0x124 = 0.0;
-                  auto local_0x128 = local_0x48->field_0x8;
+                  auto local_0x128 = i_esi->field_0x8;
                   auto local_0x12c = 0.0;
                   ret_0x150ab10_23 = call_0x150ab10(this, &local_0x420, &local_0x120, i_ebx);
-                  if (0.0 != 0 && atomic_fetch_add(&0.0->field_0x8, r14) == 1) {
+                  if (0.0 != 0 && atomic_fetch_sub(&0.0->field_0x8, 1) == 1) {
                     0.0->vfunc_0x0(0.0) // -> RBX::PoseBase::VCFramePose::fn_0x1625fe0;
-                    if (atomic_fetch_add(&0.0->field_0xc, r14) == 1) {
+                    if (atomic_fetch_sub(&0.0->field_0xc, 1) == 1) {
                     0.0->vfunc_0x8(0.0) // -> RBX::AnimatedMechanicalJoint::fn_0x148c5f0;
-                    } else {
-                    atomic_fetch_add(&0.0->field_0xc, r14);
                     }
-                  } else {
-                    atomic_fetch_add(&0.0->field_0x8, r14);
                   }
-                  if (local_0x428 != 0 && atomic_fetch_add(&local_0x428->field_0x8, r14) == 1) {
+                  if (local_0x428 != 0 && atomic_fetch_sub(&local_0x428->field_0x8, 1) == 1) {
                     local_0x428->vfunc_0x0(local_0x428) // -> RBX::PoseBase::VCFramePose::fn_0x1625fe0;
-                    if (atomic_fetch_add(&local_0x428->field_0xc, r14) == 1) {
+                    if (atomic_fetch_sub(&local_0x428->field_0xc, 1) == 1) {
                     local_0x428->vfunc_0x8(local_0x428) // -> RBX::AnimatedMechanicalJoint::fn_0x148c5f0;
-                    } else {
-                    atomic_fetch_add(&local_0x428->field_0xc, r14);
                     }
-                  } else {
-                    atomic_fetch_add(&local_0x428->field_0x8, r14);
                   }
-                  if (ret_0x150ab10_23->field_0x0 == 0 && v_rsi_15 == 1) {
+                  if (ret_0x150ab10_23->field_0x0 == 0) {
+                    if (v_rsi_10 == 1) {
                     if (DataModelPatchConfigurer < 6) break;
-                    if ((DataModelPatchConfigurer >> 8) < 3) break;
+                    if (DataModelPatchConfigurer >> 8 < 3) break;
                     break;
+                    } else {
+                    i_ebx = param_3->field_0x0->field_0x40;
+                    }
                   }
                 } while (true); // loop -> L_0x150b66a
-                stk_32 = ret_0x150ab10_23->field_0x8;
-                stk_33 = ret_0x150ab10_23->field_0x0;
-                if (stk_33 != 0) {
-                  if (local_0x48->field_0x0->field_0x0 != 1) break;
+                stk_17 = ret_0x150ab10_23->field_0x8;
+                stk_18 = ret_0x150ab10_23->field_0x0;
+                if (stk_18 != 0) {
+                  if (i_esi->field_0x0->field_0x0 != 1) break;
                   if (DebugOTASkipPopulatingLegacyContentTable) break;
-                  if (stk_32 == 0) break;
-                  stk_32->field_0x8 = stk_32->field_0x8 + 1;
+                  if (stk_17 == 0) break;
+                  stk_17->field_0x8++;
                   break;
+                } else if (stk_17 != 0) {
+                  FLog::Log("[FLog::DataModelPatchConfigurer] getCachedPatch: numAttemptsRemaining: {}");
+                  i_esi += 0x10;
+                  i_ecx = DataModelPatchConfigurer;
+                  i_r15d = local_0x68;
+                  continue;
                 } else {
-                  if (stk_32 != 0) {
-                    FLog::Log(expr_2);
-                    continue;
-                  } else {
-                    L_0x150c6d7:
-                    L_0x150c6de:
-                  }
-                  if (i_esi == local_0x50) break;
-                  if (DataModelPatchConfigurer >= 6 && DataModelPatchConfigurer >> 8 >= 3) {
-                    FLog::Log(expr_3);
-                  }
-                  if (f_20 != 0) {
-                    f_20->field_0x8 = f_20->field_0x8 + 1;
-                  }
+                  L_0x150c6d7:
+                  L_0x150c6de:
+                  i_esi += 0x10;
+                  i_ecx = DataModelPatchConfigurer;
+                  i_r15d = local_0x68;
                 }
+              } else {
+                i_esi += 0x10;
+                i_ecx = DataModelPatchConfigurer;
+                i_r15d = local_0x68;
               }
             } else {
               f_28->field_0xa8 = 0;
               call_0x150a2f0(this, i_esi->field_0x0);
-              auto i_ebx = param_3->field_0x0->field_0x40;
               goto L_0x150b66a;
             }
           } else {
-            fstk_10 = 0.0;
-            auto ret_0x15291f0_14 = call_0x15291f0(local_0x48->field_0x0);
+            fstk_7 = 0.0;
+            auto ret_0x15291f0_14 = call_0x15291f0(i_esi->field_0x0);
             if (ret_0x15291f0_14 != 0) {
-              v_rsi_15 = 1;
-              fstk_16 = fstk_10;
-              if (fstk_16 != 0 && atomic_fetch_add(&fstk_16->field_0x8, r14) == 1) {
-                fstk_16->vfunc_0x0(fstk_16) // -> RBX::PoseBase::VCFramePose::fn_0x1625fe0;
-                if (atomic_fetch_add(&fstk_16->field_0xc, r14) == 1) {
-                  fstk_16->vfunc_0x8(fstk_16) // -> RBX::AnimatedMechanicalJoint::fn_0x148c5f0;
-                } else {
-                  atomic_fetch_add(&fstk_16->field_0xc, r14);
+              v_rsi_10 = 1;
+              fstk_11 = fstk_7;
+              if (fstk_11 != 0 && atomic_fetch_sub(&fstk_11->field_0x8, 1) == 1) {
+                fstk_11->vfunc_0x0(fstk_11) // -> RBX::PoseBase::VCFramePose::fn_0x1625fe0;
+                if (atomic_fetch_sub(&fstk_11->field_0xc, 1) == 1) {
+                  fstk_11->vfunc_0x8(fstk_11) // -> RBX::AnimatedMechanicalJoint::fn_0x148c5f0;
                 }
-              } else {
-                atomic_fetch_add(&fstk_16->field_0x8, r14);
               }
               if (i_esi->field_0x0 != param_3->field_0x0->field_0x40) {
-                if (0 == 0) {
+                if (1) {
                   goto L_0x150b644;
                 } else {
                   goto L_0x150c6d7;
@@ -369,89 +340,79 @@ Operação  : 0x151b80d: cmp byte [flag], imm8 ; fn=0x151b770..0x151b8d8
                 goto L_0x150b644;
               }
             } else {
-              if (fstk_10 != 0 && atomic_fetch_add(&fstk_10->field_0x8, r14) == 1) {
-                fstk_10->vfunc_0x0(fstk_10) // -> RBX::PoseBase::VCFramePose::fn_0x1625fe0;
-                if (atomic_fetch_add(&fstk_10->field_0xc, r14) == 1) {
-                  fstk_10->vfunc_0x8(fstk_10) // -> RBX::AnimatedMechanicalJoint::fn_0x148c5f0;
-                } else {
-                  atomic_fetch_add(&fstk_10->field_0xc, r14);
+              if (fstk_7 != 0 && atomic_fetch_sub(&fstk_7->field_0x8, 1) == 1) {
+                fstk_7->vfunc_0x0(fstk_7) // -> RBX::PoseBase::VCFramePose::fn_0x1625fe0;
+                if (atomic_fetch_sub(&fstk_7->field_0xc, 1) == 1) {
+                  fstk_7->vfunc_0x8(fstk_7) // -> RBX::AnimatedMechanicalJoint::fn_0x148c5f0;
                 }
-              } else {
-                atomic_fetch_add(&fstk_10->field_0x8, r14);
               }
               if (DataModelPatchConfigurer >= 6 && DataModelPatchConfigurer >> 8 >= 3) {
                 f_18->vfunc_0x38() // -> RBX::AnimatedMechanicalJoint::fn_0x148b880;
-                FLog::Log(expr_1);
-                expr_1;
+                FLog::Log("[FLog::DataModelPatchConfigurer] getCachedPatch: {} does not have content");
+                "[FLog::DataModelPatchConfigurer] getCachedPatch: {} does not have content";
                 goto L_0x150c6d7;
               }
               goto L_0x150c6de;
             }
           }
         } else {
-          fstk_10 = f_20;
-          auto ret_0x15291f0_14 = call_0x15291f0(local_0x48->field_0x0);
+          fstk_7 = f_20;
+          auto ret_0x15291f0_14 = call_0x15291f0(i_esi->field_0x0);
           if (ret_0x15291f0_14 != 0) {
-            v_rsi_15 = 1;
-            fstk_16 = fstk_10;
+            v_rsi_10 = 1;
+            fstk_11 = fstk_7;
             goto L_0x150b5d5;
           } else {
-            if (fstk_10 != 0 && atomic_fetch_add(&fstk_10->field_0x8, r14) == 1) {
-              fstk_10->vfunc_0x0(fstk_10) // -> RBX::PoseBase::VCFramePose::fn_0x1625fe0;
-              if (atomic_fetch_add(&fstk_10->field_0xc, r14) == 1) {
-                fstk_10->vfunc_0x8(fstk_10) // -> RBX::AnimatedMechanicalJoint::fn_0x148c5f0;
-              } else {
-                atomic_fetch_add(&fstk_10->field_0xc, r14);
+            if (fstk_7 != 0 && atomic_fetch_sub(&fstk_7->field_0x8, 1) == 1) {
+              fstk_7->vfunc_0x0(fstk_7) // -> RBX::PoseBase::VCFramePose::fn_0x1625fe0;
+              if (atomic_fetch_sub(&fstk_7->field_0xc, 1) == 1) {
+                fstk_7->vfunc_0x8(fstk_7) // -> RBX::AnimatedMechanicalJoint::fn_0x148c5f0;
               }
-            } else {
-              atomic_fetch_add(&fstk_10->field_0x8, r14);
             }
             if (DataModelPatchConfigurer >= 6 && DataModelPatchConfigurer >> 8 >= 3) {
               f_18->vfunc_0x38() // -> RBX::AnimatedMechanicalJoint::fn_0x148b880;
-              FLog::Log(expr_1);
-              expr_1;
+              FLog::Log("[FLog::DataModelPatchConfigurer] getCachedPatch: {} does not have content");
+              "[FLog::DataModelPatchConfigurer] getCachedPatch: {} does not have content";
               goto L_0x150c6d7;
             }
             goto L_0x150c6de;
           }
         }
       } while (true); // loop -> L_0x150b423
+      void* i_ebx;
       if (this->field_0x40 != 0) {
+        void* v_rcx_6 = i_ecx;
         if (DataModelPatcherRecordStartCount) {
           auto local_0x640 = 0;
           call_0x6f7000(&local_0x640, "No verified patch could be loaded", 33);
           auto local_0x6c0 = 0;
           call_0x6f7000(&local_0x6c0, "NoVerifiedPatch", 15);
           call_0x152e4a0(f_28, &local_0x6c0, &local_0x640);
-          if (local_0x6d8 >= 16) {
-            void* v_rcx_6 = local_0x6c0;
-            if (local_0x6d8 + 1 >= 0x1000) {
-              if (local_0x6c0 - local_0x6c0->field_m0x8 < 8 || local_0x6c0 - local_0x6c0->field_m0x8 > 39) {
-                call_0x5e14580();
-              }
-            }
-            call_0x4955ac0(v_rcx_6);
-          }
-          if (local_0x658 >= 16) {
-            void* v_rcx_8 = local_0x640;
-            call_0x4955ac0(v_rcx_8);
-          }
+          std::string::_Tidy_deallocate(local_0x6c0);
+          std::string::_Tidy_deallocate(local_0x640);
+          v_rcx_6 = DataModelPatchConfigurer;
         }
-        if (DataModelPatchConfigurer >= 6 && DataModelPatchConfigurer >> 8 >= 2) {
+        if (v_rcx_6 >= 6 && v_rcx_6 >> 8 >= 2) {
           FLog::Log("[FLog::DataModelPatchConfigurer] getCachedPatch: failed to load core script patch!");
         }
         call_0x7404c0(&local_0xf0);
       } else {
+        i_r15d->field_0x0 = 0;
+        i_r15d->field_0x8 = 0;
+        i_r15d->field_0x10 = 0;
+        i_r15d->field_0x18 = 0;
         call_0x5de9338(&local_0xf0, &sym_0x7b6baf0);
         if (local_0x48 != 0) {
           if (local_0x48 != local_0x50) {
+            i_ebx = local_0x48;
             do { // L_0x150c970
-              if (local_0x48->field_0x8 != 0) {
-                call_0x6daf40(local_0x48->field_0x8);
+              if (i_ebx->field_0x8 != 0) {
+                call_0x6daf40(i_ebx->field_0x8);
               }
-            } while (&local_0x48->field_0x10 != local_0x50); // loop -> L_0x150c970
+              i_ebx += 0x10;
+            } while (i_ebx != local_0x50); // loop -> L_0x150c970
           }
-          call_0x6f97e0(local_0x48->field_0x8, local_0x48, (local_0x58 - local_0x48) >> 4);
+          call_0x6f97e0(i_ebx->field_0x8, local_0x48, (local_0x58 - local_0x48) >> 4);
         }
         if (param_3->field_0x8 != 0) {
           call_0x6daf40(param_3->field_0x8);
@@ -499,7 +460,7 @@ Operação  : 0x151b80d: cmp byte [flag], imm8 ; fn=0x151b770..0x151b8d8
     0x150b12d | 48 81 c1 aa 1e 71 ff     | add rcx, 0xff711eaa
     0x150b134 | 41 8b 10                 | mov edx, dword ptr [r8]
     0x150b137 | 48 89 8c 24 c0 01 00 00  | mov qword ptr [rsp + 0x1c0], rcx
-    0x150b13f | 49 c7 c6 ff ff ff ff     | mov r14, 0xffffffff
+    0x150b13f | 49 c7 c6 ff ff ff ff     | mov r14, -0x1
     0x150b146 | 49 8b c6                 | mov rax, r14
     0x150b149 | 0f 1f 80 00 00 00 00     | nop
     L_0x150b150:
@@ -550,7 +511,7 @@ Operação  : 0x151b80d: cmp byte [flag], imm8 ; fn=0x151b770..0x151b8d8
     0x150b270 | 4c 8b 84 24 80 00 00 00  | mov r8, qword ptr [rsp + 0x80]
     0x150b278 | eb 07                    | jmp 0x150b281
     L_0x150b27a:
-    0x150b27a | 49 c7 c6 ff ff ff ff     | mov r14, 0xffffffff
+    0x150b27a | 49 c7 c6 ff ff ff ff     | mov r14, -0x1
     L_0x150b281:
     0x150b281 | 41 80 7d 40 00           | cmp byte ptr [r13 + 0x40], 0x0
     0x150b286 | 0f 85 4e 01 00 00        | jne 0x150b3da
@@ -1845,7 +1806,6 @@ Operação  : 0x151b80d: cmp byte [flag], imm8 ; fn=0x151b770..0x151b8d8
       if (DataModelPatchConfigurer >= 6 && DataModelPatchConfigurer >> 8 >= 3) {
         FLog::Log("[FLog::DataModelPatchConfigurer] [%s] Retrieving patch");
         "[FLog::DataModelPatchConfigurer] [%s] Retrieving patch";
-        "[FLog::DataModelPatchConfigurer] [%s] Retrieving patch";
       }
       if (this->field_0x111 != 0) {
         auto* f_b8 = this->field_0xb8;
@@ -1853,10 +1813,9 @@ Operação  : 0x151b80d: cmp byte [flag], imm8 ; fn=0x151b770..0x151b8d8
           if (this->field_0x138 == this->field_0x118) {
             auto* f_f8 = this->field_0xf8;
             if (f_b8 != 0) {
-              auto* f_148 = this->field_0x148;
-              auto expr_1 = atomic_cas(&this->field_0x108, this->field_0x108, 1) != 0;
               if (DeferInExperienceRbxmDownload && DeferredRbxmCacheIntegrity) {
                 auto ret_0x151c540_4 = call_0x151c540(this);
+                auto* f_148 = this->field_0x148;
                 if (ret_0x151c540_4 != 0) {
                   auto ret_0x151cdd0_5 = call_0x151cdd0(this);
                   if (ret_0x151cdd0_5 != 0) {
@@ -1867,7 +1826,7 @@ Operação  : 0x151b80d: cmp byte [flag], imm8 ; fn=0x151b770..0x151b8d8
                     L_0x151bc26:
                     call_0x2e12fd0(&this->field_0x108);
                     if (f_f8 != 0) {
-                    f_f8->field_0x8 = f_f8->field_0x8 + 1;
+                    f_f8->field_0x8++;
                     }
                     L_0x151bc70:
                     auto local_0x50 = this->field_0xf0;
@@ -1877,10 +1836,10 @@ Operação  : 0x151b80d: cmp byte [flag], imm8 ; fn=0x151b770..0x151b8d8
                     auto local_0x60 = &this->field_0x108;
                     auto ret_0x150b090_20 = call_0x150b090(this->field_0xa8, &local_0x130, &local_0x50);
                     if (ret_0x150b090_20->field_0x8 != 0) {
-                    ret_0x150b090_20->field_0x8->field_0x8 = ret_0x150b090_20->field_0x8->field_0x8 + 1;
+                    ret_0x150b090_20->field_0x8->field_0x8++;
                     }
                     if (ret_0x150b090_20->field_0x18 != 0) {
-                    ret_0x150b090_20->field_0x18->field_0x8 = ret_0x150b090_20->field_0x18->field_0x8 + 1;
+                    ret_0x150b090_20->field_0x18->field_0x8++;
                     }
                     if (local_0x148 != 0) {
                     call_0x6daf40(local_0x148);
@@ -1888,17 +1847,13 @@ Operação  : 0x151b80d: cmp byte [flag], imm8 ; fn=0x151b770..0x151b8d8
                     if (local_0x138 != 0) {
                     call_0x6daf40(local_0x138);
                     }
-                    if (local_0x60->field_0x0 == 3) {
-                    if (atomic_cas(&local_0x60->field_0x0, 3, 1) != 0) {
-                    call_0xdac0(local_0x60);
-                    }
-                    } else {
+                    if (local_0x60->field_0x0 != 3 || atomic_cas(&local_0x60->field_0x0, 3, 1) != 0) {
                     call_0xdac0(local_0x60);
                     }
                     if (ret_0x150b090_20->field_0x0 != 0 && ret_0x150b090_20->field_0x10 != 0) {
                     if (this->field_0x90 != 0) {
                     if (ret_0x150b090_20->field_0x8 != 0) {
-                    ret_0x150b090_20->field_0x8->field_0x8 = ret_0x150b090_20->field_0x8->field_0x8 + 1;
+                    ret_0x150b090_20->field_0x8->field_0x8++;
                     }
                     auto local_0x70 = ret_0x150b090_20->field_0x0;
                     auto local_0x74 = 0.0;
@@ -1907,7 +1862,7 @@ Operação  : 0x151b80d: cmp byte [flag], imm8 ; fn=0x151b770..0x151b8d8
                     call_0x1520430(this, &local_0x70);
                     }
                     if (ret_0x150b090_20->field_0x8 != 0) {
-                    ret_0x150b090_20->field_0x8->field_0x8 = ret_0x150b090_20->field_0x8->field_0x8 + 1;
+                    ret_0x150b090_20->field_0x8->field_0x8++;
                     }
                     this->field_0x128 = ret_0x150b090_20->field_0x0;
                     void* prev_0x130_1 = this->field_0x130;
@@ -1928,7 +1883,7 @@ Operação  : 0x151b80d: cmp byte [flag], imm8 ; fn=0x151b770..0x151b8d8
                     }
                     }
                     if (ret_0x150b090_20->field_0x18 != 0) {
-                    ret_0x150b090_20->field_0x18->field_0x8 = ret_0x150b090_20->field_0x18->field_0x8 + 1;
+                    ret_0x150b090_20->field_0x18->field_0x8++;
                     }
                     param_2->field_0x0 = ret_0x150b090_20->field_0x10;
                     param_2->field_0x8 = ret_0x150b090_20->field_0x18;
@@ -1951,54 +1906,44 @@ Operação  : 0x151b80d: cmp byte [flag], imm8 ; fn=0x151b770..0x151b8d8
                   } else {
                     L_0x151be24:
                     call_0x2e12fd0(&f_b8->field_0x50);
-                    void* v_rcx_4;
+                    void* v_rcx_2;
                     if (f_b8->field_0x68 != 0) {
                     if (f_b8->field_0x50 == 3) {
                     if (atomic_cas(&f_b8->field_0x50, f_b8->field_0x50, 1) != 0) {
                     L_0x151be64:
-                    v_rcx_4 = &f_b8->field_0x50;
+                    v_rcx_2 = &f_b8->field_0x50;
                     L_0x151bee5:
-                    call_0xdac0(v_rcx_4);
+                    call_0xdac0(v_rcx_2);
                     }
                     } else {
-                    v_rcx_4 = &f_b8->field_0x50;
-                    call_0xdac0(v_rcx_4);
+                    v_rcx_2 = &f_b8->field_0x50;
+                    call_0xdac0(v_rcx_2);
                     }
                     } else {
                     L_0x151be70:
+                    int64_t local_0x40;
                     do { // L_0x151be70
-                    L_0x151be70:
-                    if (f_b8->field_0x39 == 0) {
-                    if (f_b8->field_0x3a == 0) break;
+                    if (f_b8->field_0x39 != 0 || f_b8->field_0x3a != 0) {
                     if (f_b8->field_0x3a != 0) {
-                    call_0xca00();
+                    auto ret_0xca00_9 = call_0xca00();
                     local_0x40 = &f_b8->field_0x50;
-                    auto ret_0x1069da0_10 = call_0x1069da0(&f_b8->field_0x58, &local_0x40, max(0, f_b8->field_0x40 * 1000) + rax);
+                    auto ret_0x1069da0_10 = call_0x1069da0(&f_b8->field_0x58, &local_0x40, max(0, f_b8->field_0x40 * 1000) + ret_0xca00_9);
                     if (ret_0x1069da0_10 != 1) continue;
                     } else {
                     auto ret_0xca10_7 = call_0xca10();
-                    auto local_0x40 = &f_b8->field_0x50;
+                    local_0x40 = &f_b8->field_0x50;
                     call_0x1069da0(&f_b8->field_0x58, &local_0x40, ret_0xca10_7);
                     }
-                    } else if (f_b8->field_0x3a != 0) {
-                    call_0xca00();
-                    local_0x40 = &f_b8->field_0x50;
-                    auto ret_0x1069da0_10 = call_0x1069da0(&f_b8->field_0x58, &local_0x40, max(0, f_b8->field_0x40 * 1000) + rax);
-                    if (ret_0x1069da0_10 != 1) continue;
-                    } else {
-                    auto ret_0xca10_7 = call_0xca10();
-                    auto local_0x40 = &f_b8->field_0x50;
-                    call_0x1069da0(&f_b8->field_0x58, &local_0x40, ret_0xca10_7);
                     }
                     } while (true); // loop -> L_0x151be70
                     if (local_0x48 != 0) {
                     if (local_0x40->field_0x0 == 3) {
                     if (atomic_cas(&local_0x40->field_0x0, 3, 1) != 0) {
-                    v_rcx_4 = local_0x40;
+                    v_rcx_2 = local_0x40;
                     goto L_0x151bee5;
                     }
                     } else {
-                    v_rcx_4 = local_0x40;
+                    v_rcx_2 = local_0x40;
                     goto L_0x151bee5;
                     }
                     }
@@ -2008,14 +1953,9 @@ Operação  : 0x151b80d: cmp byte [flag], imm8 ; fn=0x151b770..0x151b8d8
                     if (local_0x80 != 0) {
                     call_0x2e12fd0(&this->field_0x108);
                     if (f_148 != 0) {
-                    f_148->field_0x8 = f_148->field_0x8 + 1;
+                    f_148->field_0x8++;
                     }
-                    if (this->field_0x108 == 3) {
-                    if expr_1 {
-                    L_0x151bf49:
-                    call_0xdac0(&this->field_0x108);
-                    }
-                    } else {
+                    if (this->field_0x108 != 3 || atomic_cas(&this->field_0x108, this->field_0x108, 1) != 0) {
                     call_0xdac0(&this->field_0x108);
                     }
                     if (f_148 != 0) {
@@ -2030,47 +1970,44 @@ Operação  : 0x151b80d: cmp byte [flag], imm8 ; fn=0x151b770..0x151b8d8
                     call_0x4954e70(ret_0x4954e70_1);
                     }
                   }
-                  L_0x151bffd:
-                  return param_2;
-                }
-              }
-              call_0x2e12fd0(&f_b8->field_0x50);
-              void* v_rcx_4;
-              if (f_b8->field_0x68 != 0) {
-                if (f_b8->field_0x50 == 3) {
-                  if (atomic_cas(&f_b8->field_0x50, f_b8->field_0x50, 1) != 0) {
-                    goto L_0x151be64;
-                  }
                 } else {
-                  goto L_0x151be64;
-                }
-              } else {
-                goto L_0x151be70;
-              }
-              if (ReportFirstOtaPatchLoadToShell) {
-                call_0x152b5c0(f_b8, &local_0x80);
-                if (local_0x80 != 0) {
-                  call_0x2e12fd0(&this->field_0x108);
-                  if (f_148 != 0) {
-                    f_148->field_0x8 = f_148->field_0x8 + 1;
-                  }
-                  if (this->field_0x108 == 3) {
-                    if expr_1 {
-                    goto L_0x151bf49;
+                  call_0x2e12fd0(&f_b8->field_0x50);
+                  void* v_rcx_2;
+                  if (f_b8->field_0x68 != 0) {
+                    if (f_b8->field_0x50 == 3) {
+                    if (atomic_cas(&f_b8->field_0x50, f_b8->field_0x50, 1) != 0) {
+                    goto L_0x151be64;
+                    }
+                    } else {
+                    goto L_0x151be64;
                     }
                   } else {
-                    goto L_0x151bf49;
+                    goto L_0x151be70;
                   }
-                  if (f_148 != 0) {
+                  if (ReportFirstOtaPatchLoadToShell) {
+                    call_0x152b5c0(f_b8, &local_0x80);
+                    if (local_0x80 != 0) {
+                    call_0x2e12fd0(&this->field_0x108);
+                    if (f_148 != 0) {
+                    f_148->field_0x8++;
+                    }
+                    if (this->field_0x108 != 3 || atomic_cas(&this->field_0x108, this->field_0x108, 1) != 0) {
+                    call_0xdac0(&this->field_0x108);
+                    }
+                    if (f_148 != 0) {
                     call_0x6daf40(f_148);
+                    }
+                    }
+                    param_2->field_0x0 = local_0x80;
+                    param_2->field_0x8 = local_0x88;
+                    call_0x4954e70(ret_0x4954e70_1);
+                  } else {
+                    call_0x152b5c0(f_b8, param_2);
+                    call_0x4954e70(ret_0x4954e70_1);
                   }
                 }
-                param_2->field_0x0 = local_0x80;
-                param_2->field_0x8 = local_0x88;
-                call_0x4954e70(ret_0x4954e70_1);
               } else {
-                call_0x152b5c0(f_b8, param_2);
-                call_0x4954e70(ret_0x4954e70_1);
+                goto L_0x151be24;
               }
             } else if (this->field_0x118 != 0) {
               call_0x1c40e70(this->field_0x118, param_2, 3);
@@ -2078,15 +2015,14 @@ Operação  : 0x151b80d: cmp byte [flag], imm8 ; fn=0x151b770..0x151b8d8
             } else {
               call_0x2e12fd0(&this->field_0x108);
               if (f_f8 != 0) {
-                f_f8->field_0x8 = f_f8->field_0x8 + 1;
+                f_f8->field_0x8++;
               }
               goto L_0x151bc70;
             }
-            return param_2;
+          } else {
+            goto L_0x151bc26;
           }
-          goto L_0x151bc26;
-        }
-        if (f_b8 != 0) {
+        } else if (f_b8 != 0) {
           if (DeferInExperienceRbxmDownload && DeferredRbxmCacheIntegrity) {
             auto ret_0x151c540_4 = call_0x151c540(this);
             if (ret_0x151c540_4 != 0) {
@@ -2100,19 +2036,22 @@ Operação  : 0x151b80d: cmp byte [flag], imm8 ; fn=0x151b770..0x151b8d8
               } else {
                 goto L_0x151be24;
               }
-              goto L_0x151bffd;
+            } else {
+              goto L_0x151be24;
             }
+          } else {
+            goto L_0x151be24;
           }
-          goto L_0x151be24;
         } else if (this->field_0x118 != 0) {
           call_0x1c40e70(this->field_0x118, param_2, 3);
           call_0x4954e70(ret_0x4954e70_1);
         } else {
           goto L_0x151bc26;
         }
-        goto L_0x151bffd;
+      } else {
+        goto L_0x151bc26;
       }
-      goto L_0x151bc26;
+      return param_2;
     }
   
   === [Instrucoes x86-64 do XREF Runtime #2 (0x151ba70..0x151c027)] ===
@@ -2188,7 +2127,7 @@ Operação  : 0x151b80d: cmp byte [flag], imm8 ; fn=0x151b770..0x151b8d8
     0x151bb95 | 48 8b 4c 24 38           | mov rcx, qword ptr [rsp + 0x38]
     0x151bb9a | 48 81 c1 d5 c8 97 ff     | add rcx, 0xff97c8d5
     0x151bba1 | 48 89 4d d0              | mov qword ptr [rbp - 0x30], rcx
-    0x151bba5 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x151bba5 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x151bbac | 0f 1f 40 00              | nop
     L_0x151bbb0:
     0x151bbb0 | 48 ff c0                 | inc rax

@@ -39,12 +39,11 @@ Operação  : 0x4066257: mov/math reg, [flag] ; fn=0x40660e0..0x4066428
     void RBX::WriteRequesting::func_0x40660e0(RBX::WriteRequesting* this, int64_t param_2) {
       auto* f_920 = this->field_0x920;
       call_0x2e12fd0(&f_920);
-      if (LockTheftInstanceCrash && EnableWriteRequestingThreadHistory2) {
-        if (this->field_0x6f8 == 1) {
-          auto ret_0xc8a0_3 = call_0xc8a0();
-          if (this->field_0x700 == ret_0xc8a0_3 && this->field_0x6c0 != this->field_0x6c8) {
-            if (this->field_0x6c8->field_m0x8 != param_2) {
-              L_0x4066170:
+      if (LockTheftInstanceCrash) {
+        if (EnableWriteRequestingThreadHistory2) {
+          if (this->field_0x6f8 == 1) {
+            auto ret_0xc8a0_3 = call_0xc8a0();
+            if (this->field_0x700 != ret_0xc8a0_3 || this->field_0x6c0 == this->field_0x6c8 || this->field_0x6c8->field_m0x8 != param_2) {
               auto ret_0x9aaeb0_8 = call_0x9aaeb0(&this->field_0x6c0);
               if (ret_0x9aaeb0_8 == 0) {
                 call_0xfb76d0(this);
@@ -55,8 +54,6 @@ Operação  : 0x4066257: mov/math reg, [flag] ; fn=0x40660e0..0x4066428
             if (ret_0x9aaeb0_8 == 0) {
               call_0xfb76d0(this);
             }
-          } else {
-            goto L_0x4066170;
           }
         } else {
           call_0xc8a0();
@@ -71,24 +68,22 @@ Operação  : 0x4066257: mov/math reg, [flag] ; fn=0x40660e0..0x4066428
         auto local_0x70 = 4;
         call_0x40671a0(&this->field_0x6d8, &local_0x70);
         this->field_0x6c8 = this->field_0x6c8 - 8;
-        if ((this->field_0x6d0 - this->field_0x6c0) >> 3 > BorrowedStackShrinkBounds && ((this->field_0x6c8 - 8 - this->field_0x6c0) >> 3) + rcx < (this->field_0x6d0 - this->field_0x6c0) >> 3) {
+        if ((this->field_0x6d0 - this->field_0x6c0) >> 3 > BorrowedStackShrinkBounds && ((this->field_0x6c8 - this->field_0x6c0) >> 3) * 2 < (this->field_0x6d0 - this->field_0x6c0) >> 3) {
           if (WriteRequestingThreadLog >= 6 && WriteRequestingThreadLog >> 8 >= 4) {
             FLog::Log("[DFLog::WriteRequestingThreadLog] borrowedThreadStack shrinking from {} to {}");
           }
-          if (this->field_0x6c8 != this->field_0x6d0 && this->field_0x6c0 == this->field_0x6c8) {
-            call_0x6f5b10(&this->field_0x6c0);
-          } else {
-            call_0xf856c0(&this->field_0x6c0, (this->field_0x6c8 - this->field_0x6c0) >> 3);
+          if (this->field_0x6c8 != this->field_0x6d0) {
+            if (this->field_0x6c0 == this->field_0x6c8) {
+              call_0x6f5b10(&this->field_0x6c0);
+            } else {
+              call_0xf856c0(&this->field_0x6c0, (this->field_0x6c8 - this->field_0x6c0) >> 3);
+            }
           }
         }
       }
-      if (&f_920->field_0x0 == 3) {
-        if (atomic_cas(&&f_920->field_0x0, 3, 1) != 0) {
-          call_0xdac0(&f_920);
-        }
-        return;
+      if (&f_920->field_0x0 != 3 || atomic_cas(&&f_920->field_0x0, 3, 1) != 0) {
+        call_0xdac0(&f_920);
       }
-      call_0xdac0(&f_920);
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -195,7 +190,7 @@ Operação  : 0x4066257: mov/math reg, [flag] ; fn=0x40660e0..0x4066428
     0x406629c | 4c 2b 07                 | sub r8, qword ptr [rdi]
     0x406629f | 49 c1 f8 03              | sar r8, 0x3
     0x40662a3 | 48 89 4d 90              | mov qword ptr [rbp - 0x70], rcx
-    0x40662a7 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x40662a7 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x40662ae | 66 90                    | nop
     L_0x40662b0:
     0x40662b0 | 48 ff c0                 | inc rax
@@ -309,18 +304,22 @@ Operação  : 0x4066257: mov/math reg, [flag] ; fn=0x40660e0..0x4066428
     
     // Flag defaults: WriteRequestingThreadLog = 6
     auto RBX::WriteRequesting::func_0x40671a0(RBX::WriteRequesting* this, int64_t param_2) {
+      void* v_rax_1 = this->field_0x18 + 1;
       if (this->field_0x18 + 1 > this->field_0x8) {
-        auto i_edx = this->field_0x8;
+        void* i_edx = this->field_0x8;
         do { // L_0x40671d0
-        } while (i_edx > 2 ? (i_edx + i_edx * 2) >> 1 : 4 < (this->field_0x18 + 1)); // loop -> L_0x40671d0
-        call_0x40676d0(this, i_edx > 2 ? (i_edx + i_edx * 2) >> 1 : 4);
+          i_edx = i_edx > 2 ? (i_edx + i_edx * 2) >> 1 : 4;
+        } while (i_edx > 2 ? (i_edx + i_edx * 2) >> 1 : 4 < this->field_0x18 + 1); // loop -> L_0x40671d0
+        v_rax_1 = call_0x40676d0(this, i_edx > 2 ? (i_edx + i_edx * 2) >> 1 : 4);
       }
       if (param_2 != &param_2->field_0x10) {
+        void* i_ebx = param_2;
         do { // L_0x4067200
-          rdx->field_0x0 = param_2->field_0x0;
-          rdx->field_0x8 = param_2->field_0x8;
-          this->field_0x18 = this->field_0x18 + 1;
-        } while (&param_2->field_0x10 != &param_2->field_0x10); // loop -> L_0x4067200
+          rdx->field_0x0 = i_ebx->field_0x0;
+          i_ebx += 0x10;
+          rdx->field_0x8 = i_ebx->field_0x8;
+          this->field_0x18++;
+        } while (i_ebx != &param_2->field_0x10); // loop -> L_0x4067200
       }
       return v_rax_1;
     }
@@ -390,14 +389,15 @@ Operação  : 0x4066257: mov/math reg, [flag] ; fn=0x40660e0..0x4066428
     auto RBX::WriteRequesting::func_0x4066630(RBX::WriteRequesting* this, int64_t param_2) {
       call_0x72c050(&local_0x20);
       call_0x82a580(&local_0x30, "[\n");
-      do { // L_0x4066680
-        if (0 == this->field_0x6f0) break;
+      int32_t i_ebx = 0;
+      while (i_ebx != this->field_0x6f0) {
         auto ret_0x82d5d0_6 = call_0x82d5d0(&local_0x30, 91);
         auto ret_0x186c820_7 = call_0x186c820(ret_0x82d5d0_6, rdi->field_0x8);
         auto ret_0x82d5d0_8 = call_0x82d5d0(ret_0x186c820_7, 44);
         auto ret_0x82d5d0_9 = call_0x82d5d0(ret_0x82d5d0_8, rdi->field_0x0->field_0x0["NLUBR"]);
         call_0x82a580(ret_0x82d5d0_9, "], \n");
-      } while (true); // loop -> L_0x4066680
+        i_ebx++;
+      }
       call_0x82d5d0(&local_0x30, 93);
       call_0x7326d0(&local_0x38, param_2);
       call_0x727110(&local_0x20);

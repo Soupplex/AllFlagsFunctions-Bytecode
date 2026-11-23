@@ -11,14 +11,14 @@ Operação  : 0x3c0024d: mov/math reg, [flag] ; fn=0x3c00100..0x3c002e0
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : VideoFeatureControlTrace < 6
     Fórmula : VideoFeatureControlTrace >> 8 < 3
-    Altera  : this->field_0x10, this->field_0x18
+    Altera  : this->field_0x10, this->field_0x18, this->field_0x20
     [Child @0x3c6eeb0] Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     [Child @0x3c6eeb0] Fórmula : VideoFeatureControlTrace < 6
     [Child @0x3c6eeb0] Fórmula : VideoFeatureControlTrace >> 8 < 3
     [XREF #2 @0x3c003bb] Classe  : RBX::VideoFeature (RTTI Resolvido)
     [XREF #2 @0x3c003bb] Fórmula : VideoFeatureControlTrace < 6
     [XREF #2 @0x3c003bb] Fórmula : VideoFeatureControlTrace >> 8 < 3
-    [XREF #2 @0x3c003bb] Altera  : this->field_0x10, this->field_0x18, this->field_0x8
+    [XREF #2 @0x3c003bb] Altera  : this->field_0x10, this->field_0x18, this->field_0x20, this->field_0x8
     [XREF #3 @0x3c6f24a] Classe  : RBX::VideoFeature (RTTI Resolvido)
     [XREF #3 @0x3c6f24a] Fórmula : VideoFeatureControlTrace < 6
     [XREF #3 @0x3c6f24a] Fórmula : VideoFeatureControlTrace >> 8 < 3
@@ -46,42 +46,42 @@ Operação  : 0x3c0024d: mov/math reg, [flag] ; fn=0x3c00100..0x3c002e0
     // Flag defaults: VideoFeatureControlTrace = 0, VideoFeatureCacheFileName = "stats"
     auto RBX::VideoFeature::func_0x3c00100(RBX::VideoFeature* this) {
       if ((atomic_fetch_add(&this->field_0x20, 1) & 0xc0000000) != -2147483648) {
-        L_0x3c00150:
+        atomic_fetch_add(&this->field_0x20, 1) & 0xc0000000;
+        int32_t i_edi = 0;
         auto* f_8 = this->field_0x8;
         do { // L_0x3c00150
-          L_0x3c00150:
           auto ret_0xc8a0_1 = call_0xc8a0();
           if (f_8 == ret_0xc8a0_1) break;
           if (f_8 == 0) {
             auto ret_0xc8a0_2 = call_0xc8a0();
             if (atomic_cas(&f_8, 0, ret_0xc8a0_2) == 0) break;
-            if (0 >= 16) {
+            if (i_edi >= 16) {
               auto ret_0xc880_7 = call_0xc880(&local_0x88, 0, 0);
               if (ret_0xc880_7 != 0) {
                 call_0xcb40(1);
+                i_edi++;
                 continue;
               } else {
                 L_0x3c0019b:
+                i_edi++;
               }
+            } else {
+              i_edi++;
             }
-            auto ret_0xc8a0_1 = call_0xc8a0();
-            if (f_8 == ret_0xc8a0_1) break;
-          } else {
-            if (0 >= 16) {
-              auto ret_0xc880_7 = call_0xc880(&local_0x88, 0, 0);
-              if (ret_0xc880_7 != 0) {
-                call_0xcb40(1);
-                continue;
-              } else {
-                goto L_0x3c0019b;
-              }
+          } else if (i_edi >= 16) {
+            auto ret_0xc880_7 = call_0xc880(&local_0x88, 0, 0);
+            if (ret_0xc880_7 != 0) {
+              call_0xcb40(1);
+              i_edi++;
+              continue;
             } else {
               goto L_0x3c0019b;
             }
-            goto L_0x3c00150;
+          } else {
+            goto L_0x3c0019b;
           }
         } while (true); // loop -> L_0x3c00150
-        this->field_0x10 = this->field_0x10 + 1;
+        this->field_0x10++;
         if (this->field_0x18 == 0) {
           call_0x4959930(global_0x84a4e50, this);
           auto ret_0x4956380_4 = call_0x4956380(128, 8);
@@ -97,9 +97,13 @@ Operação  : 0x3c0024d: mov/math reg, [flag] ; fn=0x3c00100..0x3c002e0
           }
           call_0x3c6eeb0(&ret_0x4956380_4->field_0x10, &ret_0x4956380_4->field_0x58);
           this->field_0x18 = ret_0x4956380_4;
+          this->field_0x20 = this->field_0x20 | 0x80000000;
         }
-        if (1 != 0 && 1 == 0) {
-          &f_8->field_0x0 = 0;
+        if (1) {
+          &f_8->field_0x8--;
+          if (&f_8->field_0x8 == 1) {
+            &f_8->field_0x0 = 0;
+          }
         }
       }
       return this;
@@ -268,7 +272,7 @@ Operação  : 0x3c0024d: mov/math reg, [flag] ; fn=0x3c00100..0x3c002e0
             auto local_0x78 = 0;
             call_0x1d60070(local_0x58, local_0x58 + local_0x68 * 2, &local_0x78, ret_0x1d68340_4);
             call_0x4971a90(&local_0x20, &&sym_0x74b8fbc->field_m0xb443c, local_0x78.c_str(), param_4);
-            std::string::_Tidy_deallocate(v_rcx_2);
+            std::string::_Tidy_deallocate(local_0x78);
           }
           call_0x4973290(&local_0x30, &local_0x58);
           if (local_0x50 == 0) {
@@ -465,43 +469,41 @@ Operação  : 0x3c0024d: mov/math reg, [flag] ; fn=0x3c00100..0x3c002e0
     
     // Flag defaults: VideoFeatureControlTrace = 0
     void RBX::VideoFeature::func_0x3c00330(RBX::VideoFeature* this) {
-      L_0x3c00344:
+      int32_t i_ebx = 0;
       do { // L_0x3c00344
-        L_0x3c00344:
-        auto ret_0xc8a0_1 = call_0xc8a0(this);
+        auto ret_0xc8a0_1 = call_0xc8a0();
         if (this->field_0x8 == ret_0xc8a0_1) break;
         if (this->field_0x8 == 0) {
           auto ret_0xc8a0_2 = call_0xc8a0();
           if (atomic_cas(&this->field_0x8, 0, ret_0xc8a0_2) == 0) break;
-          if (0 >= 16) {
+          if (i_ebx >= 16) {
             auto ret_0xc880_9 = call_0xc880(&local_0x48, 0, 0);
             if (ret_0xc880_9 != 0) {
               call_0xcb40(1);
+              i_ebx++;
               continue;
             } else {
               L_0x3c0038e:
+              i_ebx++;
             }
+          } else {
+            i_ebx++;
           }
-          auto ret_0xc8a0_1 = call_0xc8a0(this);
-          if (this->field_0x8 == ret_0xc8a0_1) break;
-        } else {
-          if (0 >= 16) {
-            auto ret_0xc880_9 = call_0xc880(&local_0x48, 0, 0);
-            if (ret_0xc880_9 != 0) {
-              call_0xcb40(1);
-              continue;
-            } else {
-              goto L_0x3c0038e;
-            }
+        } else if (i_ebx >= 16) {
+          auto ret_0xc880_9 = call_0xc880(&local_0x48, 0, 0);
+          if (ret_0xc880_9 != 0) {
+            call_0xcb40(1);
+            i_ebx++;
+            continue;
           } else {
             goto L_0x3c0038e;
           }
-          goto L_0x3c00344;
+        } else {
+          goto L_0x3c0038e;
         }
       } while (true); // loop -> L_0x3c00344
-      this->field_0x10 = this->field_0x10 + 1;
-      auto expr_1 = atomic_cas(&this->field_0x20, -2147483648, -1073741824) == 0;
-      if expr_1 {
+      this->field_0x10++;
+      if (atomic_cas(&this->field_0x20, -2147483648, -1073741824) == 0) {
         if (this->field_0x18 != 0) {
           if (VideoFeatureControlTrace >= 6 && VideoFeatureControlTrace >> 8 >= 3) {
             FLog::Log("[DFLog::VideoFeatureControlTrace] VideoFeatureControl dtor");
@@ -516,8 +518,10 @@ Operação  : 0x3c0024d: mov/math reg, [flag] ; fn=0x3c00100..0x3c002e0
           call_0x4955ac0(this->field_0x18);
         }
         this->field_0x18 = 0;
+        this->field_0x20 = this->field_0x20 & 0x3fffffff;
       }
-      if expr_1 {
+      this->field_0x10--;
+      if (this->field_0x10 == 1) {
         this->field_0x8 = 0;
       }
     }
@@ -640,10 +644,10 @@ Operação  : 0x3c0024d: mov/math reg, [flag] ; fn=0x3c00100..0x3c002e0
         }
         if (local_0x50 == 0) {
           if (local_0x58 >= 8) {
-            void* v_rcx_6 = local_0x40;
-            call_0x4955ac0(v_rcx_6);
+            void* v_rcx_5 = local_0x40;
+            call_0x4955ac0(v_rcx_5);
           }
-          std::string::_Tidy_deallocate(v_rcx_8);
+          std::string::_Tidy_deallocate(local_0x60);
         } else {
           if (VideoFeatureControlTrace >= 6 && VideoFeatureControlTrace >> 8 >= 3) {
             auto ret_0x1d67dd0_4 = call_0x1d67dd0();
@@ -651,14 +655,14 @@ Operação  : 0x3c0024d: mov/math reg, [flag] ; fn=0x3c00100..0x3c002e0
             auto local_0x80 = 0;
             call_0x1d60070(local_0x40, local_0x40 + local_0x50 * 2, &local_0x80, ret_0x1d68340_5);
             call_0x4971a90(&local_0x30, rsi - 0x10a4cd, local_0x80.c_str(), param_4);
-            std::string::_Tidy_deallocate(v_rcx_2);
+            std::string::_Tidy_deallocate(local_0x80);
           }
           call_0x49737c0(&local_0x40, &local_0x20);
           if (local_0x58 >= 8) {
             void* v_rcx_3 = local_0x40;
             call_0x4955ac0(v_rcx_3);
           }
-          std::string::_Tidy_deallocate(v_rcx_5);
+          std::string::_Tidy_deallocate(local_0x60);
         }
       }
     }
@@ -867,9 +871,11 @@ Operação  : 0x3c0024d: mov/math reg, [flag] ; fn=0x3c00100..0x3c002e0
     
     // Flag defaults: VideoFeatureControlTrace = 0
     void GenericStringBuffer::Writer::func_0x3c6f400(GenericStringBuffer::Writer* this, int64_t param_2) {
-      if (VideoFeatureControlTrace >= 6 && VideoFeatureControlTrace >> 8 >= 3) {
-        FLog::Log("[DFLog::VideoFeatureControlTrace] VideoStatsCache::serialize");
-        "[DFLog::VideoFeatureControlTrace] VideoStatsCache::serialize";
+      if (VideoFeatureControlTrace >= 6) {
+        if (VideoFeatureControlTrace >> 8 >= 3) {
+          FLog::Log("[DFLog::VideoFeatureControlTrace] VideoStatsCache::serialize");
+          "[DFLog::VideoFeatureControlTrace] VideoStatsCache::serialize";
+        }
       }
       if (param_2 == 0) {
         return;
@@ -883,107 +889,107 @@ Operação  : 0x3c0024d: mov/math reg, [flag] ; fn=0x3c00100..0x3c002e0
         ret_0x4956040_4->field_0x40 = 512;
         ret_0x4956040_4->field_0x48 = 324;
         ret_0x4956040_4->field_0x0 = &sym_0x7147178;
-        ret_0x4956040_4->vfunc(ret_0x4956040_4);
+        (*global_0x7147180)(ret_0x4956040_4);
         ret_0x4956040_4->vfunc_0x40(ret_0x4956040_4, "Codecs", (0 + 6), 0) // -> RBX::SurfaceGuiBase::Ads::fn_0x3e61610;
         ret_0x4956040_4->vfunc_0x20(ret_0x4956040_4) // -> RBX::Path2D::fn_0x3ee3960;
         void* v_rsi_2 = this->field_0x10 * 56 + this->field_0x0;
         int64_t local_0x40;
-        if (this->field_0x8 == 0) {
-        } else {
+        if (this->field_0x8 != 0) {
           local_0x40 = this->field_0x0;
           call_0x3a49360(&local_0x40);
           v_rsi_2 = local_0x40;
         }
         if (v_rsi_2 != this->field_0x0 + this->field_0x10 * 56) {
-          auto i_esi = v_rsi_2;
+          void* i_esi = v_rsi_2;
+          int32_t i_r15d = 2;
           do { // L_0x3c6f610
+            i_r15d++;
             ret_0x4956040_4->vfunc_0x8(ret_0x4956040_4) // -> RBX::Path2D::fn_0x3ee38a0;
             void* v_rbx_4 = i_esi;
-            if (v_rsi_2->field_0x18 >= 16) {
-              v_rbx_4 = v_rsi_2->field_0x0;
+            if (i_esi->field_0x18 >= 16) {
+              v_rbx_4 = i_esi->field_0x0;
             }
             ret_0x4956040_4->vfunc_0x40(ret_0x4956040_4, "CodecName", (0 + 9)) // -> RBX::SurfaceGuiBase::Ads::fn_0x3e61610;
-            ret_0x4956040_4->vfunc_0x40(ret_0x4956040_4, v_rbx_4, v_rsi_2->field_0x10, 0) // -> RBX::SurfaceGuiBase::Ads::fn_0x3e61610;
+            ret_0x4956040_4->vfunc_0x40(ret_0x4956040_4, v_rbx_4, i_esi->field_0x10, 0) // -> RBX::SurfaceGuiBase::Ads::fn_0x3e61610;
             ret_0x4956040_4->vfunc_0x40(ret_0x4956040_4, "LastEpoch", (0 + 9)) // -> RBX::SurfaceGuiBase::Ads::fn_0x3e61610;
-            ret_0x4956040_4->vfunc_0x60(ret_0x4956040_4, v_rsi_2->field_0x20) // -> RBX::Ads::AdGui::fn_0x3bf20a0;
+            ret_0x4956040_4->vfunc_0x60(ret_0x4956040_4, i_esi->field_0x20) // -> RBX::Ads::AdGui::fn_0x3bf20a0;
             ret_0x4956040_4->vfunc_0x40(ret_0x4956040_4, "DecodeTimeUs", (0 + 12)) // -> RBX::SurfaceGuiBase::Ads::fn_0x3e61610;
-            ret_0x4956040_4->vfunc_0x60(ret_0x4956040_4, (uint64_t)v_rsi_2->field_0x28 >= 0.0 ? v_rsi_2->field_0x28 + 0.5 : v_rsi_2->field_0x28 - 0.5) // -> RBX::Ads::AdGui::fn_0x3bf20a0;
+            ret_0x4956040_4->vfunc_0x60(ret_0x4956040_4, (int64_t)i_esi->field_0x28 >= 0.0 ? i_esi->field_0x28 + 0.5 : i_esi->field_0x28 - 0.5) // -> RBX::Ads::AdGui::fn_0x3bf20a0;
             ret_0x4956040_4->vfunc_0x40(ret_0x4956040_4, "Rebuffering", (0 + 11)) // -> RBX::SurfaceGuiBase::Ads::fn_0x3e61610;
-            ret_0x4956040_4->vfunc_0x60(ret_0x4956040_4, (uint64_t)v_rsi_2->field_0x30 >= 0.0 ? v_rsi_2->field_0x30 + 0.5 : v_rsi_2->field_0x30 - 0.5) // -> RBX::Ads::AdGui::fn_0x3bf20a0;
+            ret_0x4956040_4->vfunc_0x60(ret_0x4956040_4, (int64_t)i_esi->field_0x30 >= 0.0 ? i_esi->field_0x30 + 0.5 : i_esi->field_0x30 - 0.5) // -> RBX::Ads::AdGui::fn_0x3bf20a0;
+            i_r15d--;
             ret_0x4956040_4->vfunc_0x18(ret_0x4956040_4, 0) // -> RBX::Path2D::fn_0x3ee3920;
-            local_0x40 = &v_rsi_2->field_0x38;
+            i_esi += 0x38;
+            local_0x40 = i_esi;
             call_0x3a49360(&local_0x40);
-          } while (local_0x40 != (this->field_0x0 + (this->field_0x10 * 56))); // loop -> L_0x3c6f610
+            i_esi = local_0x40;
+          } while (local_0x40 != this->field_0x0 + this->field_0x10 * 56); // loop -> L_0x3c6f610
+        }
+        ret_0x4956040_4->vfunc_0x28(ret_0x4956040_4, 0) // -> RBX::Path2D::fn_0x3ee2450;
+        ret_0x4956040_4->vfunc_0x18(ret_0x4956040_4, 0) // -> RBX::Path2D::fn_0x3ee3920;
+        ret_0x4956040_1->field_0x18 = &ret_0x4956040_1->field_0x18->field_0x1;
+        ret_0x4956040_1->field_0x18--;
+        auto local_0x110 = 0;
+        call_0x6f7000(&local_0x110, ret_0x4956040_1->field_0x10, ret_0x4956040_1->field_0x18 - ret_0x4956040_1->field_0x10);
+        if (param_2 != &local_0x110) {
+          call_0x6f8fb0(param_2);
+          param_2->field_0x0 = local_0x110;
+          param_2->field_0x10 = local_0x120;
         } else {
-          ret_0x4956040_4->vfunc_0x28(ret_0x4956040_4, 0) // -> RBX::Path2D::fn_0x3ee2450;
-          ret_0x4956040_4->vfunc_0x18(ret_0x4956040_4, 0) // -> RBX::Path2D::fn_0x3ee3920;
-          ret_0x4956040_1->field_0x18 = &ret_0x4956040_1->field_0x18->field_0x1;
-          ret_0x4956040_1->field_0x18 = ret_0x4956040_1->field_0x18 - 1;
-          auto local_0x110 = 0;
-          call_0x6f7000(&local_0x110, ret_0x4956040_1->field_0x10, ret_0x4956040_1->field_0x18 - ret_0x4956040_1->field_0x10);
-          if (param_2 != &local_0x110) {
-            call_0x6f8fb0(param_2);
-            param_2->field_0x0 = local_0x110;
-            param_2->field_0x10 = local_0x120;
-          } else if (local_0x128 >= 16) {
-            void* v_rcx_7 = local_0x110;
-            call_0x4955ac0(v_rcx_7);
+          std::string::_Tidy_deallocate(local_0x110);
+        }
+        if (VideoFeatureControlTrace >= 6 && VideoFeatureControlTrace >> 8 >= 3) {
+          FLog::Log("[DFLog::VideoFeatureControlTrace] VideoStatsCache::serialize data %s");
+          "[DFLog::VideoFeatureControlTrace] VideoStatsCache::serialize data %s";
+        }
+        ret_0x4956040_4->vfunc_0x0(ret_0x4956040_4, 1) // -> RBX::BackpackItem::fn_0x3c943b0;
+        call_0x4955ac0(ret_0x4956040_1->field_0x10);
+        call_0x4955ac0(ret_0x4956040_1->field_0x8);
+        if (global_0x84a4442 != 0) {
+          call_0x6cb5d0(ret_0x4956040_1);
+          return;
+        }
+        if (global_0x844b680->field_0x0[((ret_0x4956040_1 >> 16) >> 13) * 8][(ret_0x4956040_1 >> 16 & 0x1fff) * 8] != 0) {
+          void* v_rdi_10;
+          void* v_r14_11 = ret_0x4956040_1;
+          if ((rcx->field_0x0 >> 1 & 0x1) != 0) {
+            if ((&rcx->field_0x30->field_m0x1 & rcx->field_0x30) == 0) {
+              v_rdi_10 = rcx->field_0x30 - (ret_0x4956040_1 - rcx->field_0x38 & &rcx->field_0x30->field_m0x1);
+              v_r14_11 = ret_0x4956040_1 - (ret_0x4956040_1 - rcx->field_0x38 & &rcx->field_0x30->field_m0x1);
+            } else {
+              v_rdi_10 = rcx->field_0x30 - (ret_0x4956040_1 - rcx->field_0x38) % rcx->field_0x30;
+              v_r14_11 = ret_0x4956040_1 - (ret_0x4956040_1 - rcx->field_0x38) % rcx->field_0x30;
+            }
+          } else {
+            v_rdi_10 = rcx->field_0x30;
           }
-          if (VideoFeatureControlTrace >= 6 && VideoFeatureControlTrace >> 8 >= 3) {
-            FLog::Log("[DFLog::VideoFeatureControlTrace] VideoStatsCache::serialize data %s");
-            "[DFLog::VideoFeatureControlTrace] VideoStatsCache::serialize data %s";
+          if ((rcx->field_0x0 ^ rbp->field_0x30) == 0) {
+            call_0x6cb1c0(global_0x844b680->field_0x0[((ret_0x4956040_1 >> 16) >> 13) * 8][(ret_0x4956040_1 >> 16 & 0x1fff) * 8], v_r14_11, rcx->field_0x30, 0);
+          } else {
+            call_0x6cb1c0(global_0x844b680->field_0x0[((ret_0x4956040_1 >> 16) >> 13) * 8][(ret_0x4956040_1 >> 16 & 0x1fff) * 8], v_r14_11, rcx->field_0x30, 1);
           }
-          ret_0x4956040_4->vfunc_0x0(ret_0x4956040_4, 1) // -> RBX::BackpackItem::fn_0x3c943b0;
-          call_0x4955ac0(ret_0x4956040_1->field_0x10);
-          call_0x4955ac0(ret_0x4956040_1->field_0x8);
-          if (global_0x84a4442 != 0) {
-            call_0x6cb5d0(ret_0x4956040_1);
+          if (global_0x84bfcae != 0) {
+            auto ret_0x497fea0_31 = call_0x497fea0();
+            void* v_rbx_12 = ret_0x497fea0_31->field_0x0;
+            if (ret_0x497fea0_31->field_0x0 == 0) {
+              v_rbx_12 = &ret_0x497fea0_31->field_0x8;
+            }
+            v_rbx_12->field_0x4++;
+            auto ret_0x5e28c00_32 = call_0x5e28c00(0.0);
+            v_rbx_12->field_0x1c = v_rbx_12->field_0x1c + (ret_0x5e28c00_32 >> 4);
+            v_rbx_12->field_0x10 = v_rbx_12->field_0x10 + v_rdi_10;
             return;
           }
-          if (global_0x844b680->field_0x0[((ret_0x4956040_1 >> 16) >> 13) * 8][rdx * 8] != 0) {
-            void* v_rdi_11;
-            void* v_r14_12 = ret_0x4956040_1;
-            if ((rcx->field_0x0 >> 1 & 0x1) != 0) {
-              if ((&rcx->field_0x30->field_m0x1 & rcx->field_0x30) == 0) {
-                v_rdi_11 = rcx->field_0x30 - (ret_0x4956040_1 - rcx->field_0x38 & &rcx->field_0x30->field_m0x1);
-                v_r14_12 = ret_0x4956040_1 - (ret_0x4956040_1 - rcx->field_0x38 & &rcx->field_0x30->field_m0x1);
-              } else {
-                v_rdi_11 = rcx->field_0x30 - (ret_0x4956040_1 - rcx->field_0x38) % rcx->field_0x30;
-                v_r14_12 = ret_0x4956040_1 - (ret_0x4956040_1 - rcx->field_0x38) % rcx->field_0x30;
-              }
-            } else {
-              v_rdi_11 = rcx->field_0x30;
-              if ((rcx->field_0x0 ^ rbp->field_0x30) == 0) {
-                call_0x6cb1c0(global_0x844b680->field_0x0[((ret_0x4956040_1 >> 16) >> 13) * 8][rdx * 8], v_r14_12, rcx->field_0x30, 0);
-              } else {
-                call_0x6cb1c0(global_0x844b680->field_0x0[((ret_0x4956040_1 >> 16) >> 13) * 8][rdx * 8], v_r14_12, rcx->field_0x30, 1);
-              }
-              if (global_0x84bfcae != 0) {
-                auto ret_0x497fea0_31 = call_0x497fea0();
-                void* v_rbx_14 = ret_0x497fea0_31->field_0x0;
-                if (ret_0x497fea0_31->field_0x0 == 0) {
-                  v_rbx_14 = &ret_0x497fea0_31->field_0x8;
-                }
-                v_rbx_14->field_0x4 = v_rbx_14->field_0x4 + 1;
-                call_0x5e28c00(0.0);
-                v_rbx_14->field_0x1c = v_rbx_14->field_0x1c + (rax >> 4);
-                v_rbx_14->field_0x10 = v_rbx_14->field_0x10 + v_rdi_11;
-                return;
-              } else {
-                global_0x8cde99c = global_0x8cde99c + 1;
-                call_0x5e28c00(0.0);
-                global_0x8cde9b4 = global_0x8cde9b4 + (rax >> 4);
-                global_0x8cde9a8 = global_0x8cde9a8 + v_rdi_11;
-                return;
-              }
-            }
-          }
+          global_0x8cde99c++;
+          auto ret_0x5e28c00_30 = call_0x5e28c00(0.0);
+          global_0x8cde9b4 = global_0x8cde9b4 + (ret_0x5e28c00_30 >> 4);
+          global_0x8cde9a8 = global_0x8cde9a8 + v_rdi_10;
           return;
-        } else {
-          call_0x6ca7d0(&local_0xf8);
-          call_0x5e066f0(&local_0xf8, &sym_0x80cbbc0);
         }
+        return;
       }
+      call_0x6ca7d0(&local_0xf8);
+      call_0x5e066f0(&local_0xf8, &sym_0x80cbbc0);
     }
   
   === [Instrucoes x86-64 do XREF Runtime #4 (0x3c6f400..0x3c6fa9f)] ===
@@ -1453,9 +1459,11 @@ Operação  : 0x3c0024d: mov/math reg, [flag] ; fn=0x3c00100..0x3c002e0
     
     // Flag defaults: VideoFeatureControlTrace = 0
     void RBX::VideoFeature::func_0x3c6fb10(RBX::VideoFeature* this, int64_t param_2) {
-      if (VideoFeatureControlTrace >= 6 && VideoFeatureControlTrace >> 8 >= 3) {
-        FLog::Log("[DFLog::VideoFeatureControlTrace] VideoStatsCache::deserialize");
-        "[DFLog::VideoFeatureControlTrace] VideoStatsCache::deserialize";
+      if (VideoFeatureControlTrace >= 6) {
+        if (VideoFeatureControlTrace >> 8 >= 3) {
+          FLog::Log("[DFLog::VideoFeatureControlTrace] VideoStatsCache::deserialize");
+          "[DFLog::VideoFeatureControlTrace] VideoStatsCache::deserialize";
+        }
       }
       if (param_2 != 0) {
         call_0x495dc90(&local_0x148, &local_0x1e0);
@@ -1483,20 +1491,22 @@ Operação  : 0x3c0024d: mov/math reg, [flag] ; fn=0x3c00100..0x3c002e0
             void* sel_rax_1 = local_0xa0->field_0xe == 4 ? local_0xa0 : sym_0x81baf08;
             int64_t local_0x50;
             if ((sel_rax_1->field_0x8 & 0xffffffffffff) != (sel_rax_1->field_0x0 << 4) + (sel_rax_1->field_0x8 & 0xffffffffffff)) {
+              uint64_t i_ebx = sel_rax_1->field_0x8 & 0xffffffffffff;
+              void* i_esi = "Rebuffering";
               do { // L_0x3c6fd60
-                auto local_0x20 = sel_rax_1->field_0x8 & 0xffffffffffff;
+                auto local_0x20 = i_ebx;
                 auto ret_0x495ce30_6 = call_0x495ce30(&local_0x20, &local_0x260, &local_0x200);
                 if (ret_0x495ce30_6->field_0x8 != 0) break;
-                if (((ret_0x495ce30_6->field_0x0->field_0xe >> 10) & 0x1) == 0) break;
+                if ((ret_0x495ce30_6->field_0x0->field_0xe >> 10 & 0x1) == 0) break;
                 auto ret_0x495ce30_7 = call_0x495ce30(&local_0x20, &local_0x270, &local_0x170);
                 if (ret_0x495ce30_7->field_0x8 != 0) break;
-                if (((ret_0x495ce30_7->field_0x0->field_0xe >> 4) & 0x1) == 0) break;
+                if ((ret_0x495ce30_7->field_0x0->field_0xe >> 4 & 0x1) == 0) break;
                 auto ret_0x495ce30_8 = call_0x495ce30(&local_0x20, &local_0x280, &local_0x180);
                 if (ret_0x495ce30_8->field_0x8 != 0) break;
-                if (((ret_0x495ce30_8->field_0x0->field_0xe >> 4) & 0x1) == 0) break;
+                if ((ret_0x495ce30_8->field_0x0->field_0xe >> 4 & 0x1) == 0) break;
                 auto ret_0x495ce30_9 = call_0x495ce30(&local_0x20, &local_0x210, &local_0x190);
                 if (ret_0x495ce30_9->field_0x8 != 0) break;
-                if (((ret_0x495ce30_9->field_0x0->field_0xe >> 4) & 0x1) == 0) break;
+                if ((ret_0x495ce30_9->field_0x0->field_0xe >> 4 & 0x1) == 0) break;
                 auto ret_0x495ce30_10 = call_0x495ce30(&local_0x20, &local_0x220, &local_0x1a0);
                 call_0x74cec0(ret_0x495ce30_10, &local_0x2c8);
                 auto ret_0x495ce30_12 = call_0x495ce30(&local_0x20, &local_0x230, &local_0x1b0);
@@ -1504,21 +1514,24 @@ Operação  : 0x3c0024d: mov/math reg, [flag] ; fn=0x3c00100..0x3c002e0
                 auto ret_0x495ce30_14 = call_0x495ce30(&local_0x20, &local_0x240, &local_0x1c0);
                 call_0x750440(ret_0x495ce30_14);
                 auto ret_0x495ce30_16 = call_0x495ce30(&local_0x20, &local_0x250, &local_0x1d0);
-                call_0x750440(ret_0x495ce30_16);
+                auto ret_0x750440_17 = call_0x750440(ret_0x495ce30_16);
                 call_0x6f7510(&local_0x290, &local_0x2c8);
                 local_0x50 = 0;
                 auto ret_0x3a49840_19 = call_0x3a49840(&local_0x50, &local_0x290, &local_0x30);
+                void* v_rsi_3 = i_esi;
                 if (ret_0x3a49840_19 == 0) {
                   auto ret_0x3a499d0_20 = call_0x3a499d0(&local_0x50, param_2, &local_0x290, local_0x30);
                   call_0x6f7330(ret_0x3a499d0_20, &local_0x290);
                   ret_0x3a499d0_20->field_0x20 = local_0x2b0;
-                  ret_0x3a499d0_20->field_0x30 = (double)rax;
+                  ret_0x3a499d0_20->field_0x30 = (double)ret_0x750440_17;
+                  v_rsi_3 = "Rebuffering";
                 }
                 call_0x6f8fb0(&local_0x290);
                 call_0x6f8fb0(&local_0x2c8);
-                if (VideoFeatureControlTrace < 6) break;
-                if ((VideoFeatureControlTrace >> 8) < 3) break;
-              } while (((sel_rax_1->field_0x8 & 0xffffffffffff) + 0x10) != ((sel_rax_1->field_0x0 << 4) + (sel_rax_1->field_0x8 & 0xffffffffffff))); // loop -> L_0x3c6fd60
+                i_ebx += 0x10;
+                i_esi = v_rsi_3;
+              } while (i_ebx != (sel_rax_1->field_0x0 << 4) + (sel_rax_1->field_0x8 & 0xffffffffffff)); // loop -> L_0x3c6fd60
+              call_0x3a491a0(param_2, &local_0x50);
               call_0x3a40a90(&local_0x50);
               call_0x4955ac0(local_0x50);
               L_0x3c6fc41:
@@ -1894,7 +1907,6 @@ Operação  : 0x3c0024d: mov/math reg, [flag] ; fn=0x3c00100..0x3c002e0
     void RBX::VideoFeature::func_0x3c70210(RBX::VideoFeature* this, int64_t param_2, void* param_3) {
       if (VideoFeatureControlTrace >= 6 && VideoFeatureControlTrace >> 8 >= 3) {
         FLog::Log("[DFLog::VideoFeatureControlTrace] VideoFeatureControl::reportVideoStats");
-        "[DFLog::VideoFeatureControlTrace] VideoFeatureControl::reportVideoStats";
       }
       call_0x2e12fd0(&this->field_0x70);
       auto ret_0x3a49840_2 = call_0x3a49840(&this->field_0x58, param_2, &local_0x28);
@@ -1919,20 +1931,16 @@ Operação  : 0x3c0024d: mov/math reg, [flag] ; fn=0x3c00100..0x3c002e0
         if (VideoFeatureControlTrace >= 6 && VideoFeatureControlTrace >> 8 >= 3) {
           FLog::Log("[DFLog::VideoFeatureControlTrace] VideoFeatureControl::reportVideoStats copy");
         }
-        call_0x3c707b0(&this->field_0x58, param_2);
-        rax->field_0x0 = param_3->field_0x0;
-        rax->field_0x10 = param_3->field_0x10;
+        auto ret_0x3c707b0_4 = call_0x3c707b0(&this->field_0x58, param_2);
+        ret_0x3c707b0_4->field_0x0 = param_3->field_0x0;
+        ret_0x3c707b0_4->field_0x10 = param_3->field_0x10;
       }
       auto ret_0x3c707b0_5 = call_0x3c707b0(&this->field_0x58, param_2);
       ret_0x3c707b0_5->field_0x0 = ((ret_0x5de65b0_3 + rdx) >> 23) + (((ret_0x5de65b0_3 + rdx) >> 23) >> 63);
       this->field_0x78 = 1;
-      if (local_0x30->field_0x0 == 3) {
-        if (atomic_cas(&local_0x30->field_0x0, 3, 1) != 0) {
-          call_0xdac0(local_0x30);
-        }
-        return;
+      if (local_0x30->field_0x0 != 3 || atomic_cas(&local_0x30->field_0x0, 3, 1) != 0) {
+        call_0xdac0(local_0x30);
       }
-      call_0xdac0(local_0x30);
     }
   
   === [Instrucoes x86-64 do XREF Runtime #6 (0x3c70210..0x3c7051d)] ===

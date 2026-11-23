@@ -11,7 +11,7 @@ Operação  : 0x41d0325: cmp byte [flag], imm8 ; fn=0x41d0280..0x41d0347
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
     Altera  : this->field_0x20
     [XREF #2 @0x41d0385] Classe  : RBX::DebugDisable (RTTI Resolvido)
-    [XREF #2 @0x41d0385] Altera  : this->field_0x20
+    [XREF #2 @0x41d0385] Fórmula : !DebugDisableScriptTimeout
     [XREF #3 @0x41d0cb6] Classe  : RBX::DebugDisable (RTTI Resolvido)
     [XREF #3 @0x41d0cb6] Fórmula : DebugDisableScriptTimeout
   
@@ -25,14 +25,10 @@ Operação  : 0x41d0325: cmp byte [flag], imm8 ; fn=0x41d0280..0x41d0347
       call_0x2e13a20(&local_0x28, &this->field_0x8, 0);
       this->field_0x20 = 0.0;
       if ((local_0x28 & 0x1) != 0) {
-        if ((local_0x28 & 0xfffffffe)->field_0x0 == 3) {
-          if (atomic_cas(&(local_0x28 & 0xfffffffe)->field_0x0, (local_0x28 & 0xfffffffe)->field_0x0, 1) != 0) {
-            call_0xdac0(local_0x28 & 0xfffffffe);
-            return;
-          }
+        if ((local_0x28 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x28 & 0xfffffffe)->field_0x0, (local_0x28 & 0xfffffffe)->field_0x0, 1) != 0) {
+          call_0xdac0(local_0x28 & 0xfffffffe);
           return;
         }
-        call_0xdac0(local_0x28 & 0xfffffffe);
       }
     }
   
@@ -105,95 +101,31 @@ Operação  : 0x41d0325: cmp byte [flag], imm8 ; fn=0x41d0280..0x41d0347
     0x41d0344 | 32 c0                    | xor al, al
     0x41d0346 | c3                       | ret
   
-  === [Decompilacao C++ do XREF Runtime #2: 0x41d0280..0x41d03a7 (insn @0x41d0385: cmp byte [flag], imm8)] ===
+  === [Decompilacao C++ do XREF Runtime #2: 0x41d0350..0x41d03a7 (insn @0x41d0385: cmp byte [flag], imm8)] ===
     struct RBX::DebugDisable {
       /* +0x20 */ double  field_0x20;
+      /* +0x38 */ double  field_0x38;
+      /* +0x40 */ uint8_t field_0x40;
     };
     
     // Flag defaults: DebugDisableScriptTimeout = false
-    void RBX::DebugDisable::func_0x41d0280(RBX::DebugDisable* this) {
-      call_0x2e13a20(&local_0x28, &this->field_0x8, 0);
-      this->field_0x20 = 0.0;
-      if ((local_0x28 & 0x1) != 0) {
-        if ((local_0x28 & 0xfffffffe)->field_0x0 == 3) {
-          if (atomic_cas(&(local_0x28 & 0xfffffffe)->field_0x0, (local_0x28 & 0xfffffffe)->field_0x0, 1) != 0) {
-            call_0xdac0(local_0x28 & 0xfffffffe);
-            return;
-          }
-          return;
-        }
-        call_0xdac0(local_0x28 & 0xfffffffe);
+    void RBX::DebugDisable::func_0x41d0350(RBX::DebugDisable* this, int64_t param_2, void* param_3, void* param_4) {
+      if (this->field_0x40 != 0 && param_2 > this->field_0x38) {
+        L_0x41d03a1:
+        return;
+      }
+      if (param_4 > 0.0 && param_2 - param_3 > param_4 && !DebugDisableScriptTimeout) {
+        return;
+      }
+      if (!isnan(this->field_0x20) && this->field_0x20 == 0.0) {
+        return;
+      }
+      if (param_2 >= this->field_0x20) {
+        goto L_0x41d03a1;
       }
     }
   
-  === [Instrucoes x86-64 do XREF Runtime #2 (0x41d0280..0x41d03a7)] ===
-    0x41d0280 | 40 53                    | push rbx
-    0x41d0282 | 48 83 ec 40              | sub rsp, 0x40
-    0x41d0286 | 48 8b 05 53 84 f0 03     | mov rax, qword ptr [rip + 0x3f08453]
-    0x41d028d | 48 33 c4                 | xor rax, rsp
-    0x41d0290 | 48 89 44 24 30           | mov qword ptr [rsp + 0x30], rax
-    0x41d0295 | 48 8b d9                 | mov rbx, rcx
-    0x41d0298 | 48 8d 51 08              | lea rdx, [rcx + 0x8]
-    0x41d029c | 45 33 c0                 | xor r8d, r8d
-    0x41d029f | 48 8d 4c 24 28           | lea rcx, [rsp + 0x28]
-    0x41d02a4 | e8 77 37 c4 fe           | call 0x2e13a20
-    0x41d02a9 | 0f 57 c0                 | xorps xmm0, xmm0
-    0x41d02ac | f2 0f 11 43 20           | movsd qword ptr [rbx + 0x20], xmm0
-    0x41d02b1 | 48 8b 4c 24 28           | mov rcx, qword ptr [rsp + 0x28]
-    0x41d02b6 | 0f b6 c1                 | movzx eax, cl
-    0x41d02b9 | 24 01                    | and al, 0x1
-    0x41d02bb | 74 20                    | je 0x41d02dd
-    0x41d02bd | 48 83 e1 fe              | and rcx, -0x2
-    0x41d02c1 | 48 8b 01                 | mov rax, qword ptr [rcx]
-    0x41d02c4 | 90                       | nop
-    0x41d02c5 | 48 83 f8 03              | cmp rax, 0x3
-    0x41d02c9 | 75 0c                    | jne 0x41d02d7
-    0x41d02cb | ba 01 00 00 00           | mov edx, 0x1
-    0x41d02d0 | f0 48 0f b1 11           | lock cmpxchg qword ptr [rcx], rdx
-    0x41d02d5 | 74 06                    | je 0x41d02dd
-    L_0x41d02d7:
-    0x41d02d7 | e8 e4 d7 e3 fb           | call 0xdac0
-    0x41d02dc | 90                       | nop
-    L_0x41d02dd:
-    0x41d02dd | 48 8b 4c 24 30           | mov rcx, qword ptr [rsp + 0x30]
-    0x41d02e2 | 48 33 cc                 | xor rcx, rsp
-    0x41d02e5 | e8 b6 45 c1 01           | call 0x5de48a0
-    0x41d02ea | 48 83 c4 40              | add rsp, 0x40
-    0x41d02ee | 5b                       | pop rbx
-    0x41d02ef | c3                       | ret
-    0x41d02f0 | 0f b6 41 40              | movzx eax, byte ptr [rcx + 0x40]
-    0x41d02f4 | 66 49 0f 6e e0           | movq xmm4, r8
-    0x41d02f9 | 66 48 0f 6e ca           | movq xmm1, rdx
-    0x41d02fe | 90                       | nop
-    0x41d02ff | 84 c0                    | test al, al
-    0x41d0301 | 74 07                    | je 0x41d030a
-    0x41d0303 | 66 0f 2f 49 38           | comisd xmm1, qword ptr [rcx + 0x38]
-    0x41d0308 | 77 37                    | ja 0x41d0341
-    L_0x41d030a:
-    0x41d030a | f2 0f 10 51 28           | movsd xmm2, qword ptr [rcx + 0x28]
-    0x41d030f | 0f 57 db                 | xorps xmm3, xmm3
-    0x41d0312 | 66 0f 2f d3              | comisd xmm2, xmm3
-    0x41d0316 | 76 16                    | jbe 0x41d032e
-    0x41d0318 | 0f 28 c1                 | movaps xmm0, xmm1
-    0x41d031b | f2 0f 5c c4              | subsd xmm0, xmm4
-    0x41d031f | 66 0f 2f c2              | comisd xmm0, xmm2
-    0x41d0323 | 76 09                    | jbe 0x41d032e
-    0x41d0325 | 80 3d 4c 8a f5 03 00     | cmp byte ptr [rip + 0x3f58a4c], 0x0 ; DFFlagDebugDisableScriptTimeout
-    0x41d032c | 74 13                    | je 0x41d0341
-    L_0x41d032e:
-    0x41d032e | f2 0f 10 41 20           | movsd xmm0, qword ptr [rcx + 0x20]
-    0x41d0333 | 66 0f 2e c3              | ucomisd xmm0, xmm3
-    0x41d0337 | 7a 02                    | jp 0x41d033b
-    0x41d0339 | 74 09                    | je 0x41d0344
-    L_0x41d033b:
-    0x41d033b | 66 0f 2f c8              | comisd xmm1, xmm0
-    0x41d033f | 72 03                    | jb 0x41d0344
-    L_0x41d0341:
-    0x41d0341 | b0 01                    | mov al, 0x1
-    0x41d0343 | c3                       | ret
-    L_0x41d0344:
-    0x41d0344 | 32 c0                    | xor al, al
-    0x41d0346 | c3                       | ret
+  === [Instrucoes x86-64 do XREF Runtime #2 (0x41d0350..0x41d03a7)] ===
     0x41d0350 | 0f b6 41 40              | movzx eax, byte ptr [rcx + 0x40]
     0x41d0354 | 66 49 0f 6e d9           | movq xmm3, r9
     0x41d0359 | 66 49 0f 6e e0           | movq xmm4, r8
@@ -242,15 +174,11 @@ Operação  : 0x41d0325: cmp byte [flag], imm8 ; fn=0x41d0280..0x41d0347
     
     // Flag defaults: DebugDisableScriptTimeout = false, LuauScriptCancellation = false, StopAssistantSecurityHangingStudio = false, LuauPerScriptExecutionTimeout = false
     void RBX::DebugDisable::func_0x41d0a90(RBX::DebugDisable* this, int64_t param_2) {
-      void* v_rax_1;
-      if (!(LuauScriptCancellation && param_2 != 0 && param_2->field_0x48 != 0 && param_2->field_0x48->field_0x28 != 0)) {
-        v_rax_1 = param_2->field_0x48;
-      }
-      void* sel_r15_1 = this == 0 ? v_rax_1 : this->field_m0x1000;
+      void* sel_r15_1 = this == 0 ? -376 : this->field_m0x1000;
       call_0x41302e0(sel_r15_1, &local_0x30);
       call_0x495a220(&local_0xc8);
-      call_0x4062490(sel_r15_1);
-      if (rax->field_0x768 == 0) {
+      auto ret_0x4062490_3 = call_0x4062490(sel_r15_1);
+      if (ret_0x4062490_3->field_0x768 == 0) {
         auto ret_0xc700_4 = call_0xc700(global_0x84aed78, 1);
         if (this->field_0x60 != 0) {
           call_0x42b0fe0(this->field_0x60, param_2, sel_r15_1, local_0xc8 - local_0x30);
@@ -260,141 +188,133 @@ Operação  : 0x41d0325: cmp byte [flag], imm8 ; fn=0x41d0280..0x41d0347
         if (ret_0xc700_4->field_0x0 < 2 || ret_0xc700_4->field_0x0 > 6 && ret_0xc700_4->field_0x0 < 11 || ret_0xc700_4->field_0x0 > 12) {
           if (StopAssistantSecurityHangingStudio && ret_0xc700_4->field_0x0 == 10) {
             if (LuauPerScriptExecutionTimeout) {
-              void* v_rbx_3 = 0;
+              void* v_rbx_2 = 0;
               if (local_0xb8 != 0) {
-                v_rbx_3 = local_0xb8->field_0x48;
+                v_rbx_2 = local_0xb8->field_0x48;
               }
-              if (!isnan(v_rbx_3->field_0xa8) && v_rbx_3->field_0xa8 != 0.0) {
-                L_0x41d0c59:
-              }
-              if (this->field_0x40 != 0 && local_0xc8 <= this->field_0x38) {
-                L_0x41d0c76:
-                if ((!isnan(v_rbx_3->field_0xa8) ? &this->field_0x28 : &local_0x38)->field_0x0 > 0.0) {
-                  L_0x41d0cb4:
-                  auto* f_68 = this->field_0x68;
-                  if (local_0xc8 - (((param_2 != 0 ? param_2->field_0x48 : 0)->field_0x18)->field_0x30)->field_0x90 > (!isnan(v_rbx_3->field_0xa8) ? &this->field_0x28 : &local_0x38)->field_0x0 && !DebugDisableScriptTimeout) {
+              if (this->field_0x40 != 0) {
+                if (local_0xc8 <= this->field_0x38) {
+                  L_0x41d0c76:
+                  if ((!isnan(v_rbx_2->field_0xa8) ? &this->field_0x28 : &local_0x38)->field_0x0 > 0.0) {
+                    L_0x41d0cb4:
+                    if ((LuauPerScriptExecutionTimeout ? local_0xb8 : this->field_0x40) > 0 && !DebugDisableScriptTimeout) {
                     L_0x41d0ce6:
-                    void* v_r15_8 = sel_r15_1;
-                    if (f_68 != this->field_0x70) {
+                    void* v_r15_7 = sel_r15_1;
+                    if (this->field_0x68 != this->field_0x70) {
+                    void* i_ebx = this->field_0x68;
                     int32_t i_r14d = 0;
                     L_0x41d0d03:
-                    uint8_t v_al_7;
+                    uint8_t v_al_6;
                     do { // L_0x41d0d03
-                    L_0x41d0d03:
-                    if ((f_68->field_0x18 & 0xfffffff8) != 0) {
-                    void* v_r10_5 = f_68;
-                    if ((f_68->field_0x18 >> 1 & 0x1) == 0) {
-                    v_r10_5 = f_68->field_0x0;
+                    if ((i_ebx->field_0x18 & 0xfffffff8) != 0) {
+                    void* v_r10_4 = i_ebx;
+                    if ((i_ebx->field_0x18 >> 1 & 0x1) == 0) {
+                    v_r10_4 = i_ebx->field_0x0;
                     }
-                    auto vret_7 = v_r10_5->vfunc(v_r10_5, local_0xb8, local_0x30, local_0xc0);
+                    auto vret_7 = ((i_ebx->field_0x18 & 0xfffffff8))->vfunc_0x0(v_r10_4, local_0xb8, local_0x30, local_0xc0) // -> RBX::Path2D::fn_0x3ee33d0;
                     if (vret_7 != 0) {
-                    v_al_7 = 1;
+                    v_al_6 = 1;
                     } else {
-                    v_al_7 = 0;
+                    v_al_6 = 0;
                     }
                     } else {
-                    v_al_7 = 0;
+                    v_al_6 = 0;
                     }
-                    } while (&f_68->field_0x20 != this->field_0x70); // loop -> L_0x41d0d03
-                    if ((i_r14d | v_al_7) == 0) {
-                    v_r15_8 = local_0x40;
+                    i_ebx += 0x20;
+                    i_r14d = i_r14d | v_al_6;
+                    } while (i_ebx != this->field_0x70); // loop -> L_0x41d0d03
+                    if ((i_r14d | v_al_6) == 0) {
+                    v_r15_7 = local_0x40;
                     L_0x41d0d52:
                     if (this->field_0x60 != 0) {
-                    call_0x42b09e0(this->field_0x60, local_0xb8, v_r15_8);
+                    call_0x42b09e0(this->field_0x60, local_0xb8, v_r15_7);
                     }
                     call_0x254bd80(local_0xb8, 2);
                     }
                     return;
                     }
                     if (this->field_0x60 != 0) {
-                    call_0x42b09e0(this->field_0x60, local_0xb8, v_r15_8);
+                    call_0x42b09e0(this->field_0x60, local_0xb8, v_r15_7);
                     }
                     call_0x254bd80(local_0xb8, 2);
-                  } else {
+                    } else {
                     L_0x41d0cc6:
-                    if (!isnan(this->field_0x20)) {
-                    if (this->field_0x20 != 0.0) {
-                    L_0x41d0cd7:
+                    if (isnan(this->field_0x20) || this->field_0x20 != 0.0) {
                     if (local_0xc8 >= this->field_0x20) {
-                    void* v_r15_8 = sel_r15_1;
-                    if (f_68 != this->field_0x70) {
+                    void* v_r15_7 = sel_r15_1;
+                    if (this->field_0x68 != this->field_0x70) {
+                    void* i_ebx = this->field_0x68;
                     int32_t i_r14d = 0;
                     goto L_0x41d0d03;
-                    }
+                    } else {
                     goto L_0x41d0d52;
                     }
-                    return;
                     }
                     return;
                     }
+                    return;
+                    }
+                  } else {
+                    if (isnan(this->field_0x20) || this->field_0x20 != 0.0) {
                     if (local_0xc8 >= this->field_0x20) {
                     goto L_0x41d0ce6;
                     }
                     return;
-                  }
-                  if (!isnan(this->field_0x20)) {
-                    if (this->field_0x20 != 0.0) {
-                    goto L_0x41d0cd7;
                     }
                     return;
                   }
-                  goto L_0x41d0cd7;
+                } else {
+                  goto L_0x41d0ce6;
                 }
-                goto L_0x41d0ce6;
-              }
-              if ((!isnan(v_rbx_3->field_0xa8) ? &this->field_0x28 : &local_0x38)->field_0x0 > 0.0) {
-                if (local_0xc8 - (((param_2 != 0 ? param_2->field_0x48 : 0)->field_0x18)->field_0x30)->field_0x90 > (!isnan(v_rbx_3->field_0xa8) ? &this->field_0x28 : &local_0x38)->field_0x0 && !DebugDisableScriptTimeout) {
+              } else if ((!isnan(v_rbx_2->field_0xa8) ? &this->field_0x28 : &local_0x38)->field_0x0 > 0.0) {
+                if ((LuauPerScriptExecutionTimeout ? local_0xb8 : this->field_0x40) > 0 && !DebugDisableScriptTimeout) {
                   goto L_0x41d0ce6;
                 } else {
                   goto L_0x41d0cc6;
                 }
+              } else {
+                goto L_0x41d0cc6;
               }
-              goto L_0x41d0cc6;
-            } else {
-              if (this->field_0x40 != 0) {
-                if (local_0xc8 <= this->field_0x38) {
-                  L_0x41d0c9e:
-                  if (this->field_0x28 > 0.0) {
-                    goto L_0x41d0cb4;
-                  }
+            } else if (this->field_0x40 != 0) {
+              if (local_0xc8 <= this->field_0x38) {
+                L_0x41d0c9e:
+                if (this->field_0x28 > 0.0) {
+                  goto L_0x41d0cb4;
+                } else {
                   goto L_0x41d0cc6;
                 }
+              } else {
                 goto L_0x41d0ce6;
               }
-              if (this->field_0x28 > 0.0) {
-                goto L_0x41d0cb4;
-              }
+            } else if (this->field_0x28 > 0.0) {
+              goto L_0x41d0cb4;
+            } else {
               goto L_0x41d0cc6;
             }
           }
           return;
         }
         if (LuauPerScriptExecutionTimeout) {
-          void* v_rbx_3 = 0;
+          void* v_rbx_2 = 0;
           if (local_0xb8 != 0) {
-            v_rbx_3 = local_0xb8->field_0x48;
-          }
-          if (!isnan(v_rbx_3->field_0xa8)) {
-            if (v_rbx_3->field_0xa8 != 0.0) {
-              goto L_0x41d0c59;
-            }
-          } else {
-            goto L_0x41d0c59;
+            v_rbx_2 = local_0xb8->field_0x48;
           }
           if (this->field_0x40 != 0) {
             if (local_0xc8 <= this->field_0x38) {
               goto L_0x41d0c76;
+            } else {
+              goto L_0x41d0ce6;
             }
+          } else {
+            goto L_0x41d0c76;
+          }
+        } else if (this->field_0x40 != 0) {
+          if (local_0xc8 <= this->field_0x38) {
+            goto L_0x41d0c9e;
+          } else {
             goto L_0x41d0ce6;
           }
-          goto L_0x41d0c76;
         } else {
-          if (this->field_0x40 != 0) {
-            if (local_0xc8 <= this->field_0x38) {
-              goto L_0x41d0c9e;
-            }
-            goto L_0x41d0ce6;
-          }
           goto L_0x41d0c9e;
         }
       }
@@ -431,7 +351,7 @@ Operação  : 0x41d0325: cmp byte [flag], imm8 ; fn=0x41d0280..0x41d0347
     0x41d0ae0 | 0f 85 fb 02 00 00        | jne 0x41d0de1
     L_0x41d0ae6:
     0x41d0ae6 | 4c 8d be 00 f0 ff ff     | lea r15, [rsi - 0x1000]
-    0x41d0aed | 48 c7 c0 88 fe ff ff     | mov rax, 0xfffffe88
+    0x41d0aed | 48 c7 c0 88 fe ff ff     | mov rax, -0x178
     0x41d0af4 | 48 85 f6                 | test rsi, rsi
     0x41d0af7 | 4c 0f 44 f8              | cmovz r15, rax
     0x41d0afb | 4c 89 7d d0              | mov qword ptr [rbp - 0x30], r15
@@ -678,31 +598,14 @@ Operação  : 0x41d0325: cmp byte [flag], imm8 ; fn=0x41d0280..0x41d0347
   0x41d0337: 7a 02 | 74 09 | 66 0f 2f c8 | 72 03
   0x41d0341: b0 01 | c3 | 32 c0 | c3
 
-  [XREF #2 Bytecode Hex 0x41d0280..0x41d03a7]
-  0x41d0280: 40 53 | 48 83 ec 40 | 48 8b 05 53 84 f0 03 | 48 33 c4
-  0x41d0290: 48 89 44 24 30 | 48 8b d9 | 48 8d 51 08 | 45 33 c0
-  0x41d029f: 48 8d 4c 24 28 | e8 77 37 c4 fe | 0f 57 c0 | f2 0f 11 43 20
-  0x41d02b1: 48 8b 4c 24 28 | 0f b6 c1 | 24 01 | 74 20
-  0x41d02bd: 48 83 e1 fe | 48 8b 01 | 90 | 48 83 f8 03
-  0x41d02c9: 75 0c | ba 01 00 00 00 | f0 48 0f b1 11 | 74 06
-  0x41d02d7: e8 e4 d7 e3 fb | 90 | 48 8b 4c 24 30 | 48 33 cc
-  0x41d02e5: e8 b6 45 c1 01 | 48 83 c4 40 | 5b | c3
-  0x41d02f0: 0f b6 41 40 | 66 49 0f 6e e0 | 66 48 0f 6e ca | 90
-  0x41d02ff: 84 c0 | 74 07 | 66 0f 2f 49 38 | 77 37
-  0x41d030a: f2 0f 10 51 28 | 0f 57 db | 66 0f 2f d3 | 76 16
-  0x41d0318: 0f 28 c1 | f2 0f 5c c4 | 66 0f 2f c2 | 76 09
-  0x41d0325: 80 3d 4c 8a f5 03 00 | 74 13 | f2 0f 10 41 20 | 66 0f 2e c3
-  0x41d0337: 7a 02 | 74 09 | 66 0f 2f c8 | 72 03
-  0x41d0341: b0 01 | c3 | 32 c0 | c3
-  0x41d0347: cc cc | cc cc | cc cc | cc cc
-  0x41d034f: cc | 0f b6 41 40 | 66 49 0f 6e d9 | 66 49 0f 6e e0
-  0x41d035e: 66 48 0f 6e ca | 90 | 84 c0 | 74 07
-  0x41d0368: 66 0f 2f 49 38 | 77 32 | 0f 57 d2 | 66 0f 2f da
-  0x41d0376: 76 16 | 0f 28 c1 | f2 0f 5c c4 | 66 0f 2f c3
-  0x41d0383: 76 09 | 80 3d ec 89 f5 03 00 | 74 13 | f2 0f 10 41 20
-  0x41d0393: 66 0f 2e c2 | 7a 02 | 74 09 | 66 0f 2f c8
-  0x41d039f: 72 03 | b0 01 | c3 | 32 c0
-  0x41d03a6: c3
+  [XREF #2 Bytecode Hex 0x41d0350..0x41d03a7]
+  0x41d0350: 0f b6 41 40 | 66 49 0f 6e d9 | 66 49 0f 6e e0 | 66 48 0f 6e ca
+  0x41d0363: 90 | 84 c0 | 74 07 | 66 0f 2f 49 38
+  0x41d036d: 77 32 | 0f 57 d2 | 66 0f 2f da | 76 16
+  0x41d0378: 0f 28 c1 | f2 0f 5c c4 | 66 0f 2f c3 | 76 09
+  0x41d0385: 80 3d ec 89 f5 03 00 | 74 13 | f2 0f 10 41 20 | 66 0f 2e c2
+  0x41d0397: 7a 02 | 74 09 | 66 0f 2f c8 | 72 03
+  0x41d03a1: b0 01 | c3 | 32 c0 | c3
 
   [XREF #3 Bytecode Hex 0x41d0a90..0x41d0de0]
   0x41d0a90: 48 89 5c 24 08 | 48 89 54 24 10 | 55 | 56

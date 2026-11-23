@@ -11,7 +11,7 @@ Operação  : 0x472c4e9: mov/math reg, [flag] ; fn=0x472c460..0x472c768
     Papel   : Multiplicador / Escala aplicado sobre limites ou métricas da função
     Fórmula : vret_2 == 0 ? DataSenderMaxJoinBandwidthBps : DataSenderMaxBandwidthBps
     Fórmula : vret_3 == 0 ? DataSenderMaxJoinBandwidthBpsMultiplier : DataSenderMaxBandwidthBpsMultiplier
-    Fórmula : (int32_t)(LargeDataSenderMaxBandwidthBps * max(1.0 / DataSenderRate, ftmp_1))
+    Fórmula : (int32_t)((double)LargeDataSenderMaxBandwidthBps * max(1.0 / (double)DataSenderRate, ftmp_1))
     Fórmula : v_rax_1
     Altera  : this->field_0x48, this->largeDataSenderMinBandwidthBps_0x78, this->largeDataSenderMaxBandwidthBps_0x7c, this->field_0x50
   
@@ -34,7 +34,7 @@ Operação  : 0x472c4e9: mov/math reg, [flag] ; fn=0x472c460..0x472c768
     };
     
     // Flag defaults: DataSenderMaxBandwidthBpsMultiplier = 5, TrackNetworkSenderStall = true, DataSenderMaxBandwidthBps = 1000000, DataSenderMaxJoinBandwidthBps = 9600000, DataSenderRate = 60, BandwidthManagerDataSenderMaxWorkCatchupMs = 2500, DataSenderMaxJoinBandwidthBpsMultiplier = 2, LargeDataSenderMinBandwidthBps = 387600
-    void RBX::DataSender::func_0x472c460(RBX::DataSender* this, int64_t param_2, float param_3) {
+    void RBX::DataSender::func_0x472c460(RBX::DataSender* this, int64_t param_2) {
       this->field_0x48 = 0;
       auto* f_0 = this->field_0x0;
       if (TrackNetworkSenderStall) {
@@ -44,33 +44,26 @@ Operação  : 0x472c4e9: mov/math reg, [flag] ; fn=0x472c460..0x472c768
       int32_t selected_ebx_1 = vret_2 == 0 ? DataSenderMaxJoinBandwidthBps : DataSenderMaxBandwidthBps;
       auto vret_3 = f_0->vfunc_0x2e0() // -> RBX::Network::ServerReplicator::fn_0x46fade0;
       int32_t selected_r9d_2 = vret_3 == 0 ? DataSenderMaxJoinBandwidthBpsMultiplier : DataSenderMaxBandwidthBpsMultiplier;
-      double ftmp_1 = min((float)BandwidthManagerDataSenderMaxWorkCatchupMs / 1000.0, param_2 - this->field_0x50);
-      this->field_0x48 = (int32_t)(selected_ebx_1 * max(1.0 / DataSenderRate, ftmp_1));
-      void* sel_rcx_3 = min(selected_ebx_1 / DataSenderRate * selected_r9d_2, (int32_t)(selected_ebx_1 * max(1.0 / DataSenderRate, ftmp_1)));
-      this->field_0x48 = sel_rcx_3->field_0x0;
-      this->largeDataSenderMinBandwidthBps_0x78 = (int32_t)(LargeDataSenderMinBandwidthBps * max(1.0 / DataSenderRate, ftmp_1));
-      int32_t v_rax_1 = (int32_t)(LargeDataSenderMinBandwidthBps * max(1.0 / DataSenderRate, ftmp_1));
+      double ftmp_1 = min((double)((float)BandwidthManagerDataSenderMaxWorkCatchupMs / 1000.0), param_2 - this->field_0x50);
+      this->field_0x48 = (int32_t)((double)selected_ebx_1 * max(1.0 / (double)DataSenderRate, ftmp_1));
+      this->field_0x48 = min(selected_ebx_1 / DataSenderRate * selected_r9d_2, (int32_t)((double)selected_ebx_1 * max(1.0 / (double)DataSenderRate, ftmp_1)));
+      this->largeDataSenderMinBandwidthBps_0x78 = (int32_t)((double)LargeDataSenderMinBandwidthBps * max(1.0 / (double)DataSenderRate, ftmp_1));
+      int32_t v_rax_1 = (int32_t)((double)LargeDataSenderMinBandwidthBps * max(1.0 / (double)DataSenderRate, ftmp_1));
       if (f_0->field_0x3b61 == 0) {
-        v_rax_1 = (int32_t)(LargeDataSenderMaxBandwidthBps * max(1.0 / DataSenderRate, ftmp_1));
+        v_rax_1 = (int32_t)((double)LargeDataSenderMaxBandwidthBps * max(1.0 / (double)DataSenderRate, ftmp_1));
       }
       this->largeDataSenderMaxBandwidthBps_0x7c = v_rax_1;
       if (LargeReplicatorUseDynamicBandwidthTarget2) {
         auto* f_0_108 = f_0->field_0x108;
         f_0_108->vfunc_0xd0() // -> RBX::Path2D::fn_0x3e650c0;
         if (f_0_108->field_0x868 != 0) {
-          float fxmm1_2;
-          if (f_0_108->field_0x868 >= 0) {
-            fxmm1_2 = (float)f_0_108->field_0x868;
-          } else {
-            float ftmp_2 = (float)(f_0_108->field_0x868 >> 1 | f_0_108->field_0x868 & 0x1);
-            fxmm1_2 = ftmp_2 * 2;
-          }
+          float fxmm1_2 = (float)(uint64_t)f_0_108->field_0x868;
           float ftmp_3 = (float)LargeReplicatorDynamicBandwidthIncreasePercent / 100.0 + 1.0;
           int32_t v_rax_3 = 0;
           float fxmm0_4;
-          if (ftmp_3 * fxmm1_2 >= global_0x75a0efc) {
-            float ftmp_4 = ftmp_3 * fxmm1_2 - global_0x75a0efc;
-            if (ftmp_4 < global_0x75a0efc) {
+          if (ftmp_3 * fxmm1_2 >= 9.22337e+18) {
+            float ftmp_4 = ftmp_3 * fxmm1_2 - 9.22337e+18;
+            if (ftmp_4 < 9.22337e+18) {
               v_rax_3 = 0x8000000000000000;
               fxmm0_4 = ftmp_4;
             } else {
@@ -79,7 +72,7 @@ Operação  : 0x472c4e9: mov/math reg, [flag] ; fn=0x472c460..0x472c768
           } else {
             fxmm0_4 = ftmp_3 * fxmm1_2;
           }
-          int64_t v_rcx_8 = (uint64_t)fxmm0_4 + v_rax_3;
+          int64_t v_rcx_8 = (int64_t)fxmm0_4 + v_rax_3;
           if (LargeReplicatorUseMaxClientBandwidth && f_0->field_0x4bf8 > 0) {
             int32_t v_rcx_5 = LargeDataSenderMaxBandwidthBps;
             if (LargeDataSenderMaxBandwidthBps >= f_0->field_0x4bf8) {
@@ -88,24 +81,27 @@ Operação  : 0x472c4e9: mov/math reg, [flag] ; fn=0x472c460..0x472c768
             float ftmp_5 = (float)LargeReplicatorMaxBandwidthUsageAllowedPercent / 100.0 * (float)v_rcx_5;
             int32_t v_rcx_6 = 0;
             float fxmm1_7;
-            if (ftmp_5 >= global_0x75a0efc && ftmp_5 - global_0x75a0efc < global_0x75a0efc) {
-              v_rcx_6 = 0x8000000000000000;
-              fxmm1_7 = ftmp_5 - global_0x75a0efc;
+            if (ftmp_5 >= 9.22337e+18) {
+              if (ftmp_5 - 9.22337e+18 < 9.22337e+18) {
+                v_rcx_6 = 0x8000000000000000;
+                fxmm1_7 = ftmp_5 - 9.22337e+18;
+              } else {
+                fxmm1_7 = ftmp_5 - 9.22337e+18;
+              }
             } else {
-              fxmm1_7 = ftmp_5 - global_0x75a0efc;
+              fxmm1_7 = ftmp_5;
             }
-            v_rcx_8 = min((uint64_t)fxmm0_4 + v_rax_3, (uint64_t)fxmm1_7 + v_rcx_6);
+            v_rcx_8 = min((int64_t)fxmm0_4 + v_rax_3, (int64_t)fxmm1_7 + v_rcx_6);
           }
           double fxmm0_9;
           if (v_rcx_8 >= 0) {
             fxmm0_9 = (double)v_rcx_8;
           } else {
-            fxmm0_9 = (double)(v_rcx_8 >> 1 | v_rcx_8 & 0x1) + (double)(v_rcx_8 >> 1 | v_rcx_8 & 0x1);
+            fxmm0_9 = (double)(v_rcx_8 >> 1 | v_rcx_8 & 0x1) * 2;
           }
-          void* v_rcx_10 = this->largeDataSenderMaxBandwidthBps_0x7c;
-          if (this->largeDataSenderMaxBandwidthBps_0x7c >= (int32_t)(fxmm0_9 * max(1.0 / DataSenderRate, ftmp_1))) {
-            void* sel_rcx_4 = max((int32_t)(fxmm0_9 * max(1.0 / DataSenderRate, ftmp_1)), this->largeDataSenderMinBandwidthBps_0x78);
-            v_rcx_10 = sel_rcx_4;
+          int32_t v_rcx_10 = this->largeDataSenderMaxBandwidthBps_0x7c;
+          if (this->largeDataSenderMaxBandwidthBps_0x7c >= (int32_t)(fxmm0_9 * max(1.0 / (double)DataSenderRate, ftmp_1))) {
+            v_rcx_10 = max((int32_t)(fxmm0_9 * max(1.0 / (double)DataSenderRate, ftmp_1)), this->largeDataSenderMinBandwidthBps_0x78);
           }
           this->largeDataSenderMaxBandwidthBps_0x7c = v_rcx_10;
         }
@@ -224,7 +220,7 @@ Operação  : 0x472c4e9: mov/math reg, [flag] ; fn=0x472c460..0x472c768
     0x472c638 | f3 48 0f 2a c8           | cvtsi2ss xmm1, rax
     0x472c63d | f3 0f 58 c9              | addss xmm1, xmm1
     L_0x472c641:
-    0x472c641 | f3 0f 10 15 b3 48 e7 02  | movss xmm2, dword ptr [rip + 0x2e748b3]
+    0x472c641 | f3 0f 10 15 b3 48 e7 02  | movss xmm2, dword ptr [rip + 0x2e748b3] ; 9.22337e+18
     0x472c649 | 33 c0                    | xor eax, eax
     0x472c64b | f3 0f 59 c1              | mulss xmm0, xmm1
     0x472c64f | 49 b9 00 00 00 00 00 00.. | mov r9, 0x8000000000000000
@@ -326,9 +322,9 @@ Operação  : 0x472c4e9: mov/math reg, [flag] ; fn=0x472c460..0x472c768
       if (param_2 != 0) {
         this->field_0x0 = 0;
       } else {
-        this->field_0x0 = this->field_0x0 + 1;
+        this->field_0x0++;
         auto* f_8 = this->field_0x8;
-        if (this->field_0x4 == 0 && this->field_0x0 + 1 > f_8->field_0x0) {
+        if (this->field_0x4 == 0 && this->field_0x0 > f_8->field_0x0) {
           if (TrackDPJProgress && PPJProgressHalt >= 6 && PPJProgressHalt >> 8 >= 2) {
             FLog::Log("[DFLog::PPJProgressHalt] {}: {} queue has been empty for {} frames");
           }
@@ -338,7 +334,7 @@ Operação  : 0x472c4e9: mov/math reg, [flag] ; fn=0x472c460..0x472c768
             call_0x2dc1640(&local_0x3d0);
             auto ret_0x4954e70_4 = call_0x4954e70(global_0x84bc6dc);
             auto local_0xa0 = "QueueEmpty";
-            (local_0x160->field_0x4 + &local_0x160)->vfunc(local_0x160->field_0x4 + &local_0x160, &local_0x30, &local_0xa0, 1);
+            (((local_0x160->field_0x4 + &local_0x160)->field_0x0))->vfunc_0x10((local_0x160->field_0x4 + &local_0x160), &local_0x30, &local_0xa0, 1) // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
             call_0x4954e70(ret_0x4954e70_4);
             call_0x2dbd340(&local_0x3d0, &local_0x30, this->field_0x0, 1);
             call_0x2db2c00(&local_0x418);
@@ -391,7 +387,7 @@ Operação  : 0x472c4e9: mov/math reg, [flag] ; fn=0x472c460..0x472c768
     0x47e703f | 48 81 c1 4c 33 de ff     | add rcx, 0xffde334c
     0x47e7046 | 48 8b 57 08              | mov rdx, qword ptr [rdi + 0x8]
     0x47e704a | 48 89 4d 80              | mov qword ptr [rbp - 0x80], rcx
-    0x47e704e | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x47e704e | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     L_0x47e7055:
     0x47e7055 | 48 ff c0                 | inc rax
     0x47e7058 | 80 3c 01 00              | cmp byte ptr [rcx + rax], 0x0

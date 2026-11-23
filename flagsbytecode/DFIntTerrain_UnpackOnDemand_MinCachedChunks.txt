@@ -12,7 +12,7 @@ Operação  : 0x4ba6c68: mov/math reg, [flag] ; fn=0x4ba6c50..0x4ba6e33
     Fórmula : Terrain_UnpackOnDemand_MinCachedChunks == 0
     Fórmula : Terrain_UnpackOnDemand_MinCachedChunks <= 0
     Fórmula : -Terrain_UnpackOnDemand_MinCachedChunks
-    Fórmula : max(Terrain_UnpackOnDemand_MinCachedChunks, this->field_0x0->field_0x78->field_0x0)
+    Fórmula : std::clamp(this->field_0x0->field_0x78->field_0x0, Terrain_UnpackOnDemand_MinCachedChunks, 32766)
     Altera  : this->field_0x0->field_0x78->field_0x0
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
@@ -37,24 +37,24 @@ Operação  : 0x4ba6c68: mov/math reg, [flag] ; fn=0x4ba6c50..0x4ba6e33
         auto* f_0 = this->field_0x0;
         auto* f_0_78 = f_0->field_0x78;
         if (Terrain_UnpackOnDemand_MinCachedChunks > 0) {
-          void* sel_rcx_1 = max(Terrain_UnpackOnDemand_MinCachedChunks, f_0_78->field_0x0);
-          void* sel_rax_2 = sel_rcx_1->field_0x0 <= 32766 ? sel_rcx_1 : 32766;
-          f_0_78->field_0x0 = sel_rax_2->field_0x0;
+          f_0_78->field_0x0 = std::clamp(f_0_78->field_0x0, Terrain_UnpackOnDemand_MinCachedChunks, 32766);
         } else {
           f_0_78->field_0x0 = -Terrain_UnpackOnDemand_MinCachedChunks;
         }
-        int32_t tmp_1 = ((f_0_78->field_0x10 - f_0_78->field_0x8) >> 4) - ((f_0_78->field_0x28 - f_0_78->field_0x20) >> 1);
-        if (tmp_1 - 1 - f_0_78->field_0x0 > 0 && f_0_78->field_0x8->field_0x0[rax * 8] != 0) {
-          auto i_ebx = f_0_78->field_0x8->field_0x0[rax * 8];
+        int32_t tmp_2 = ((f_0_78->field_0x10 - f_0_78->field_0x8) >> 4) - ((f_0_78->field_0x28 - f_0_78->field_0x20) >> 1);
+        if (tmp_2 - 1 - f_0_78->field_0x0 > 0 && f_0_78->field_0x8->field_0x0[f_0_78->field_0x8->field_0xa * 2 * 8] != 0) {
+          void* i_ebx = f_0_78->field_0x8->field_0x0[f_0_78->field_0x8->field_0xa * 2 * 8];
+          int32_t i_ebp = tmp_2 - 1 - f_0_78->field_0x0;
           void* v_rsi_1;
           do { // L_0x4ba6d20
-            if (f_0_78->field_0x8->field_0xa[rax * 8] >= 0) {
-              v_rsi_1 = f_0_78->field_0x8->field_0x0[rax * 8];
+            if (f_0_78->field_0x8->field_0xa[(i_ebx->field_0x70 * 2) * 8] >= 0) {
+              int64_t idx_1 = f_0_78->field_0x8->field_0xa[i_ebx->field_0x70 * 2 * 8] * 2;
+              v_rsi_1 = f_0_78->field_0x8->field_0x0[idx_1 * 8];
             } else {
               v_rsi_1 = 0;
             }
             atomic_try_incref(&i_ebx->field_0x6e);
-            if (0 == 0) {
+            if (1) {
               call_0x4ba6850(f_0_78, i_ebx->field_0x70);
               int32_t v_rdi_3;
               if (global_0x84cf848 >= 1024) {
@@ -64,9 +64,9 @@ Operação  : 0x4ba6c68: mov/math reg, [flag] ; fn=0x4ba6c50..0x4ba6e33
                 auto ret_0x4954c10_2 = call_0x4954c10();
                 int32_t v_rdi_2;
                 if (ret_0x4954c10_2 != 0) {
-                  auto prev_0x0_2 = ret_0x4954c10_2->field_0x0;
+                  auto prev_0x0_3 = ret_0x4954c10_2->field_0x0;
                   ret_0x4954c10_2->field_0x0 = (ret_0x4954c10_2->field_0x0 ^ r8) & 0x3ff ^ ret_0x4954c10_2->field_0x0;
-                  v_rdi_2 = prev_0x0_2;
+                  v_rdi_2 = prev_0x0_3;
                 } else {
                   v_rdi_2 = call_0x4954d30(r8, 1023);
                 }
@@ -83,9 +83,13 @@ Operação  : 0x4ba6c68: mov/math reg, [flag] ; fn=0x4ba6c50..0x4ba6e33
               } else {
                 call_0x4954d30(v_rdi_3, 1023);
               }
-              if (tmp_1 - 1 - f_0_78->field_0x0 - 1 <= 0) {
+              i_ebp--;
+              if (i_ebp <= 0) {
                 return;
               }
+              i_ebx = v_rsi_1;
+            } else {
+              i_ebx = v_rsi_1;
             }
           } while (v_rsi_1 != 0); // loop -> L_0x4ba6d20
         }
@@ -261,23 +265,18 @@ Operação  : 0x4ba6c68: mov/math reg, [flag] ; fn=0x4ba6c50..0x4ba6e33
     // Flag defaults: Terrain_UnpackOnDemand_MinCachedChunks = 100, DebugDisableOnScreenProfiler = false
     void RBX::Terrain_UnpackOn::func_0x4ba6850(RBX::Terrain_UnpackOn* this, int64_t param_2) {
       auto* f_8 = this->field_0x8;
-      f_8->field_0xa[rax * 8] = ((param_2 << 4) + f_8)->field_0xa;
+      f_8->field_0xa[((param_2 << 4) + f_8)->field_0x8 * 2 * 8] = ((param_2 << 4) + f_8)->field_0xa;
       ((((param_2 << 4) + f_8)->field_0xa << 4) + f_8)->field_0x8 = ((param_2 << 4) + f_8)->field_0x8;
       if (param_2 == ((this->field_0x10 - f_8) >> 4) - 1) {
         this->field_0x10 = &this->field_0x10->field_m0x10;
-        auto* f_28 = this->field_0x28;
-      } else if (f_28 != this->field_0x30) {
-        f_28->field_0x0 = param_2;
+      } else if (this->field_0x28 != this->field_0x30) {
+        this->field_0x28->field_0x0 = param_2;
+        this->field_0x28 = this->field_0x28 + 2;
       } else {
-        call_0x9a24e0(&this->field_0x20, f_28, &local_0x38);
+        call_0x9a24e0(&this->field_0x20, this->field_0x28, &local_0x38);
       }
       if (global_0x8e03b88 > rbp->field_0x58->field_0x0->field_0x0[40]) {
         call_0x12e0(&sym_0x8e03b88);
-      }
-      if (global_0x84a44d6 != 0) {
-        if (!DebugDisableOnScreenProfiler) {
-          return;
-        }
       }
     }
   
@@ -337,7 +336,7 @@ Operação  : 0x4ba6c68: mov/math reg, [flag] ; fn=0x4ba6c50..0x4ba6e33
     0x4ba6909 | 48 8b 0d 80 d2 25 04     | mov rcx, qword ptr [rip + 0x425d280]
     0x4ba6910 | 48 8b 05 31 6d 5c 03     | mov rax, qword ptr [rip + 0x35c6d31]
     0x4ba6917 | 48 8d 14 c8              | lea rdx, [rax + rcx*8]
-    0x4ba691b | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x4ba691b | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x4ba6922 | f0 48 0f c1 82 80 55 25.. | lock xadd qword ptr [rdx + 0x255580], rax
     L_0x4ba692b:
     0x4ba692b | 48 83 c4 20              | add rsp, 0x20

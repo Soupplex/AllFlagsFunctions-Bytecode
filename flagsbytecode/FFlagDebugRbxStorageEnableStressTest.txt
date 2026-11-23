@@ -87,12 +87,10 @@ Operação  : 0x26082a2: cmp byte [flag], imm8 ; fn=0x2608140..0x26088dc
           if (prev_0xd8_2 != 0) {
             call_0x6daf40(prev_0xd8_2);
           }
-          if ((local_0x230 & 0x1) != 0 && (local_0x230 & 0xfffffffe)->field_0x0 == 3) {
-            if (atomic_cas(&(local_0x230 & 0xfffffffe)->field_0x0, (local_0x230 & 0xfffffffe)->field_0x0, 1) != 0) {
+          if ((local_0x230 & 0x1) != 0) {
+            if ((local_0x230 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x230 & 0xfffffffe)->field_0x0, (local_0x230 & 0xfffffffe)->field_0x0, 1) != 0) {
               call_0xdac0(local_0x230 & 0xfffffffe);
             }
-          } else {
-            call_0xdac0(local_0x230 & 0xfffffffe);
           }
         }
         this->field_0x10 = 0;
@@ -161,10 +159,13 @@ Operação  : 0x26082a2: cmp byte [flag], imm8 ; fn=0x2608140..0x26088dc
         if (prev_0x78_24 != 0) {
           call_0x6daf40(prev_0x78_24);
         }
+        void* i_ecx = &sym_0x8c66464;
         int32_t i_edi = 0;
         do { // L_0x2608541
-        } while ((&sym_0x8c66464 + 4) != &sym_0x8c66580); // loop -> L_0x2608541
-        if (RbxStorageDropCacheErrorsThreshold2 > 0 && i_edi + sym_0x8c66464 > RbxStorageDropCacheErrorsThreshold2) {
+          i_ecx += 4;
+          i_edi = i_edi + i_ecx->field_0x0;
+        } while (i_ecx != &sym_0x8c66580); // loop -> L_0x2608541
+        if (RbxStorageDropCacheErrorsThreshold2 > 0 && i_edi + i_ecx->field_0x0 > RbxStorageDropCacheErrorsThreshold2) {
           if (RbxStorage >= 6 && RbxStorage >> 8 >= 3) {
             FLog::Log("[DFLog::RbxStorage] RbxStorage::~RbxStorage dropping cache due to too many errors: {} > {}");
           }
@@ -250,7 +251,7 @@ Operação  : 0x26082a2: cmp byte [flag], imm8 ; fn=0x2608140..0x26088dc
     0x260816d | 48 33 c4                 | xor rax, rsp
     0x2608170 | 48 89 85 c0 01 00 00     | mov qword ptr [rbp + 0x1c0], rax
     0x2608177 | 48 8b d9                 | mov rbx, rcx
-    0x260817a | 48 c7 c6 ff ff ff ff     | mov rsi, 0xffffffff
+    0x260817a | 48 c7 c6 ff ff ff ff     | mov rsi, -0x1
     0x2608181 | 48 8b 05 f8 4f af 05     | mov rax, qword ptr [rip + 0x5af4ff8] ; DFLogRbxStorage
     0x2608188 | 3c 06                    | cmp al, 0x6
     0x260818a | 0f 82 16 07 00 00        | jb 0x26088a6 ; [Nanomite Reconstructed: jb +0x716 via flog_level_guard_jb_resolver]
@@ -720,84 +721,66 @@ Operação  : 0x26082a2: cmp byte [flag], imm8 ; fn=0x2608140..0x26088dc
             }
           }
           void* v_rbx_1 = global_0x8d95188;
-          void* v_rbx_5;
           if (global_0x8d95188 == 1) {
             if (atomic_cas(&global_0x8d95188, 1, 3) != 0) {
               v_rbx_1 = 1;
-              void* v_rbx_2 = v_rbx_1;
               if ((v_rbx_1 & 0x1) != 0) {
                 auto ret_0x2e12e90_5 = call_0x2e12e90();
-                auto i_ebx = v_rbx_1;
+                void* i_ebx = v_rbx_1;
                 L_0x2607340:
                 do { // L_0x2607340
-                  L_0x2607340:
                   atomic_try_incref(&global_0x8d95188);
                   if (atomic_cas(&global_0x8d95188, i_ebx, ret_0x2e12e90_5) == 0) break;
-                  call_0x2e12ee0();
-                  v_rbx_2 = i_ebx;
-                  break;
                 } while ((i_ebx & 0x1) != 0); // loop -> L_0x2607340
-                if (i_ebx != 1) {
-                  v_rbx_2 = i_ebx;
-                  L_0x2607362:
-                  call_0xd8a0(&sym_0x8d95188, 0);
-                  v_rbx_5 = v_rbx_2;
-                } else {
-                  v_rbx_5 = i_ebx;
-                }
+                call_0x2e12ee0();
+                L_0x2607362:
+                call_0xd8a0(&sym_0x8d95188, 0);
               } else {
                 call_0xd8a0(&sym_0x8d95188, 0);
-                v_rbx_5 = v_rbx_2;
               }
-            } else {
-              v_rbx_5 = 1;
             }
+          } else if ((v_rbx_1 & 0x1) != 0) {
+            auto ret_0x2e12e90_5 = call_0x2e12e90();
+            void* i_ebx = v_rbx_1;
+            goto L_0x2607340;
           } else {
-            void* v_rbx_2 = v_rbx_1;
-            if ((v_rbx_1 & 0x1) != 0) {
-              auto ret_0x2e12e90_5 = call_0x2e12e90();
-              auto i_ebx = v_rbx_1;
-              goto L_0x2607340;
-            } else {
-              goto L_0x2607362;
-            }
+            goto L_0x2607362;
           }
           if (global_0x84da328 != 0) {
             if (RbxStorage >= 6 && RbxStorage >> 8 >= 1) {
               FLog::Log("[DFLog::RbxStorage] RbxStorage::getStorageInterface double-checked locking succeeded after waiti");
               call_0x4971cd0(&local_0x2b0, 1, &local_0x2a0, &local_0x290);
             }
-            global_0x8c6651c = global_0x8c6651c + 1;
+            global_0x8c6651c++;
           } else {
             if (global_0x84da3f8 == 0) {
               auto ret_0x6daee0_8 = call_0x6daee0(48);
-              void* v_rcx_7 = ret_0x6daee0_8;
+              void* v_rcx_2 = ret_0x6daee0_8;
               if (ret_0x6daee0_8 != 0) {
                 ret_0x6daee0_8->field_0x0 = &sym_0x704d7b0;
-                atomic_exchange(&ret_0x6daee0_8->field_0x8, 0);
               } else {
-                v_rcx_7 = 0;
+                v_rcx_2 = 0;
               }
-              global_0x84da3f8 = v_rcx_7;
+              global_0x84da3f8 = v_rcx_2;
             }
-            int64_t i_eax;
-            auto expr_1 = "[DFLog::RbxStorage] RbxStorage::getStorageInterface initialized but interface is not set";
             if (global_0x8cdb344 != 0) {
               if (RbxStorage >= 6 && RbxStorage >> 8 >= 1) {
                 do { // L_0x2607532
-                } while (i_eax[(v_rbx_5 + 1)] != 0); // loop -> L_0x2607532
-                expr_1;
+                  i_ebx++;
+                } while (rax[i_ebx] != 0); // loop -> L_0x2607532
+                "[DFLog::RbxStorage] RbxStorage::getStorageInterface initialized but interface is not set";
                 L_0x2607eb0:
-                FLog::Log(expr_1);
+                FLog::Log("[DFLog::RbxStorage] RbxStorage::getStorageInterface initialized but interface is not set");
               }
               L_0x2607ebc:
             } else {
               global_0x8cdb344 = 1;
               if (DebugRbxStorageRemoveCache) {
                 if (RbxStorage >= 6 && RbxStorage >> 8 >= 4) {
-                  i_eax = v_rbx_5;
+                  uint64_t i_eax = -1;
                   do { // L_0x26075e7
-                  } while (rcx[(i_eax + 1)] != 0); // loop -> L_0x26075e7
+                    i_eax++;
+                  } while (rcx[i_eax] != 0); // loop -> L_0x26075e7
                   FLog::Log("[DFLog::RbxStorage] RbxStorage::getStorageInterface removing all rbx-storage files from CacheDir");
                 }
                 if (global_0x8cdb345 == 0) {
@@ -826,14 +809,13 @@ Operação  : 0x26082a2: cmp byte [flag], imm8 ; fn=0x2608140..0x26088dc
                 if (RbxStorage >= 6 && RbxStorage >> 8 >= 1) {
                   FLog::Log("[DFLog::RbxStorage] RbxStorage::getStorageInterface caching is disabled");
                 }
-              } else {
-                if (DebugRbxStorageMockCache) {
-                  if (RbxStorage >= 6 && RbxStorage >> 8 >= 1) {
-                    FLog::Log("[DFLog::RbxStorage] RbxStorage::getStorageInterface using mock interface");
-                  }
-                  if (global_0x8d95190 > rbp->field_0x58->field_0x0->field_0x0[40]) {
-                    call_0x12e0(&sym_0x8d95190);
-                    if (global_0x8d95190 == -1) {
+              } else if (DebugRbxStorageMockCache) {
+                if (RbxStorage >= 6 && RbxStorage >> 8 >= 1) {
+                  FLog::Log("[DFLog::RbxStorage] RbxStorage::getStorageInterface using mock interface");
+                }
+                if (global_0x8d95190 > rbp->field_0x58->field_0x0->field_0x0[40]) {
+                  call_0x12e0(&sym_0x8d95190);
+                  if (global_0x8d95190 == -1) {
                     global_0x8d951a0 = 0;
                     global_0x8d951a8 = 0;
                     global_0x8d951b8 = global_0x75ac990;
@@ -844,65 +826,60 @@ Operação  : 0x26082a2: cmp byte [flag], imm8 ; fn=0x2608140..0x26088dc
                     global_0x8d95208 = 1;
                     call_0x5de4c80(&sym_0x63e9d20);
                     call_0x14f0(&sym_0x8d95190);
-                    }
                   }
-                } else {
-                  if (global_0x8d95210 > rbp->field_0x58->field_0x0->field_0x0[40]) {
-                    call_0x12e0(&sym_0x8d95210);
-                    if (global_0x8d95210 == -1) {
+                }
+              } else {
+                if (global_0x8d95210 > rbp->field_0x58->field_0x0->field_0x0[40]) {
+                  call_0x12e0(&sym_0x8d95210);
+                  if (global_0x8d95210 == -1) {
                     auto ret_0x2612b30_16 = call_0x2612b30(&local_0xa0);
                     global_0x8d95218 = ret_0x2612b30_16->field_0x0;
                     call_0x5de4c80(&sym_0x63e9cf0);
                     call_0x14f0(&sym_0x8d95210);
-                    }
                   }
-                  if (global_0x8cdb320 != 0 && global_0x8cdb320->field_0x18 != 0) {
-                    if (RbxStorageTelemetryProtocol && global_0x8c6f728 != 0) {
+                }
+                if (global_0x8cdb320 != 0 && global_0x8cdb320->field_0x18 != 0) {
+                  if (RbxStorageTelemetryProtocol && global_0x8c6f728 != 0) {
                     global_0x8c6f728->vfunc_0x40(global_0x8c6f728, &local_0x3b0) // -> RBX::istreambuf_iterator::fn_0x2bf3a60;
-                    }
-                    call_0x26099f0(global_0x8cdb320->field_0x18, this);
-                    if (RbxStorageTelemetryProtocol && global_0x8c6f728 != 0) {
+                  }
+                  call_0x26099f0(global_0x8cdb320->field_0x18, this);
+                  if (RbxStorageTelemetryProtocol && global_0x8c6f728 != 0) {
                     global_0x8c6f728->vfunc_0x40(global_0x8c6f728, &local_0x3c0) // -> RBX::istreambuf_iterator::fn_0x2bf3a60;
-                    }
-                    if (RbxStorage >= 6 && RbxStorage >> 8 >= 4) {
+                  }
+                  if (RbxStorage >= 6 && RbxStorage >> 8 >= 4) {
                     FLog::Log("[DFLog::RbxStorage] RbxStorage::getStorageInterface init completed in {:.3f} ms");
                     call_0x4971cd0(&local_0x3f0, 4, &local_0x3e0, &local_0x3d0);
-                    }
-                    if (0 == 0) {
+                  }
+                  if (1) {
                     if (RbxStorage >= 6 && RbxStorage >> 8 >= 1) {
                     "[DFLog::RbxStorage] RbxStorage::getStorageInterface failed to initialize RbxStorage subsystem";
-                    FLog::Log(expr_1);
+                    FLog::Log("[DFLog::RbxStorage] RbxStorage::getStorageInterface initialized but interface is not set");
                     }
                     goto L_0x2607ebc;
-                    } else if (global_0x8cdb320->field_0x18->field_0x10 == 0) {
+                  } else if (global_0x8cdb320->field_0x18->field_0x10 == 0) {
                     if (RbxStorage >= 6 && RbxStorage >> 8 >= 1) {
                     "[DFLog::RbxStorage] RbxStorage::getStorageInterface failed to get cache interface";
                     goto L_0x2607eb0;
                     }
                     goto L_0x2607ebc;
-                    } else {
+                  } else {
                     if (RbxStorage >= 6 && RbxStorage >> 8 >= 4) {
                     global_0x8cdb320->field_0x18->field_0x10->vfunc_0x8(global_0x8cdb320->field_0x18->field_0x10, &local_0x4a0) // -> RBX::dtQueryFilter::fn_0x24134b0;
                     FLog::Log("[DFLog::RbxStorage] RbxStorage::getStorageInterface initialized cache interface: {}");
                     }
-                    }
-                  } else {
-                    if (RbxStorage >= 6 && RbxStorage >> 8 >= 1) {
+                  }
+                } else {
+                  if (RbxStorage >= 6 && RbxStorage >> 8 >= 1) {
                     "[DFLog::RbxStorage] RbxStorage::getStorageInterface failed to get RbxStorage subsystem instance";
                     goto L_0x2607eb0;
-                    }
-                    goto L_0x2607ebc;
                   }
+                  goto L_0x2607ebc;
                 }
               }
             }
           }
           if ((local_0x4b0 & 0x1) != 0) {
-            if ((local_0x4b0 & 0xfffffffe)->field_0x0 == 3) {
-              if (atomic_cas(&(local_0x4b0 & 0xfffffffe)->field_0x0, 3, 1) != 0) {
-                call_0xdac0(local_0x4b0 & 0xfffffffe);
-              }
-            } else {
+            if ((local_0x4b0 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x4b0 & 0xfffffffe)->field_0x0, 3, 1) != 0) {
               call_0xdac0(local_0x4b0 & 0xfffffffe);
             }
           }
@@ -945,7 +922,7 @@ Operação  : 0x26082a2: cmp byte [flag], imm8 ; fn=0x2608140..0x26088dc
     0x2607211 | 48 85 c9                 | test rcx, rcx
     0x2607214 | 4c 0f 45 f1              | cmovnz r14, rcx
     0x2607218 | 48 89 44 24 70           | mov qword ptr [rsp + 0x70], rax
-    0x260721d | 48 c7 c3 ff ff ff ff     | mov rbx, 0xffffffff
+    0x260721d | 48 c7 c3 ff ff ff ff     | mov rbx, -0x1
     L_0x2607224:
     0x2607224 | 48 ff c3                 | inc rbx
     0x2607227 | 80 3c 18 00              | cmp byte ptr [rax + rbx], 0x0
@@ -1052,7 +1029,7 @@ Operação  : 0x26082a2: cmp byte [flag], imm8 ; fn=0x2608140..0x26088dc
     0x26073d8 | f2 0f 5c 4c 24 58        | subsd xmm1, qword ptr [rsp + 0x58]
     0x26073de | f2 0f 59 0d ca 91 f9 04  | mulsd xmm1, qword ptr [rip + 0x4f991ca] ; 1000.0
     0x26073e6 | 48 89 75 d0              | mov qword ptr [rbp - 0x30], rsi
-    0x26073ea | 48 c7 c3 ff ff ff ff     | mov rbx, 0xffffffff
+    0x26073ea | 48 c7 c3 ff ff ff ff     | mov rbx, -0x1
     L_0x26073f1:
     0x26073f1 | 48 ff c3                 | inc rbx
     0x26073f4 | 80 3c 1e 00              | cmp byte ptr [rsi + rbx], 0x0
@@ -1122,7 +1099,7 @@ Operação  : 0x26082a2: cmp byte [flag], imm8 ; fn=0x2608140..0x26088dc
     0x260751c | 48 8b 44 24 40           | mov rax, qword ptr [rsp + 0x40]
     0x2607521 | 48 05 9c 85 c1 ff        | add rax, 0xffc1859c
     0x2607527 | 48 89 45 f0              | mov qword ptr [rbp - 0x10], rax
-    0x260752b | 48 c7 c3 ff ff ff ff     | mov rbx, 0xffffffff
+    0x260752b | 48 c7 c3 ff ff ff ff     | mov rbx, -0x1
     L_0x2607532:
     0x2607532 | 48 ff c3                 | inc rbx
     0x2607535 | 44 38 34 18              | cmp byte ptr [rax + rbx], r14b
@@ -1143,7 +1120,7 @@ Operação  : 0x26082a2: cmp byte [flag], imm8 ; fn=0x2608140..0x26088dc
     0x2607589 | e9 22 09 00 00           | jmp 0x2607eb0
     L_0x260758e:
     0x260758e | c6 05 af 3d 6d 06 01     | mov byte ptr [rip + 0x66d3daf], 0x1
-    0x2607595 | 48 c7 c3 ff ff ff ff     | mov rbx, 0xffffffff
+    0x2607595 | 48 c7 c3 ff ff ff ff     | mov rbx, -0x1
     0x260759c | 48 8b 15 dd 5b af 05     | mov rdx, qword ptr [rip + 0x5af5bdd] ; DFLogRbxStorage
     0x26075a3 | 44 38 35 7e 59 af 05     | cmp byte ptr [rip + 0x5af597e], r14b ; FFlagDebugRbxStorageRemoveCache
     0x26075aa | 0f 84 ef 00 00 00        | je 0x260769f
@@ -1705,7 +1682,6 @@ Operação  : 0x26082a2: cmp byte [flag], imm8 ; fn=0x2608140..0x26088dc
     
     // Flag defaults: DebugRbxStorageEnableStressTest = false, RbxStorage = 6
     void RBX::DebugRbx::func_0x26199c0(RBX::DebugRbx* this, int64_t param_2, void* param_3) {
-      int64_t local_0x160;
       if (param_2 == 0) {
         call_0x29853f0(&local_0x220, 1, 0);
         if (local_0x230 == 0) {
@@ -1728,161 +1704,159 @@ Operação  : 0x26082a2: cmp byte [flag], imm8 ; fn=0x2608140..0x26088dc
         }
         L_0x261a2d5:
         return;
-      } else {
-        int64_t local_0x1a0;
-        if (param_2 == 1) {
-          call_0x2969930(&local_0x1e0, param_2, 0, 0);
-          if (local_0x1f0 == 0) {
-            if (RbxStorage >= 6 && RbxStorage >> 8 >= 2) {
-              FLog::Log("[DFLog::RbxStorage] AppData directory path does not exist");
-            }
-            this->field_0x0 = 0;
-            this->field_0x10 = 0;
-            this->field_0x18 = 7;
-            this->field_0x0 = 0;
-            call_0x6f8cb0(&local_0x1e0);
-            return;
+      }
+      int64_t local_0x1a0;
+      int64_t local_0x160;
+      if (param_2 == 1) {
+        call_0x2969930(&local_0x1e0, param_2, 0, 0);
+        if (local_0x1f0 == 0) {
+          if (RbxStorage >= 6 && RbxStorage >> 8 >= 2) {
+            FLog::Log("[DFLog::RbxStorage] AppData directory path does not exist");
           }
-          int32_t v_rsi_17;
-          if (param_3 != 0) {
-            auto ret_0x1d67dd0_15 = call_0x1d67dd0();
-            auto ret_0x1d68340_16 = call_0x1d68340(ret_0x1d67dd0_15);
-            local_0x160 = 0;
-            call_0x1d5ff60(param_3, 0, &local_0x160, ret_0x1d68340_16);
-            call_0x6f6cc0(&local_0x1c0, &local_0x1e0);
-            auto ret_0x1d65880_19 = call_0x1d65880(&local_0x1c0, &local_0x160);
-            call_0x6f6cc0(&local_0x1a0, ret_0x1d65880_19);
-            call_0x6f8cb0(&local_0x1c0);
-            v_rsi_17 = 2054;
-          } else {
-            v_rsi_17 = 8;
-            this->field_0x0 = local_0x1a0;
-            this->field_0x10 = local_0x1b0;
-            int32_t v_rsi_21 = v_rsi_17 | 0x1;
-            if (((v_rsi_17 | 0x1) & 0x8) != 0) {
-              if (local_0x198 >= 8) {
-                void* v_rcx_19 = local_0x180;
-                if (local_0x198 * 2 >= 0x1000) {
-                  if (local_0x180 - local_0x180->field_m0x8 < 8 || local_0x180 - local_0x180->field_m0x8 > 39) {
-                    call_0x5e14580();
-                    call_0x5e14580();
-                    L_0x261a306:
-                    call_0x5e14580();
-                    L_0x261a30c:
-                    call_0x5e14580();
-                    L_0x261a312:
-                    call_0x5e14580();
-                  }
-                }
-                call_0x4955ac0(v_rcx_19);
-              }
-              v_rsi_21 = (v_rsi_17 | 0x1) & 0xfffffff7;
-            }
-            int32_t v_rsi_23 = v_rsi_21;
-            if ((v_rsi_21 & 0x4) != 0) {
-              local_0x1a0 = 0;
-              call_0x6f8cb0(&local_0x1a0);
-              v_rsi_23 = v_rsi_21 & 0xfffffffb;
-            }
-            if ((v_rsi_23 & 0x2) != 0) {
-              if (local_0x178 >= 8) {
-                void* v_rcx_26 = local_0x160;
-                if (local_0x178 * 2 >= 0x1000) {
-                  if (local_0x160 - local_0x160->field_m0x8 < 8 || local_0x160 - local_0x160->field_m0x8 > 39) {
-                    call_0x5e14580();
-                    call_0x5e14580();
-                    call_0x5e14580();
-                    call_0x5e14580();
-                  }
-                }
-                call_0x4955ac0(v_rcx_26);
-              }
-            }
-            if (local_0x1f8 >= 8) {
-              void* v_rcx_32 = local_0x1e0;
-              if (local_0x1f8 * 2 >= 0x1000) {
-                if (local_0x1e0 - local_0x1e0->field_m0x8 < 8 || local_0x1e0 - local_0x1e0->field_m0x8 > 39) {
-                  goto L_0x261a306;
-                }
-              }
-              call_0x4955ac0(v_rcx_32);
-            }
-            goto L_0x261a2d5;
-          }
+          this->field_0x0 = 0;
+          this->field_0x10 = 0;
+          this->field_0x18 = 7;
+          this->field_0x0 = 0;
+          call_0x6f8cb0(&local_0x1e0);
+          return;
+        }
+        int32_t v_rsi_13;
+        if (param_3 != 0) {
+          auto ret_0x1d67dd0_15 = call_0x1d67dd0();
+          auto ret_0x1d68340_16 = call_0x1d68340(ret_0x1d67dd0_15);
+          local_0x160 = 0;
+          call_0x1d5ff60(param_3, 0, &local_0x160, ret_0x1d68340_16);
+          call_0x6f6cc0(&local_0x1c0, &local_0x1e0);
+          auto ret_0x1d65880_19 = call_0x1d65880(&local_0x1c0, &local_0x160);
+          call_0x6f6cc0(&local_0x1a0, ret_0x1d65880_19);
+          call_0x6f8cb0(&local_0x1c0);
+          v_rsi_13 = 2054;
         } else {
-          if (param_2 == 2) {
-            call_0x29853f0(&local_0x200, 1, 0);
-            if (local_0x210 == 0) {
-              if (RbxStorage >= 6 && RbxStorage >> 8 >= 2) {
-                FLog::Log("[DFLog::RbxStorage] Cache directory path does not exist");
+          v_rsi_13 = 8;
+        }
+        this->field_0x0 = local_0x1a0;
+        this->field_0x10 = local_0x1b0;
+        int32_t v_rsi_16 = v_rsi_13 | 0x1;
+        if (((v_rsi_13 | 0x1) & 0x8) != 0) {
+          if (local_0x198 >= 8) {
+            void* v_rcx_15 = local_0x180;
+            if (local_0x198 * 2 >= 0x1000) {
+              if (local_0x180 - local_0x180->field_m0x8 < 8 || local_0x180 - local_0x180->field_m0x8 > 39) {
+                call_0x5e14580();
+                call_0x5e14580();
+                L_0x261a306:
+                call_0x5e14580();
+                L_0x261a30c:
+                call_0x5e14580();
+                L_0x261a312:
+                call_0x5e14580();
               }
-              this->field_0x0 = 0;
-              this->field_0x10 = 0;
-              this->field_0x18 = 7;
-              this->field_0x0 = 0;
-              call_0x6f8cb0(&local_0x200);
-              goto L_0x261a2d5;
-            } else {
-              int32_t v_rsi_2;
-              if (param_3 != 0) {
-                auto ret_0x1d67dd0_2 = call_0x1d67dd0();
-                auto ret_0x1d68340_3 = call_0x1d68340(ret_0x1d67dd0_2);
-                local_0x160 = 0;
-                call_0x1d5ff60(param_3, 0, &local_0x160, ret_0x1d68340_3);
-                call_0x6f6cc0(&local_0x1c0, &local_0x200);
-                auto ret_0x1d65880_6 = call_0x1d65880(&local_0x1c0, &local_0x160);
-                call_0x6f6cc0(&local_0x1a0, ret_0x1d65880_6);
-                call_0x6f8cb0(&local_0x1c0);
-                v_rsi_2 = 4144;
-              } else {
-                v_rsi_2 = 64;
-              }
-              this->field_0x0 = local_0x1a0;
-              this->field_0x10 = local_0x1b0;
-              int32_t v_rsi_6 = v_rsi_2 | 0x1;
-              if (((v_rsi_2 | 0x1) & 0x40) != 0) {
-                if (local_0x198 >= 8) {
-                  void* v_rcx_4 = local_0x180;
-                  if (local_0x198 * 2 >= 0x1000) {
-                    if (local_0x180 - local_0x180->field_m0x8 < 8 || local_0x180 - local_0x180->field_m0x8 > 39) {
-                    goto L_0x261a30c;
-                    }
-                  }
-                  call_0x4955ac0(v_rcx_4);
-                }
-                v_rsi_6 = (v_rsi_2 | 0x1) & 0xffffffbf;
-              }
-              int32_t v_rsi_8 = v_rsi_6;
-              if ((v_rsi_6 & 0x20) != 0) {
-                local_0x1a0 = 0;
-                call_0x6f8cb0(&local_0x1a0);
-                v_rsi_8 = v_rsi_6 & 0xffffffdf;
-              }
-              if ((v_rsi_8 & 0x10) != 0) {
-                if (local_0x178 >= 8) {
-                  void* v_rcx_10 = local_0x160;
-                  if (local_0x178 * 2 >= 0x1000) {
-                    if (local_0x160 - local_0x160->field_m0x8 < 8 || local_0x160 - local_0x160->field_m0x8 > 39) {
-                    goto L_0x261a312;
-                    }
-                  }
-                  call_0x4955ac0(v_rcx_10);
-                }
-              }
-              if (local_0x218 >= 8) {
-                void* v_rcx_13 = local_0x200;
-                call_0x4955ac0(v_rcx_13);
-              }
-              goto L_0x261a2d5;
             }
-          } else {
-            this->field_0x0 = 0;
-            this->field_0x10 = 0;
-            this->field_0x18 = 7;
-            this->field_0x0 = 0;
-            goto L_0x261a2d5;
+            call_0x4955ac0(v_rcx_15);
+          }
+          v_rsi_16 = (v_rsi_13 | 0x1) & 0xfffffff7;
+        }
+        int32_t v_rsi_18 = v_rsi_16;
+        if ((v_rsi_16 & 0x4) != 0) {
+          local_0x1a0 = 0;
+          call_0x6f8cb0(&local_0x1a0);
+          v_rsi_18 = v_rsi_16 & 0xfffffffb;
+        }
+        if ((v_rsi_18 & 0x2) != 0) {
+          if (local_0x178 >= 8) {
+            void* v_rcx_21 = local_0x160;
+            if (local_0x178 * 2 >= 0x1000) {
+              if (local_0x160 - local_0x160->field_m0x8 < 8 || local_0x160 - local_0x160->field_m0x8 > 39) {
+                call_0x5e14580();
+                call_0x5e14580();
+                call_0x5e14580();
+                call_0x5e14580();
+              }
+            }
+            call_0x4955ac0(v_rcx_21);
           }
         }
+        if (local_0x1f8 >= 8) {
+          void* v_rcx_26 = local_0x1e0;
+          if (local_0x1f8 * 2 >= 0x1000) {
+            if (local_0x1e0 - local_0x1e0->field_m0x8 < 8 || local_0x1e0 - local_0x1e0->field_m0x8 > 39) {
+              goto L_0x261a306;
+            }
+          }
+          call_0x4955ac0(v_rcx_26);
+        }
+        goto L_0x261a2d5;
+      } else if (param_2 == 2) {
+        call_0x29853f0(&local_0x200, 1, 0);
+        if (local_0x210 == 0) {
+          if (RbxStorage >= 6 && RbxStorage >> 8 >= 2) {
+            FLog::Log("[DFLog::RbxStorage] Cache directory path does not exist");
+          }
+          this->field_0x0 = 0;
+          this->field_0x10 = 0;
+          this->field_0x18 = 7;
+          this->field_0x0 = 0;
+          call_0x6f8cb0(&local_0x200);
+          goto L_0x261a2d5;
+        } else {
+          int32_t v_rsi_2;
+          if (param_3 != 0) {
+            auto ret_0x1d67dd0_2 = call_0x1d67dd0();
+            auto ret_0x1d68340_3 = call_0x1d68340(ret_0x1d67dd0_2);
+            local_0x160 = 0;
+            call_0x1d5ff60(param_3, 0, &local_0x160, ret_0x1d68340_3);
+            call_0x6f6cc0(&local_0x1c0, &local_0x200);
+            auto ret_0x1d65880_6 = call_0x1d65880(&local_0x1c0, &local_0x160);
+            call_0x6f6cc0(&local_0x1a0, ret_0x1d65880_6);
+            call_0x6f8cb0(&local_0x1c0);
+            v_rsi_2 = 4144;
+          } else {
+            v_rsi_2 = 64;
+          }
+          this->field_0x0 = local_0x1a0;
+          this->field_0x10 = local_0x1b0;
+          int32_t v_rsi_5 = v_rsi_2 | 0x1;
+          if (((v_rsi_2 | 0x1) & 0x40) != 0) {
+            if (local_0x198 >= 8) {
+              void* v_rcx_4 = local_0x180;
+              if (local_0x198 * 2 >= 0x1000) {
+                if (local_0x180 - local_0x180->field_m0x8 < 8 || local_0x180 - local_0x180->field_m0x8 > 39) {
+                  goto L_0x261a30c;
+                }
+              }
+              call_0x4955ac0(v_rcx_4);
+            }
+            v_rsi_5 = (v_rsi_2 | 0x1) & 0xffffffbf;
+          }
+          int32_t v_rsi_7 = v_rsi_5;
+          if ((v_rsi_5 & 0x20) != 0) {
+            local_0x1a0 = 0;
+            call_0x6f8cb0(&local_0x1a0);
+            v_rsi_7 = v_rsi_5 & 0xffffffdf;
+          }
+          if ((v_rsi_7 & 0x10) != 0) {
+            if (local_0x178 >= 8) {
+              void* v_rcx_9 = local_0x160;
+              if (local_0x178 * 2 >= 0x1000) {
+                if (local_0x160 - local_0x160->field_m0x8 < 8 || local_0x160 - local_0x160->field_m0x8 > 39) {
+                  goto L_0x261a312;
+                }
+              }
+              call_0x4955ac0(v_rcx_9);
+            }
+          }
+          if (local_0x218 >= 8) {
+            void* v_rcx_11 = local_0x200;
+            call_0x4955ac0(v_rcx_11);
+          }
+          goto L_0x261a2d5;
+        }
+      } else {
+        this->field_0x0 = 0;
+        this->field_0x10 = 0;
+        this->field_0x18 = 7;
+        this->field_0x0 = 0;
+        goto L_0x261a2d5;
       }
     }
   
@@ -1919,7 +1893,7 @@ Operação  : 0x26082a2: cmp byte [flag], imm8 ; fn=0x2608140..0x26088dc
     0x2619a45 | 48 8b 4c 24 38           | mov rcx, qword ptr [rsp + 0x38]
     0x2619a4a | 48 81 e9 7b 89 4b 00     | sub rcx, 0x4b897b
     0x2619a51 | 48 89 4c 24 60           | mov qword ptr [rsp + 0x60], rcx
-    0x2619a56 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x2619a56 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x2619a5d | 0f 1f 00                 | nop
     L_0x2619a60:
     0x2619a60 | 48 ff c0                 | inc rax
@@ -2005,7 +1979,7 @@ Operação  : 0x26082a2: cmp byte [flag], imm8 ; fn=0x2608140..0x26088dc
     0x2619bf3 | 48 8b 4c 24 38           | mov rcx, qword ptr [rsp + 0x38]
     0x2619bf8 | 48 81 e9 35 3e 54 00     | sub rcx, 0x543e35
     0x2619bff | 48 89 8c 24 80 00 00 00  | mov qword ptr [rsp + 0x80], rcx
-    0x2619c07 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x2619c07 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x2619c0e | 66 90                    | nop
     L_0x2619c10:
     0x2619c10 | 48 ff c0                 | inc rax
@@ -2191,7 +2165,7 @@ Operação  : 0x26082a2: cmp byte [flag], imm8 ; fn=0x2608140..0x26088dc
     0x2619f80 | 48 8b 4c 24 38           | mov rcx, qword ptr [rsp + 0x38]
     0x2619f85 | 48 81 e9 87 e6 5a 00     | sub rcx, 0x5ae687
     0x2619f8c | 48 89 8c 24 a0 00 00 00  | mov qword ptr [rsp + 0xa0], rcx
-    0x2619f94 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x2619f94 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x2619f9b | 0f 1f 44 00 00           | nop
     L_0x2619fa0:
     0x2619fa0 | 48 ff c0                 | inc rax
@@ -2410,7 +2384,6 @@ Operação  : 0x26082a2: cmp byte [flag], imm8 ; fn=0x2608140..0x26088dc
               call_0x5e14580();
               L_0x261927d:
               call_0x5e14580();
-              L_0x2619283:
               call_0x5e14580();
               L_0x2619289:
               call_0x5e14580();
@@ -2426,7 +2399,7 @@ Operação  : 0x26082a2: cmp byte [flag], imm8 ; fn=0x2608140..0x26088dc
         call_0x296a510(&local_0x90, &local_0x20);
         call_0x6f8cb0(&local_0x90);
         if (local_0x68 >= 8) {
-          void* v_rcx_3 = local_0x50;
+          void* v_rcx_2 = local_0x50;
           if (local_0x68 * 2 >= 0x1000) {
             if (local_0x50 - local_0x50->field_m0x8 < 8 || local_0x50 - local_0x50->field_m0x8 > 39) {
               call_0x5e14580();
@@ -2434,7 +2407,7 @@ Operação  : 0x26082a2: cmp byte [flag], imm8 ; fn=0x2608140..0x26088dc
               call_0x5e14580();
             }
           }
-          call_0x4955ac0(v_rcx_3);
+          call_0x4955ac0(v_rcx_2);
         }
         call_0x2612be0(&local_0x50);
         call_0x6f6cc0(&local_0x90, this);
@@ -2448,21 +2421,13 @@ Operação  : 0x26082a2: cmp byte [flag], imm8 ; fn=0x2608140..0x26088dc
         ret_0x6fd950_21->field_0x0 = "rbx-storage.db-wal";
         ret_0x6fd950_21->field_0x10 = global_0x72cf460;
         int64_t local_0x50;
-        if (18 != 0) {
+        if (1) {
           auto ret_0x1d67dd0_22 = call_0x1d67dd0();
           auto ret_0x1d68340_23 = call_0x1d68340(ret_0x1d67dd0_22);
           local_0x50 = 0;
           call_0x1d5ff60(ret_0x6fd950_21, ret_0x6fd950_21 + 18, &local_0x50, ret_0x1d68340_23);
         }
-        if (31 >= 16) {
-          void* v_rcx_4 = ret_0x6fd950_21;
-          if (32 >= 0x1000) {
-            if (ret_0x6fd950_21 - ret_0x6fd950_21->field_m0x8 < 8 || ret_0x6fd950_21 - ret_0x6fd950_21->field_m0x8 > 39) {
-              goto L_0x2619283;
-            }
-          }
-          call_0x4955ac0(v_rcx_4);
-        }
+        std::string::_Tidy_deallocate(ret_0x6fd950_21);
         call_0x6f6cc0(&local_0x90, this);
         auto ret_0x1d65880_27 = call_0x1d65880(&local_0x90, &local_0x50);
         call_0x6f6cc0(&local_0x70, ret_0x1d65880_27);
@@ -2470,27 +2435,24 @@ Operação  : 0x26082a2: cmp byte [flag], imm8 ; fn=0x2608140..0x26088dc
         call_0x296a510(&local_0x70, &local_0x20);
         call_0x6f8cb0(&local_0x70);
         if (local_0x68 >= 8) {
-          void* v_rcx_6 = local_0x50;
+          void* v_rcx_4 = local_0x50;
           if (local_0x68 * 2 >= 0x1000) {
             if (local_0x50 - local_0x50->field_m0x8 < 8 || local_0x50 - local_0x50->field_m0x8 > 39) {
               goto L_0x2619289;
             }
           }
-          call_0x4955ac0(v_rcx_6);
+          call_0x4955ac0(v_rcx_4);
         }
         auto ret_0x6fd950_33 = call_0x6fd950(32);
         ret_0x6fd950_33->field_0x0 = "rbx-storage.db-shm";
         ret_0x6fd950_33->field_0x10 = global_0x72cf478;
-        if (18 != 0) {
+        if (1) {
           auto ret_0x1d67dd0_34 = call_0x1d67dd0();
           auto ret_0x1d68340_35 = call_0x1d68340(ret_0x1d67dd0_34);
           local_0x50 = 0;
           call_0x1d5ff60(ret_0x6fd950_33, ret_0x6fd950_33 + 18, &local_0x50, ret_0x1d68340_35);
         }
-        if (31 >= 16) {
-          void* v_rcx_8 = ret_0x6fd950_33;
-          call_0x4955ac0(v_rcx_8);
-        }
+        std::string::_Tidy_deallocate(ret_0x6fd950_33);
         call_0x6f6cc0(&local_0x90, this);
         auto ret_0x1d65880_39 = call_0x1d65880(&local_0x90, &local_0x50);
         call_0x6f6cc0(&local_0x70, ret_0x1d65880_39);
@@ -2498,7 +2460,7 @@ Operação  : 0x26082a2: cmp byte [flag], imm8 ; fn=0x2608140..0x26088dc
         call_0x296a510(&local_0x70, &local_0x20);
         call_0x6f8cb0(&local_0x70);
         if (local_0x68 >= 8) {
-          void* v_rcx_14 = local_0x50;
+          void* v_rcx_10 = local_0x50;
           if (local_0x68 * 2 >= 0x1000) {
             if (local_0x50 - local_0x50->field_m0x8 < 8 || local_0x50 - local_0x50->field_m0x8 > 39) {
               call_0x5e14580();
@@ -2506,7 +2468,7 @@ Operação  : 0x26082a2: cmp byte [flag], imm8 ; fn=0x2608140..0x26088dc
               goto L_0x261927d;
             }
           }
-          call_0x4955ac0(v_rcx_14);
+          call_0x4955ac0(v_rcx_10);
         }
       }
     }
@@ -2900,10 +2862,12 @@ Operação  : 0x26082a2: cmp byte [flag], imm8 ; fn=0x2608140..0x26088dc
         FLog::Log("[DFLog::RbxStorage] RbxStorage::init called without statsReporter");
       }
       if (RbxStorageSlowInitDelayMS > 0) {
-        if (RbxStorage >= 6 && RbxStorage >> 8 >= 4) {
-          FLog::Log("[DFLog::RbxStorage] RbxStorage::init artificially slowing down initialization by {} ms");
+        if (RbxStorage >= 6) {
+          if (RbxStorage >> 8 >= 4) {
+            FLog::Log("[DFLog::RbxStorage] RbxStorage::init artificially slowing down initialization by {} ms");
+          }
         }
-        call_0x495aa50(RbxStorageSlowInitDelayMS / 1000.0);
+        call_0x495aa50((double)RbxStorageSlowInitDelayMS / 1000.0);
       }
       auto ret_0x4956040_4 = call_0x4956040(64);
       ret_0x4956040_4->field_0x8 = 1;
@@ -2918,16 +2882,13 @@ Operação  : 0x26082a2: cmp byte [flag], imm8 ; fn=0x2608140..0x26088dc
       }
       call_0x26199c0(&local_0x7a8, 2, 0);
       if (local_0x7b8 == 0) {
-        global_0x8c664ec = global_0x8c664ec + 1;
+        global_0x8c664ec++;
         global_0x8c6f728->vfunc_0x30(global_0x8c6f728, 34) // -> RBX::istreambuf_iterator::fn_0x2bf3be0;
         auto local_0x890 = 0;
         global_0x8c6f728->vfunc_0x38(global_0x8c6f728, &local_0x890) // -> RBX::istreambuf_iterator::fn_0x2bf3b80;
-        if (15 >= 16) {
-          void* v_rcx_51 = local_0x8b0;
-          call_0x4955ac0(v_rcx_51);
-        }
-        void* v_rcx_53 = local_0x890;
-        call_0x4955ac0(v_rcx_53);
+        std::string::_Tidy_deallocate(local_0x8b0);
+        void* v_rcx_49 = local_0x890;
+        call_0x4955ac0(v_rcx_49);
         return tailcall_0x260be09();
       }
       if (DebugRbxStorageRemoveDB) {
@@ -2936,527 +2897,471 @@ Operação  : 0x26082a2: cmp byte [flag], imm8 ; fn=0x2608140..0x26088dc
       }
       auto ret_0x2618730_8 = call_0x2618730(&local_0x7a8, "init");
       call_0x26088e0(&local_0x7a8, ret_0x2618730_8);
-      if (RbxStorageFCPermLocation != 1) {
-      } else {
-        call_0x26199c0(&local_0x660, 2, "rbx-storage");
-        auto ret_0x2608cb0_11 = call_0x2608cb0(&local_0x400, 1, &local_0x660, global_0x8c6f728);
-        this->field_0x60 = ret_0x2608cb0_11->field_0x0;
-        void* prev_0x68_2 = this->field_0x68;
-        this->field_0x68 = ret_0x2608cb0_11->field_0x8;
-        if (prev_0x68_2 != 0) {
-          call_0x6daf40(prev_0x68_2);
+      call_0x26199c0(&local_0x660, 2, "rbx-storage");
+      auto ret_0x2608cb0_11 = call_0x2608cb0(&local_0x400, 1, &local_0x660, global_0x8c6f728);
+      this->field_0x60 = ret_0x2608cb0_11->field_0x0;
+      void* prev_0x68_2 = this->field_0x68;
+      this->field_0x68 = ret_0x2608cb0_11->field_0x8;
+      if (prev_0x68_2 != 0) {
+        call_0x6daf40(prev_0x68_2);
+      }
+      if (local_0x408 != 0) {
+        call_0x6daf40(local_0x408);
+      }
+      if (global_0x8c6f730 != 0) {
+        global_0x8c6f730->field_0x8++;
+      }
+      auto ret_0x2612cf0_14 = call_0x2612cf0(&local_0x410, &this->field_0x60, &local_0x1f0);
+      this->field_0xb0 = ret_0x2612cf0_14->field_0x0;
+      void* prev_0xb8_3 = this->field_0xb8;
+      this->field_0xb8 = ret_0x2612cf0_14->field_0x8;
+      if (prev_0xb8_3 != 0) {
+        call_0x6daf40(prev_0xb8_3);
+      }
+      if (local_0x418 != 0) {
+        call_0x6daf40(local_0x418);
+      }
+      if (local_0x1f8 != 0) {
+        call_0x6daf40(local_0x1f8);
+      }
+      auto ret_0x261a3b0_18 = call_0x261a3b0(&local_0x768);
+      auto ret_0x2608cb0_19 = call_0x2608cb0(&local_0x420, 0, ret_0x261a3b0_18, global_0x8c6f728);
+      this->field_0x50 = ret_0x2608cb0_19->field_0x0;
+      void* prev_0x58_4 = this->field_0x58;
+      this->field_0x58 = ret_0x2608cb0_19->field_0x8;
+      if (prev_0x58_4 != 0) {
+        call_0x6daf40(prev_0x58_4);
+      }
+      if (local_0x428 != 0) {
+        call_0x6daf40(local_0x428);
+      }
+      if (global_0x8c6f730 != 0) {
+        global_0x8c6f730->field_0x8++;
+      }
+      auto ret_0x2612cf0_22 = call_0x2612cf0(&local_0x430, &this->field_0x50, &local_0x200);
+      this->field_0xa0 = ret_0x2612cf0_22->field_0x0;
+      void* prev_0xa8_5 = this->field_0xa8;
+      this->field_0xa8 = ret_0x2612cf0_22->field_0x8;
+      if (prev_0xa8_5 != 0) {
+        call_0x6daf40(prev_0xa8_5);
+      }
+      if (local_0x438 != 0) {
+        call_0x6daf40(local_0x438);
+      }
+      if (local_0x208 != 0) {
+        call_0x6daf40(local_0x208);
+      }
+      auto ret_0x261a400_26 = call_0x261a400(&local_0x728);
+      auto ret_0x2608cb0_27 = call_0x2608cb0(&local_0x440, 2, ret_0x261a400_26, global_0x8c6f728);
+      this->field_0x70 = ret_0x2608cb0_27->field_0x0;
+      void* prev_0x78_6 = this->field_0x78;
+      this->field_0x78 = ret_0x2608cb0_27->field_0x8;
+      if (prev_0x78_6 != 0) {
+        call_0x6daf40(prev_0x78_6);
+      }
+      if (local_0x448 != 0) {
+        call_0x6daf40(local_0x448);
+      }
+      if (global_0x8c6f730 != 0) {
+        global_0x8c6f730->field_0x8++;
+      }
+      auto ret_0x2612cf0_30 = call_0x2612cf0(&local_0x450, &this->field_0x70, &local_0x210);
+      call_0x6f6200(&this->field_0xc0, ret_0x2612cf0_30);
+      if (local_0x458 != 0) {
+        call_0x6daf40(local_0x458);
+      }
+      if (local_0x218 != 0) {
+        call_0x6daf40(local_0x218);
+      }
+      call_0x261a600(1, 0, "init");
+      auto ret_0x2612de0_35 = call_0x2612de0(&local_0x460, &this->field_0xa0, &this->field_0xb0, &this->field_0xc0);
+      call_0x6f6200(&this->field_0x20, ret_0x2612de0_35);
+      if (local_0x468 != 0) {
+        call_0x6daf40(local_0x468);
+      }
+      auto* f_28 = this->field_0x28;
+      if (f_28 != 0) {
+        f_28->field_0x8++;
+      }
+      this->field_0x10 = this->field_0x20;
+      void* prev_0x18_7 = this->field_0x18;
+      this->field_0x18 = f_28;
+      if (prev_0x18_7 != 0) {
+        call_0x6daf40(prev_0x18_7);
+      }
+      if (!DebugRbxStorageNoDB) {
+        call_0x6fb700(&local_0xc00, "rbx-storage.db", param_3);
+        call_0x6f6cc0(&local_0xbe0, &local_0x7a8);
+        auto ret_0x1d65880_41 = call_0x1d65880(&local_0xbe0, &local_0xc00);
+        call_0x6f6cc0(&local_0x920, ret_0x1d65880_41);
+        call_0x6f8cb0(&local_0xbe0);
+        call_0x6f8cb0(&local_0xc00);
+        auto ret_0x2618460_45 = call_0x2618460(&local_0x920);
+        call_0x6fb700(&local_0xc40, "rbx-storage.db-wal", param_3);
+        call_0x6f6cc0(&local_0xc20, &local_0x7a8);
+        auto ret_0x1d65880_48 = call_0x1d65880(&local_0xc20, &local_0xc40);
+        call_0x6f6cc0(&local_0xd40, ret_0x1d65880_48);
+        call_0x6f8cb0(&local_0xc20);
+        auto ret_0x2618460_51 = call_0x2618460(&local_0xd40);
+        call_0x6f8cb0(&local_0xd40);
+        call_0x6f8cb0(&local_0xc40);
+        auto ret_0x260c7b0_54 = call_0x260c7b0(this, &local_0x7a8, ret_0x2618460_45, ret_0x2618460_51);
+        if (ret_0x260c7b0_54 != 0) {
+          this->field_0x129 = 1;
         }
-        if (local_0x408 != 0) {
-          call_0x6daf40(local_0x408);
-        }
-        if (global_0x8c6f730 != 0) {
-          global_0x8c6f730->field_0x8 = global_0x8c6f730->field_0x8 + 1;
-        }
-        auto ret_0x2612cf0_14 = call_0x2612cf0(&local_0x410, &this->field_0x60, &local_0x1f0);
-        this->field_0xb0 = ret_0x2612cf0_14->field_0x0;
-        void* prev_0xb8_3 = this->field_0xb8;
-        this->field_0xb8 = ret_0x2612cf0_14->field_0x8;
-        if (prev_0xb8_3 != 0) {
-          call_0x6daf40(prev_0xb8_3);
-        }
-        if (local_0x418 != 0) {
-          call_0x6daf40(local_0x418);
-        }
-        if (local_0x1f8 != 0) {
-          call_0x6daf40(local_0x1f8);
-        }
-        auto ret_0x261a3b0_18 = call_0x261a3b0(&local_0x768);
-        auto ret_0x2608cb0_19 = call_0x2608cb0(&local_0x420, 0, ret_0x261a3b0_18, global_0x8c6f728);
-        this->field_0x50 = ret_0x2608cb0_19->field_0x0;
-        void* prev_0x58_4 = this->field_0x58;
-        this->field_0x58 = ret_0x2608cb0_19->field_0x8;
-        if (prev_0x58_4 != 0) {
-          call_0x6daf40(prev_0x58_4);
-        }
-        if (local_0x428 != 0) {
-          call_0x6daf40(local_0x428);
-        }
-        if (global_0x8c6f730 != 0) {
-          global_0x8c6f730->field_0x8 = global_0x8c6f730->field_0x8 + 1;
-        }
-        auto ret_0x2612cf0_22 = call_0x2612cf0(&local_0x430, &this->field_0x50, &local_0x200);
-        this->field_0xa0 = ret_0x2612cf0_22->field_0x0;
-        void* prev_0xa8_5 = this->field_0xa8;
-        this->field_0xa8 = ret_0x2612cf0_22->field_0x8;
-        if (prev_0xa8_5 != 0) {
-          call_0x6daf40(prev_0xa8_5);
-        }
-        if (local_0x438 != 0) {
-          call_0x6daf40(local_0x438);
-        }
-        if (local_0x208 != 0) {
-          call_0x6daf40(local_0x208);
-        }
-        auto ret_0x261a400_26 = call_0x261a400(&local_0x728);
-        auto ret_0x2608cb0_27 = call_0x2608cb0(&local_0x440, 2, ret_0x261a400_26, global_0x8c6f728);
-        this->field_0x70 = ret_0x2608cb0_27->field_0x0;
-        void* prev_0x78_6 = this->field_0x78;
-        this->field_0x78 = ret_0x2608cb0_27->field_0x8;
-        if (prev_0x78_6 != 0) {
-          call_0x6daf40(prev_0x78_6);
-        }
-        if (local_0x448 != 0) {
-          call_0x6daf40(local_0x448);
-        }
-        if (global_0x8c6f730 != 0) {
-          global_0x8c6f730->field_0x8 = global_0x8c6f730->field_0x8 + 1;
-        }
-        auto ret_0x2612cf0_30 = call_0x2612cf0(&local_0x450, &this->field_0x70, &local_0x210);
-        call_0x6f6200(&this->field_0xc0, ret_0x2612cf0_30);
-        if (local_0x458 != 0) {
-          call_0x6daf40(local_0x458);
-        }
-        if (local_0x218 != 0) {
-          call_0x6daf40(local_0x218);
-        }
-        call_0x261a600(1, 0, "init");
-        auto ret_0x2612de0_35 = call_0x2612de0(&local_0x460, &this->field_0xa0, &this->field_0xb0, &this->field_0xc0);
-        call_0x6f6200(&this->field_0x20, ret_0x2612de0_35);
-        if (local_0x468 != 0) {
-          call_0x6daf40(local_0x468);
-        }
-        auto* f_28 = this->field_0x28;
-        if (f_28 != 0) {
-          f_28->field_0x8 = f_28->field_0x8 + 1;
-        }
-        this->field_0x10 = this->field_0x20;
-        void* prev_0x18_7 = this->field_0x18;
-        this->field_0x18 = f_28;
-        if (prev_0x18_7 != 0) {
-          call_0x6daf40(prev_0x18_7);
-        }
-        if (!DebugRbxStorageNoDB) {
-          call_0x6fb700(&local_0xc00, "rbx-storage.db", param_3);
-          call_0x6f6cc0(&local_0xbe0, &local_0x7a8);
-          auto ret_0x1d65880_41 = call_0x1d65880(&local_0xbe0, &local_0xc00);
-          call_0x6f6cc0(&local_0x920, ret_0x1d65880_41);
-          call_0x6f8cb0(&local_0xbe0);
-          call_0x6f8cb0(&local_0xc00);
-          auto ret_0x2618460_45 = call_0x2618460(&local_0x920);
-          call_0x6fb700(&local_0xc40, "rbx-storage.db-wal", param_3);
-          call_0x6f6cc0(&local_0xc20, &local_0x7a8);
-          auto ret_0x1d65880_48 = call_0x1d65880(&local_0xc20, &local_0xc40);
-          call_0x6f6cc0(&local_0xd40, ret_0x1d65880_48);
-          call_0x6f8cb0(&local_0xc20);
-          auto ret_0x2618460_51 = call_0x2618460(&local_0xd40);
-          call_0x6f8cb0(&local_0xd40);
-          call_0x6f8cb0(&local_0xc40);
-          auto ret_0x260c7b0_54 = call_0x260c7b0(this, &local_0x7a8, ret_0x2618460_45, ret_0x2618460_51);
-          if (ret_0x260c7b0_54 != 0) {
-            this->field_0x129 = 1;
-          }
-          if (ret_0x2618460_45 < 1 && ret_0x2618460_51 > 0 && ret_0x260c7b0_54 == 0) {
-            if (RbxStorage >= 6 && RbxStorage >> 8 >= 3) {
-              FLog::Log("[DFLog::RbxStorage] Removing stray WAL file of size {} bytes since DB file is missing. Path: {}");
-              rax->field_0x0 = "rbx-storage.db-wal";
-              rcx->field_0x10 = global_0x72cf460;
-              rcx->field_0x12 = 0;
-              int64_t local_0x848;
-              if (18 != 0) {
-                void* sel_rbx_2 = "[DFLog::RbxStorage] Removing stray WAL file of size {} bytes since DB file is missing. Path: {}";
-                void* sel_rdi_3 = "[DFLog::RbxStorage] Removing stray WAL file of size {} bytes since DB file is missing. Path: {}";
-                auto ret_0x1d67dd0_55 = call_0x1d67dd0();
-                auto ret_0x1d68340_56 = call_0x1d68340(ret_0x1d67dd0_55);
-                local_0x848 = 0;
-                call_0x1d5ff60(sel_rdi_3, sel_rbx_2 + 18, &local_0x848, ret_0x1d68340_56);
-              }
-              if (31 >= 16) {
-                void* v_rcx_3 = "[DFLog::RbxStorage] Removing stray WAL file of size {} bytes since DB file is missing. Path: {}";
-                call_0x4955ac0(v_rcx_3);
-              }
-              call_0x6f6cc0(&local_0xc60, &local_0x7a8);
-              auto ret_0x1d65880_60 = call_0x1d65880(&local_0xc60, &local_0x848);
-              call_0x6f6cc0(&local_0x900, ret_0x1d65880_60);
-              call_0x6f8cb0(&local_0xc60);
-              int64_t stk_8;
-              int64_t local_0x7c8;
-              if (local_0x910 != 0) {
-                auto ret_0x1d67dd0_63 = call_0x1d67dd0();
-                auto ret_0x1d68340_64 = call_0x1d68340(ret_0x1d67dd0_63);
-                local_0x7c8 = 0;
-                call_0x1d60070(local_0x900, local_0x900 + local_0x910 * 2, &local_0x7c8, ret_0x1d68340_64);
-                stk_8 = local_0x7e0;
-              } else {
-                stk_8 = 15;
-              }
-              call_0x4971cd0(&local_0x4a0, 3, &local_0x490, &local_0x480);
-              if (stk_8 >= 16) {
-                void* v_rcx_9 = local_0x7c8;
-                call_0x4955ac0(v_rcx_9);
-              }
-              call_0x6f8cb0(&local_0x900);
-              if (local_0x860 >= 8) {
-                void* v_rcx_11 = local_0x848;
-                call_0x4955ac0(v_rcx_11);
-              }
+        if (ret_0x2618460_45 < 1 && ret_0x2618460_51 > 0 && ret_0x260c7b0_54 == 0) {
+          if (RbxStorage >= 6 && RbxStorage >> 8 >= 3) {
+            FLog::Log("[DFLog::RbxStorage] Removing stray WAL file of size {} bytes since DB file is missing. Path: {}");
+            rax->field_0x0 = "rbx-storage.db-wal";
+            rcx->field_0x10 = global_0x72cf460;
+            rcx->field_0x12 = 0;
+            int64_t local_0x848;
+            if (1) {
+              void* sel_rbx_2 = "[DFLog::RbxStorage] Removing stray WAL file of size {} bytes since DB file is missing. Path: {}";
+              void* sel_rdi_3 = "[DFLog::RbxStorage] Removing stray WAL file of size {} bytes since DB file is missing. Path: {}";
+              auto ret_0x1d67dd0_55 = call_0x1d67dd0();
+              auto ret_0x1d68340_56 = call_0x1d68340(ret_0x1d67dd0_55);
+              local_0x848 = 0;
+              call_0x1d5ff60(sel_rdi_3, sel_rbx_2 + 18, &local_0x848, ret_0x1d68340_56);
             }
-            call_0x2618d80(&local_0x7a8);
-            this->field_0x129 = 1;
-            global_0x8c66504 = global_0x8c66504 + 1;
-            if (global_0x8c6f728 != 0) {
-              global_0x8c6f728->vfunc_0x30(global_0x8c6f728, 40) // -> RBX::istreambuf_iterator::fn_0x2bf3be0;
-              call_0x1d48fe0(&local_0xb00, &local_0x4e0, &local_0x4d0);
-              auto local_0xae0 = 0;
-              global_0x8c6f728->vfunc_0x38(global_0x8c6f728, &local_0xae0) // -> RBX::istreambuf_iterator::fn_0x2bf3b80;
-              call_0x6f8fb0(&local_0xb00);
-              if (local_0xaf8 >= 16) {
-                void* v_rcx_16 = local_0xae0;
-                call_0x4955ac0(v_rcx_16);
-              }
+            std::string::_Tidy_deallocate("[DFLog::RbxStorage] Removing stray WAL file of size {} bytes since DB file is missing. Path: {}");
+            call_0x6f6cc0(&local_0xc60, &local_0x7a8);
+            auto ret_0x1d65880_60 = call_0x1d65880(&local_0xc60, &local_0x848);
+            call_0x6f6cc0(&local_0x900, ret_0x1d65880_60);
+            call_0x6f8cb0(&local_0xc60);
+            int64_t local_0x7c8;
+            if (local_0x910 != 0) {
+              auto ret_0x1d67dd0_63 = call_0x1d67dd0();
+              auto ret_0x1d68340_64 = call_0x1d68340(ret_0x1d67dd0_63);
+              local_0x7c8 = 0;
+              call_0x1d60070(local_0x900, local_0x900 + local_0x910 * 2, &local_0x7c8, ret_0x1d68340_64);
+            }
+            call_0x4971cd0(&local_0x4a0, 3, &local_0x490, &local_0x480);
+            std::string::_Tidy_deallocate(local_0x7c8);
+            call_0x6f8cb0(&local_0x900);
+            if (local_0x860 >= 8) {
+              void* v_rcx_8 = local_0x848;
+              call_0x4955ac0(v_rcx_8);
             }
           }
-          if (RbxStorageOfflineStorage) {
-            call_0x6fb700(&local_0xce0, "rbx-storage-pins.db", param_3);
-            call_0x6f6cc0(&local_0xcc0, &local_0x7a8);
-            auto ret_0x1d65880_78 = call_0x1d65880(&local_0xcc0, &local_0xce0);
-            call_0x6f6cc0(&local_0x868, ret_0x1d65880_78);
-            call_0x6f8cb0(&local_0xcc0);
-            call_0x6f8cb0(&local_0xce0);
-            auto ret_0x4956040_82 = call_0x4956040(64);
-            ret_0x4956040_82->field_0x8 = 1;
-            ret_0x4956040_82->field_0xc = 1;
-            ret_0x4956040_82->field_0x0 = &sym_0x704d598;
-            call_0x2628010(&ret_0x4956040_82->field_0x10, &local_0x868);
-            this->field_0xd0 = &ret_0x4956040_82->field_0x10;
-            void* prev_0xd8_8 = this->field_0xd8;
-            this->field_0xd8 = ret_0x4956040_82;
-            if (prev_0xd8_8 != 0) {
-              call_0x6daf40(prev_0xd8_8);
-            }
-            int64_t local_0x7e8;
-            auto expr_1 = "[DFLog::RbxStorage] Failed to initialize the pin manager database. Path: {}";
-            if (this->field_0xd0 != 0) {
-              if (this->field_0xd0->field_0x8 == 0) {
-                if (RbxStorage >= 6 && RbxStorage >> 8 >= 1) {
-                  int64_t stk_23;
-                  if (local_0x878 != 0) {
-                    FLog::Log(expr_1);
-                    auto ret_0x1d68340_85 = call_0x1d68340(expr_1);
-                    local_0x7e8 = 0;
-                    call_0x1d60070(local_0x868, local_0x868 + local_0x878 * 2, &local_0x7e8, ret_0x1d68340_85);
-                    stk_23 = local_0x800;
-                  } else {
-                    stk_23 = 15;
-                  }
-                  FLog::Log(expr_1);
-                  if (stk_23 >= 16) {
-                    void* v_rcx_24 = local_0x7e8;
-                    call_0x4955ac0(v_rcx_24);
-                  }
-                  expr_1;
-                }
-                global_0x8c6657c = global_0x8c6657c + 1;
-                if (global_0x8c6f728 != 0) {
-                  global_0x8c6f728->vfunc_0x30(global_0x8c6f728, 70) // -> RBX::istreambuf_iterator::fn_0x2bf3be0;
-                  call_0x6f7510(&local_0xa20, &this->field_0xd0->field_0x10);
-                  auto local_0xa00 = "PinManager";
-                  global_0x8c6f728->vfunc_0x38(global_0x8c6f728, &local_0xa00) // -> RBX::istreambuf_iterator::fn_0x2bf3b80;
-                  call_0x6f8fb0(&local_0xa20);
-                  if (local_0xa18 >= 16) {
-                    void* v_rcx_29 = local_0xa00;
-                    call_0x4955ac0(v_rcx_29);
-                  }
-                }
-                L_0x260add0:
-                this->field_0xd0 = 0;
-                void* prev_0xd8_10 = this->field_0xd8;
-                this->field_0xd8 = 0;
-                if (prev_0xd8_10 != 0) {
-                  call_0x6daf40(prev_0xd8_10);
-                }
-              }
-            } else {
+          call_0x2618d80(&local_0x7a8);
+          this->field_0x129 = 1;
+          global_0x8c66504++;
+          if (global_0x8c6f728 != 0) {
+            global_0x8c6f728->vfunc_0x30(global_0x8c6f728, 40) // -> RBX::istreambuf_iterator::fn_0x2bf3be0;
+            call_0x1d48fe0(&local_0xb00, &local_0x4e0, &local_0x4d0);
+            auto local_0xae0 = 0;
+            global_0x8c6f728->vfunc_0x38(global_0x8c6f728, &local_0xae0) // -> RBX::istreambuf_iterator::fn_0x2bf3b80;
+            call_0x6f8fb0(&local_0xb00);
+            std::string::_Tidy_deallocate(local_0xae0);
+          }
+        }
+        if (RbxStorageOfflineStorage) {
+          call_0x6fb700(&local_0xce0, "rbx-storage-pins.db", param_3);
+          call_0x6f6cc0(&local_0xcc0, &local_0x7a8);
+          auto ret_0x1d65880_78 = call_0x1d65880(&local_0xcc0, &local_0xce0);
+          call_0x6f6cc0(&local_0x868, ret_0x1d65880_78);
+          call_0x6f8cb0(&local_0xcc0);
+          call_0x6f8cb0(&local_0xce0);
+          auto ret_0x4956040_82 = call_0x4956040(64);
+          ret_0x4956040_82->field_0x8 = 1;
+          ret_0x4956040_82->field_0xc = 1;
+          ret_0x4956040_82->field_0x0 = &sym_0x704d598;
+          call_0x2628010(&ret_0x4956040_82->field_0x10, &local_0x868);
+          this->field_0xd0 = &ret_0x4956040_82->field_0x10;
+          void* prev_0xd8_8 = this->field_0xd8;
+          this->field_0xd8 = ret_0x4956040_82;
+          if (prev_0xd8_8 != 0) {
+            call_0x6daf40(prev_0xd8_8);
+          }
+          int64_t local_0x7e8;
+          if (this->field_0xd0 != 0) {
+            if (this->field_0xd0->field_0x8 == 0) {
               if (RbxStorage >= 6 && RbxStorage >> 8 >= 1) {
-                int64_t stk_23;
                 if (local_0x878 != 0) {
-                  goto L_0x260ab2c;
-                } else {
-                  stk_23 = 15;
+                  FLog::Log("[DFLog::RbxStorage] Failed to initialize the pin manager database. Path: {}");
+                  auto ret_0x1d68340_85 = call_0x1d68340("[DFLog::RbxStorage] Failed to initialize the pin manager database. Path: {}");
+                  local_0x7e8 = 0;
+                  call_0x1d60070(local_0x868, local_0x868 + local_0x878 * 2, &local_0x7e8, ret_0x1d68340_85);
                 }
-                FLog::Log(expr_1);
-                if (stk_23 >= 16) {
-                  void* v_rcx_24 = local_0x7e8;
-                  call_0x4955ac0(v_rcx_24);
-                }
-                expr_1;
-              } else {
+                FLog::Log("[DFLog::RbxStorage] Failed to initialize the pin manager database. Path: {}");
+                std::string::_Tidy_deallocate(local_0x7e8);
+                "[DFLog::RbxStorage] Failed to initialize the pin manager database. Path: {}";
               }
-              global_0x8c6657c = global_0x8c6657c + 1;
+              global_0x8c6657c++;
               if (global_0x8c6f728 != 0) {
-                goto L_0x260acb6;
+                global_0x8c6f728->vfunc_0x30(global_0x8c6f728, 70) // -> RBX::istreambuf_iterator::fn_0x2bf3be0;
+                call_0x6f7510(&local_0xa20, &this->field_0xd0->field_0x10);
+                auto local_0xa00 = "PinManager";
+                global_0x8c6f728->vfunc_0x38(global_0x8c6f728, &local_0xa00) // -> RBX::istreambuf_iterator::fn_0x2bf3b80;
+                call_0x6f8fb0(&local_0xa20);
+                std::string::_Tidy_deallocate(local_0xa00);
               }
-              goto L_0x260add0;
+              L_0x260add0:
+              this->field_0xd0 = 0;
+              void* prev_0xd8_10 = this->field_0xd8;
+              this->field_0xd8 = 0;
+              if (prev_0xd8_10 != 0) {
+                call_0x6daf40(prev_0xd8_10);
+              }
             }
-            call_0x6f8cb0(&local_0x868);
           } else {
+            if (RbxStorage >= 6 && RbxStorage >> 8 >= 1) {
+              if (local_0x878 != 0) {
+                goto L_0x260ab2c;
+              }
+              FLog::Log("[DFLog::RbxStorage] Failed to initialize the pin manager database. Path: {}");
+              std::string::_Tidy_deallocate(local_0x7e8);
+              "[DFLog::RbxStorage] Failed to initialize the pin manager database. Path: {}";
+            }
+            global_0x8c6657c++;
+            if (global_0x8c6f728 != 0) {
+              goto L_0x260acb6;
+            }
+            goto L_0x260add0;
           }
+          call_0x6f8cb0(&local_0x868);
+        }
+        if (this->field_0xd8 != 0) {
+          this->field_0xd8->field_0x8++;
+        }
+        if (this->field_0xa8 != 0) {
+          this->field_0xa8->field_0x8++;
+        }
+        auto local_0x98 = this->field_0xa0;
+        auto local_0x9c = 0.0;
+        auto local_0xa0 = this->field_0xa8;
+        auto local_0xa4 = 0.0;
+        auto ret_0x26091c0_95 = call_0x26091c0(&local_0x530, &local_0x920, &local_0x98, 3);
+        call_0x6f6200(&this->field_0x40, ret_0x26091c0_95);
+        if (local_0x538 != 0) {
+          call_0x6daf40(local_0x538);
+        }
+        if (this->field_0x40 == 0) {
+          call_0x2618d80(&local_0x7a8);
+          this->field_0x129 = 1;
           if (this->field_0xd8 != 0) {
-            this->field_0xd8->field_0x8 = this->field_0xd8->field_0x8 + 1;
+            this->field_0xd8->field_0x8++;
           }
           if (this->field_0xa8 != 0) {
-            this->field_0xa8->field_0x8 = this->field_0xa8->field_0x8 + 1;
+            this->field_0xa8->field_0x8++;
           }
-          auto local_0x98 = this->field_0xa0;
-          auto local_0x9c = 0.0;
-          auto local_0xa0 = this->field_0xa8;
-          auto local_0xa4 = 0.0;
-          auto ret_0x26091c0_95 = call_0x26091c0(&local_0x530, &local_0x920, &local_0x98, 3);
-          call_0x6f6200(&this->field_0x40, ret_0x26091c0_95);
-          if (local_0x538 != 0) {
-            call_0x6daf40(local_0x538);
+          auto local_0x78 = this->field_0xa0;
+          auto local_0x7c = 0.0;
+          auto local_0x80 = this->field_0xa8;
+          auto local_0x84 = 0.0;
+          auto local_0x88 = this->field_0xd0;
+          auto local_0x8c = 0.0;
+          auto ret_0x26091c0_99 = call_0x26091c0(&local_0x540, &local_0x920, &local_0x78, 4);
+          call_0x6f6200(&this->field_0x40, ret_0x26091c0_99);
+          if (local_0x548 != 0) {
+            call_0x6daf40(local_0x548);
           }
-          if (this->field_0x40 == 0) {
+        }
+        auto ret_0x4975550_102 = call_0x4975550();
+        if (ret_0x4975550_102 - (rdx >> 13) * 10000 < RbxStorageRecreateDbOnPageSizeMismatchHundredthsPercent && this->field_0x40 != 0 && SQLitePageSizeBytes > 0) {
+          auto ret_0x2627b80_103 = call_0x2627b80(this->field_0x40);
+          if (ret_0x2627b80_103 != SQLitePageSizeBytes) {
+            if (RbxStorage >= 6 && RbxStorage >> 8 >= 1) {
+              FLog::Log("[DFLog::RbxStorage] DB page size {} != desired {}, removing and recreating the database. Path: {");
+              "[DFLog::RbxStorage] DB page size {} != desired {}, removing and recreating the database. Path: {";
+              call_0x4971cd0(&local_0x590, 1, &local_0x580, &local_0x570);
+              call_0x6f8fb0(&local_0xda0);
+            }
+            this->field_0x40 = 0;
+            void* prev_0x48_12 = this->field_0x48;
+            this->field_0x48 = 0;
+            if (prev_0x48_12 != 0) {
+              call_0x6daf40(prev_0x48_12);
+            }
             call_0x2618d80(&local_0x7a8);
             this->field_0x129 = 1;
+            global_0x8c6656c++;
+            if (global_0x8c6f728 != 0) {
+              global_0x8c6f728->vfunc_0x30(global_0x8c6f728, 66) // -> RBX::istreambuf_iterator::fn_0x2bf3be0;
+              auto local_0xa70 = 0;
+              call_0x6f7000(&local_0xa70, "SqliteCache", 11);
+              call_0x1d48fe0(&local_0xa90, &local_0x5e0, &local_0x5d0);
+              global_0x8c6f728->vfunc_0x38(global_0x8c6f728, &local_0xa70) // -> RBX::istreambuf_iterator::fn_0x2bf3b80;
+              call_0x6f8fb0(&local_0xa90);
+              std::string::_Tidy_deallocate(local_0xa70);
+            }
             if (this->field_0xd8 != 0) {
-              this->field_0xd8->field_0x8 = this->field_0xd8->field_0x8 + 1;
+              this->field_0xd8->field_0x8++;
             }
             if (this->field_0xa8 != 0) {
-              this->field_0xa8->field_0x8 = this->field_0xa8->field_0x8 + 1;
+              this->field_0xa8->field_0x8++;
             }
-            auto local_0x78 = this->field_0xa0;
-            auto local_0x7c = 0.0;
-            auto local_0x80 = this->field_0xa8;
-            auto local_0x84 = 0.0;
-            auto local_0x88 = this->field_0xd0;
-            auto local_0x8c = 0.0;
-            auto ret_0x26091c0_99 = call_0x26091c0(&local_0x540, &local_0x920, &local_0x78, 4);
-            call_0x6f6200(&this->field_0x40, ret_0x26091c0_99);
-            if (local_0x548 != 0) {
-              call_0x6daf40(local_0x548);
-            } else {
+            auto local_0xc8 = this->field_0xa0;
+            auto local_0xcc = 0.0;
+            auto local_0xd0 = this->field_0xa8;
+            auto local_0xd4 = 0.0;
+            auto ret_0x26091c0_114 = call_0x26091c0(&local_0x5f0, &local_0x920, &local_0xc8, 4);
+            this->field_0x40 = ret_0x26091c0_114->field_0x0;
+            void* prev_0x48_13 = this->field_0x48;
+            this->field_0x48 = ret_0x26091c0_114->field_0x8;
+            if (prev_0x48_13 != 0) {
+              call_0x6daf40(prev_0x48_13);
             }
-          } else {
+            if (local_0x5f8 != 0) {
+              call_0x6daf40(local_0x5f8);
+            }
           }
-          auto ret_0x4975550_102 = call_0x4975550();
-          if (ret_0x4975550_102 - (rdx >> 13) * 10000 < RbxStorageRecreateDbOnPageSizeMismatchHundredthsPercent && this->field_0x40 != 0 && SQLitePageSizeBytes > 0) {
-            auto ret_0x2627b80_103 = call_0x2627b80(this->field_0x40);
-            if (ret_0x2627b80_103 != SQLitePageSizeBytes) {
-              if (RbxStorage >= 6 && RbxStorage >> 8 >= 1) {
-                FLog::Log("[DFLog::RbxStorage] DB page size {} != desired {}, removing and recreating the database. Path: {");
-                if (rbx[0] != 0) {
-                }
-                "[DFLog::RbxStorage] DB page size {} != desired {}, removing and recreating the database. Path: {";
-                if (rdx->field_0x18 >= 16) {
-                }
-                call_0x4971cd0(&local_0x590, 1, &local_0x580, &local_0x570);
-                call_0x6f8fb0(&local_0xda0);
-              } else {
-              }
-              this->field_0x40 = 0;
-              void* prev_0x48_12 = this->field_0x48;
-              this->field_0x48 = 0;
-              if (prev_0x48_12 != 0) {
-                call_0x6daf40(prev_0x48_12);
-              }
-              call_0x2618d80(&local_0x7a8);
-              this->field_0x129 = 1;
-              global_0x8c6656c = global_0x8c6656c + 1;
-              if (global_0x8c6f728 != 0) {
-                global_0x8c6f728->vfunc_0x30(global_0x8c6f728, 66) // -> RBX::istreambuf_iterator::fn_0x2bf3be0;
-                auto local_0xa70 = 0;
-                call_0x6f7000(&local_0xa70, "SqliteCache", 11);
-                call_0x1d48fe0(&local_0xa90, &local_0x5e0, &local_0x5d0);
-                global_0x8c6f728->vfunc_0x38(global_0x8c6f728, &local_0xa70) // -> RBX::istreambuf_iterator::fn_0x2bf3b80;
-                call_0x6f8fb0(&local_0xa90);
-                if (local_0xa88 >= 16) {
-                  void* v_rcx_38 = local_0xa70;
-                  if (local_0xa88 + 1 >= 0x1000) {
-                  }
-                  call_0x4955ac0(v_rcx_38);
-                }
-              }
-              if (this->field_0xd8 != 0) {
-                this->field_0xd8->field_0x8 = this->field_0xd8->field_0x8 + 1;
-              }
-              if (this->field_0xa8 != 0) {
-                this->field_0xa8->field_0x8 = this->field_0xa8->field_0x8 + 1;
-              }
-              auto local_0xc8 = this->field_0xa0;
-              auto local_0xcc = 0.0;
-              auto local_0xd0 = this->field_0xa8;
-              auto local_0xd4 = 0.0;
-              auto ret_0x26091c0_114 = call_0x26091c0(&local_0x5f0, &local_0x920, &local_0xc8, 4);
-              this->field_0x40 = ret_0x26091c0_114->field_0x0;
-              void* prev_0x48_13 = this->field_0x48;
-              this->field_0x48 = ret_0x26091c0_114->field_0x8;
-              if (prev_0x48_13 != 0) {
-                call_0x6daf40(prev_0x48_13);
-              }
-              if (local_0x5f8 != 0) {
-                call_0x6daf40(local_0x5f8);
-              } else {
-              }
-            } else {
-            }
-          } else {
-          }
-          if (this->field_0x40 != 0) {
-            if (global_0x8c6f730 != 0) {
-              global_0x8c6f730->field_0x8 = global_0x8c6f730->field_0x8 + 1;
-            }
-            auto ret_0x4956040_117 = call_0x4956040(2080);
-            ret_0x4956040_117->field_0x8 = 1;
-            ret_0x4956040_117->field_0xc = 1;
-            ret_0x4956040_117->field_0x0 = &sym_0x704d4a8;
-            if (this->field_0x48 != 0) {
-              this->field_0x48->field_0x8 = this->field_0x48->field_0x8 + 1;
-            }
-            auto local_0xd8 = this->field_0x40;
-            auto local_0xdc = 0.0;
-            auto local_0xe0 = this->field_0x48;
-            auto local_0xe4 = 0.0;
-            auto local_0x2f0 = global_0x8c6f728;
-            auto local_0x2f4 = global_0x8c6f728;
-            auto local_0x2f8 = global_0x8c6f728;
-            auto local_0x2fc = global_0x8c6f728;
-            call_0x2613790(&ret_0x4956040_117->field_0x10, &local_0xd8, &local_0x2f0);
-            auto local_0x158 = &ret_0x4956040_117->field_0x10;
-            call_0x6f6200(&this->field_0x90, &local_0x158);
-            if (local_0x160 != 0) {
-              call_0x6daf40(local_0x160);
-            }
-            if (RbxStorageUseMemCache) {
-              auto ret_0x4956040_124 = call_0x4956040(224);
-              ret_0x4956040_124->field_0x8 = 1;
-              ret_0x4956040_124->field_0xc = 1;
-              ret_0x4956040_124->field_0x0 = &sym_0x704d520;
-              auto* f_98 = this->field_0x98;
-              if (f_98 != 0) {
-                f_98->field_0x8 = f_98->field_0x8 + 1;
-              }
-              auto local_0xe8 = this->field_0x90;
-              auto local_0xec = 0.0;
-              auto local_0xf0 = f_98;
-              auto local_0xf4 = 0.0;
-              call_0x262ebc0(&ret_0x4956040_124->field_0x10, &local_0xe8);
-              this->field_0x30 = &ret_0x4956040_124->field_0x10;
-              void* prev_0x38_14 = this->field_0x38;
-              this->field_0x38 = ret_0x4956040_124;
-              if (prev_0x38_14 != 0) {
-                call_0x6daf40(prev_0x38_14);
-              }
-              if (RbxStorageUseTelemetryOnMemCache) {
-                if (global_0x8c6f730 != 0) {
-                  global_0x8c6f730->field_0x8 = global_0x8c6f730->field_0x8 + 1;
-                }
-                auto ret_0x4956040_131 = call_0x4956040(2080);
-                ret_0x4956040_131->field_0x8 = 1;
-                ret_0x4956040_131->field_0xc = 1;
-                ret_0x4956040_131->field_0x0 = &sym_0x704d4a8;
-                if (this->field_0x38 != 0) {
-                  this->field_0x38->field_0x8 = this->field_0x38->field_0x8 + 1;
-                }
-                auto local_0xf8 = this->field_0x30;
-                auto local_0xfc = 0.0;
-                auto local_0x100 = this->field_0x38;
-                auto local_0x104 = 0.0;
-                auto local_0x360 = global_0x8c6f728;
-                auto local_0x364 = global_0x8c6f728;
-                auto local_0x368 = global_0x8c6f728;
-                auto local_0x36c = global_0x8c6f728;
-                call_0x2613790(&ret_0x4956040_131->field_0x10, &local_0xf8, &local_0x360);
-                auto local_0x168 = &ret_0x4956040_131->field_0x10;
-                call_0x6f6200(&this->field_0x80, &local_0x168);
-                if (local_0x170 != 0) {
-                  call_0x6daf40(local_0x170);
-                }
-                auto ret_0x2612de0_135 = call_0x2612de0(&local_0x620, &this->field_0x80, &this->field_0xb0, &this->field_0xc0);
-                call_0x6f6200(&this->field_0x20, ret_0x2612de0_135);
-                if (local_0x628 != 0) {
-                  call_0x6daf40(local_0x628);
-                }
-              } else {
-                auto ret_0x4956040_127 = call_0x4956040(144);
-                ret_0x4956040_127->field_0x8 = 1;
-                ret_0x4956040_127->field_0xc = 1;
-                ret_0x4956040_127->field_0x0 = &sym_0x704d570;
-                auto* f_c8 = this->field_0xc8;
-                if (f_c8 != 0) {
-                  f_c8->field_0x8 = f_c8->field_0x8 + 1;
-                }
-                if (this->field_0xb8 != 0) {
-                  this->field_0xb8->field_0x8 = this->field_0xb8->field_0x8 + 1;
-                }
-                if (this->field_0x38 != 0) {
-                  this->field_0x38->field_0x8 = this->field_0x38->field_0x8 + 1;
-                }
-                auto local_0x128 = this->field_0x30;
-                auto local_0x12c = 0.0;
-                auto local_0x130 = this->field_0x38;
-                auto local_0x134 = 0.0;
-                auto local_0x118 = this->field_0xb0;
-                auto local_0x11c = 0.0;
-                auto local_0x120 = this->field_0xb8;
-                auto local_0x124 = 0.0;
-                auto local_0x108 = this->field_0xc0;
-                auto local_0x10c = 0.0;
-                auto local_0x110 = f_c8;
-                auto local_0x114 = 0.0;
-                call_0x26409b0(&ret_0x4956040_127->field_0x10, &local_0x128, &local_0x118, &local_0x108);
-                auto local_0x178 = &ret_0x4956040_127->field_0x10;
-                call_0x6f6200(&this->field_0x20, &local_0x178);
-                if (local_0x180 != 0) {
-                  call_0x6daf40(local_0x180);
-                }
-              }
-            } else {
-              auto ret_0x2612de0_121 = call_0x2612de0(&local_0x630, &this->field_0x90, &this->field_0xb0, &this->field_0xc0);
-              call_0x6f6200(&this->field_0x20, ret_0x2612de0_121);
-              if (local_0x638 != 0) {
-                call_0x6daf40(local_0x638);
-              }
-            }
-          } else {
-          }
-          call_0x6f8cb0(&local_0x920);
-        } else {
         }
-        if (f_28 != 0) {
-          f_28->field_0x8 = f_28->field_0x8 + 1;
-        }
-        this->field_0x10 = this->field_0x20;
-        void* prev_0x18_15 = this->field_0x18;
-        this->field_0x18 = f_28;
-        if (prev_0x18_15 != 0) {
-          call_0x6daf40(prev_0x18_15);
-        }
-        call_0x260d7f0(this);
-        if (DebugRbxStorageFillCache) {
-          call_0x2611010(this);
-        }
-        if (DebugRbxStorageEnableStressTest) {
-          auto ret_0x4956040_142 = call_0x4956040(8);
-          ret_0x4956040_142->field_0x0 = this;
-          auto local_0x138 = call_0x5e1dba0(0, 0, &sym_0x2613640, ret_0x4956040_142);
-          call_0x11290e0(&this->field_0x160, &local_0x138);
-        } else {
-        }
-        auto vret_145 = this->field_0x10->vfunc_0x8(this->field_0x10, &local_0x748) // -> RBX::dtQueryFilter::fn_0x24134b0;
-        auto ret_0x6dbfe0_146 = call_0x6dbfe0(vret_145, &local_0xdc0);
-        auto local_0x940 = 0;
-        call_0x6f7330(&local_0x940, ret_0x6dbfe0_146);
-        call_0x6f8fb0(&local_0xdc0);
         if (this->field_0x40 != 0) {
-          call_0x2623ed0(this->field_0x40);
-        } else {
-        }
-        if (this->field_0x40->field_0x68 == 0) {
-          return tailcall_0x260ba0b();
-        } else {
-          auto local_0x808 = 0;
-          call_0x6f7000(&local_0x808, "SELECT page_count * page_size FROM pragma_page_count(), pragma_page_size();", 75);
-          call_0x262c980(&this->field_0x40->field_0x68, &local_0x808);
-          void* v_rdx_50 = local_0x808;
-          if (local_0x820 + 1 >= 4096) {
+          if (global_0x8c6f730 != 0) {
+            global_0x8c6f730->field_0x8++;
           }
-          call_0x4955ac0(v_rdx_50);
+          auto ret_0x4956040_117 = call_0x4956040(2080);
+          ret_0x4956040_117->field_0x8 = 1;
+          ret_0x4956040_117->field_0xc = 1;
+          ret_0x4956040_117->field_0x0 = &sym_0x704d4a8;
+          if (this->field_0x48 != 0) {
+            this->field_0x48->field_0x8++;
+          }
+          auto local_0xd8 = this->field_0x40;
+          auto local_0xdc = 0.0;
+          auto local_0xe0 = this->field_0x48;
+          auto local_0xe4 = 0.0;
+          auto local_0x2f0 = global_0x8c6f728;
+          auto local_0x2f4 = global_0x8c6f728;
+          auto local_0x2f8 = global_0x8c6f728;
+          auto local_0x2fc = global_0x8c6f728;
+          call_0x2613790(&ret_0x4956040_117->field_0x10, &local_0xd8, &local_0x2f0);
+          auto local_0x158 = &ret_0x4956040_117->field_0x10;
+          call_0x6f6200(&this->field_0x90, &local_0x158);
+          if (local_0x160 != 0) {
+            call_0x6daf40(local_0x160);
+          }
+          if (RbxStorageUseMemCache) {
+            auto ret_0x4956040_124 = call_0x4956040(224);
+            ret_0x4956040_124->field_0x8 = 1;
+            ret_0x4956040_124->field_0xc = 1;
+            ret_0x4956040_124->field_0x0 = &sym_0x704d520;
+            auto* f_98 = this->field_0x98;
+            if (f_98 != 0) {
+              f_98->field_0x8++;
+            }
+            auto local_0xe8 = this->field_0x90;
+            auto local_0xec = 0.0;
+            auto local_0xf0 = f_98;
+            auto local_0xf4 = 0.0;
+            call_0x262ebc0(&ret_0x4956040_124->field_0x10, &local_0xe8);
+            this->field_0x30 = &ret_0x4956040_124->field_0x10;
+            void* prev_0x38_14 = this->field_0x38;
+            this->field_0x38 = ret_0x4956040_124;
+            if (prev_0x38_14 != 0) {
+              call_0x6daf40(prev_0x38_14);
+            }
+            if (RbxStorageUseTelemetryOnMemCache) {
+              if (global_0x8c6f730 != 0) {
+                global_0x8c6f730->field_0x8++;
+              }
+              auto ret_0x4956040_131 = call_0x4956040(2080);
+              ret_0x4956040_131->field_0x8 = 1;
+              ret_0x4956040_131->field_0xc = 1;
+              ret_0x4956040_131->field_0x0 = &sym_0x704d4a8;
+              if (this->field_0x38 != 0) {
+                this->field_0x38->field_0x8++;
+              }
+              auto local_0xf8 = this->field_0x30;
+              auto local_0xfc = 0.0;
+              auto local_0x100 = this->field_0x38;
+              auto local_0x104 = 0.0;
+              auto local_0x360 = global_0x8c6f728;
+              auto local_0x364 = global_0x8c6f728;
+              auto local_0x368 = global_0x8c6f728;
+              auto local_0x36c = global_0x8c6f728;
+              call_0x2613790(&ret_0x4956040_131->field_0x10, &local_0xf8, &local_0x360);
+              auto local_0x168 = &ret_0x4956040_131->field_0x10;
+              call_0x6f6200(&this->field_0x80, &local_0x168);
+              if (local_0x170 != 0) {
+                call_0x6daf40(local_0x170);
+              }
+              auto ret_0x2612de0_135 = call_0x2612de0(&local_0x620, &this->field_0x80, &this->field_0xb0, &this->field_0xc0);
+              call_0x6f6200(&this->field_0x20, ret_0x2612de0_135);
+              if (local_0x628 != 0) {
+                call_0x6daf40(local_0x628);
+              }
+            } else {
+              auto ret_0x4956040_127 = call_0x4956040(144);
+              ret_0x4956040_127->field_0x8 = 1;
+              ret_0x4956040_127->field_0xc = 1;
+              ret_0x4956040_127->field_0x0 = &sym_0x704d570;
+              auto* f_c8 = this->field_0xc8;
+              if (f_c8 != 0) {
+                f_c8->field_0x8++;
+              }
+              if (this->field_0xb8 != 0) {
+                this->field_0xb8->field_0x8++;
+              }
+              if (this->field_0x38 != 0) {
+                this->field_0x38->field_0x8++;
+              }
+              auto local_0x128 = this->field_0x30;
+              auto local_0x12c = 0.0;
+              auto local_0x130 = this->field_0x38;
+              auto local_0x134 = 0.0;
+              auto local_0x118 = this->field_0xb0;
+              auto local_0x11c = 0.0;
+              auto local_0x120 = this->field_0xb8;
+              auto local_0x124 = 0.0;
+              auto local_0x108 = this->field_0xc0;
+              auto local_0x10c = 0.0;
+              auto local_0x110 = f_c8;
+              auto local_0x114 = 0.0;
+              call_0x26409b0(&ret_0x4956040_127->field_0x10, &local_0x128, &local_0x118, &local_0x108);
+              auto local_0x178 = &ret_0x4956040_127->field_0x10;
+              call_0x6f6200(&this->field_0x20, &local_0x178);
+              if (local_0x180 != 0) {
+                call_0x6daf40(local_0x180);
+              }
+            }
+          } else {
+            auto ret_0x2612de0_121 = call_0x2612de0(&local_0x630, &this->field_0x90, &this->field_0xb0, &this->field_0xc0);
+            call_0x6f6200(&this->field_0x20, ret_0x2612de0_121);
+            if (local_0x638 != 0) {
+              call_0x6daf40(local_0x638);
+            }
+          }
         }
+        call_0x6f8cb0(&local_0x920);
+      }
+      if (f_28 != 0) {
+        f_28->field_0x8++;
+      }
+      this->field_0x10 = this->field_0x20;
+      void* prev_0x18_15 = this->field_0x18;
+      this->field_0x18 = f_28;
+      if (prev_0x18_15 != 0) {
+        call_0x6daf40(prev_0x18_15);
+      }
+      call_0x260d7f0(this);
+      if (DebugRbxStorageFillCache) {
+        call_0x2611010(this);
+      }
+      if (DebugRbxStorageEnableStressTest) {
+        auto ret_0x4956040_142 = call_0x4956040(8);
+        ret_0x4956040_142->field_0x0 = this;
+        auto local_0x138 = call_0x5e1dba0(0, 0, &sym_0x2613640, ret_0x4956040_142);
+        call_0x11290e0(&this->field_0x160, &local_0x138);
+      }
+      auto vret_145 = this->field_0x10->vfunc_0x8(this->field_0x10, &local_0x748) // -> RBX::dtQueryFilter::fn_0x24134b0;
+      auto ret_0x6dbfe0_146 = call_0x6dbfe0(vret_145, &local_0xdc0);
+      auto local_0x940 = 0;
+      call_0x6f7330(&local_0x940, ret_0x6dbfe0_146);
+      call_0x6f8fb0(&local_0xdc0);
+      if (this->field_0x40 != 0) {
+        call_0x2623ed0(this->field_0x40);
+      }
+      if (this->field_0x40->field_0x68 == 0) {
+        return tailcall_0x260ba0b();
+      } else {
+        auto local_0x808 = 0;
+        call_0x6f7000(&local_0x808, "SELECT page_count * page_size FROM pragma_page_count(), pragma_page_size();", 75);
+        call_0x262c980(&this->field_0x40->field_0x68, &local_0x808);
+        void* v_rdx_47 = local_0x808;
+        call_0x4955ac0(v_rdx_47);
       }
     }
   
@@ -3962,7 +3867,7 @@ Operação  : 0x26082a2: cmp byte [flag], imm8 ; fn=0x2608140..0x26088dc
     0x260a2d0 | 74 05                    | je 0x260a2d7
     0x260a2d2 | e8 69 0c 0d fe           | call 0x6daf40
     L_0x260a2d7:
-    0x260a2d7 | 49 c7 c7 fe ff ff ff     | mov r15, 0xfffffffe
+    0x260a2d7 | 49 c7 c7 fe ff ff ff     | mov r15, -0x2
     0x260a2de | 49 8b ff                 | mov rdi, r15
     0x260a2e1 | c6 44 24 38 00           | mov byte ptr [rsp + 0x38], 0x0
     0x260a2e6 | 0f 57 ff                 | xorps xmm7, xmm7

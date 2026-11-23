@@ -21,7 +21,7 @@ Operação  : 0x32cc404: cmp byte [flag], imm8 ; fn=0x32cc260..0x32cc43d
     // Flag defaults: LargeReplicatorValidateMigrateCrash = false, LargeReplicatorValidateMigrate2 = false
     void RBX::LargeReplicator::func_0x32cc260(RBX::LargeReplicator* this, int64_t param_2) {
       if (LargeReplicatorValidateMigrate2 && param_2->field_0x8 != 0 && param_2->field_0x8->field_0x8 != 0 && param_2->field_0x10 != 0 && param_2->field_0x20 != 0) {
-        param_2->field_0x8->field_0xc = param_2->field_0x8->field_0xc + 1;
+        param_2->field_0x8->field_0xc++;
         auto local_0x30 = param_2->field_0x0;
         call_0x1c23dd0(&local_0x30);
         call_0x2e13190();
@@ -29,25 +29,18 @@ Operação  : 0x32cc404: cmp byte [flag], imm8 ; fn=0x32cc260..0x32cc43d
         call_0x32cc710(&local_0x90, &local_0x20);
         auto local_0x80 = &sym_0x32cc710;
         call_0x2e13b40(&sym_0x8cdc1b8, &local_0x80);
-        if (local_0x80 != 0 && local_0x80 == &sym_0x32cc710) {
-          call_0x32cc710(local_0x88, local_0x88);
-        } else {
-          local_0x88->vfunc(local_0x88, local_0x88);
+        if (local_0x80 != 0) {
+          if (local_0x80 == &sym_0x32cc710) {
+            call_0x32cc710(local_0x88, local_0x88);
+          } else {
+            local_0x88->vfunc(local_0x88, local_0x88);
+          }
         }
         if (local_0x40 != 0 && local_0x50 != 0) {
           if (local_0x38 != 0) {
-            if (local_0x38->field_0x8 != 0) {
-              do { // L_0x32cc391
-                atomic_try_incref(&local_0x38->field_0x8);
-                if (atomic_cas(&local_0x38->field_0x8, local_0x38->field_0x8, (local_0x38->field_0x8 + 1)) == 0) break;
-                break;
-              } while (local_0x38->field_0x8 != 0); // loop -> L_0x32cc391
-              if (local_0x30 != 0) {
-                call_0x1c24150(local_0x30, &local_0x60);
-              }
-              if (local_0x38 != 0) {
-                call_0x6daf40(local_0x38);
-              }
+            while (local_0x38->field_0x8 != 0) {
+              atomic_try_incref(&local_0x38->field_0x8);
+              if (atomic_cas(&local_0x38->field_0x8, local_0x38->field_0x8, local_0x38->field_0x8 + 1) == 0) break;
             }
             if (local_0x38 != 0 && atomic_fetch_sub(&local_0x38->field_0xc, 1) == 1) {
               local_0x38->vfunc_0x8() // -> RBX::ModelInstance::BackpackItem::fn_0x3344340;
@@ -190,10 +183,14 @@ Operação  : 0x32cc404: cmp byte [flag], imm8 ; fn=0x32cc260..0x32cc43d
     
     // Flag defaults: LargeReplicatorValidateMigrateCrash = false, LargeReplicatorValidateMigrateThrottleHundredthsPercent = 0, DebugAQSGLTFLocalCopyPath = ""
     auto RBX::LargeReplicator::func_0x32cc710(RBX::LargeReplicator* this, int64_t param_2) {
+      void* v_rax_3;
       if (this != param_2) {
         if (param_2 != 0) {
           if (this != 0) {
             this->field_0x0 = param_2->field_0x0;
+            v_rax_3 = this;
+          } else {
+            v_rax_3 = 0;
           }
         } else {
           int32_t v_r8_1 = global_0x81a88d4;
@@ -206,7 +203,7 @@ Operação  : 0x32cc404: cmp byte [flag], imm8 ; fn=0x32cc260..0x32cc43d
             call_0x746610(&local_0x68, DebugAQSGLTFLocalCopyPath);
             auto ret_0x4954e70_3 = call_0x4954e70(global_0x84bc6dc);
             auto local_0x30 = this->field_0x0->field_0x0;
-            (local_0xd8->field_0x4 + &local_0xd8)->vfunc(local_0xd8->field_0x4 + &local_0xd8, &local_0x50, &local_0x30, 1);
+            (((local_0xd8->field_0x4 + &local_0xd8)->field_0x0))->vfunc_0x10((local_0xd8->field_0x4 + &local_0xd8), &local_0x50, &local_0x30, 1) // -> RBX::ModelInstance::BackpackItem::fn_0x3341770;
             call_0x4954e70(ret_0x4954e70_3);
             call_0x2dbd0c0(&local_0x348, &local_0x30, this->field_0x0->field_0x28, 1);
             call_0x2db2c00(&local_0x390);
@@ -215,8 +212,10 @@ Operação  : 0x32cc404: cmp byte [flag], imm8 ; fn=0x32cc260..0x32cc43d
             call_0x6e41c0(&local_0x348);
             call_0x6f8fb0(&local_0x90);
           }
+          v_rax_3 = 0;
         }
-        return v_rax_3;
+      } else {
+        v_rax_3 = 0;
       }
       return v_rax_3;
     }
@@ -280,7 +279,7 @@ Operação  : 0x32cc404: cmp byte [flag], imm8 ; fn=0x32cc260..0x32cc43d
     0x32cc7f5 | 4c 8b 50 10              | mov r10, qword ptr [rax + 0x10]
     0x32cc7f9 | 48 85 ff                 | test rdi, rdi
     0x32cc7fc | 74 12                    | je 0x32cc810
-    0x32cc7fe | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x32cc7fe | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     L_0x32cc805:
     0x32cc805 | 48 ff c0                 | inc rax
     0x32cc808 | 80 3c 07 00              | cmp byte ptr [rdi + rax], 0x0
@@ -369,15 +368,7 @@ Operação  : 0x32cc404: cmp byte [flag], imm8 ; fn=0x32cc260..0x32cc43d
       }
       auto local_0x20 = fstk_3;
       call_0x10545e0(&param_3->field_0x18, &local_0x20);
-      if (local_0x90 >= 16) {
-        void* v_rcx_4 = local_0x78;
-        if (local_0x90 + 1 >= 0x1000) {
-          if (local_0x78 - local_0x78->field_m0x8 < 8 || local_0x78 - local_0x78->field_m0x8 > 39) {
-            call_0x5e14580();
-          }
-        }
-        call_0x4955ac0(v_rcx_4);
-      }
+      std::string::_Tidy_deallocate(local_0x78);
       call_0x1c23f40(&local_0x48);
       if (local_0x50 != 0 && atomic_fetch_sub(&local_0x50->field_0xc, 1) == 1) {
         local_0x50->vfunc_0x8() // -> boost::program_options::invalid_option_value::fn_0x35074e0;

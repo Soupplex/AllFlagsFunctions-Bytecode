@@ -29,7 +29,7 @@ Operação  : 0x16dbd0e: mov/math reg, [flag] ; fn=0x16dbaa0..0x16dbde4 [via DFI
     void RBX::AnimationGraph::func_0x16dbaa0(RBX::AnimationGraph* this, int64_t param_2, void* param_3) {
       int64_t local_0xf0;
       if (param_3->field_0x8 != 0) {
-        &param_3->field_0x10->vfunc(&param_3->field_0x10, &local_0x100);
+        param_3->field_0x8->vfunc_0x0(&param_3->field_0x10, &local_0x100) // -> RBX::AnimationClip::CurveAnimation::fn_0x1699310;
         local_0xf0 = param_3->field_0x0;
         auto ret_0x1981c10_2 = call_0x1981c10(&local_0xf0);
         if (ret_0x1981c10_2 != 0) {
@@ -67,12 +67,8 @@ Operação  : 0x16dbd0e: mov/math reg, [flag] ; fn=0x16dbaa0..0x16dbde4 [via DFI
               call_0x2e12fd0(&local_0x38->field_0x18->field_0x70);
               auto local_0x30 = param_3->field_0x0->field_0x30;
               auto ret_0x192ef10_13 = call_0x192ef10(&local_0x38->field_0x18->field_0x5c0, &local_0xd0, &local_0x30);
-              ret_0x192ef10_13->field_0x0->field_0x18 = ret_0x192ef10_13->field_0x0->field_0x18 + 1;
-              if (local_0x38->field_0x18->field_0x70 == 3) {
-                if (atomic_cas(&local_0x38->field_0x18->field_0x70, local_0x38->field_0x18->field_0x70, 1) != 0) {
-                  call_0xdac0(&local_0x38->field_0x18->field_0x70);
-                }
-              } else {
+              ret_0x192ef10_13->field_0x0->field_0x18++;
+              if (local_0x38->field_0x18->field_0x70 != 3 || atomic_cas(&local_0x38->field_0x18->field_0x70, local_0x38->field_0x18->field_0x70, 1) != 0) {
                 call_0xdac0(&local_0x38->field_0x18->field_0x70);
               }
             }
@@ -83,7 +79,7 @@ Operação  : 0x16dbd0e: mov/math reg, [flag] ; fn=0x16dbaa0..0x16dbde4 [via DFI
         }
       }
       if (local_0xf8 != 0) {
-        &local_0x100->vfunc(&local_0x100);
+        local_0xf8->vfunc_0x10(&local_0x100) // -> RBX::PoseBase::VCFramePose::fn_0x1625fe0;
       }
     }
   
@@ -315,24 +311,24 @@ Operação  : 0x16dbd0e: mov/math reg, [flag] ; fn=0x16dbaa0..0x16dbde4 [via DFI
     // Flag defaults: AnimationGraphSetParameterSampleRate = 0
     auto RBX::AnimationGraph::func_0x16db8c0(RBX::AnimationGraph* this, int64_t param_2, void* param_3) {
       call_0x16dc220(this, &local_0x20);
+      uint8_t v_bl_10;
       if (local_0x20 != 0 && local_0x20->field_0x10 != 0) {
         void* v_rbx_1;
-        void* v_r14_2;
         int64_t local_0x40;
         if (param_2->field_0x0 == 0) {
           v_rbx_1 = 0;
-          v_r14_2 = 15;
         } else {
           local_0x40 = 0;
           call_0x6f7000(&local_0x40, param_2->field_0x0, param_2->field_0x8);
           if (local_0x50 != 0) {
+            uint64_t i_r9d = 0xcbf29ce484222325;
+            int32_t i_ecx = 0;
             do { // L_0x16db9a0
-              v_rbx_1 = local_0x40;
-              v_r14_2 = local_0x58;
-            } while ((ecx + 1) < local_0x50); // loop -> L_0x16db9a0
+              i_ecx++;
+              i_r9d = (i_r9d ^ i_ecx[local_0x40]) * 0x100000001b3;
+            } while (i_ecx < local_0x50); // loop -> L_0x16db9a0
           } else {
             v_rbx_1 = local_0x40;
-            v_r14_2 = local_0x58;
           }
         }
         auto ret_0x6fcb50_4 = call_0x6fcb50(local_0x20, &local_0x30, &local_0x40);
@@ -340,34 +336,38 @@ Operação  : 0x16dbd0e: mov/math reg, [flag] ; fn=0x16dbaa0..0x16dbde4 [via DFI
         if (ret_0x6fcb50_4->field_0x8 == 0) {
           v_rsi_6 = local_0x20->field_0x8;
         }
-        if (v_r14_2 >= 16) {
-          void* v_rbx_7 = v_rbx_1;
-          call_0x4955ac0(v_rbx_7);
-        }
+        std::string::_Tidy_deallocate(v_rbx_1);
         if (v_rsi_6 == local_0x20->field_0x8) {
           L_0x16dba22:
-        } else {
-          if (v_rsi_6->field_0x30 == param_3->field_0x0) {
-          } else {
-            if (v_rsi_6->field_0x30->field_0x35 != 0) {
-              auto ret_0x1c34bf0_6 = call_0x1c34bf0();
-              if (v_rsi_6->field_0x30 != ret_0x1c34bf0_6 && param_3->field_0x0->field_0x35 != 0) {
-                call_0x1c34bf0();
+          v_bl_10 = 0;
+        } else if (v_rsi_6->field_0x30 == param_3->field_0x0) {
+          v_bl_10 = 1;
+        } else if (v_rsi_6->field_0x30->field_0x35 != 0) {
+          auto ret_0x1c34bf0_6 = call_0x1c34bf0();
+          if (v_rsi_6->field_0x30 != ret_0x1c34bf0_6) {
+            if (param_3->field_0x0->field_0x35 != 0) {
+              auto ret_0x1c34bf0_7 = call_0x1c34bf0();
+              if (param_3->field_0x0 != ret_0x1c34bf0_7) {
+                v_bl_10 = 1;
               } else {
-                goto L_0x16dba22;
+                v_bl_10 = 0;
               }
             } else {
               goto L_0x16dba22;
             }
+          } else {
+            goto L_0x16dba22;
           }
+        } else {
+          goto L_0x16dba22;
         }
       } else {
-        call_0x1c44c20(param_3->field_0x0);
+        v_bl_10 = call_0x1c44c20(param_3->field_0x0);
       }
       if (local_0x28 != 0) {
         call_0x6daf40(local_0x28);
       }
-      return v_bl_11;
+      return v_bl_10;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x16db8c0..0x16dbaa0)] ===
@@ -524,10 +524,12 @@ Operação  : 0x16dbd0e: mov/math reg, [flag] ; fn=0x16dbaa0..0x16dbde4 [via DFI
       }
       int64_t v_rbx_2 = 0xcbf29ce484222325;
       if (param_3->field_0x10 != 0) {
-        int32_t i_ebx = 0xcbf29ce484222325;
+        uint64_t i_ebx = 0xcbf29ce484222325;
+        int32_t i_r9d = 0;
         do { // L_0x16e0a80
-          v_rbx_2 = (i_ebx ^ r9[v_rcx_1]) * 0x100000001b3;
-        } while ((r9d + 1) < param_3->field_0x10); // loop -> L_0x16e0a80
+          i_r9d++;
+          i_ebx = (i_ebx ^ i_r9d[v_rcx_1]) * 0x100000001b3;
+        } while (i_r9d < param_3->field_0x10); // loop -> L_0x16e0a80
       }
       call_0x6fcb50(this, &local_0x20, param_3, v_rbx_2);
       if (local_0x28 != 0) {
@@ -540,49 +542,43 @@ Operação  : 0x16dbd0e: mov/math reg, [flag] ; fn=0x16dbaa0..0x16dbde4 [via DFI
         call_0x6f7510(&ret_0x4956040_2->field_0x10, param_3);
         ret_0x4956040_2->field_0x30 = param_4->field_0x0;
         if (param_4->field_0x8 != 0) {
-          &param_4->field_0x10->vfunc(&param_4->field_0x10, &ret_0x4956040_2->field_0x40);
+          param_4->field_0x8->vfunc_0x0(&param_4->field_0x10, &ret_0x4956040_2->field_0x40) // -> RBX::AnimationClip::CurveAnimation::fn_0x1699310;
         }
         ret_0x4956040_2->field_0x38 = param_4->field_0x8;
-        float fxmm0_3;
-        if (&this->field_0x10->field_0x1 >= 0) {
-          fxmm0_3 = (float)&this->field_0x10->field_0x1;
-        } else {
-          float ftmp_1 = (float)(&this->field_0x10->field_0x1 >> 1 | &this->field_0x10->field_0x1 & 0x1);
-          fxmm0_3 = ftmp_1 * 2;
-        }
+        auto* f_10 = this->field_0x10;
+        float fxmm0_3 = (float)(uint64_t)&f_10->field_0x1;
         float fxmm1_4;
         if (this->field_0x38 >= 0) {
           fxmm1_4 = (float)this->field_0x38;
         } else {
-          fxmm1_4 = (float)(this->field_0x38 >> 1 | this->field_0x38 & 0x1) + (float)(this->field_0x38 >> 1 | this->field_0x38 & 0x1);
-          if (fxmm0_3 / fxmm1_4 > this->field_0x0) {
-            auto ret_0x6fe560_7 = call_0x6fe560(this, &this->field_0x10->field_0x1);
-            call_0x6fe2e0(this, ret_0x6fe560_7);
-            auto local_0x30 = &this->field_0x8;
-            call_0x6fcb50(this, &local_0x30, &ret_0x4956040_2->field_0x10, v_rbx_2);
-          }
-          this->field_0x10 = this->field_0x10 + 1;
-          ret_0x4956040_2->field_0x0 = local_0x20;
-          ret_0x4956040_2->field_0x8 = local_0x20->field_0x8;
-          auto* f_18 = this->field_0x18;
-          if (f_18->field_0x0[rax * 8] == this->field_0x8) {
-            void* prev_0x0[rax * 8]_2 = f_18->field_0x0[rax * 8];
-            f_18->field_0x0[rax * 8] = ret_0x4956040_2;
-            f_18->field_0x8[rax * 8] = ret_0x4956040_2;
-          } else if (f_18->field_0x0[rax * 8] == local_0x20) {
-            void* prev_0x0[rax * 8]_1 = f_18->field_0x0[rax * 8];
-            f_18->field_0x0[rax * 8] = ret_0x4956040_2;
-          } else if (f_18->field_0x8[rax * 8] == local_0x20->field_0x8) {
-            f_18->field_0x8[rax * 8] = ret_0x4956040_2;
-          }
-          param_2->field_0x0 = ret_0x4956040_2;
-          param_2->field_0x8 = 1;
-          return param_2;
-        } else {
-          call_0x6ca7d0(&local_0x40);
-          call_0x5e066f0(&local_0x40, &sym_0x80cbbc0);
+          fxmm1_4 = (float)(this->field_0x38 >> 1 | this->field_0x38 & 0x1) * 2;
         }
+        if (fxmm0_3 / fxmm1_4 > this->field_0x0) {
+          auto ret_0x6fe560_7 = call_0x6fe560(this, &f_10->field_0x1);
+          call_0x6fe2e0(this, ret_0x6fe560_7);
+          auto local_0x30 = &this->field_0x8;
+          call_0x6fcb50(this, &local_0x30, &ret_0x4956040_2->field_0x10, v_rbx_2);
+        }
+        f_10++;
+        ret_0x4956040_2->field_0x0 = local_0x20;
+        ret_0x4956040_2->field_0x8 = local_0x20->field_0x8;
+        auto* f_18 = this->field_0x18;
+        if (f_18->field_0x0[(this->field_0x30 & v_rbx_2) * 2 * 8] == this->field_0x8) {
+          void* prev_0x30 & v_rbx_2) * 2 * 8]_2 = f_18->field_0x0[(this->field_0x30 & v_rbx_2) * 2 * 8];
+          f_18->field_0x0[(this->field_0x30 & v_rbx_2) * 2 * 8] = ret_0x4956040_2;
+          f_18->field_0x8[(this->field_0x30 & v_rbx_2) * 2 * 8] = ret_0x4956040_2;
+        } else if (f_18->field_0x0[(this->field_0x30 & v_rbx_2) * 2 * 8] == local_0x20) {
+          void* prev_0x30 & v_rbx_2) * 2 * 8]_1 = f_18->field_0x0[(this->field_0x30 & v_rbx_2) * 2 * 8];
+          f_18->field_0x0[(this->field_0x30 & v_rbx_2) * 2 * 8] = ret_0x4956040_2;
+        } else if (f_18->field_0x8[(this->field_0x30 & v_rbx_2) * 2 * 8] == local_0x20->field_0x8) {
+          f_18->field_0x8[(this->field_0x30 & v_rbx_2) * 2 * 8] = ret_0x4956040_2;
+        }
+        param_2->field_0x0 = ret_0x4956040_2;
+        param_2->field_0x8 = 1;
+        return param_2;
       }
+      call_0x6ca7d0(&local_0x40);
+      call_0x5e066f0(&local_0x40, &sym_0x80cbbc0);
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x16e0a20..0x16e0c86)] ===

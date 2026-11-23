@@ -32,12 +32,12 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
     [XREF #6 @0x2015e8f] Fórmula : !PerformanceControlMlSnapshotEnabled2
     [XREF #6 @0x2015e8f] Altera  : this->field_0x540, this->field_0x8, this->field_0x530, this->field_0x539, this->field_0x538
     [XREF #7 @0x2016fcd] Classe  : RBX::PerformanceControl (RTTI Resolvido)
-    [XREF #7 @0x2016fcd] Altera  : this->field_0x4c0, this->field_0x4c8, this->field_0x4d0, this->field_0x4e0, this->field_0x4d8
+    [XREF #7 @0x2016fcd] Fórmula : PerformanceControlMlSnapshotEnabled2
     [XREF #8 @0x201a0fa] Classe  : RBX::PerformanceControl (RTTI Resolvido)
     [XREF #8 @0x201a0fa] Fórmula : !PerformanceControlMlSnapshotEnabled2
-    [XREF #8 @0x201a0fa] Altera  : this->field_0x770->field_0x0
+    [XREF #8 @0x201a0fa] Altera  : this->field_0x770->field_0x0, this->field_0x770
     [XREF #9 @0x48f7249] Classe  : RBX::PerformanceControl (RTTI Resolvido)
-    [XREF #9 @0x48f7249] Fórmula : f_368 != 0 && f_368->field_0x18->field_0x18->field_0x3f8 != 0 && PerformanceControlMlSnapshotEnabled2
+    [XREF #9 @0x48f7249] Fórmula : f_368->field_0x18->field_0x18->field_0x3f8 != 0 && PerformanceControlMlSnapshotEnabled2
     [XREF #9 @0x48f7249] Altera  : this->field_0xf0, this->field_0xf4, this->field_0xb48, this->field_0xb40, this->field_0xb38, this->field_0xb30
   
   === [Decompilacao C++ da Funcao 0x2006a80..0x2006d3c] ===
@@ -63,12 +63,7 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
       if (PerformanceControlBatteryDrainRateEnabled) {
         this->field_0xb10 = 0;
       }
-      auto expr_1 = atomic_cas(&this->field_0x0, this->field_0x0, 1) != 0;
-      if (this->field_0x0 == 3) {
-        if expr_1 {
-          call_0xdac0(this);
-        }
-      } else {
+      if (this->field_0x0 != 3 || atomic_cas(&this->field_0x0, this->field_0x0, 1) != 0) {
         call_0xdac0(this);
       }
       auto* f_b40 = this->field_0xb40;
@@ -81,15 +76,11 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
           auto* f_308 = this->field_0x308;
           f_308->field_0x38 = 0;
           if (param_2 != 0) {
-            call_0x2028f40(&local_0x40, param_2);
-            f_308->field_0x30 = rax->field_0x0;
+            auto ret_0x2028f40_4 = call_0x2028f40(&local_0x40, param_2);
+            f_308->field_0x30 = ret_0x2028f40_4->field_0x0;
           }
         }
-        if (this->field_0x0 == 3) {
-          if expr_1 {
-            call_0xdac0(this);
-          }
-        } else {
+        if (this->field_0x0 != 3 || atomic_cas(&this->field_0x0, this->field_0x0, 1) != 0) {
           call_0xdac0(this);
         }
       }
@@ -104,16 +95,20 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
           if (ret_0x2004b30_7 != 0) {
             auto ret_0x202c910_8 = call_0x202c910();
             if (ret_0x202c910_8 == 0 && PerformanceControlMlPerturbationPercentage > 0) {
+              uint64_t i_eax;
               if (global_0x8d92ad0 > rbp->field_0x58->field_0x0->field_0x0[40]) {
                 call_0x12e0(&sym_0x8d92ad0);
                 if (global_0x8d92ad0 == -1) {
                   auto ret_0x5de6910_10 = call_0x5de6910();
                   global_0x8d93e64 = -1;
                   global_0x8d92ae4 = ret_0x5de6910_10;
-                  int32_t i_eax = ret_0x5de6910_10;
+                  int32_t i_r8d = 1;
+                  i_eax = ret_0x5de6910_10;
                   do { // L_0x2006cd0
-                    sym_0x8d92ae0->field_0x4[1 * 4] = (i_eax >> 30 ^ i_eax) * 1812433253 + 1;
-                  } while ((1 + 1) < 624); // loop -> L_0x2006cd0
+                    sym_0x8d92ae0->field_0x4[i_r8d * 4] = (i_eax >> 30 ^ i_eax) * 1812433253 + i_r8d;
+                    i_r8d++;
+                    i_eax = (i_eax >> 30 ^ i_eax) * 1812433253 + i_r8d;
+                  } while (i_r8d < 624); // loop -> L_0x2006cd0
                   global_0x8d92ae0 = 624;
                   call_0x14f0(&sym_0x8d92ad0);
                 }
@@ -131,21 +126,18 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
                 this->field_0x3c8 = 0;
                 if (this->field_0x898 != 0) {
                   do { // L_0x2006c81
-                  } while ((this->field_0x898 - 1) != 0); // loop -> L_0x2006c81
-                  this->field_0x898 = this->field_0x898 - 1;
+                    i_eax--;
+                  } while (i_eax != 0); // loop -> L_0x2006c81
+                  this->field_0x898 = i_eax;
                 }
                 this->field_0x3f8 = 1;
               }
             }
           }
         }
-        if (this->field_0x0 == 3) {
-          if expr_1 {
-            call_0xdac0(this);
-          }
-          return;
+        if (this->field_0x0 != 3 || atomic_cas(&this->field_0x0, this->field_0x0, 1) != 0) {
+          call_0xdac0(this);
         }
-        call_0xdac0(this);
       }
     }
   
@@ -345,7 +337,7 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
       auto local_0x70 = fstk_2;
       call_0x20300f0(&local_0x70);
       call_0x495dc90(&local_0x30, &local_0x20);
-      int64_t local_0x20;
+      float fxmm0_20;
       if (local_0x48->field_0x58 != 0) {
         this->field_0x8 = 0;
         if (local_0x48->field_0x20 != 0) {
@@ -354,91 +346,50 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
         call_0x6cb5d0(local_0x48->field_0x38);
         call_0x4955ac0(local_0x48->field_0x30);
         call_0x495f7d0(local_0x48);
-        call_0x4955ac0(local_0x48);
+        auto ret_0x4955ac0_41 = call_0x4955ac0(local_0x48);
+        float fxmm0_18;
         if (local_0x40 != 0) {
-          call_0x495ff10(local_0x40);
+          fxmm0_18 = call_0x495ff10(local_0x40);
+        } else {
+          fxmm0_18 = ret_0x4955ac0_41;
         }
         if (local_0x88 >= 16) {
-          void* v_rcx_22 = local_0x70;
+          void* v_rcx_19 = local_0x70;
           if (local_0x88 + 1 >= 0x1000) {
             if (local_0x70 - local_0x70->field_m0x8 < 8 || local_0x70 - local_0x70->field_m0x8 > 39) {
               L_0x2029412:
               call_0x5e14580();
             }
           }
-          call_0x4955ac0(v_rcx_22);
+          fxmm0_20 = call_0x4955ac0(v_rcx_19);
         }
+        fxmm0_20 = fxmm0_18;
         L_0x20293e6:
-        return fxmm0_23;
-      } else {
-        call_0x495ce30(&local_0x30, &local_0x50, &local_0x20);
-        if (local_0x58 == 0 && local_0x50->field_0xe == 3) {
-          auto ret_0x707bb0_12 = call_0x707bb0(&local_0x90, param_2);
-          void* v_rax_7 = ret_0x707bb0_12;
-          if (ret_0x707bb0_12->field_0x18 >= 16) {
-            v_rax_7 = ret_0x707bb0_12->field_0x0;
-          }
-          local_0x20 = v_rax_7;
-          auto local_0x28 = ret_0x707bb0_12->field_0x10;
-          call_0x495ce30(&local_0x50, &local_0x20, &local_0x60);
-          if (local_0xa8 >= 16) {
-            void* v_rcx_8 = local_0x90;
-            call_0x4955ac0(v_rcx_8);
-          }
-          if (local_0x28 == 0 && local_0x20->field_0xe == 3) {
-            auto ret_0x2029ba0_22 = call_0x2029ba0(&local_0x20);
-            if (0.0 >= ret_0x2029ba0_22) {
-              this->field_0x8 = 0;
-              if (local_0x48 != 0) {
-                if (local_0x48->field_0x20 != 0) {
-                  call_0x495ff10(local_0x48->field_0x20);
-                }
-                call_0x6cb5d0(local_0x48->field_0x38);
-                call_0x4955ac0(local_0x48->field_0x30);
-                call_0x495f7d0(local_0x48);
-                call_0x4955ac0(local_0x48);
-              }
-              if (local_0x40 != 0) {
-                call_0x495ff10(local_0x40);
-              }
-              if (local_0x88 >= 16) {
-                void* v_rcx_20 = local_0x70;
-                if (local_0x88 + 1 >= 0x1000) {
-                  if (local_0x70 - local_0x70->field_m0x8 < 8 || local_0x70 - local_0x70->field_m0x8 > 39) {
-                    call_0x5e14580();
-                  }
-                }
-                call_0x4955ac0(v_rcx_20);
-              }
-              return fxmm0_23;
-            } else {
-              this->field_0x0 = ret_0x2029ba0_22;
-              this->field_0x8 = 1;
-              if (local_0x48 != 0) {
-                if (local_0x48->field_0x20 != 0) {
-                  call_0x495ff10(local_0x48->field_0x20);
-                }
-                call_0x6cb5d0(local_0x48->field_0x38);
-                call_0x4955ac0(local_0x48->field_0x30);
-                call_0x495f7d0(local_0x48);
-                call_0x4955ac0(local_0x48);
-              }
-              if (local_0x40 != 0) {
-                call_0x495ff10(local_0x40);
-              }
-              if (local_0x88 >= 16) {
-                void* v_rcx_17 = local_0x70;
-                if (local_0x88 + 1 >= 0x1000) {
-                  if (local_0x70 - local_0x70->field_m0x8 < 8 || local_0x70 - local_0x70->field_m0x8 > 39) {
-                    goto L_0x2029412;
-                  }
-                }
-                call_0x4955ac0(v_rcx_17);
-              }
-              goto L_0x20293e6;
-            }
-          } else {
+        return fxmm0_20;
+      }
+      auto ret_0x495ce30_4 = call_0x495ce30(&local_0x30, &local_0x50, &local_0x20);
+      int64_t local_0x20;
+      if (local_0x58 == 0 && local_0x50->field_0xe == 3) {
+        auto ret_0x707bb0_12 = call_0x707bb0(&local_0x90, param_2);
+        void* v_rax_6 = ret_0x707bb0_12;
+        if (ret_0x707bb0_12->field_0x18 >= 16) {
+          v_rax_6 = ret_0x707bb0_12->field_0x0;
+        }
+        local_0x20 = v_rax_6;
+        auto local_0x28 = ret_0x707bb0_12->field_0x10;
+        auto ret_0x495ce30_13 = call_0x495ce30(&local_0x50, &local_0x20, &local_0x60);
+        float fxmm0_8;
+        if (local_0xa8 >= 16) {
+          void* v_rcx_7 = local_0x90;
+          fxmm0_8 = call_0x4955ac0(v_rcx_7);
+        } else {
+          fxmm0_8 = ret_0x495ce30_13;
+        }
+        if (local_0x28 == 0 && local_0x20->field_0xe == 3) {
+          auto ret_0x2029ba0_22 = call_0x2029ba0(&local_0x20);
+          if (0.0 >= ret_0x2029ba0_22) {
             this->field_0x8 = 0;
+            float fxmm0_15;
             if (local_0x48 != 0) {
               if (local_0x48->field_0x20 != 0) {
                 call_0x495ff10(local_0x48->field_0x20);
@@ -446,24 +397,31 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
               call_0x6cb5d0(local_0x48->field_0x38);
               call_0x4955ac0(local_0x48->field_0x30);
               call_0x495f7d0(local_0x48);
-              call_0x4955ac0(local_0x48);
+              fxmm0_15 = call_0x4955ac0(local_0x48);
+            } else {
+              fxmm0_15 = ret_0x2029ba0_22;
             }
+            float fxmm0_16;
             if (local_0x40 != 0) {
-              call_0x495ff10(local_0x40);
+              fxmm0_16 = call_0x495ff10(local_0x40);
+            } else {
+              fxmm0_16 = fxmm0_15;
             }
             if (local_0x88 >= 16) {
-              void* v_rcx_14 = local_0x70;
+              void* v_rcx_17 = local_0x70;
               if (local_0x88 + 1 >= 0x1000) {
                 if (local_0x70 - local_0x70->field_m0x8 < 8 || local_0x70 - local_0x70->field_m0x8 > 39) {
-                  goto L_0x2029412;
+                  call_0x5e14580();
                 }
               }
-              call_0x4955ac0(v_rcx_14);
+              fxmm0_20 = call_0x4955ac0(v_rcx_17);
             }
-            goto L_0x20293e6;
+            fxmm0_20 = fxmm0_16;
+            return fxmm0_20;
           }
-        } else {
-          this->field_0x8 = 0;
+          this->field_0x0 = ret_0x2029ba0_22;
+          this->field_0x8 = 1;
+          float fxmm0_12;
           if (local_0x48 != 0) {
             if (local_0x48->field_0x20 != 0) {
               call_0x495ff10(local_0x48->field_0x20);
@@ -471,22 +429,90 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
             call_0x6cb5d0(local_0x48->field_0x38);
             call_0x4955ac0(local_0x48->field_0x30);
             call_0x495f7d0(local_0x48);
-            call_0x4955ac0(local_0x48);
+            fxmm0_12 = call_0x4955ac0(local_0x48);
+          } else {
+            fxmm0_12 = ret_0x2029ba0_22;
           }
+          float fxmm0_13;
           if (local_0x40 != 0) {
-            call_0x495ff10(local_0x40);
+            fxmm0_13 = call_0x495ff10(local_0x40);
+          } else {
+            fxmm0_13 = fxmm0_12;
           }
           if (local_0x88 >= 16) {
-            void* v_rcx_6 = local_0x70;
+            void* v_rcx_14 = local_0x70;
             if (local_0x88 + 1 >= 0x1000) {
               if (local_0x70 - local_0x70->field_m0x8 < 8 || local_0x70 - local_0x70->field_m0x8 > 39) {
                 goto L_0x2029412;
               }
             }
-            call_0x4955ac0(v_rcx_6);
+            fxmm0_20 = call_0x4955ac0(v_rcx_14);
           }
+          fxmm0_20 = fxmm0_13;
+          goto L_0x20293e6;
+        } else {
+          this->field_0x8 = 0;
+          float fxmm0_9;
+          if (local_0x48 != 0) {
+            if (local_0x48->field_0x20 != 0) {
+              call_0x495ff10(local_0x48->field_0x20);
+            }
+            call_0x6cb5d0(local_0x48->field_0x38);
+            call_0x4955ac0(local_0x48->field_0x30);
+            call_0x495f7d0(local_0x48);
+            fxmm0_9 = call_0x4955ac0(local_0x48);
+          } else {
+            fxmm0_9 = fxmm0_8;
+          }
+          float fxmm0_10;
+          if (local_0x40 != 0) {
+            fxmm0_10 = call_0x495ff10(local_0x40);
+          } else {
+            fxmm0_10 = fxmm0_9;
+          }
+          if (local_0x88 >= 16) {
+            void* v_rcx_11 = local_0x70;
+            if (local_0x88 + 1 >= 0x1000) {
+              if (local_0x70 - local_0x70->field_m0x8 < 8 || local_0x70 - local_0x70->field_m0x8 > 39) {
+                goto L_0x2029412;
+              }
+            }
+            fxmm0_20 = call_0x4955ac0(v_rcx_11);
+          }
+          fxmm0_20 = fxmm0_10;
           goto L_0x20293e6;
         }
+      } else {
+        this->field_0x8 = 0;
+        float fxmm0_3;
+        if (local_0x48 != 0) {
+          if (local_0x48->field_0x20 != 0) {
+            call_0x495ff10(local_0x48->field_0x20);
+          }
+          call_0x6cb5d0(local_0x48->field_0x38);
+          call_0x4955ac0(local_0x48->field_0x30);
+          call_0x495f7d0(local_0x48);
+          fxmm0_3 = call_0x4955ac0(local_0x48);
+        } else {
+          fxmm0_3 = ret_0x495ce30_4;
+        }
+        float fxmm0_4;
+        if (local_0x40 != 0) {
+          fxmm0_4 = call_0x495ff10(local_0x40);
+        } else {
+          fxmm0_4 = fxmm0_3;
+        }
+        if (local_0x88 >= 16) {
+          void* v_rcx_5 = local_0x70;
+          if (local_0x88 + 1 >= 0x1000) {
+            if (local_0x70 - local_0x70->field_m0x8 < 8 || local_0x70 - local_0x70->field_m0x8 > 39) {
+              goto L_0x2029412;
+            }
+          }
+          fxmm0_20 = call_0x4955ac0(v_rcx_5);
+        }
+        fxmm0_20 = fxmm0_4;
+        goto L_0x20293e6;
       }
     }
   
@@ -867,6 +893,7 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
       if (tmp_1 != 256) {
         v_rax_1 = call_0x4956040(max(513, tmp_1));
       }
+      uint8_t v_dil_13;
       if (v_rax_1 != 0) {
         call_0x5e05370(v_rax_1, &local_0xb8, 0);
         if (&local_0xb8 != &local_0xb8) {
@@ -876,6 +903,7 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
           call_0x5e05370(v_rax_1, PerformanceControlMlSnapshotPlaceFilter.c_str(), tmp_1);
         }
         if (tmp_1 == 0) {
+          v_dil_13 = 1;
         } else {
           if (global_0x8d92aa0 > rbp->field_0x58->field_0x0->field_0x0[40]) {
             L_0x2004e29:
@@ -923,16 +951,22 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
           if (v_rbx_2 != ret_0x2974ae0_5->field_0x10 + v_rbx_2) {
             call_0x5e05370(stk_9, v_rbx_2, ret_0x2974ae0_5->field_0x10 + v_rbx_2 - v_rbx_2);
           }
-          if (local_0x90 >= 16) {
-            void* v_rcx_11 = local_0x78;
-            call_0x4955ac0(v_rcx_11);
-          }
+          std::string::_Tidy_deallocate(local_0x78);
+          uint8_t v_dil_12;
           if ((ret_0x2974ae0_5->field_0x10 + v_rbx_2 - v_rbx_2) != 0 && global_0x8d92aa8 != 0) {
-            call_0x200edc0(&sym_0x8d92aa8, &local_0x38, &local_0x40, 0);
+            auto ret_0x200edc0_19 = call_0x200edc0(&sym_0x8d92aa8, &local_0x38, &local_0x40, 0);
+            if (ret_0x200edc0_19->field_0x4 == 0) {
+              v_dil_12 = 1;
+            } else {
+              v_dil_12 = 0;
+            }
+          } else {
+            v_dil_12 = 0;
           }
           if (local_0x40 != &local_0x58) {
             call_0x4955ac0(local_0x40);
           }
+          v_dil_13 = v_dil_12;
         }
       } else {
         call_0x6ca7d0(&local_0x20);
@@ -942,7 +976,7 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
       if (v_rax_1 != &local_0xb8) {
         call_0x4955ac0(v_rax_1);
       }
-      return v_dil_14;
+      return v_dil_13;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x2004b30..0x2004e6a)] ===
@@ -1169,9 +1203,10 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
     // Flag defaults: PerformanceControlMlSnapshotEnabled2 = false, ApplicationFrameRatePolicy3 = true
     auto RBX::PerformanceControl::func_0x202c910(RBX::PerformanceControl* this) {
       call_0x29aab60(this);
+      int32_t v_rbx_1;
       if (global_0x84a44d6 != 0 && ApplicationFrameRatePolicy3) {
         auto ret_0x29aab60_8 = call_0x29aab60();
-        call_0x29aafa0(ret_0x29aab60_8);
+        v_rbx_1 = call_0x29aafa0(ret_0x29aab60_8);
       } else {
         if (global_0x8da5d90 > rbp->field_0x58->field_0x0->field_0x0[40]) {
           call_0x12e0(&sym_0x8da5d90);
@@ -1186,10 +1221,16 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
           if ((local_0x40 & 0xfffffffe)->field_0x0 == 3) {
             if (atomic_cas(&(local_0x40 & 0xfffffffe)->field_0x0, (local_0x40 & 0xfffffffe)->field_0x0, 1) != 0) {
               call_0xdac0(local_0x40 & 0xfffffffe);
+              v_rbx_1 = global_0x8da5d98->field_0xb8;
+            } else {
+              v_rbx_1 = global_0x8da5d98->field_0xb8;
             }
-            return v_rbx_1;
+          } else {
+            call_0xdac0(local_0x40 & 0xfffffffe);
+            v_rbx_1 = global_0x8da5d98->field_0xb8;
           }
-          call_0xdac0(local_0x40 & 0xfffffffe);
+        } else {
+          v_rbx_1 = global_0x8da5d98->field_0xb8;
         }
       }
       return v_rbx_1;
@@ -1313,19 +1354,19 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
       auto local_0x500 = &local_0x470;
       call_0x200be10(&local_0x500);
       call_0x2e12fd0(this);
-      int32_t v_r12_4 = 0;
+      uint8_t v_r12b_4 = 0;
       uint8_t v_r14b_5 = 0;
       if (PerformanceControlObserveThermalState) {
         auto ret_0x495a220_8 = call_0x495a220(&local_0x50);
         call_0x20075d0(this, param_2, ret_0x495a220_8->field_0x0);
         uint8_t v_al_2;
-        int32_t v_r12_3 = 0;
+        uint8_t v_r12b_3 = 0;
         if (this->field_0x110 != 0) {
           if (this->field_0x3f8 != 0) {
             if (!PerformanceControlMlSnapshotEnabled2) {
               if (PerformanceControlThermalThrottleMemory) {
                 v_al_2 = 1;
-                v_r12_3 = 1;
+                v_r12b_3 = 1;
               } else {
                 v_al_2 = 1;
               }
@@ -1334,7 +1375,7 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
             }
           } else if (PerformanceControlThermalThrottleMemory) {
             v_al_2 = 1;
-            v_r12_3 = 1;
+            v_r12b_3 = 1;
           } else {
             v_al_2 = 1;
           }
@@ -1342,10 +1383,10 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
           v_al_2 = 0;
         }
         if (PerformanceControlManageComputeEnabled10 && v_al_2 != 0 && PerformanceControlThermalThrottleCompute) {
-          v_r12_4 = v_r12_3;
+          v_r12b_4 = v_r12b_3;
           v_r14b_5 = 1;
         } else {
-          v_r12_4 = v_r12_3;
+          v_r12b_4 = v_r12b_3;
         }
       }
       if (PerformanceControlMlSnapshotEnabled2) {
@@ -1389,7 +1430,7 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
       }
       this->field_0xb59 = this->field_0xe08;
       if (PerformanceControlObserveThermalState) {
-        this->field_0xb64 = v_r12_4;
+        this->field_0xb64 = v_r12b_4;
         this->field_0xb60 = v_r14b_5;
       }
       if (PerformanceControlManageComputeEnabled10) {
@@ -1423,25 +1464,17 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
           this->field_0xe11 = 0;
         }
       }
-      int64_t local_0x470;
-      int64_t local_0x340;
       if (local_0x48 != 0) {
-        if (local_0x40->field_0x0 == 3) {
-          if (atomic_cas(&local_0x40->field_0x0, local_0x40->field_0x0, 1) != 0) {
-            call_0xdac0(local_0x40);
-          }
-          L_0x2007476:
-          call_0x2008d80(this, &local_0x110);
-          local_0x470 = &sym_0x7041068;
-          call_0x2005a60(&local_0x470);
-          local_0x340 = &sym_0x7040fe8;
-          call_0x2007560(&local_0x340);
-          call_0x2007500(&local_0x110);
-          return;
+        if (local_0x40->field_0x0 != 3 || atomic_cas(&local_0x40->field_0x0, local_0x40->field_0x0, 1) != 0) {
+          call_0xdac0(local_0x40);
         }
-        call_0xdac0(local_0x40);
       }
-      goto L_0x2007476;
+      call_0x2008d80(this, &local_0x110);
+      auto local_0x470 = &sym_0x7041068;
+      call_0x2005a60(&local_0x470);
+      auto local_0x340 = &sym_0x7040fe8;
+      call_0x2007560(&local_0x340);
+      call_0x2007500(&local_0x110);
     }
   
   === [Instrucoes x86-64 do XREF Runtime #2 (0x2006fe0..0x20074cf)] ===
@@ -1768,57 +1801,31 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
     // Flag defaults: PerformanceControlHeadroomHundredthsPct = 1000, PerformanceControlSimulateBudgetTelemetry = false, PerformanceControlEnableSimulationBoundedness = false, PerformanceControlComputePrimaryCapTargetFps = false, PerformanceControlDynamicFrameTimeTarget6 = false, PerformanceControlMlSnapshotEnabled2 = false, PerformanceControlComputePrimaryMaxTargetFps = 30, PerformanceControlFastEmaAlphaFrameWindow = 10
     auto RBX::PerformanceControl::func_0x2014b70(RBX::PerformanceControl* this, int64_t param_2, void* param_4) {
       this->field_0x18 = call_0x2937f80(this);
-      auto expr_1 = 1000.0 / PerformanceControlComputePrimaryMaxTargetFps;
-      auto expr_2 = PerformanceControlComputePrimaryMaxTargetFps > 0;
-      auto expr_3 = PerformanceControlComputePrimaryCapTargetFps;
-      if (!PerformanceControlSimulateBudgetTelemetry && PerformanceControlEnableSimulationBoundedness) {
-        if expr_3 {
-          call_0x2936ed0(&local_0xd0);
-          double fxmm2_1;
-          if (0.0 < rax->field_0x0 * 1000.0 && !PerformanceControlDynamicFrameTimeTarget6) {
+      auto expr_1 = 1000.0 / (double)PerformanceControlComputePrimaryMaxTargetFps;
+      if (PerformanceControlSimulateBudgetTelemetry || PerformanceControlEnableSimulationBoundedness) {
+        double fxmm2_1;
+        if (PerformanceControlComputePrimaryCapTargetFps) {
+          auto ret_0x2936ed0_3 = call_0x2936ed0(&local_0xd0);
+          if (0.0 < ret_0x2936ed0_3->field_0x0 * 1000.0 && !PerformanceControlDynamicFrameTimeTarget6) {
             if (this->field_0x68 != 0) {
               if (!PerformanceControlMlSnapshotEnabled2) {
-                L_0x2014c07:
-                if expr_2 {
-                  double ftmp_1 = max(expr_1, rax->field_0x0 * 1000.0);
+                if (PerformanceControlComputePrimaryMaxTargetFps > 0) {
+                  double ftmp_1 = max(expr_1, ret_0x2936ed0_3->field_0x0 * 1000.0);
                   fxmm2_1 = ftmp_1;
                 } else {
-                  fxmm2_1 = rax->field_0x0 * 1000.0;
+                  fxmm2_1 = ret_0x2936ed0_3->field_0x0 * 1000.0;
                 }
               } else {
-                fxmm2_1 = rax->field_0x0 * 1000.0;
+                fxmm2_1 = ret_0x2936ed0_3->field_0x0 * 1000.0;
               }
+            } else if (PerformanceControlComputePrimaryMaxTargetFps > 0) {
+              double ftmp_1 = max(expr_1, ret_0x2936ed0_3->field_0x0 * 1000.0);
+              fxmm2_1 = ftmp_1;
             } else {
-              if expr_2 {
-                double ftmp_1 = max(expr_1, rax->field_0x0 * 1000.0);
-                fxmm2_1 = ftmp_1;
-              } else {
-                fxmm2_1 = rax->field_0x0 * 1000.0;
-              }
-            } else {
-              fxmm2_1 = rax->field_0x0 * 1000.0;
+              fxmm2_1 = ret_0x2936ed0_3->field_0x0 * 1000.0;
             }
           } else {
-            call_0x2936ed0(&local_0xc0);
-          }
-          call_0x2016e10(this, fxmm2_1);
-        }
-      } else {
-        if expr_3 {
-          call_0x2936ed0(&local_0xd0);
-          double fxmm2_1;
-          if (0.0 < rax->field_0x0 * 1000.0 && !PerformanceControlDynamicFrameTimeTarget6) {
-            if (this->field_0x68 != 0) {
-              if (!PerformanceControlMlSnapshotEnabled2) {
-                goto L_0x2014c07;
-              } else {
-                fxmm2_1 = rax->field_0x0 * 1000.0;
-              }
-            } else {
-              goto L_0x2014c07;
-            }
-          } else {
-            fxmm2_1 = rax->field_0x0 * 1000.0;
+            fxmm2_1 = ret_0x2936ed0_3->field_0x0 * 1000.0;
           }
         } else {
           call_0x2936ed0(&local_0xc0);
@@ -1826,17 +1833,13 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
         call_0x2016e10(this, fxmm2_1);
       }
       call_0x2937a50(&local_0xd8);
-      if (!isnan(this->field_0x528)) {
-        if (this->field_0x528 != 0.0) {
-          this->field_0x50 = (local_0xd8 - this->field_0x528) * 1000.0;
-        }
-      } else {
+      if (isnan(this->field_0x528) || this->field_0x528 != 0.0) {
         this->field_0x50 = (local_0xd8 - this->field_0x528) * 1000.0;
       }
       this->field_0x528 = local_0xd8;
-      double ftmp_3 = 1.0 / (PerformanceControlFastEmaAlphaFrameWindow + 1) * (this->field_0x18 - this->field_0x20);
+      double ftmp_3 = 1.0 / (double)(PerformanceControlFastEmaAlphaFrameWindow + 1) * (this->field_0x18 - this->field_0x20);
       this->field_0x20 = ftmp_3 + this->field_0x20;
-      double ftmp_4 = 1.0 / (PerformanceControlSlowEmaAlphaFrameWindow + 1);
+      double ftmp_4 = 1.0 / (double)(PerformanceControlSlowEmaAlphaFrameWindow + 1);
       double ftmp_5 = ftmp_4 * (this->field_0x18 - this->performanceControlSlowEmaAlphaFrameWindow_0x28);
       this->performanceControlSlowEmaAlphaFrameWindow_0x28 = ftmp_5 + this->performanceControlSlowEmaAlphaFrameWindow_0x28;
       this->field_0x38 = call_0x2016f40(this, this->field_0x8, ftmp_3 + this->field_0x20);
@@ -1846,14 +1849,14 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
         } else {
           double fxmm6_4;
           if (PerformanceControlCutComputeBudgetInLowPower && local_0xe0->field_0xa != 0) {
-            if (PerformanceControlLowPowerComputeBudgetPercent > 100.0) {
+            if ((double)PerformanceControlLowPowerComputeBudgetPercent > 100.0) {
               fxmm6_4 = 100.0 / 100.0;
             } else {
               double fxmm6_2;
-              if (PerformanceControlLowPowerComputeBudgetPercent < 1.0) {
+              if ((double)PerformanceControlLowPowerComputeBudgetPercent < 1.0) {
                 fxmm6_2 = 1.0;
               } else {
-                fxmm6_2 = PerformanceControlLowPowerComputeBudgetPercent;
+                fxmm6_2 = (double)PerformanceControlLowPowerComputeBudgetPercent;
               }
               fxmm6_4 = fxmm6_2 / 100.0;
             }
@@ -1877,7 +1880,7 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
                 if (this->field_0x68 != 0) {
                   if (!PerformanceControlMlSnapshotEnabled2) {
                     L_0x2014e08:
-                    if expr_2 {
+                    if (PerformanceControlComputePrimaryMaxTargetFps > 0) {
                     double ftmp_6 = max(expr_1, this->field_0x10);
                     fxmm2_6 = ftmp_6;
                     } else {
@@ -1886,7 +1889,7 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
                   } else {
                     fxmm2_6 = this->field_0x10;
                   }
-                } else if expr_2 {
+                } else if (PerformanceControlComputePrimaryMaxTargetFps > 0) {
                   double ftmp_6 = max(expr_1, this->field_0x10);
                   fxmm2_6 = ftmp_6;
                 } else {
@@ -1895,7 +1898,7 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
               } else {
                 fxmm2_6 = this->field_0x10;
               }
-              double ftmp_7 = 1.0 - PerformanceControlHeadroomHundredthsPct / 10000.0;
+              double ftmp_7 = 1.0 - (double)PerformanceControlHeadroomHundredthsPct / 10000.0;
               double fxmm7_8;
               if (ftmp_7 * fxmm2_6 * fxmm6_4 > 0.0) {
                 double ftmp_8 = this->field_0x20 - ftmp_7 * fxmm2_6 * fxmm6_4;
@@ -1922,7 +1925,7 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
             } else {
               fxmm2_6 = this->field_0x10;
             }
-            double ftmp_7 = 1.0 - PerformanceControlHeadroomHundredthsPct / 10000.0;
+            double ftmp_7 = 1.0 - (double)PerformanceControlHeadroomHundredthsPct / 10000.0;
             double fxmm7_8;
             if (ftmp_7 * fxmm2_6 * fxmm6_4 > 0.0) {
               double ftmp_8 = this->field_0x20 - ftmp_7 * fxmm2_6 * fxmm6_4;
@@ -1943,55 +1946,58 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
       }
       auto* f_480 = this->field_0x480;
       if (this->field_0x508 == this->field_0x4f8) {
+        int64_t idx_1 = (this->field_0x500 - 1 + this->field_0x508) % this->field_0x4f8;
         this->field_0x508 = &this->field_0x508->field_m0x1;
         auto* f_4f0 = this->field_0x4f0;
-        if (f_4f0->field_0x0[(rdx + rdx * 2) * 8] != 0) {
-          this->field_0x510 = this->field_0x510 - 1;
+        if (f_4f0->field_0x0[(rdx + idx_1 * 2) * 8] != 0) {
+          this->field_0x510--;
         }
-        if (f_4f0->field_0x0[(rdx + rdx * 2) * 8] >> 8 != 0) {
-          this->field_0x518 = this->field_0x518 - 1;
+        if (f_4f0->field_0x0[(rdx + idx_1 * 2) * 8] >> 8 != 0) {
+          this->field_0x518--;
         }
         if (this->field_0x498 > 0) {
           double ftmp_11 = f_480->field_0x0[(this->field_0x498 - 1) * 8];
-          if (ftmp_11 > f_4f0->field_0x0[(rdx + rdx * 2) * 8]) {
-            this->field_0x520 = this->field_0x520 - 1;
+          if (ftmp_11 > f_4f0->field_0x0[(rdx + idx_1 * 2) * 8]) {
+            this->field_0x520--;
           }
         }
       }
-      double ftmp_12 = PerformanceControlFrameTimeMissThresholdHundredthsPct / 10000.0 * this->field_0x8;
+      double ftmp_12 = (double)PerformanceControlFrameTimeMissThresholdHundredthsPct / 10000.0 * this->field_0x8;
       if (this->field_0x18 > ftmp_12 + this->field_0x8) {
-        this->field_0x510 = this->field_0x510 + 1;
+        this->field_0x510++;
       }
       if (this->field_0x38 == 2) {
-        this->field_0x518 = this->field_0x518 + 1;
+        this->field_0x518++;
       }
       if (this->field_0x498 > 0) {
         double ftmp_13 = f_480->field_0x0[(this->field_0x498 - 1) * 8];
         if (ftmp_13 > this->field_0x18) {
-          this->field_0x520 = this->field_0x520 + 1;
+          this->field_0x520++;
         }
       }
       auto local_0x20 = this->field_0x18 > ftmp_12 + this->field_0x8;
       call_0x201abb0(&this->field_0x4e8, &local_0x20);
-      call_0x202c910();
-      call_0x2936ed0(&local_0xc0);
-      this->field_0x10 = rax->field_0x0 * 1000.0;
-      if (rax == 0 && atomic_exchange(&this->field_0x499, rax) != 0) {
+      auto ret_0x202c910_13 = call_0x202c910();
+      auto ret_0x2936ed0_14 = call_0x2936ed0(&local_0xc0);
+      this->field_0x10 = ret_0x2936ed0_14->field_0x0 * 1000.0;
+      if (ret_0x202c910_13 == 0 && atomic_exchange(&this->field_0x499, ret_0x202c910_13) != 0) {
         if (!PerformanceControlDynamicFrameTimeTarget6) {
           if (this->field_0x68 != 0 && PerformanceControlMlSnapshotEnabled2) {
-            call_0x2015f90(rax->field_0x0 * 1000.0, this->field_0x8);
+            call_0x2015f90(ret_0x2936ed0_14->field_0x0 * 1000.0, this->field_0x8);
           }
         } else {
-          call_0x2015f90(rax->field_0x0 * 1000.0, this->field_0x8);
+          call_0x2015f90(ret_0x2936ed0_14->field_0x0 * 1000.0, this->field_0x8);
         }
         this->field_0x510 = 0;
         this->field_0x518 = 0;
         this->field_0x520 = 0;
         this->field_0x38 = 0;
         if (this->field_0x508 != 0) {
+          void* i_eax = this->field_0x508;
           do { // L_0x2015090
-          } while ((this->field_0x508 - 1) != 0); // loop -> L_0x2015090
-          this->field_0x508 = this->field_0x508 - 1;
+            i_eax--;
+          } while (i_eax != 0); // loop -> L_0x2015090
+          this->field_0x508 = i_eax;
         }
       } else {
         auto ret_0x2016ce0_15 = call_0x2016ce0(this);
@@ -2001,42 +2007,39 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
             if (this->field_0x498 < ((this->field_0x488 - f_480) >> 3) - 1) {
               double ftmp_14 = 1000.0 / f_480->field_0x0[this->field_0x498 * 8];
               double ftmp_15 = 1000.0 / f_480->field_0x0[(this->field_0x498 + 1) * 8];
-              if (PerformanceControlBatteryStepUpMaxFpsDelta >= ftmp_14 - ftmp_15 && MaxTimesStepUpFromBatteryDrain >= 0) {
-                if (this->field_0x780 < MaxTimesStepUpFromBatteryDrain) {
-                  call_0x2015bf0(this);
-                  this->field_0x780 = this->field_0x780 + 1;
-                } else {
-                  v_r10b_10 = 1;
-                  L_0x201515d:
-                  if (ret_0x2016ce0_15 < 2 || ret_0x2016ce0_15 > 3) {
+              if ((double)PerformanceControlBatteryStepUpMaxFpsDelta >= ftmp_14 - ftmp_15) {
+                if (MaxTimesStepUpFromBatteryDrain >= 0) {
+                  if (this->field_0x780 < MaxTimesStepUpFromBatteryDrain) {
+                    call_0x2015bf0(this);
+                    this->field_0x780++;
+                  } else {
+                    v_r10b_10 = 1;
+                    L_0x201515d:
+                    if (ret_0x2016ce0_15 < 2 || ret_0x2016ce0_15 > 3) {
                     if (ret_0x2016ce0_15 == 4 && v_r10b_10 == 0) {
                     call_0x2015dc0(this);
                     }
-                  } else {
+                    } else {
                     call_0x2015bf0(this);
+                    }
                   }
-                  L_0x2015183:
-                  param_2->field_0x0 = this->field_0x8;
-                  param_2->field_0x10 = this->field_0x18;
-                  param_2->field_0x20 = this->performanceControlSlowEmaAlphaFrameWindow_0x28;
-                  param_2->field_0x30 = this->field_0x38;
-                  param_2->field_0x40 = this->field_0x48;
-                  param_2->field_0x50 = this->field_0x58;
-                  return param_2;
+                } else {
+                  call_0x2015bf0(this);
+                  this->field_0x780++;
                 }
-                call_0x2015bf0(this);
-                this->field_0x780 = this->field_0x780 + 1;
-                goto L_0x2015183;
-              }
-              v_r10b_10 = 1;
-            }
-            v_r10b_10 = 1;
-            if (ret_0x2016ce0_15 < 2 || ret_0x2016ce0_15 > 3) {
-              if (ret_0x2016ce0_15 == 4 && v_r10b_10 == 0) {
-                call_0x2015dc0(this);
+              } else {
+                v_r10b_10 = 1;
+                if (ret_0x2016ce0_15 < 2 || ret_0x2016ce0_15 > 3) {
+                  if (ret_0x2016ce0_15 == 4 && v_r10b_10 == 0) {
+                    call_0x2015dc0(this);
+                  }
+                } else {
+                  call_0x2015bf0(this);
+                }
               }
             } else {
-              call_0x2015bf0(this);
+              v_r10b_10 = 1;
+              goto L_0x201515d;
             }
           } else {
             v_r10b_10 = 0;
@@ -2044,7 +2047,13 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
           }
         }
       }
-      goto L_0x2015183;
+      param_2->field_0x0 = this->field_0x8;
+      param_2->field_0x10 = this->field_0x18;
+      param_2->field_0x20 = this->performanceControlSlowEmaAlphaFrameWindow_0x28;
+      param_2->field_0x30 = this->field_0x38;
+      param_2->field_0x40 = this->field_0x48;
+      param_2->field_0x50 = this->field_0x58;
+      return param_2;
     }
   
   === [Instrucoes x86-64 do XREF Runtime #3 (0x2014b70..0x20151da)] ===
@@ -2478,26 +2487,33 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
     void RBX::PerformanceControl::func_0x2015560(RBX::PerformanceControl* this, int64_t param_2) {
       auto* f_480 = this->field_0x480;
       this->field_0x488 = f_480;
-      int32_t v_rdi_3;
-      auto expr_3 = !isnan(PerformanceControlTargetFrameTimeFloorHundredthsMs / 100.0);
-      auto expr_4 = PerformanceControlTargetFrameTimeFloorHundredthsMs / 100.0 != 0.0;
+      int32_t i_r14d;
+      void* i_ecx;
+      auto expr_1 = (double)PerformanceControlTargetFrameTimeFloorHundredthsMs / 100.0;
       if (PerformanceControlEnableFTTTableGranularityScalar) {
-        void* sel_rsi_1 = max(1, PerformanceControlFTTTableGranularityScalar);
+        i_ecx = this;
         do { // L_0x2015650
-          auto ret_0x5e1fe00_4 = call_0x5e1fe00(1000.0 / (param_2 / 1) * 10000.0);
-          if ((ret_0x5e1fe00_4 / 10000.0) > (PerformanceControlTargetFrameTimeCeilingHundredthsMs / 100.0)) break;
-          if (sel_rsi_1 <= 0) continue;
+          double ftmp_2 = 1000.0 / ((double)param_2 / (double)i_r14d);
+          auto ret_0x5e1fe00_4 = call_0x5e1fe00(ftmp_2 * 10000.0);
+          if (ret_0x5e1fe00_4 / 10000.0 > (double)PerformanceControlTargetFrameTimeCeilingHundredthsMs / 100.0) break;
+          i_r14d++;
+          if (max(1, PerformanceControlFTTTableGranularityScalar) <= 0) continue;
+          int32_t i_edi = 0;
+          void* v_rcx_9;
           do { // L_0x20156c0
-            auto ret_0x5e1fe00_5 = call_0x5e1fe00(1000.0 / (param_2 / 1) * 10000.0);
-            if ((ret_0x5e1fe00_5 / 10000.0) > (PerformanceControlTargetFrameTimeCeilingHundredthsMs / 100.0)) break;
-            if ((((this->field_0x488 - f_480) ^ (this->field_0x490 - f_480)) & 0xfffffff8) == 0) break;
-            if expr_3 {
-              if expr_4 {
-                if (ret_0x5e1fe00_5 / 10000.0 >= PerformanceControlTargetFrameTimeFloorHundredthsMs / 100.0) {
+            double ftmp_3 = (double)i_edi * (0);
+            auto ret_0x5e1fe00_5 = call_0x5e1fe00((ftmp_3 + ftmp_2) * 10000.0);
+            if (ret_0x5e1fe00_5 / 10000.0 > (double)PerformanceControlTargetFrameTimeCeilingHundredthsMs / 100.0) break;
+            if (((this->field_0x488 - f_480 ^ this->field_0x490 - f_480) & 0xfffffff8) == 0) break;
+            v_rcx_9 = f_480;
+            if (!isnan(expr_1)) {
+              if (expr_1 != 0.0) {
+                if (ret_0x5e1fe00_5 / 10000.0 >= expr_1) {
                   L_0x201572b:
                   if (this->field_0x488 != this->field_0x490) {
                     this->field_0x488->field_0x0 = ret_0x5e1fe00_5 / 10000.0;
                     this->field_0x488 = &this->field_0x488->field_0x8;
+                    v_rcx_9 = &this->field_0x478;
                   } else {
                     local_0x30 = ret_0x5e1fe00_5 / 10000.0;
                     call_0x138bb10(&this->field_0x478, this->field_0x488, &local_0x30);
@@ -2506,26 +2522,31 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
               } else if (this->field_0x488 != this->field_0x490) {
                 this->field_0x488->field_0x0 = ret_0x5e1fe00_5 / 10000.0;
                 this->field_0x488 = &this->field_0x488->field_0x8;
+                v_rcx_9 = &this->field_0x478;
               } else {
                 local_0x30 = ret_0x5e1fe00_5 / 10000.0;
                 call_0x138bb10(&this->field_0x478, this->field_0x488, &local_0x30);
               }
-            } else if (ret_0x5e1fe00_5 / 10000.0 >= PerformanceControlTargetFrameTimeFloorHundredthsMs / 100.0) {
+            } else if (ret_0x5e1fe00_5 / 10000.0 >= expr_1) {
               goto L_0x201572b;
             }
-          } while ((edi + 1) < sel_rsi_1); // loop -> L_0x20156c0
+            i_edi++;
+            i_ecx = v_rcx_9;
+          } while (i_edi < max(1, PerformanceControlFTTTableGranularityScalar)); // loop -> L_0x20156c0
+          i_ecx = v_rcx_9;
         } while (true); // loop -> L_0x2015650
       } else {
-        auto ret_0x5e1fe00_1 = call_0x5e1fe00(1000.0 / param_2 * 10000.0);
-        if (ret_0x5e1fe00_1 / 10000.0 <= PerformanceControlTargetFrameTimeCeilingHundredthsMs / 100.0) {
+        auto ret_0x5e1fe00_1 = call_0x5e1fe00(1000.0 / (double)param_2 * 10000.0);
+        if (ret_0x5e1fe00_1 / 10000.0 <= (double)PerformanceControlTargetFrameTimeCeilingHundredthsMs / 100.0) {
+          i_r14d = 1;
           double xmm0_val = ret_0x5e1fe00_1 / 10000.0;
           double xmm1_val = ret_0x5e1fe00_1 / 10000.0;
           int64_t ret_0x5e1fe00_3;
           do { // L_0x20157a0
-            if ((((this->field_0x488 - f_480) ^ (this->field_0x490 - f_480)) & 0xfffffff8) == 0) break;
-            if expr_3 {
-              if expr_4 {
-                if (xmm1_val >= PerformanceControlTargetFrameTimeFloorHundredthsMs / 100.0) {
+            if (((this->field_0x488 - f_480 ^ this->field_0x490 - f_480) & 0xfffffff8) == 0) break;
+            if (!isnan(expr_1)) {
+              if (expr_1 != 0.0) {
+                if (xmm1_val >= expr_1) {
                   L_0x20157d5:
                   if (this->field_0x488 != this->field_0x490) {
                     this->field_0x488->field_0x0 = xmm0_val;
@@ -2542,23 +2563,27 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
                 auto local_0x30 = ret_0x5e1fe00_1 / 10000.0;
                 call_0x138bb10(&this->field_0x478, this->field_0x488, &local_0x30);
               }
-            } else if (xmm1_val >= PerformanceControlTargetFrameTimeFloorHundredthsMs / 100.0) {
+            } else if (xmm1_val >= expr_1) {
               goto L_0x20157d5;
             }
-            ret_0x5e1fe00_3 = call_0x5e1fe00(1000.0 / (param_2 / (2)) * 10000.0);
-          } while ((ret_0x5e1fe00_3 / 10000.0) <= (PerformanceControlTargetFrameTimeCeilingHundredthsMs / 100.0)); // loop -> L_0x20157a0
+            i_r14d++;
+            double ftmp_1 = 1000.0 / ((double)param_2 / (double)i_r14d);
+            ret_0x5e1fe00_3 = call_0x5e1fe00(ftmp_1 * 10000.0);
+            xmm0_val = ret_0x5e1fe00_3 / 10000.0;
+            xmm1_val = ret_0x5e1fe00_3 / 10000.0;
+          } while (ret_0x5e1fe00_3 / 10000.0 <= (double)PerformanceControlTargetFrameTimeCeilingHundredthsMs / 100.0); // loop -> L_0x20157a0
         }
       }
-      auto expr_1 = "[DFLog::PerformanceControlHarmonyComputeCoordinator] initFrameTimeTargetTable() falling back to ";
       if (f_480 == this->field_0x488) {
         if (PerformanceControlHarmonyComputeCoordinator >= 6 && PerformanceControlHarmonyComputeCoordinator >> 8 >= 4) {
-          int32_t i_eax = v_rdi_3;
+          uint64_t i_eax = -1;
           do { // L_0x20158d0
-          } while (rcx[(i_eax + 1)] != 0); // loop -> L_0x20158d0
-          FLog::Log(expr_1);
+            i_eax++;
+          } while (rcx[i_eax] != 0); // loop -> L_0x20158d0
+          FLog::Log("[DFLog::PerformanceControlHarmonyComputeCoordinator] initFrameTimeTargetTable() falling back to ");
         }
-        call_0x2936b10();
-        auto ret_0x5e1fe00_7 = call_0x5e1fe00(1000.0 / rax * 10000.0);
+        auto ret_0x2936b10_6 = call_0x2936b10();
+        auto ret_0x5e1fe00_7 = call_0x5e1fe00(1000.0 / (double)ret_0x2936b10_6 * 10000.0);
         if (this->field_0x488 != this->field_0x490) {
           this->field_0x488->field_0x0 = ret_0x5e1fe00_7 / 10000.0;
           this->field_0x488 = &this->field_0x488->field_0x8;
@@ -2567,53 +2592,56 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
           call_0x138bb10(&this->field_0x478, this->field_0x488, &local_0x40);
         }
       }
-      int32_t v_r9_10;
+      uint8_t v_r9b_8;
       if ((this->field_0x488 - f_480) >> 3 != 0) {
+        int32_t i_r9d = -1;
         int32_t i_edx = 0;
-        int32_t i_r9d = v_rdi_3;
         int32_t i_r15d = 0;
-        uint8_t v_r15b_6;
-        int32_t v_r9_5;
+        uint8_t v_r15b_4;
+        int32_t v_r9_3;
         do { // L_0x20159a6
-          v_r9_5 = i_r9d;
-          v_r15b_6 = i_r15d;
-          if (i_r15d == 0 && f_480->field_0x0[i_edx * 8] >= PerformanceControlMinInitialFrametimeHundredthsMs / 100.0) {
+          v_r9_3 = i_r9d;
+          v_r15b_4 = i_r15d;
+          if (i_r15d == 0 && f_480->field_0x0[i_edx * 8] >= (double)PerformanceControlMinInitialFrametimeHundredthsMs / 100.0) {
             this->performanceControlMinInitialFrametimeHundredthsMs_0x8 = f_480->field_0x0[i_edx * 8];
-            v_r9_5 = 0;
-            v_r15b_6 = 1;
+            v_r9_3 = i_ecx;
+            v_r15b_4 = 1;
           }
-        } while ((ecx + 1) < ((this->field_0x488 - f_480) >> 3)); // loop -> L_0x20159a6
-        if (v_r15b_6 == 0) {
+          i_ecx++;
+          i_r9d = v_r9_3;
+          i_edx = i_ecx;
+          i_r15d = v_r15b_4;
+        } while (i_ecx < (this->field_0x488 - f_480) >> 3); // loop -> L_0x20159a6
+        if (v_r15b_4 == 0) {
           if (PerformanceControlHarmonyComputeCoordinator >= 6 && PerformanceControlHarmonyComputeCoordinator >> 8 >= 4) {
-            FLog::Log(expr_1);
+            FLog::Log("[DFLog::PerformanceControlHarmonyComputeCoordinator] initFrameTimeTargetTable() falling back to ");
           }
           this->performanceControlMinInitialFrametimeHundredthsMs_0x8 = f_480->field_0x0;
-          v_r9_10 = 0;
+          v_r9b_8 = 0;
         } else {
-          v_r9_10 = v_r9_5;
+          v_r9b_8 = v_r9_3;
         }
       } else {
         if (PerformanceControlHarmonyComputeCoordinator >= 6 && PerformanceControlHarmonyComputeCoordinator >> 8 >= 4) {
-          FLog::Log(expr_1);
+          FLog::Log("[DFLog::PerformanceControlHarmonyComputeCoordinator] initFrameTimeTargetTable() falling back to ");
         }
         this->performanceControlMinInitialFrametimeHundredthsMs_0x8 = f_480->field_0x0;
-        v_r9_10 = 0;
+        v_r9b_8 = 0;
       }
-      this->field_0x498 = v_r9_10;
+      this->field_0x498 = v_r9b_8;
       this->field_0x53a = (this->field_0x488 - f_480) >> 3;
-      this->field_0x539 = v_r9_10;
+      this->field_0x539 = v_r9b_8;
       auto ret_0x202c910_9 = call_0x202c910();
       this->field_0x499 = ret_0x202c910_9;
-      call_0x2936ed0(&local_0xc0);
-      this->field_0x10 = rax->field_0x0 * 1000.0;
-      auto expr_2 = "[DFLog::PerformanceControlHarmonyComputeCoordinator] Target Frame Time set to: {}";
+      auto ret_0x2936ed0_10 = call_0x2936ed0(&local_0xc0);
+      this->field_0x10 = ret_0x2936ed0_10->field_0x0 * 1000.0;
       if (!PerformanceControlDynamicFrameTimeTarget6) {
         if (this->field_0x68 != 0 && PerformanceControlMlSnapshotEnabled2) {
           if (ret_0x202c910_9 == 0) {
             if (PerformanceControlHarmonyComputeCoordinator >= 6 && PerformanceControlHarmonyComputeCoordinator >> 8 >= 4) {
-              FLog::Log(expr_2);
+              FLog::Log("[DFLog::PerformanceControlHarmonyComputeCoordinator] Target Frame Time set to: {}");
             }
-            call_0x2015f90(rax->field_0x0 * 1000.0, this->performanceControlMinInitialFrametimeHundredthsMs_0x8);
+            call_0x2015f90(ret_0x2936ed0_10->field_0x0 * 1000.0, this->performanceControlMinInitialFrametimeHundredthsMs_0x8);
             return;
           }
           return;
@@ -2622,9 +2650,9 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
       }
       if (ret_0x202c910_9 == 0) {
         if (PerformanceControlHarmonyComputeCoordinator >= 6 && PerformanceControlHarmonyComputeCoordinator >> 8 >= 4) {
-          FLog::Log(expr_2);
+          FLog::Log("[DFLog::PerformanceControlHarmonyComputeCoordinator] Target Frame Time set to: {}");
         }
-        call_0x2015f90(rax->field_0x0 * 1000.0, this->performanceControlMinInitialFrametimeHundredthsMs_0x8);
+        call_0x2015f90(ret_0x2936ed0_10->field_0x0 * 1000.0, this->performanceControlMinInitialFrametimeHundredthsMs_0x8);
       }
     }
   
@@ -2799,7 +2827,7 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
     0x201583d | 0f 86 5d ff ff ff        | jbe 0x20157a0
     L_0x2015843:
     0x2015843 | 48 8b 83 88 04 00 00     | mov rax, qword ptr [rbx + 0x488]
-    0x201584a | 48 c7 c7 ff ff ff ff     | mov rdi, 0xffffffff
+    0x201584a | 48 c7 c7 ff ff ff ff     | mov rdi, -0x1
     0x2015851 | 44 0f 28 a4 24 80 01 00.. | movaps xmm12, xmmword ptr [rsp + 0x180]
     0x201585a | 44 0f 28 9c 24 90 01 00.. | movaps xmm11, xmmword ptr [rsp + 0x190]
     0x2015863 | 44 0f 28 94 24 a0 01 00.. | movaps xmm10, xmmword ptr [rsp + 0x1a0]
@@ -3033,29 +3061,27 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
     auto RBX::PerformanceControl::func_0x2015bf0(RBX::PerformanceControl* this) {
       auto* f_480 = this->field_0x480;
       if (f_480 != this->field_0x488 && this->field_0x498 != ((this->field_0x488 - f_480) >> 3) - 1) {
-        this->field_0x53c = this->field_0x53c + 1;
+        this->field_0x53c++;
         this->field_0x8 = f_480->field_0x0[(this->field_0x498 + 1) * 8];
         auto ret_0x4959ee0_1 = call_0x4959ee0();
         this->field_0x530 = ret_0x4959ee0_1;
         this->field_0x539 = this->field_0x498 + 1;
         this->field_0x538 = 1;
         if (this->field_0x499 == 0) {
-          auto expr_1 = "[DFLog::PerformanceControlHarmonyComputeCoordinator] Target Frame Time increased to: {}";
           if (PerformanceControlDynamicFrameTimeTarget6 == this->field_0x499) {
             if (this->field_0x68 != 0 && PerformanceControlMlSnapshotEnabled2) {
               if (PerformanceControlHarmonyComputeCoordinator >= 6 && PerformanceControlHarmonyComputeCoordinator >> 8 >= 4) {
-                FLog::Log(expr_1);
+                FLog::Log("[DFLog::PerformanceControlHarmonyComputeCoordinator] Target Frame Time increased to: {}");
               }
               call_0x2015f90(ret_0x4959ee0_1, this->field_0x8);
             }
           } else {
             if (PerformanceControlHarmonyComputeCoordinator >= 6 && PerformanceControlHarmonyComputeCoordinator >> 8 >= 4) {
-              FLog::Log(expr_1);
+              FLog::Log("[DFLog::PerformanceControlHarmonyComputeCoordinator] Target Frame Time increased to: {}");
             }
             call_0x2015f90(ret_0x4959ee0_1, this->field_0x8);
           }
-          call_0x2016450(this);
-          return ret_0x2016450_3;
+          return call_0x2016450(this);
         }
         return this->field_0x499;
       }
@@ -3118,7 +3144,7 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
     0x2015ce3 | 0f 82 9e 00 00 00        | jb 0x2015d87
     0x2015ce9 | 48 8d 05 8c ff b6 05     | lea rax, [rip + 0x5b6ff8c] ; "[DFLog::PerformanceControlHarmonyComputeCoordinator] Target Frame Time increased to: {}"
     0x2015cf0 | 48 89 44 24 60           | mov qword ptr [rsp + 0x60], rax
-    0x2015cf5 | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x2015cf5 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x2015cfc | 48 8b 4c 24 60           | mov rcx, qword ptr [rsp + 0x60]
     0x2015d01 | 48 81 c1 c4 a1 71 ff     | add rcx, 0xff71a1c4
     0x2015d08 | 48 89 4c 24 40           | mov qword ptr [rsp + 0x40], rcx
@@ -3182,36 +3208,30 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
     // Flag defaults: PerformanceControlMlSnapshotEnabled2 = false, PerformanceControlDynamicFrameTimeTarget6 = false, PerformanceControlHarmonyComputeCoordinator = 6
     void RBX::PerformanceControl::func_0x2015dc0(RBX::PerformanceControl* this) {
       auto* f_480 = this->field_0x480;
-      if (f_480 != this->field_0x488) {
-        if (this->field_0x498 != 0) {
-          this->field_0x540 = this->field_0x540 + 1;
-          this->field_0x8 = f_480->field_0x0[(this->field_0x498 - 1) * 8];
-          this->field_0x530 = call_0x4959ee0();
-          this->field_0x539 = this->field_0x498 - 1;
-          this->field_0x538 = rbx;
-          if (this->field_0x499 == 0) {
-            auto expr_1 = "[DFLog::PerformanceControlHarmonyComputeCoordinator] Target Frame Time decreased to: {}";
-            if (PerformanceControlDynamicFrameTimeTarget6 == this->field_0x499) {
-              if (this->field_0x68 != 0 && PerformanceControlMlSnapshotEnabled2) {
-                L_0x2015e9c:
-                if (PerformanceControlHarmonyComputeCoordinator >= 6 && PerformanceControlHarmonyComputeCoordinator >> 8 >= 4) {
-                  FLog::Log(expr_1);
-                }
-                call_0x2015f90(xmm0, this->field_0x8);
-              }
-            } else {
+      if (f_480 != this->field_0x488 && this->field_0x498 != 0) {
+        this->field_0x540++;
+        this->field_0x8 = f_480->field_0x0[(this->field_0x498 - 1) * 8];
+        auto ret_0x4959ee0_1 = call_0x4959ee0();
+        this->field_0x530 = ret_0x4959ee0_1;
+        this->field_0x539 = this->field_0x498 - 1;
+        this->field_0x538 = -1;
+        if (this->field_0x499 == 0) {
+          if (PerformanceControlDynamicFrameTimeTarget6 == this->field_0x499) {
+            if (this->field_0x68 != 0 && PerformanceControlMlSnapshotEnabled2) {
               if (PerformanceControlHarmonyComputeCoordinator >= 6 && PerformanceControlHarmonyComputeCoordinator >> 8 >= 4) {
-                FLog::Log(expr_1);
+                FLog::Log("[DFLog::PerformanceControlHarmonyComputeCoordinator] Target Frame Time decreased to: {}");
               }
-              call_0x2015f90(xmm0, this->field_0x8);
+              call_0x2015f90(ret_0x4959ee0_1, this->field_0x8);
             }
-            call_0x2016450(this);
+          } else {
+            if (PerformanceControlHarmonyComputeCoordinator >= 6 && PerformanceControlHarmonyComputeCoordinator >> 8 >= 4) {
+              FLog::Log("[DFLog::PerformanceControlHarmonyComputeCoordinator] Target Frame Time decreased to: {}");
+            }
+            call_0x2015f90(ret_0x4959ee0_1, this->field_0x8);
           }
-          return;
+          call_0x2016450(this);
         }
-        return;
       }
-      goto L_0x2015e9c;
     }
   
   === [Instrucoes x86-64 do XREF Runtime #6 (0x2015dc0..0x2015f87)] ===
@@ -3226,11 +3246,11 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
     0x2015de7 | 90                       | nop
     0x2015de8 | 48 8b 81 88 04 00 00     | mov rax, qword ptr [rcx + 0x488]
     0x2015def | 48 39 81 80 04 00 00     | cmp qword ptr [rcx + 0x480], rax
-    0x2015df6 | 0f 84 a0 00 00 00        | je 0x2015e9c ; [Nanomite Reconstructed: je +0xa0 via cfg_join_label_resolver]
+    0x2015df6 | 0f 84 68 01 00 00        | je 0x2015f64
     0x2015dfc | 40 84 f6                 | test sil, sil
     0x2015dff | 0f 84 5f 01 00 00        | je 0x2015f64
     0x2015e05 | 48 89 9c 24 98 00 00 00  | mov qword ptr [rsp + 0x98], rbx
-    0x2015e0d | 48 c7 c3 ff ff ff ff     | mov rbx, 0xffffffff
+    0x2015e0d | 48 c7 c3 ff ff ff ff     | mov rbx, -0x1
     0x2015e14 | 8b c3                    | mov eax, ebx
     0x2015e16 | f0 0f c0 81 98 04 00 00  | lock xadd byte ptr [rcx + 0x498], al
     0x2015e1e | ff 81 40 05 00 00        | inc dword ptr [rcx + 0x540]
@@ -3315,133 +3335,24 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
     L_0x2015f82:
     0x2015f82 | e8 49 b1 f9 fe           | call 0xfb10d0
   
-  === [Decompilacao C++ do XREF Runtime #7: 0x2016e10..0x2016ffd (insn @0x2016fcd: cmp byte [flag], imm8)] ===
+  === [Decompilacao C++ do XREF Runtime #7: 0x2016fb0..0x2016ffd (insn @0x2016fcd: cmp byte [flag], imm8)] ===
     struct RBX::PerformanceControl {
-      /* +0x4a0 */ void*   field_0x4a0;
-      /* +0x4a8 */ int32_t field_0x4a8;
-      /* +0x4b8 */ double  field_0x4b8;
-      /* +0x4c0 */ double  field_0x4c0;
-      /* +0x4c8 */ double  field_0x4c8;
-      /* +0x4d0 */ double  field_0x4d0;
-      /* +0x4d8 */ void*   field_0x4d8;
-      /* +0x4e0 */ void*   field_0x4e0;
+      /* +0x68 */ uint8_t field_0x68;
     };
     
-    // Flag defaults: PerformanceControlMlSnapshotEnabled2 = false, PerformanceControlComputeMinSimulationBudgetPercent = 75
-    void RBX::PerformanceControl::func_0x2016e10(RBX::PerformanceControl* this, float param_2) {
-      call_0x2e12fd0(&this->field_0x4a0);
-      if (this->field_0x4a0 == 3) {
-        if (atomic_cas(&this->field_0x4a0, this->field_0x4a0, 1) != 0) {
-          call_0xdac0(&this->field_0x4a0);
+    // Flag defaults: PerformanceControlMlSnapshotEnabled2 = false, PerformanceControlDynamicFrameTimeTarget6 = false, PerformanceControlComputePrimaryMaxTargetFps = 30
+    double RBX::PerformanceControl::func_0x2016fb0(RBX::PerformanceControl* this, double param_2) {
+      if (0.0 < param_2 && !PerformanceControlDynamicFrameTimeTarget6) {
+        if (this->field_0x68 == 0 || !PerformanceControlMlSnapshotEnabled2) {
+          if (PerformanceControlComputePrimaryMaxTargetFps > 0) {
+            return max(1000.0 / (double)PerformanceControlComputePrimaryMaxTargetFps, param_2);
+          }
         }
-      } else {
-        call_0xdac0(&this->field_0x4a0);
       }
-      if (0.0 < this->field_0x4a8 && 0.0 < this->field_0x4b8) {
-        this->field_0x4c0 = this->field_0x4a8;
-        this->field_0x4c8 = this->field_0x4b0;
-        this->field_0x4d0 = this->field_0x4b8;
-        double ftmp_1 = PerformanceControlComputeMinSimulationBudgetPercent * param_2 / 100.0;
-        this->field_0x4e0 = min(ftmp_1, param_2 - this->field_0x4a8);
-        this->field_0x4d8 = max(this->field_0x4b8 - this->field_0x4a8, 0.0);
-      }
+      return param_2;
     }
   
-  === [Instrucoes x86-64 do XREF Runtime #7 (0x2016e10..0x2016ffd)] ===
-    0x2016e10 | 48 89 5c 24 10           | mov qword ptr [rsp + 0x10], rbx
-    0x2016e15 | 57                       | push rdi
-    0x2016e16 | 48 83 ec 50              | sub rsp, 0x50
-    0x2016e1a | 0f 29 74 24 40           | movaps xmmword ptr [rsp + 0x40], xmm6
-    0x2016e1f | 0f 28 f1                 | movaps xmm6, xmm1
-    0x2016e22 | 48 8b f9                 | mov rdi, rcx
-    0x2016e25 | 48 81 c1 a0 04 00 00     | add rcx, 0x4a0
-    0x2016e2c | e8 9f c1 df 00           | call 0x2e12fd0
-    0x2016e31 | 0f 10 87 a8 04 00 00     | movups xmm0, xmmword ptr [rdi + 0x4a8]
-    0x2016e38 | 0f 11 44 24 20           | movups xmmword ptr [rsp + 0x20], xmm0
-    0x2016e3d | f2 0f 10 97 b8 04 00 00  | movsd xmm2, qword ptr [rdi + 0x4b8]
-    0x2016e45 | f2 0f 11 54 24 30        | movsd qword ptr [rsp + 0x30], xmm2
-    0x2016e4b | 48 8b 87 a0 04 00 00     | mov rax, qword ptr [rdi + 0x4a0]
-    0x2016e52 | 90                       | nop
-    0x2016e53 | 48 83 f8 03              | cmp rax, 0x3
-    0x2016e57 | 75 10                    | jne 0x2016e69
-    0x2016e59 | b9 01 00 00 00           | mov ecx, 0x1
-    0x2016e5e | f0 48 0f b1 8f a0 04 00.. | lock cmpxchg qword ptr [rdi + 0x4a0], rcx
-    0x2016e67 | 74 0d                    | je 0x2016e76
-    L_0x2016e69:
-    0x2016e69 | 48 8d 8f a0 04 00 00     | lea rcx, [rdi + 0x4a0]
-    0x2016e70 | e8 4b 6c ff fd           | call 0xdac0
-    0x2016e75 | 90                       | nop
-    L_0x2016e76:
-    0x2016e76 | 0f 57 d2                 | xorps xmm2, xmm2
-    0x2016e79 | f2 0f 10 64 24 20        | movsd xmm4, qword ptr [rsp + 0x20]
-    0x2016e7f | 66 0f 2f d4              | comisd xmm2, xmm4
-    0x2016e83 | 0f 83 9e 00 00 00        | jae 0x2016f27
-    0x2016e89 | f2 0f 10 5c 24 30        | movsd xmm3, qword ptr [rsp + 0x30]
-    0x2016e8f | 66 0f 2f d3              | comisd xmm2, xmm3
-    0x2016e93 | 0f 83 8e 00 00 00        | jae 0x2016f27
-    0x2016e99 | f2 0f 11 a7 c0 04 00 00  | movsd qword ptr [rdi + 0x4c0], xmm4
-    0x2016ea1 | f2 0f 10 44 24 28        | movsd xmm0, qword ptr [rsp + 0x28]
-    0x2016ea7 | f2 0f 11 87 c8 04 00 00  | movsd qword ptr [rdi + 0x4c8], xmm0
-    0x2016eaf | f2 0f 11 9f d0 04 00 00  | movsd qword ptr [rdi + 0x4d0], xmm3
-    0x2016eb7 | 66 0f 6e 0d b1 1e 0e 06  | movd xmm1, dword ptr [rip + 0x60e1eb1] ; DFIntPerformanceControlComputeMinSimulationBudgetPercent
-    0x2016ebf | f3 0f e6 c9              | cvtdq2pd xmm1, xmm1
-    0x2016ec3 | f2 0f 59 ce              | mulsd xmm1, xmm6
-    0x2016ec7 | f2 0f 5e 0d 91 95 58 05  | divsd xmm1, qword ptr [rip + 0x5589591] ; 100.0
-    0x2016ecf | f2 0f 11 4c 24 60        | movsd qword ptr [rsp + 0x60], xmm1
-    0x2016ed5 | f2 0f 5c f4              | subsd xmm6, xmm4
-    0x2016ed9 | f2 0f 11 74 24 70        | movsd qword ptr [rsp + 0x70], xmm6
-    0x2016edf | 48 8d 44 24 60           | lea rax, [rsp + 0x60]
-    0x2016ee4 | 48 8d 4c 24 70           | lea rcx, [rsp + 0x70]
-    0x2016ee9 | 66 0f 2f ce              | comisd xmm1, xmm6
-    0x2016eed | 48 0f 46 c1              | cmovbe rax, rcx
-    0x2016ef1 | 48 8b 00                 | mov rax, qword ptr [rax]
-    0x2016ef4 | 48 89 87 e0 04 00 00     | mov qword ptr [rdi + 0x4e0], rax
-    0x2016efb | f2 0f 5c dc              | subsd xmm3, xmm4
-    0x2016eff | f2 0f 11 5c 24 60        | movsd qword ptr [rsp + 0x60], xmm3
-    0x2016f05 | f2 0f 11 54 24 70        | movsd qword ptr [rsp + 0x70], xmm2
-    0x2016f0b | 48 8d 44 24 60           | lea rax, [rsp + 0x60]
-    0x2016f10 | 48 8d 4c 24 70           | lea rcx, [rsp + 0x70]
-    0x2016f15 | 66 0f 2f da              | comisd xmm3, xmm2
-    0x2016f19 | 48 0f 46 c1              | cmovbe rax, rcx
-    0x2016f1d | 48 8b 00                 | mov rax, qword ptr [rax]
-    0x2016f20 | 48 89 87 d8 04 00 00     | mov qword ptr [rdi + 0x4d8], rax
-    L_0x2016f27:
-    0x2016f27 | 48 8b 5c 24 68           | mov rbx, qword ptr [rsp + 0x68]
-    0x2016f2c | 0f 28 74 24 40           | movaps xmm6, xmmword ptr [rsp + 0x40]
-    0x2016f31 | 48 83 c4 50              | add rsp, 0x50
-    0x2016f35 | 5f                       | pop rdi
-    0x2016f36 | c3                       | ret
-    0x2016f40 | f2 0f 10 59 28           | movsd xmm3, qword ptr [rcx + 0x28]
-    0x2016f45 | 66 0f 2f cb              | comisd xmm1, xmm3
-    0x2016f49 | 8b 05 89 1f 0e 06        | mov eax, dword ptr [rip + 0x60e1f89] ; FIntPerformanceControlFrameTimeMissPercentageHigherThreshold
-    0x2016f4f | f2 0f 10 25 09 95 58 05  | movsd xmm4, qword ptr [rip + 0x5589509] ; 100.0
-    0x2016f57 | 76 25                    | jbe 0x2016f7e
-    0x2016f59 | f2 0f 10 41 20           | movsd xmm0, qword ptr [rcx + 0x20]
-    0x2016f5e | 66 0f 6e d0              | movd xmm2, eax
-    0x2016f62 | f3 0f e6 d2              | cvtdq2pd xmm2, xmm2
-    0x2016f66 | f2 0f 58 d4              | addsd xmm2, xmm4
-    0x2016f6a | f2 0f 59 d3              | mulsd xmm2, xmm3
-    0x2016f6e | f2 0f 5e d4              | divsd xmm2, xmm4
-    0x2016f72 | 66 0f 2f c2              | comisd xmm0, xmm2
-    0x2016f76 | 76 06                    | jbe 0x2016f7e
-    0x2016f78 | b8 01 00 00 00           | mov eax, 0x1
-    0x2016f7d | c3                       | ret
-    L_0x2016f7e:
-    0x2016f7e | 66 0f 2f d9              | comisd xmm3, xmm1
-    0x2016f82 | 76 25                    | jbe 0x2016fa9
-    0x2016f84 | f2 0f 10 41 20           | movsd xmm0, qword ptr [rcx + 0x20]
-    0x2016f89 | 66 0f 6e c8              | movd xmm1, eax
-    0x2016f8d | f3 0f e6 c9              | cvtdq2pd xmm1, xmm1
-    0x2016f91 | f2 0f 58 cc              | addsd xmm1, xmm4
-    0x2016f95 | f2 0f 59 cb              | mulsd xmm1, xmm3
-    0x2016f99 | f2 0f 5e cc              | divsd xmm1, xmm4
-    0x2016f9d | 66 0f 2f c1              | comisd xmm0, xmm1
-    0x2016fa1 | 76 06                    | jbe 0x2016fa9
-    0x2016fa3 | b8 02 00 00 00           | mov eax, 0x2
-    0x2016fa8 | c3                       | ret
-    L_0x2016fa9:
-    0x2016fa9 | 33 c0                    | xor eax, eax
-    0x2016fab | c3                       | ret
+  === [Instrucoes x86-64 do XREF Runtime #7 (0x2016fb0..0x2016ffd)] ===
     0x2016fb0 | 0f 57 c0                 | xorps xmm0, xmm0
     0x2016fb3 | 0f 28 d1                 | movaps xmm2, xmm1
     0x2016fb6 | 66 0f 2f c1              | comisd xmm0, xmm1
@@ -3483,158 +3394,152 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
     // Flag defaults: PerformanceControlMlSnapshotEnabled2 = false, PerformanceControlComputePrimaryCapTargetFps = false, PerformanceControlDynamicFrameTimeTarget6 = false, PerformanceControlComputePrimaryMaxTargetFps = 30
     void RBX::PerformanceControl::func_0x2019fb0(RBX::PerformanceControl* this) {
       void* v_rsi_5 = &this->field_0x640;
-      int32_t v_rdi_6;
-      auto expr_4 = this->field_0x648 + (1 << this->field_0x65c) * 4;
-      if (this->field_0x644 != 0 && (expr_4->field_0x18[rax * 8] & 0x1) != 0) {
-        if (this->field_0x644 == 1) {
-          v_rsi_5 = 0;
-          v_rdi_6 = 0;
-        } else {
-          int64_t v_rcx_1 = ~expr_4->field_0x18[rax * 8] & 0xfffffffe;
-          int32_t v_rdi_2 = 0;
-          if ((~expr_4->field_0x18[rax * 8] & 0xfffffffe) == 0) {
-            auto expr_1 = expr_4 + rax * 8;
-            do { // L_0x201a041
-              if ((0 + 0x40) >= this->field_0x644) break;
-              v_rcx_1 = ~expr_1->field_0x18[(edi + 1) * 8];
-              v_rdi_2 = edi + 1;
-              if (((v_rdi_2 << 6) + bsr(((-v_rcx_1) & v_rcx_1))) != this->field_0x644) break;
-            } while ((~expr_1->field_0x18[(edi + 1) * 8]) == 0); // loop -> L_0x201a041
-            L_0x201a06f:
+      int32_t i_edi;
+      uint64_t i_ecx;
+      if (this->field_0x644 != 0) {
+        auto* f_648 = this->field_0x648;
+        int64_t idx_1 = f_648->field_0x10[(1 << this->field_0x65c) * 4];
+        if (((f_648 + (1 << this->field_0x65c) * 4)->field_0x18[idx_1 * 8] & 0x1) != 0) {
+          if (this->field_0x644 == 1) {
             v_rsi_5 = 0;
-            v_rdi_6 = 0;
-          } else if ((v_rdi_2 << 6) + ctz(v_rcx_1) == this->field_0x644) {
-            v_rsi_5 = 0;
-            v_rdi_6 = 0;
           } else {
-            v_rdi_6 = (v_rdi_2 << 6) + ctz(v_rcx_1);
+            int64_t idx_2 = f_648->field_0x10[(1 << this->field_0x65c) * 4];
+            int64_t idx_3 = f_648->field_0x10[(1 << this->field_0x65c) * 4];
+            int64_t v_rcx_1 = ~(f_648 + (1 << this->field_0x65c) * 4)->field_0x18[idx_3 * 8] & 0xfffffffe;
+            int32_t v_rdi_2 = 0;
+            if ((~(f_648 + (1 << this->field_0x65c) * 4)->field_0x18[idx_3 * 8] & 0xfffffffe) == 0) {
+              i_ecx = ~(f_648 + (1 << this->field_0x65c) * 4)->field_0x18[idx_3 * 8] & 0xfffffffe;
+              int32_t i_edx = 0;
+              i_edi = 0;
+              do { // L_0x201a041
+                i_edi++;
+                i_edx += 0x40;
+                if (i_edx >= this->field_0x644) break;
+                i_ecx = ~((f_648 + (1 << this->field_0x65c) * 4) + idx_2 * 8)->field_0x18[i_edi * 8];
+              } while (~((f_648 + (1 << this->field_0x65c) * 4) + idx_2 * 8)->field_0x18[i_edi * 8] == 0); // loop -> L_0x201a041
+              if ((v_rdi_2 << 6) + ctz(v_rcx_1) == this->field_0x644) {
+                L_0x201a06f:
+                v_rsi_5 = 0;
+              }
+            } else if ((v_rdi_2 << 6) + ctz(v_rcx_1) == this->field_0x644) {
+              v_rsi_5 = 0;
+            }
           }
-        } else {
-          v_rdi_6 = 0;
         }
       } else {
         goto L_0x201a06f;
       }
-      auto i_esi = v_rsi_5;
-      int32_t i_edi = v_rdi_6;
+      void* i_esi = v_rsi_5;
       do { // L_0x201a0b0
-        auto expr_2 = 1000.0 / PerformanceControlComputePrimaryMaxTargetFps;
-        auto expr_3 = PerformanceControlComputePrimaryMaxTargetFps <= 0;
+        auto expr_1 = 1000.0 / (double)PerformanceControlComputePrimaryMaxTargetFps;
         if (i_esi != 0) {
-          L_0x201a0bd:
           double fxmm6_8;
           if (PerformanceControlComputePrimaryCapTargetFps && 0.0 < this->field_0x10 && !PerformanceControlDynamicFrameTimeTarget6) {
             if (this->field_0x68 != 0 && PerformanceControlMlSnapshotEnabled2) {
               fxmm6_8 = this->field_0x10;
             } else {
-              if expr_3 {
+              if (PerformanceControlComputePrimaryMaxTargetFps <= 0) {
                 fxmm6_8 = this->field_0x10;
               } else {
-                fxmm6_8 = max(expr_2, this->field_0x10);
+                fxmm6_8 = max(expr_1, this->field_0x10);
               }
             }
           } else {
             fxmm6_8 = this->field_0x10;
           }
-          if (((i_edi << 6) + v_rsi_5->field_0x10)->field_0x38 == 0 && 0.0 < this->field_0x50 / 1000.0 && 0.0 < ((i_edi << 6) + v_rsi_5->field_0x10)->field_0x8 && 0.0 < fxmm6_8) {
-            if (!isnan(fxmm6_8) && !isnan(((i_edi << 6) + v_rsi_5->field_0x10)->field_0x28)) {
-              if (fxmm6_8 != ((i_edi << 6) + v_rsi_5->field_0x10)->field_0x28) {
-                L_0x201a1a6:
-                if (!isnan(((i_edi << 6) + v_rsi_5->field_0x10)->field_0x28)) {
-                  if (((i_edi << 6) + v_rsi_5->field_0x10)->field_0x28 != 0.0) {
-                    L_0x201a1af:
-                    ((i_edi << 6) + v_rsi_5->field_0x10)->field_0x30 = ((i_edi << 6) + v_rsi_5->field_0x10)->field_0x18;
-                  }
-                } else {
-                  ((i_edi << 6) + v_rsi_5->field_0x10)->field_0x30 = ((i_edi << 6) + v_rsi_5->field_0x10)->field_0x18;
-                }
-                ((i_edi << 6) + v_rsi_5->field_0x10)->field_0x28 = fxmm6_8;
+          if (((i_edi << 6) + i_esi->field_0x10)->field_0x38 == 0 && 0.0 < this->field_0x50 / 1000.0 && 0.0 < ((i_edi << 6) + i_esi->field_0x10)->field_0x8 && 0.0 < fxmm6_8) {
+            if (isnan(fxmm6_8) || isnan(((i_edi << 6) + i_esi->field_0x10)->field_0x28) || fxmm6_8 != ((i_edi << 6) + i_esi->field_0x10)->field_0x28) {
+              if (isnan(((i_edi << 6) + i_esi->field_0x10)->field_0x28) || ((i_edi << 6) + i_esi->field_0x10)->field_0x28 != 0.0) {
+                ((i_edi << 6) + i_esi->field_0x10)->field_0x30 = ((i_edi << 6) + i_esi->field_0x10)->field_0x18;
               }
-            } else {
-              if (!isnan(((i_edi << 6) + v_rsi_5->field_0x10)->field_0x28)) {
-                if (((i_edi << 6) + v_rsi_5->field_0x10)->field_0x28 != 0.0) {
-                  goto L_0x201a1af;
-                }
-              } else {
-                goto L_0x201a1af;
-              }
-              ((i_edi << 6) + v_rsi_5->field_0x10)->field_0x28 = fxmm6_8;
+              ((i_edi << 6) + i_esi->field_0x10)->field_0x28 = fxmm6_8;
             }
             L_0x201a1bc:
-            auto ret_0x5e36e80_1 = call_0x5e36e80(this->field_0x50 / 1000.0 / ((i_edi << 6) + v_rsi_5->field_0x10)->field_0x8, this->field_0x65c);
-            double ftmp_2 = (this->field_0x18 / fxmm6_8 - ((i_edi << 6) + v_rsi_5->field_0x10)->field_0x20) * (1.0 - ret_0x5e36e80_1);
-            ((i_edi << 6) + v_rsi_5->field_0x10)->field_0x20 = ftmp_2 + ((i_edi << 6) + v_rsi_5->field_0x10)->field_0x20;
-            if (((i_edi << 6) + v_rsi_5->field_0x10)->field_0x30 > 0.0) {
-              ((i_edi << 6) + v_rsi_5->field_0x10)->field_0x30 = ((i_edi << 6) + v_rsi_5->field_0x10)->field_0x30 - this->field_0x50 / 1000.0;
+            auto ret_0x5e36e80_1 = call_0x5e36e80(this->field_0x50 / 1000.0 / ((i_edi << 6) + i_esi->field_0x10)->field_0x8, this->field_0x65c);
+            double ftmp_2 = (this->field_0x18 / fxmm6_8 - ((i_edi << 6) + i_esi->field_0x10)->field_0x20) * (1.0 - ret_0x5e36e80_1);
+            ((i_edi << 6) + i_esi->field_0x10)->field_0x20 = ftmp_2 + ((i_edi << 6) + i_esi->field_0x10)->field_0x20;
+            if (((i_edi << 6) + i_esi->field_0x10)->field_0x30 > 0.0) {
+              ((i_edi << 6) + i_esi->field_0x10)->field_0x30 = ((i_edi << 6) + i_esi->field_0x10)->field_0x30 - this->field_0x50 / 1000.0;
             } else {
-              double ftmp_3 = ftmp_2 + ((i_edi << 6) + v_rsi_5->field_0x10)->field_0x20;
-              if (ftmp_3 > ((i_edi << 6) + v_rsi_5->field_0x10)->field_0x10) {
-                ((i_edi << 6) + v_rsi_5->field_0x10)->field_0x38 = 1;
+              double ftmp_3 = ftmp_2 + ((i_edi << 6) + i_esi->field_0x10)->field_0x20;
+              if (ftmp_3 > ((i_edi << 6) + i_esi->field_0x10)->field_0x10) {
+                ((i_edi << 6) + i_esi->field_0x10)->field_0x38 = 1;
               }
             }
           }
-          call_0x200dc90(&this->field_0x598, &local_0x30, (i_edi << 6) + v_rsi_5->field_0x10);
-          if (local_0x30 == 0 && local_0x38 != 0) {
-            L_0x201a239:
-            if (((i_edi << 6) + v_rsi_5->field_0x10)->field_0x38 != 0 && ((local_0x38 * 152) + local_0x30->field_0x10)->field_0x95 != 0) {
+          call_0x200dc90(&this->field_0x598, &local_0x30, (i_edi << 6) + i_esi->field_0x10);
+          void* v_rcx_10;
+          if (local_0x30 != 0 || local_0x38 != 0) {
+            if (((i_edi << 6) + i_esi->field_0x10)->field_0x38 != 0 && ((local_0x38 * 152) + local_0x30->field_0x10)->field_0x95 != 0) {
               double ftmp_4 = ((local_0x38 * 152) + local_0x30->field_0x10)->field_0x28;
               double ftmp_5 = ((local_0x38 * 152) + local_0x30->field_0x10)->field_0x10;
-              auto* f_770 = this->field_0x770;
               if (!isnan(ftmp_4) && !isnan(ftmp_5)) {
                 if (ftmp_4 != ftmp_5) {
                   L_0x201a265:
                   ((local_0x38 * 152) + local_0x30->field_0x10)->field_0x28 = ftmp_5;
-                  if (f_770 != this->field_0x778) {
-                    f_770->field_0x0 = ((i_edi << 6) + v_rsi_5->field_0x10)->field_0x0;
+                  if (this->field_0x770 != this->field_0x778) {
+                    this->field_0x770->field_0x0 = ((i_edi << 6) + i_esi->field_0x10)->field_0x0;
+                    this->field_0x770 = this->field_0x770 + 0x10;
+                    v_rcx_10 = &this->field_0x760;
                   } else {
-                    auto local_0x20 = ((i_edi << 6) + v_rsi_5->field_0x10)->field_0x0;
-                    call_0x1d9a0c0(&this->field_0x760, f_770, &local_0x20);
+                    auto local_0x20 = ((i_edi << 6) + i_esi->field_0x10)->field_0x0;
+                    call_0x1d9a0c0(&this->field_0x760, this->field_0x770, &local_0x20);
                   }
+                } else {
+                  v_rcx_10 = local_0x38 * 152 + local_0x30->field_0x10;
                 }
               } else {
                 ((local_0x38 * 152) + local_0x30->field_0x10)->field_0x28 = ftmp_5;
-                if (f_770 != this->field_0x778) {
-                  f_770->field_0x0 = ((i_edi << 6) + v_rsi_5->field_0x10)->field_0x0;
+                if (this->field_0x770 != this->field_0x778) {
+                  this->field_0x770->field_0x0 = ((i_edi << 6) + i_esi->field_0x10)->field_0x0;
+                  this->field_0x770 = this->field_0x770 + 0x10;
+                  v_rcx_10 = &this->field_0x760;
                 } else {
-                  auto local_0x20 = ((i_edi << 6) + v_rsi_5->field_0x10)->field_0x0;
-                  call_0x1d9a0c0(&this->field_0x760, f_770, &local_0x20);
+                  auto local_0x20 = ((i_edi << 6) + i_esi->field_0x10)->field_0x0;
+                  call_0x1d9a0c0(&this->field_0x760, this->field_0x770, &local_0x20);
                 }
               }
-            }
-          } else {
-            if (((i_edi << 6) + v_rsi_5->field_0x10)->field_0x38 != 0 && ((local_0x38 * 152) + local_0x30->field_0x10)->field_0x95 != 0) {
-              double ftmp_4 = ((local_0x38 * 152) + local_0x30->field_0x10)->field_0x28;
-              double ftmp_5 = ((local_0x38 * 152) + local_0x30->field_0x10)->field_0x10;
-              if (!isnan(ftmp_4) && !isnan(ftmp_5)) {
-                if (ftmp_4 != ftmp_5) {
-                  goto L_0x201a265;
-                }
-              } else {
-                goto L_0x201a265;
-              }
+            } else {
+              v_rcx_10 = local_0x38 * 152 + local_0x30->field_0x10;
             }
           }
-          if (i_edi + 1 == v_rsi_5->field_0x4) {
-            L_0x201a2ab:
+          i_edi++;
+          void* v_rcx_13 = v_rcx_10;
+          if (i_edi == i_esi->field_0x4) {
+            i_ecx = v_rcx_13;
+            i_esi = 0;
+            i_edi = 0;
             continue;
           } else {
-            int64_t tmp_3 = ~((v_rsi_5->field_0x8 + (1 << v_rsi_5->field_0x1c) * 4) + rax * 8)->field_0x18[((i_edi + 1) >> 6) * 8] & (v_rsi_5->field_0x8 + (1 << v_rsi_5->field_0x1c) * 4)->field_0x10 << (i_edi + 1 & 0x3f);
-            int64_t v_rdx_12 = tmp_3;
-            int32_t v_r8_13 = (i_edi + 1) >> 6;
-            if ((~((v_rsi_5->field_0x8 + (1 << v_rsi_5->field_0x1c) * 4) + rax * 8)->field_0x18[((i_edi + 1) >> 6) * 8] & (v_rsi_5->field_0x8 + (1 << v_rsi_5->field_0x1c) * 4)->field_0x10 << (i_edi + 1 & 0x3f)) == 0) {
+            int64_t idx_4 = (i_esi->field_0x8 + (1 << i_esi->field_0x1c) * 4)->field_0x10;
+            int64_t v_rdx_11 = ~((i_esi->field_0x8 + (1 << i_esi->field_0x1c) * 4) + idx_4 * 8)->field_0x18[(i_edi >> 6) * 8] & -1 << (i_edi & 0x3f);
+            int32_t v_r8_12 = i_edi >> 6;
+            if ((~((i_esi->field_0x8 + (1 << i_esi->field_0x1c) * 4) + idx_4 * 8)->field_0x18[(i_edi >> 6) * 8] & -1 << (i_edi & 0x3f)) == 0) {
+              int32_t i_r8d = i_edi >> 6;
               L_0x201a300:
               do { // L_0x201a300
-                L_0x201a300:
-                if (((((i_edi + 1) >> 6) << 6) + 0x40) >= v_rsi_5->field_0x4) break;
-                v_rdx_12 = ~((v_rsi_5->field_0x8 + (1 << v_rsi_5->field_0x1c) * 4) + rax * 8)->field_0x18[(((i_edi + 1) >> 6) + 1) * 8];
-                v_r8_13 = ((i_edi + 1) >> 6) + 1;
-                L_0x201a318:
-                if (((v_r8_13 << 6) + bsr(((-v_rdx_12) & v_rdx_12))) != v_rsi_5->field_0x4) break;
-                break;
-              } while ((~((v_rsi_5->field_0x8 + (1 << v_rsi_5->field_0x1c) * 4) + rax * 8)->field_0x18[(((i_edi + 1) >> 6) + 1) * 8]) == 0); // loop -> L_0x201a300
-              continue;
+                i_r8d++;
+                i_ecx += 0x40;
+                if (i_ecx >= i_esi->field_0x4) break;
+              } while (~((i_esi->field_0x8 + (1 << i_esi->field_0x1c) * 4) + idx_4 * 8)->field_0x18[i_r8d * 8] == 0); // loop -> L_0x201a300
+              L_0x201a318:
+              if ((v_r8_12 << 6) + ctz(v_rdx_11) != i_esi->field_0x4) {
+                i_ecx = ctz(v_rdx_11);
+                i_edi = (v_r8_12 << 6) + ctz(v_rdx_11);
+                continue;
+              }
+              i_ecx = ctz(v_rdx_11);
+              i_esi = 0;
+              i_edi = 0;
             } else {
-              if (((v_r8_13 << 6) + bsr(((-v_rdx_12) & v_rdx_12))) != v_rsi_5->field_0x4) continue;
+              if ((v_r8_12 << 6) + ctz(v_rdx_11) != i_esi->field_0x4) {
+                i_ecx = ctz(v_rdx_11);
+                i_edi = (v_r8_12 << 6) + ctz(v_rdx_11);
+                continue;
+              }
+              i_ecx = ctz(v_rdx_11);
+              i_esi = 0;
+              i_edi = 0;
             }
           }
         }
@@ -3645,51 +3550,60 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
         if (PerformanceControlComputePrimaryCapTargetFps && 0.0 < this->field_0x10 && !PerformanceControlDynamicFrameTimeTarget6) {
           if (this->field_0x68 != 0 && PerformanceControlMlSnapshotEnabled2) {
             fxmm6_8 = this->field_0x10;
-          } else if expr_3 {
+          } else if (PerformanceControlComputePrimaryMaxTargetFps <= 0) {
             fxmm6_8 = this->field_0x10;
           } else {
-            fxmm6_8 = max(expr_2, this->field_0x10);
+            fxmm6_8 = max(expr_1, this->field_0x10);
           }
         } else {
           fxmm6_8 = this->field_0x10;
         }
-        if (((i_edi << 6) + v_rsi_5->field_0x10)->field_0x38 == 0 && 0.0 < this->field_0x50 / 1000.0 && 0.0 < ((i_edi << 6) + v_rsi_5->field_0x10)->field_0x8 && 0.0 < fxmm6_8) {
-          if (!isnan(fxmm6_8) && !isnan(((i_edi << 6) + v_rsi_5->field_0x10)->field_0x28)) {
-            if (fxmm6_8 != ((i_edi << 6) + v_rsi_5->field_0x10)->field_0x28) {
-              goto L_0x201a1a6;
+        if (((i_edi << 6) + i_esi->field_0x10)->field_0x38 == 0 && 0.0 < this->field_0x50 / 1000.0 && 0.0 < ((i_edi << 6) + i_esi->field_0x10)->field_0x8 && 0.0 < fxmm6_8) {
+          if (isnan(fxmm6_8) || isnan(((i_edi << 6) + i_esi->field_0x10)->field_0x28) || fxmm6_8 != ((i_edi << 6) + i_esi->field_0x10)->field_0x28) {
+            if (isnan(((i_edi << 6) + i_esi->field_0x10)->field_0x28) || ((i_edi << 6) + i_esi->field_0x10)->field_0x28 != 0.0) {
+              ((i_edi << 6) + i_esi->field_0x10)->field_0x30 = ((i_edi << 6) + i_esi->field_0x10)->field_0x18;
             }
-          } else {
-            goto L_0x201a1a6;
+            ((i_edi << 6) + i_esi->field_0x10)->field_0x28 = fxmm6_8;
           }
           goto L_0x201a1bc;
         }
-        call_0x200dc90(&this->field_0x598, &local_0x30, (i_edi << 6) + v_rsi_5->field_0x10);
-        if (local_0x30 == 0) {
-          if (local_0x38 != 0) {
-            goto L_0x201a239;
+        call_0x200dc90(&this->field_0x598, &local_0x30, (i_edi << 6) + i_esi->field_0x10);
+        void* v_rcx_10;
+        if (local_0x30 != 0 || local_0x38 != 0) {
+          if (((i_edi << 6) + i_esi->field_0x10)->field_0x38 != 0 && ((local_0x38 * 152) + local_0x30->field_0x10)->field_0x95 != 0) {
+            double ftmp_4 = ((local_0x38 * 152) + local_0x30->field_0x10)->field_0x28;
+            double ftmp_5 = ((local_0x38 * 152) + local_0x30->field_0x10)->field_0x10;
+            if (!isnan(ftmp_4) && !isnan(ftmp_5)) {
+              if (ftmp_4 != ftmp_5) {
+                goto L_0x201a265;
+              } else {
+                v_rcx_10 = local_0x38 * 152 + local_0x30->field_0x10;
+              }
+            } else {
+              goto L_0x201a265;
+            }
+          } else {
+            v_rcx_10 = local_0x38 * 152 + local_0x30->field_0x10;
           }
-        } else {
-          goto L_0x201a239;
         }
-        if (i_edi + 1 == v_rsi_5->field_0x4) {
-          goto L_0x201a2ab;
+        i_edi++;
+        void* v_rcx_13 = v_rcx_10;
+        if (i_edi == i_esi->field_0x4) {
+          i_ecx = v_rcx_13;
+          i_esi = 0;
+          i_edi = 0;
+          continue;
         } else {
-          int64_t tmp_3 = ~((v_rsi_5->field_0x8 + (1 << v_rsi_5->field_0x1c) * 4) + rax * 8)->field_0x18[((i_edi + 1) >> 6) * 8] & (v_rsi_5->field_0x8 + (1 << v_rsi_5->field_0x1c) * 4)->field_0x10 << (i_edi + 1 & 0x3f);
-          int64_t v_rdx_12 = tmp_3;
-          int32_t v_r8_13 = (i_edi + 1) >> 6;
-          if ((~((v_rsi_5->field_0x8 + (1 << v_rsi_5->field_0x1c) * 4) + rax * 8)->field_0x18[((i_edi + 1) >> 6) * 8] & (v_rsi_5->field_0x8 + (1 << v_rsi_5->field_0x1c) * 4)->field_0x10 << (i_edi + 1 & 0x3f)) == 0) {
+          int64_t idx_4 = (i_esi->field_0x8 + (1 << i_esi->field_0x1c) * 4)->field_0x10;
+          int64_t v_rdx_11 = ~((i_esi->field_0x8 + (1 << i_esi->field_0x1c) * 4) + idx_4 * 8)->field_0x18[(i_edi >> 6) * 8] & -1 << (i_edi & 0x3f);
+          int32_t v_r8_12 = i_edi >> 6;
+          if ((~((i_esi->field_0x8 + (1 << i_esi->field_0x1c) * 4) + idx_4 * 8)->field_0x18[(i_edi >> 6) * 8] & -1 << (i_edi & 0x3f)) == 0) {
+            int32_t i_r8d = i_edi >> 6;
             goto L_0x201a300;
           } else {
             goto L_0x201a318;
           }
         }
-        if (i_esi != 0) {
-          goto L_0x201a0bd;
-        }
-        if (i_edi == 0) {
-          return;
-        }
-        goto L_0x201a0bd;
       } while (true); // loop -> L_0x201a0b0
     }
   
@@ -3912,7 +3826,7 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
     0x201a2cf | 48 8d 14 90              | lea rdx, [rax + rdx*4]
     0x201a2d3 | 8b 42 10                 | mov eax, dword ptr [rdx + 0x10]
     0x201a2d6 | 4c 8d 14 c2              | lea r10, [rdx + rax*8]
-    0x201a2da | 48 c7 c0 ff ff ff ff     | mov rax, 0xffffffff
+    0x201a2da | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
     0x201a2e1 | 4b 8b 54 c2 18           | mov rdx, qword ptr [r10 + r8*8 + 0x18]
     0x201a2e6 | 48 f7 d2                 | not rdx
     0x201a2e9 | 48 d3 e0                 | shl rax, cl
@@ -4027,173 +3941,154 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
         } else {
           this->field_0xb40 = param_3 + this->field_0xb40;
         }
-        this->field_0xb50 = this->field_0xb50 + 1;
+        this->field_0xb50++;
         if (this->field_0xb12 != 0) {
-          this->field_0xb58 = this->field_0xb58 + 1;
+          this->field_0xb58++;
         }
       }
       if (this->field_0xb60 > 0) {
         this->field_0xb68 = this->field_0xb68 + this->field_0xb60;
-        this->field_0xb70 = this->field_0xb70 + 1;
+        this->field_0xb70++;
       }
       call_0x48fb390(this, param_2, param_3, param_4);
       this->field_0x114 = this->field_0x110;
-      int32_t v_r14_8;
-      int32_t v_rax_13;
-      int32_t v_r14_14;
-      int32_t v_r14_15;
+      int32_t v_rax_10;
       auto* f_40 = this->field_0x40;
       auto* f_30 = this->field_0x30;
       if (f_40->field_0x2a != 0 && f_30->field_0x970 == 1) {
         auto ret_0x40625d0_8 = call_0x40625d0(&f_30->field_0x1f0);
-        if (ret_0x40625d0_8 != 0 && ret_0x40625d0_8->field_0x980 != 1) {
+        if (ret_0x40625d0_8 != 0) {
           auto* f_368 = this->field_0x368;
-          auto expr_1 = GraphicsOptimizationModeMVPExposureEnrollment4;
-          if (f_30->field_0x640 == 0) {
-            this->field_0x68 = 0;
-            this->field_0x12 = f_30->field_0x640;
-            if (GraphicsOptimizationModeMVPExposureEnrollment4 != f_30->field_0x640) {
-              if (f_40->field_0x10 != 0) {
-                auto ret_0x48f8db0_14 = call_0x48f8db0(this);
-                if (ret_0x48f8db0_14 != 0) {
-                  L_0x48f7037:
+          if (ret_0x40625d0_8->field_0x980 != 1) {
+            if (f_30->field_0x640 == 0) {
+              this->field_0x68 = 0;
+              this->field_0x12 = f_30->field_0x640;
+              if (GraphicsOptimizationModeMVPExposureEnrollment4 != f_30->field_0x640) {
+                if (f_40->field_0x10 != 0) {
+                  auto ret_0x48f8db0_14 = call_0x48f8db0(this);
+                  if (ret_0x48f8db0_14 != 0) {
+                    L_0x48f7037:
+                    void* sel_rdx_7 = f_40->field_0x20 > 21 ? sym_0x7374de4 : f_40->field_0x20;
+                    void* sel_rax_8 = sel_rdx_7->field_0x0 > 1 ? sel_rdx_7 : local_0x40;
+                    v_rax_10 = sel_rax_8->field_0x0;
+                    L_0x48f72c5:
+                    this->debugFRMQualityLevelOverride_0x54 = v_rax_10;
+                  }
+                } else {
                   void* sel_rdx_7 = f_40->field_0x20 > 21 ? sym_0x7374de4 : f_40->field_0x20;
                   void* sel_rax_8 = sel_rdx_7->field_0x0 > 1 ? sel_rdx_7 : local_0x40;
-                  v_rax_13 = sel_rax_8->field_0x0;
-                  v_r14_14 = 1;
-                  L_0x48f72c5:
-                  this->debugFRMQualityLevelOverride_0x54 = v_rax_13;
-                  v_r14_15 = v_r14_14;
-                } else {
-                  v_r14_15 = 1;
+                  v_rax_10 = sel_rax_8->field_0x0;
+                  this->debugFRMQualityLevelOverride_0x54 = v_rax_10;
                 }
-              } else {
-                void* sel_rdx_7 = f_40->field_0x20 > 21 ? sym_0x7374de4 : f_40->field_0x20;
-                void* sel_rax_8 = sel_rdx_7->field_0x0 > 1 ? sel_rdx_7 : local_0x40;
-                v_rax_13 = sel_rax_8->field_0x0;
-                v_r14_14 = 1;
-                this->debugFRMQualityLevelOverride_0x54 = v_rax_13;
-                v_r14_15 = v_r14_14;
-              }
-            } else {
-              if (f_40->field_0x10 == 0) {
+              } else if (f_40->field_0x10 == 0) {
                 void* sel_rcx_5 = f_40->field_0x20 > 21 ? sym_0x7374de4 : f_40->field_0x20;
                 void* sel_rax_6 = sel_rcx_5->field_0x0 > 1 ? sel_rcx_5 : local_0x40;
-                v_rax_13 = sel_rax_6->field_0x0;
-                v_r14_14 = 1;
+                v_rax_10 = sel_rax_6->field_0x0;
                 goto L_0x48f72c5;
-              } else {
-                v_r14_15 = 1;
               }
               L_0x48f72c8:
               call_0x48fc590(this, param_2);
             } else {
-              v_r14_8 = 1;
               L_0x48f70b2:
               if (f_40->field_0x2a != 0) {
                 if (this->field_0xcc > 0) {
-                  this->field_0xcc = this->field_0xcc - 1;
+                  this->field_0xcc--;
                 }
                 this->field_0x68 = (f_40->field_0x10 != 0) + 1;
                 if (this->field_0x12 == 0) {
                   this->field_0x12 = 1;
-                  int32_t v_rax_12;
-                  if expr_1 {
+                  int32_t v_rax_9;
+                  if (GraphicsOptimizationModeMVPExposureEnrollment4) {
                     if (f_40->field_0x10 != 0) {
                     auto ret_0x48f8db0_13 = call_0x48f8db0(this);
                     if (ret_0x48f8db0_13 != 0) {
                     L_0x48f710a:
                     void* sel_rdx_3 = f_40->field_0x20 > 21 ? sym_0x7374de4 : f_40->field_0x20;
                     void* sel_rax_4 = sel_rdx_3->field_0x0 > 1 ? sel_rdx_3 : 1;
-                    v_rax_12 = sel_rax_4->field_0x0;
+                    v_rax_9 = sel_rax_4->field_0x0;
                     } else {
                     L_0x48f7178:
-                    v_rax_12 = f_40->field_0x10;
+                    v_rax_9 = f_40->field_0x10;
                     }
                     } else {
                     void* sel_rdx_3 = f_40->field_0x20 > 21 ? sym_0x7374de4 : f_40->field_0x20;
                     void* sel_rax_4 = sel_rdx_3->field_0x0 > 1 ? sel_rdx_3 : 1;
-                    v_rax_12 = sel_rax_4->field_0x0;
+                    v_rax_9 = sel_rax_4->field_0x0;
                     }
                   } else if (f_40->field_0x10 == 0) {
                     void* sel_rcx_1 = f_40->field_0x20 > 21 ? sym_0x7374de4 : f_40->field_0x20;
                     void* sel_rax_2 = sel_rcx_1->field_0x0 > 1 ? sel_rcx_1 : 1;
-                    v_rax_12 = sel_rax_2->field_0x0;
+                    v_rax_9 = sel_rax_2->field_0x0;
                   } else {
-                    v_rax_12 = f_40->field_0x10;
+                    v_rax_9 = f_40->field_0x10;
                   }
-                  this->debugFRMQualityLevelOverride_0x54 = v_rax_12;
+                  this->debugFRMQualityLevelOverride_0x54 = v_rax_9;
                   if (FRM >= 6 && FRM >> 8 >= 3) {
                     FLog::Log("[FLog::FRM] Starting FRM, Quality setting: %u, starting level: %u");
-                    v_r14_15 = v_r14_8;
-                  } else {
-                    v_r14_15 = v_r14_8;
                   }
                   call_0x48fc590(this, param_2);
                 } else {
-                  int32_t v_rsi_9 = 0;
-                  if (GraphicsOptimizationModeMVPExposureEnrollment4 && f_40->field_0x10 != 0) {
+                  uint8_t v_sil_6 = 0;
+                  if (GraphicsOptimizationModeMVPExposureEnrollment4) {
+                    if (f_40->field_0x10 != 0) {
                     auto ret_0x48f8db0_9 = call_0x48f8db0(this);
                     if (ret_0x48f8db0_9 != 0) {
                     L_0x48f71fb:
-                    v_rsi_9 = this->field_0x10;
+                    v_sil_6 = this->field_0x10;
                     } else {
                     L_0x48f720b:
-                    if (DeviceRecoveryQualityDemotion) {
-                    if (this->field_0x5c <= 0) {
-                    L_0x48f721a:
+                    if (!DeviceRecoveryQualityDemotion || this->field_0x5c <= 0) {
                     if (f_40->field_0x10 != this->debugFRMQualityLevelOverride_0x54) {
                     this->debugFRMQualityLevelOverride_0x54 = f_40->field_0x10;
                     call_0x48fc590(this, param_2);
                     }
                     }
-                    } else if (f_40->field_0x10 != this->debugFRMQualityLevelOverride_0x54) {
+                    }
+                    } else {
+                    v_sil_6 = this->field_0x10;
+                    }
+                  } else if (f_40->field_0x10 == 0) {
+                    v_sil_6 = this->field_0x10;
+                  } else if (!DeviceRecoveryQualityDemotion || this->field_0x5c <= 0) {
+                    if (f_40->field_0x10 != this->debugFRMQualityLevelOverride_0x54) {
                     this->debugFRMQualityLevelOverride_0x54 = f_40->field_0x10;
                     call_0x48fc590(this, param_2);
                     }
+                  }
+                  uint8_t v_al_8;
+                  if (f_368 != 0) {
+                    if (f_368->field_0x18->field_0x18->field_0x3f8 != 0 && PerformanceControlMlSnapshotEnabled2) {
+                    v_al_8 = 1;
                     } else {
-                    v_rsi_9 = this->field_0x10;
-                    }
-                  } else if (f_40->field_0x10 == 0) {
-                    v_rsi_9 = this->field_0x10;
-                  } else if (DeviceRecoveryQualityDemotion) {
-                    if (this->field_0x5c <= 0) {
-                    goto L_0x48f721a;
+                    L_0x48f7258:
+                    v_al_8 = 0;
                     }
                   } else {
-                    goto L_0x48f721a;
+                    v_al_8 = 0;
                   }
-                  int32_t v_rax_11;
-                  if (f_368 != 0 && f_368->field_0x18->field_0x18->field_0x3f8 != 0 && PerformanceControlMlSnapshotEnabled2) {
-                    v_rax_11 = 1;
+                  if (!PerformanceControlUseDynamicFTT2 && v_al_8 == 0) {
+                    call_0x48fb790(this, param_3, param_4, v_sil_6);
                   } else {
-                    v_rax_11 = 0;
-                  }
-                  if (!PerformanceControlUseDynamicFTT2 && v_rax_11 == 0) {
-                    call_0x48fb790(this, param_3, param_4, v_rsi_9);
-                  } else {
-                    call_0x48fbc40(this, param_3, param_4, v_rsi_9);
+                    call_0x48fbc40(this, param_3, param_4, v_sil_6);
                   }
                 }
               } else {
                 this->field_0x68 = 3;
                 this->field_0x12 = 0;
-                v_rax_13 = f_40->field_0x14;
-                v_r14_14 = v_r14_8;
+                v_rax_10 = f_40->field_0x14;
                 goto L_0x48f72c5;
               }
             }
           } else {
-            v_r14_8 = 0;
             if (f_40->field_0x2a != 0) {
               if (this->field_0xcc > 0) {
-                this->field_0xcc = this->field_0xcc - 1;
+                this->field_0xcc--;
               }
               this->field_0x68 = (f_40->field_0x10 != 0) + 1;
               if (this->field_0x12 == 0) {
                 this->field_0x12 = 1;
-                int32_t v_rax_12;
-                if expr_1 {
+                int32_t v_rax_9;
+                if (GraphicsOptimizationModeMVPExposureEnrollment4) {
                   if (f_40->field_0x10 != 0) {
                     auto ret_0x48f8db0_13 = call_0x48f8db0(this);
                     if (ret_0x48f8db0_13 != 0) {
@@ -4207,21 +4102,18 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
                 } else if (f_40->field_0x10 == 0) {
                   void* sel_rcx_1 = f_40->field_0x20 > 21 ? sym_0x7374de4 : f_40->field_0x20;
                   void* sel_rax_2 = sel_rcx_1->field_0x0 > 1 ? sel_rcx_1 : 1;
-                  v_rax_12 = sel_rax_2->field_0x0;
+                  v_rax_9 = sel_rax_2->field_0x0;
                 } else {
                   goto L_0x48f7178;
                 }
-                this->debugFRMQualityLevelOverride_0x54 = v_rax_12;
+                this->debugFRMQualityLevelOverride_0x54 = v_rax_9;
                 if (FRM >= 6 && FRM >> 8 >= 3) {
                   FLog::Log("[FLog::FRM] Starting FRM, Quality setting: %u, starting level: %u");
-                  v_r14_15 = v_r14_8;
-                } else {
-                  v_r14_15 = v_r14_8;
                 }
                 goto L_0x48f72c8;
               } else {
-                int32_t v_rsi_9 = 0;
-                if expr_1 {
+                uint8_t v_sil_6 = 0;
+                if (GraphicsOptimizationModeMVPExposureEnrollment4) {
                   if (f_40->field_0x10 != 0) {
                     auto ret_0x48f8db0_9 = call_0x48f8db0(this);
                     if (ret_0x48f8db0_9 != 0) {
@@ -4232,67 +4124,59 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
                   } else {
                     goto L_0x48f71fb;
                   }
+                } else if (f_40->field_0x10 == 0) {
+                  v_sil_6 = this->field_0x10;
                 } else {
-                  if (f_40->field_0x10 == 0) {
-                    v_rsi_9 = this->field_0x10;
+                  goto L_0x48f720b;
+                }
+                uint8_t v_al_8;
+                if (f_368 != 0) {
+                  if (f_368->field_0x18->field_0x18->field_0x3f8 != 0 && PerformanceControlMlSnapshotEnabled2) {
+                    v_al_8 = 1;
                   } else {
-                    goto L_0x48f720b;
+                    goto L_0x48f7258;
                   }
-                }
-                int32_t v_rax_11;
-                if (f_368 != 0 && f_368->field_0x18->field_0x18->field_0x3f8 != 0 && PerformanceControlMlSnapshotEnabled2) {
-                  v_rax_11 = 1;
                 } else {
-                  v_rax_11 = 0;
+                  goto L_0x48f7258;
                 }
-                if (!PerformanceControlUseDynamicFTT2 && v_rax_11 == 0) {
-                  call_0x48fb790(this, param_3, param_4, v_rsi_9);
+                if (!PerformanceControlUseDynamicFTT2 && v_al_8 == 0) {
+                  call_0x48fb790(this, param_3, param_4, v_sil_6);
                 } else {
-                  call_0x48fbc40(this, param_3, param_4, v_rsi_9);
+                  call_0x48fbc40(this, param_3, param_4, v_sil_6);
                 }
               }
             } else {
               this->field_0x68 = 3;
               this->field_0x12 = 0;
-              v_rax_13 = f_40->field_0x14;
-              v_r14_14 = v_r14_8;
+              v_rax_10 = f_40->field_0x14;
               goto L_0x48f72c5;
             }
           }
-        } else {
-          if (f_30->field_0x640 == 0) {
-            this->field_0x68 = 0;
-            this->field_0x12 = f_30->field_0x640;
-            if (GraphicsOptimizationModeMVPExposureEnrollment4 != f_30->field_0x640) {
-              if (f_40->field_0x10 != 0) {
-                auto ret_0x48f8db0_14 = call_0x48f8db0(this);
-                if (ret_0x48f8db0_14 != 0) {
-                  goto L_0x48f7037;
-                } else {
-                  v_r14_15 = 1;
-                }
-              } else {
+        } else if (f_30->field_0x640 == 0) {
+          this->field_0x68 = 0;
+          this->field_0x12 = f_30->field_0x640;
+          if (GraphicsOptimizationModeMVPExposureEnrollment4 != f_30->field_0x640) {
+            if (f_40->field_0x10 != 0) {
+              auto ret_0x48f8db0_14 = call_0x48f8db0(this);
+              if (ret_0x48f8db0_14 != 0) {
                 goto L_0x48f7037;
               }
             } else {
-              if (f_40->field_0x10 == 0) {
-                void* sel_rcx_5 = f_40->field_0x20 > 21 ? sym_0x7374de4 : f_40->field_0x20;
-                void* sel_rax_6 = sel_rcx_5->field_0x0 > 1 ? sel_rcx_5 : local_0x40;
-                v_rax_13 = sel_rax_6->field_0x0;
-                v_r14_14 = 1;
-                goto L_0x48f72c5;
-              } else {
-                v_r14_15 = 1;
-              }
+              goto L_0x48f7037;
             }
-            goto L_0x48f72c8;
           } else {
-            v_r14_8 = 1;
-            goto L_0x48f70b2;
+            if (f_40->field_0x10 == 0) {
+              void* sel_rcx_5 = f_40->field_0x20 > 21 ? sym_0x7374de4 : f_40->field_0x20;
+              void* sel_rax_6 = sel_rcx_5->field_0x0 > 1 ? sel_rcx_5 : local_0x40;
+              v_rax_10 = sel_rax_6->field_0x0;
+              goto L_0x48f72c5;
+            }
           }
+          goto L_0x48f72c8;
+        } else {
+          goto L_0x48f70b2;
         }
       } else {
-        v_r14_8 = 0;
         goto L_0x48f70b2;
       }
       this->field_0x344 = this->field_0x33c;
@@ -4305,32 +4189,33 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
         this->debugFRMQualityLevelOverride_0x54 = DebugFRMQualityLevelOverride;
       }
       if (DeviceRecoveryQualityDemotion && this->field_0x5c > 0) {
-        this->field_0x5c = this->field_0x5c - 1;
-        void* sel_rcx_9 = this->field_0x58 < this->debugFRMQualityLevelOverride_0x54 ? 88 : 84;
-        this->debugFRMQualityLevelOverride_0x54 = sel_rcx_9->field_0x0[this];
-        if (this->field_0x5c == 1) {
+        this->field_0x5c--;
+        this->debugFRMQualityLevelOverride_0x54 = (this->field_0x58 < this->debugFRMQualityLevelOverride_0x54 ? 88 : 84)[this];
+        if (this->field_0x5c == 0) {
           this->field_0x58 = 0;
         }
       }
       if (this->field_0x50 != this->debugFRMQualityLevelOverride_0x54) {
         this->field_0x50 = this->debugFRMQualityLevelOverride_0x54;
-        void* v_rdx_26;
+        void* v_rdx_22;
         if (global_0x8cd7608 != 0) {
           auto vret_16 = global_0x8cd7608->vfunc_0x8() // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66540;
-          v_rdx_26 = vret_16;
+          v_rdx_22 = vret_16;
         } else {
-          v_rdx_26 = 0;
+          v_rdx_22 = 0;
         }
-        if (v_rdx_26 != 0) {
-          if (v_rdx_26->field_0x18->field_0xb0 != v_rdx_26->field_0x18->field_0xb8) {
+        if (v_rdx_22 != 0) {
+          if (v_rdx_22->field_0x18->field_0xb0 != v_rdx_22->field_0x18->field_0xb8) {
+            void* i_ecx = v_rdx_22->field_0x18->field_0xb0;
             do { // L_0x48f73a0
-              v_rdx_26->field_0x18->field_0xb0->field_0x0->field_0x40 = this->debugFRMQualityLevelOverride_0x54;
-            } while (&v_rdx_26->field_0x18->field_0xb0->field_0x8 != v_rdx_26->field_0x18->field_0xb8); // loop -> L_0x48f73a0
+              i_ecx->field_0x0->field_0x40 = this->debugFRMQualityLevelOverride_0x54;
+              i_ecx += 8;
+            } while (i_ecx != v_rdx_22->field_0x18->field_0xb8); // loop -> L_0x48f73a0
           }
-          v_rdx_26->field_0x18->field_0x180 = (float)(rbx - 1) / 20.0;
+          v_rdx_22->field_0x18->field_0x180 = (float)(rbx - 1) / 20.0;
         }
-        if (v_rdx_26 != 0) {
-          v_rdx_26->vfunc_0x10(v_rdx_26) // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
+        if (v_rdx_22 != 0) {
+          v_rdx_22->vfunc_0x10(v_rdx_22) // -> RBX::Solver::ForceLinear::fn_0x4d4b5f0;
         }
       }
       if (!DebugDisableDRS && this->field_0xb11 != 0) {
@@ -4357,44 +4242,44 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
         uint64_t tsc_0x48f753c = rdtsc();
         call_0x2973cd0();
         if (global_0x75b2c80 != -1) {
-          if (0 != 0) {
-            call_0x29a42e0(33, ((0 == 1) + 2) << 48, 0, 0);
+          if (0) {
+            call_0x29a42e0(33, ((0) + 2) << 48, 0, 0);
           }
           if (global_0x84a44d6 != 0 && MicroProfilerMemoryScope) {
             auto ret_0x497fea0_25 = call_0x497fea0();
-            void* v_rcx_37 = ret_0x497fea0_25->field_0x0;
+            void* v_rcx_27 = ret_0x497fea0_25->field_0x0;
             if (ret_0x497fea0_25->field_0x0 == 0) {
-              v_rcx_37 = &ret_0x497fea0_25->field_0x8;
+              v_rcx_27 = &ret_0x497fea0_25->field_0x8;
             }
-            if (0 != 0 && v_rcx_37->field_0x8 >= 0 && v_rcx_37->field_0x10 >= 0 && v_rcx_37->field_0x0 >= 0 && v_rcx_37->field_0x4 >= local_0xbc) {
+            void* stk_28;
+            void* stk_29;
+            void* stk_30;
+            if (0) {
+              stk_28 = local_0x90 + (v_rcx_27->field_0x8);
+              stk_29 = local_0x98 + (v_rcx_27->field_0x10);
+              stk_30 = local_0xa0 + (v_rcx_27->field_0x0);
+            } else {
+              stk_28 = 0.0;
+              stk_29 = 0.0;
+              stk_30 = 0;
             }
-            if (local_0x68 != 0) {
-            }
-            if (((0) << 24 | local_0xa4 & 0xffffff) == 0) {
-              if ((0.0) != 0) {
-                auto local_0x40 = 0.0;
-                call_0x29a42e0(20, (0) << 24 | local_0xa4 & 0xffffff, &local_0x40, 8);
-              } else {
+            if (((stk_30 & 0xffffff) << 24 | local_0xa4 & 0xffffff) == 0) {
+              if ((stk_28 << 32 | stk_29) != 0) {
+                auto local_0x40 = stk_28 << 32 | stk_29;
+                call_0x29a42e0(20, (stk_30 & 0xffffff) << 24 | local_0xa4 & 0xffffff, &local_0x40, 8);
               }
             } else {
-              auto local_0x40 = 0.0;
-              call_0x29a42e0(20, (0) << 24 | local_0xa4 & 0xffffff, &local_0x40, 8);
+              auto local_0x40 = stk_28 << 32 | stk_29;
+              call_0x29a42e0(20, (stk_30 & 0xffffff) << 24 | local_0xa4 & 0xffffff, &local_0x40, 8);
             }
-          } else {
           }
           call_0x29a4650(local_0x70, global_0x75b2c80, tsc_0x48f753c - global_0x8cda630);
-          if (global_0x8629678 != 0 && global_0x84dcf68 != 0) {
-            this->vfunc();
-          } else {
+          if ((global_0x8629678 & local_0x70 >> 14 & global_0x86295f8) != 0 && global_0x84dcf68 != 0) {
+            (*global_0x84dcf68)();
           }
-        } else {
         }
         auto ret_0x29243d0_29 = call_0x29243d0();
         ret_0x29243d0_29->field_0x0 = local_0x68;
-        if (local_0x68 != 0) {
-        } else {
-        }
-      } else {
       }
     }
   
@@ -4459,7 +4344,7 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
     0x48f6df6 | 44 89 65 c0              | mov dword ptr [rbp - 0x40], r12d
     0x48f6dfa | 4c 89 65 c8              | mov qword ptr [rbp - 0x38], r12
     0x48f6dfe | 4c 89 65 d0              | mov qword ptr [rbp - 0x30], r12
-    0x48f6e02 | 48 c7 45 d8 ff ff ff ff  | mov qword ptr [rbp - 0x28], 0xffffffff
+    0x48f6e02 | 48 c7 45 d8 ff ff ff ff  | mov qword ptr [rbp - 0x28], -0x1
     0x48f6e0a | c6 45 e0 01              | mov byte ptr [rbp - 0x20], 0x1
     0x48f6e0e | 4c 8d 45 d8              | lea r8, [rbp - 0x28]
     0x48f6e12 | 48 8b 15 37 c0 4f 04     | mov rdx, qword ptr [rip + 0x44fc037]
@@ -5576,54 +5461,29 @@ Operação  : 0x2006b43: cmp byte [flag], imm8 ; fn=0x2006a80..0x2006d3c
   [XREF #6 Bytecode Hex 0x2015dc0..0x2015f87]
   0x2015dc0: 48 89 74 24 18 | 57 | 48 81 ec 80 00 00 00 | 48 8b 05 0c 29 0c 06
   0x2015dd4: 48 33 c4 | 48 89 44 24 70 | 48 0f be b1 98 04 00 00 | 48 8b f9
-  0x2015de7: 90 | 48 8b 81 88 04 00 00 | 48 39 81 80 04 00 00 | cc cc
-  0x2015df8: cc cc | cc cc | 40 84 f6 | 0f 84 5f 01 00 00
-  0x2015e05: 48 89 9c 24 98 00 00 00 | 48 c7 c3 ff ff ff ff | 8b c3 | f0 0f c0 81 98 04 00 00
-  0x2015e1e: ff 81 40 05 00 00 | 48 8d 4e ff | 48 8b 97 80 04 00 00 | 48 8b 87 88 04 00 00
-  0x2015e36: 48 2b c2 | 48 c1 f8 03 | 48 3b c1 | 0f 86 3c 01 00 00
-  0x2015e46: 48 8b 04 ca | 48 89 47 08 | e8 8d 40 94 02 | 40 fe ce
-  0x2015e56: f2 0f 11 87 30 05 00 00 | 40 88 b7 39 05 00 00 | 88 9f 38 05 00 00 | 0f b6 87 99 04 00 00
-  0x2015e72: 90 | 84 c0 | 0f 85 e1 00 00 00 | 38 05 97 2f 0e 06
-  0x2015e81: 75 19 | 0f b6 47 68 | 84 c0 | 0f 84 c5 00 00 00
-  0x2015e8f: 80 3d 1a 28 0e 06 00 | 0f 84 b8 00 00 00 | 48 8b 05 7d 30 0e 06 | 3c 06
-  0x2015ea5: 0f 82 9f 00 00 00 | 48 c1 e8 08 | 3c 04 | 0f 82 93 00 00 00
-  0x2015eb7: 48 8d 05 57 6a be 05 | 48 89 44 24 60 | 48 8b 44 24 60 | 48 05 cb 34 6a ff
-  0x2015ece: 48 89 44 24 40 | 48 ff c3 | 80 3c 18 00 | 75 f7
-  0x2015edc: 0f 28 4c 24 60 | 48 8d 44 24 60 | f2 0f 10 47 08 | 4c 8d 4c 24 30
-  0x2015ef0: f2 0f 10 c8 | 48 89 44 24 38 | 48 c7 44 24 30 0a 00 00 00 | 4c 8d 44 24 40
-  0x2015f07: 0f 28 44 24 30 | 48 8d 4c 24 50 | 0f 29 4c 24 60 | b2 04
-  0x2015f18: 48 89 5c 24 48 | 66 0f 7f 44 24 30 | 0f 10 05 f6 2f 0e 06 | c6 44 24 20 01
-  0x2015f2f: 66 0f 7f 4c 24 60 | 0f 28 4c 24 40 | 0f 29 44 24 50 | 66 0f 7f 4c 24 40
-  0x2015f45: e8 86 bd 95 02 | f2 0f 10 4f 08 | e8 3c 00 00 00 | 48 8b cf
-  0x2015f57: e8 f4 04 00 00 | 48 8b 9c 24 98 00 00 00 | 48 8b 4c 24 70 | 48 33 cc
-  0x2015f6c: e8 2f e9 dc 03 | 48 8b b4 24 a0 00 00 00 | 48 81 c4 80 00 00 00 | 5f
-  0x2015f81: c3 | e8 49 b1 f9 fe
+  0x2015de7: 90 | 48 8b 81 88 04 00 00 | 48 39 81 80 04 00 00 | 0f 84 68 01 00 00
+  0x2015dfc: 40 84 f6 | 0f 84 5f 01 00 00 | 48 89 9c 24 98 00 00 00 | 48 c7 c3 ff ff ff ff
+  0x2015e14: 8b c3 | f0 0f c0 81 98 04 00 00 | ff 81 40 05 00 00 | 48 8d 4e ff
+  0x2015e28: 48 8b 97 80 04 00 00 | 48 8b 87 88 04 00 00 | 48 2b c2 | 48 c1 f8 03
+  0x2015e3d: 48 3b c1 | 0f 86 3c 01 00 00 | 48 8b 04 ca | 48 89 47 08
+  0x2015e4e: e8 8d 40 94 02 | 40 fe ce | f2 0f 11 87 30 05 00 00 | 40 88 b7 39 05 00 00
+  0x2015e65: 88 9f 38 05 00 00 | 0f b6 87 99 04 00 00 | 90 | 84 c0
+  0x2015e75: 0f 85 e1 00 00 00 | 38 05 97 2f 0e 06 | 75 19 | 0f b6 47 68
+  0x2015e87: 84 c0 | 0f 84 c5 00 00 00 | 80 3d 1a 28 0e 06 00 | 0f 84 b8 00 00 00
+  0x2015e9c: 48 8b 05 7d 30 0e 06 | 3c 06 | 0f 82 9f 00 00 00 | 48 c1 e8 08
+  0x2015eaf: 3c 04 | 0f 82 93 00 00 00 | 48 8d 05 57 6a be 05 | 48 89 44 24 60
+  0x2015ec3: 48 8b 44 24 60 | 48 05 cb 34 6a ff | 48 89 44 24 40 | 48 ff c3
+  0x2015ed6: 80 3c 18 00 | 75 f7 | 0f 28 4c 24 60 | 48 8d 44 24 60
+  0x2015ee6: f2 0f 10 47 08 | 4c 8d 4c 24 30 | f2 0f 10 c8 | 48 89 44 24 38
+  0x2015ef9: 48 c7 44 24 30 0a 00 00 00 | 4c 8d 44 24 40 | 0f 28 44 24 30 | 48 8d 4c 24 50
+  0x2015f11: 0f 29 4c 24 60 | b2 04 | 48 89 5c 24 48 | 66 0f 7f 44 24 30
+  0x2015f23: 0f 10 05 f6 2f 0e 06 | c6 44 24 20 01 | 66 0f 7f 4c 24 60 | 0f 28 4c 24 40
+  0x2015f3a: 0f 29 44 24 50 | 66 0f 7f 4c 24 40 | e8 86 bd 95 02 | f2 0f 10 4f 08
+  0x2015f4f: e8 3c 00 00 00 | 48 8b cf | e8 f4 04 00 00 | 48 8b 9c 24 98 00 00 00
+  0x2015f64: 48 8b 4c 24 70 | 48 33 cc | e8 2f e9 dc 03 | 48 8b b4 24 a0 00 00 00
+  0x2015f79: 48 81 c4 80 00 00 00 | 5f | c3 | e8 49 b1 f9 fe
 
-  [XREF #7 Bytecode Hex 0x2016e10..0x2016ffd]
-  0x2016e10: 48 89 5c 24 10 | 57 | 48 83 ec 50 | 0f 29 74 24 40
-  0x2016e1f: 0f 28 f1 | 48 8b f9 | 48 81 c1 a0 04 00 00 | e8 9f c1 df 00
-  0x2016e31: 0f 10 87 a8 04 00 00 | 0f 11 44 24 20 | f2 0f 10 97 b8 04 00 00 | f2 0f 11 54 24 30
-  0x2016e4b: 48 8b 87 a0 04 00 00 | 90 | 48 83 f8 03 | 75 10
-  0x2016e59: b9 01 00 00 00 | f0 48 0f b1 8f a0 04 00 00 | 74 0d | 48 8d 8f a0 04 00 00
-  0x2016e70: e8 4b 6c ff fd | 90 | 0f 57 d2 | f2 0f 10 64 24 20
-  0x2016e7f: 66 0f 2f d4 | 0f 83 9e 00 00 00 | f2 0f 10 5c 24 30 | 66 0f 2f d3
-  0x2016e93: 0f 83 8e 00 00 00 | f2 0f 11 a7 c0 04 00 00 | f2 0f 10 44 24 28 | f2 0f 11 87 c8 04 00 00
-  0x2016eaf: f2 0f 11 9f d0 04 00 00 | 66 0f 6e 0d b1 1e 0e 06 | f3 0f e6 c9 | f2 0f 59 ce
-  0x2016ec7: f2 0f 5e 0d 91 95 58 05 | f2 0f 11 4c 24 60 | f2 0f 5c f4 | f2 0f 11 74 24 70
-  0x2016edf: 48 8d 44 24 60 | 48 8d 4c 24 70 | 66 0f 2f ce | 48 0f 46 c1
-  0x2016ef1: 48 8b 00 | 48 89 87 e0 04 00 00 | f2 0f 5c dc | f2 0f 11 5c 24 60
-  0x2016f05: f2 0f 11 54 24 70 | 48 8d 44 24 60 | 48 8d 4c 24 70 | 66 0f 2f da
-  0x2016f19: 48 0f 46 c1 | 48 8b 00 | 48 89 87 d8 04 00 00 | 48 8b 5c 24 68
-  0x2016f2c: 0f 28 74 24 40 | 48 83 c4 50 | 5f | c3
-  0x2016f37: cc cc | cc cc | cc cc | cc cc
-  0x2016f3f: cc | f2 0f 10 59 28 | 66 0f 2f cb | 8b 05 89 1f 0e 06
-  0x2016f4f: f2 0f 10 25 09 95 58 05 | 76 25 | f2 0f 10 41 20 | 66 0f 6e d0
-  0x2016f62: f3 0f e6 d2 | f2 0f 58 d4 | f2 0f 59 d3 | f2 0f 5e d4
-  0x2016f72: 66 0f 2f c2 | 76 06 | b8 01 00 00 00 | c3
-  0x2016f7e: 66 0f 2f d9 | 76 25 | f2 0f 10 41 20 | 66 0f 6e c8
-  0x2016f8d: f3 0f e6 c9 | f2 0f 58 cc | f2 0f 59 cb | f2 0f 5e cc
-  0x2016f9d: 66 0f 2f c1 | 76 06 | b8 02 00 00 00 | c3
-  0x2016fa9: 33 c0 | c3 | cc cc | cc cc
+  [XREF #7 Bytecode Hex 0x2016fb0..0x2016ffd]
   0x2016fb0: 0f 57 c0 | 0f 28 d1 | 66 0f 2f c1 | 73 3d
   0x2016fbc: 80 3d 55 1e 0e 06 00 | 75 34 | 0f b6 41 68 | 84 c0
   0x2016fcb: 74 09 | 80 3d dc 16 0e 06 00 | 75 23 | 8b 05 2c 20 0e 06

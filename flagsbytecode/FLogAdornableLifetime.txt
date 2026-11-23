@@ -19,11 +19,11 @@ Operação  : 0x3e73043: mov/math reg, [flag] ; fn=0x3e73010..0x3e73160
     [XREF #2 @0x3e7316f] Fórmula : AdornableLifetime == 0
     [XREF #2 @0x3e7316f] Fórmula : AdornableLifetime < 6
     [XREF #2 @0x3e7316f] Fórmula : AdornableLifetime >> 8 < 3
-    [XREF #2 @0x3e7316f] Altera  : this->field_0x8->field_0x0[i_edx]->field_0x10, this->field_0x28->field_0x0[i_edx]->field_0x10, this->field_0x8->field_0x0->field_0x8, this->field_0x10, this->field_0x28->field_0x0->field_0xc, this->field_0x30
+    [XREF #2 @0x3e7316f] Altera  : this->field_0x8->field_0x0[i_edx]->field_0x10, this->field_0x28->field_0x0[i_edx]->field_0x10, this->field_0x10, this->field_0x30, this->field_0x28, this->field_0x38
     [XREF #3 @0x3e733fa] Classe  : RBX::AdornableLifetime (RTTI Resolvido)
     [XREF #3 @0x3e733fa] Fórmula : AdornableLifetime < 6
     [XREF #3 @0x3e733fa] Fórmula : AdornableLifetime >> 8 < 3
-    [XREF #3 @0x3e733fa] Altera  : this->field_0x28->field_0x0[param_2->field_0xc * 8], this->field_0x30->field_m0x8->field_0xc, this->field_0x30->field_0x0
+    [XREF #3 @0x3e733fa] Altera  : this->field_0x28->field_0x0[param_2->field_0xc * 8], this->field_0x30->field_m0x8->field_0xc, this->field_0x30, this->field_0x30->field_0x0
   
   === [Decompilacao C++ da Funcao 0x3e73010..0x3e73160] ===
     struct RBX::IAdornable {
@@ -39,26 +39,19 @@ Operação  : 0x3e73043: mov/math reg, [flag] ; fn=0x3e73010..0x3e73160
       if (AdornableLifetime >= 6 && AdornableLifetime >> 8 >= 3) {
         FLog::Log("[FLog::AdornableLifetime] Destroying adornable %p");
       }
-      if (this->field_0x10 != 0) {
-        if (this->field_0x8 < 0) {
-          if (this->field_0xc >= 0) {
-            if (CollectIAdornableDestructorTelemetry) {
-              call_0x2e13190();
-              auto local_0x50 = &local_0x40;
-              call_0x3e73ff0(&local_0x70, &local_0x50);
-              call_0x2e13b40(&sym_0x8cdce20, &local_0x60);
-              if (local_0x60 != 0 && local_0x60 == &sym_0x3e73ff0) {
-                call_0x3e73ff0(local_0x68, local_0x68);
-              } else {
-                local_0x68->vfunc(local_0x68, local_0x68);
-              }
-            }
-            call_0x3e73810(this->field_0x10, this);
-          }
-          return;
-        }
+      if (this->field_0x10 != 0 && (this->field_0x8 >= 0 || this->field_0xc >= 0)) {
         if (CollectIAdornableDestructorTelemetry) {
-          goto L_0x3e730ba;
+          call_0x2e13190();
+          auto local_0x50 = &local_0x40;
+          call_0x3e73ff0(&local_0x70, &local_0x50);
+          call_0x2e13b40(&sym_0x8cdce20, &local_0x60);
+          if (local_0x60 != 0) {
+            if (local_0x60 == &sym_0x3e73ff0) {
+              call_0x3e73ff0(local_0x68, local_0x68);
+            } else {
+              local_0x68->vfunc(local_0x68, local_0x68);
+            }
+          }
         }
         call_0x3e73810(this->field_0x10, this);
       }
@@ -234,11 +227,11 @@ Operação  : 0x3e73043: mov/math reg, [flag] ; fn=0x3e73010..0x3e73160
         if (AdornableLifetime >= 6 && AdornableLifetime >> 8 >= 3) {
           FLog::Log("[FLog::AdornableLifetime] Collector %p: Removing 3D adorn %p");
         }
-        auto* f_30 = this->field_0x30;
         auto* f_28 = this->field_0x28;
-        if (param_2->field_0xc >= 0 && param_2->field_0xc < (f_30 - f_28) >> 3) {
-          f_28->field_0x0[param_2->field_0xc * 8] = f_30->field_m0x8;
-          f_30->field_m0x8->field_0xc = param_2->field_0xc;
+        if (param_2->field_0xc >= 0 && param_2->field_0xc < (this->field_0x30 - f_28) >> 3) {
+          f_28->field_0x0[param_2->field_0xc * 8] = this->field_0x30->field_m0x8;
+          this->field_0x30->field_m0x8->field_0xc = param_2->field_0xc;
+          this->field_0x30 = this->field_0x30 - 8;
           param_2->field_0xc = -1;
         }
       }
@@ -345,40 +338,49 @@ Operação  : 0x3e73043: mov/math reg, [flag] ; fn=0x3e73010..0x3e73160
           FLog::Log("[FLog::AdornableLifetime] Renderables 2D: %u 3D: %u");
         }
       }
+      int32_t i_r8d;
       int32_t i_edx;
       if ((this->field_0x10 - this->field_0x8) >> 3 > 0) {
         i_edx = 0;
+        i_r8d = 0;
         do { // L_0x3e73260
           this->field_0x8->field_0x0[i_edx]->field_0x10 = 0;
-        } while ((r8d + 1) < ((this->field_0x10 - this->field_0x8) >> 3)); // loop -> L_0x3e73260
+          i_r8d++;
+          i_edx = i_edx + 8;
+        } while (i_r8d < (this->field_0x10 - this->field_0x8) >> 3); // loop -> L_0x3e73260
       }
       if ((this->field_0x30 - this->field_0x28) >> 3 > 0) {
         do { // L_0x3e732a0
           this->field_0x28->field_0x0[i_edx]->field_0x10 = 0;
-        } while ((r8d + 1) < ((this->field_0x30 - this->field_0x28) >> 3)); // loop -> L_0x3e732a0
+          i_r8d++;
+          i_edx = i_edx + 8;
+        } while (i_r8d < (this->field_0x30 - this->field_0x28) >> 3); // loop -> L_0x3e732a0
       }
+      void* i_eax = this->field_0x8;
       if (this->field_0x8 != this->field_0x10) {
         do { // L_0x3e732d1
-          this->field_0x8->field_0x0->field_0x8 = -1;
-        } while (&this->field_0x8->field_0x8 != this->field_0x10); // loop -> L_0x3e732d1
+          i_eax->field_0x0->field_0x8 = -1;
+          i_eax += 8;
+        } while (i_eax != this->field_0x10); // loop -> L_0x3e732d1
       }
       this->field_0x10 = this->field_0x8;
       if (this->field_0x28 != this->field_0x30) {
         do { // L_0x3e73300
-          this->field_0x28->field_0x0->field_0xc = -1;
-        } while (&this->field_0x28->field_0x8 != this->field_0x30); // loop -> L_0x3e73300
+          i_eax->field_0x0->field_0xc = -1;
+          i_eax += 8;
+        } while (i_eax != this->field_0x30); // loop -> L_0x3e73300
       }
       this->field_0x30 = this->field_0x28;
       if (this->field_0x28 != 0) {
         auto* f_20 = this->field_0x20;
-        f_20->vfunc_0x10(f_20, this->field_0x28, (r8 * 8), 8) // -> RBX::Path2D::fn_0x3ee38d0;
+        f_20->vfunc_0x10(f_20, this->field_0x28, (((this->field_0x38 - this->field_0x28) >> 3) * 8), 8) // -> RBX::Path2D::fn_0x3ee38d0;
         this->field_0x28 = 0;
         this->field_0x30 = 0;
         this->field_0x38 = 0;
       }
       if (this->field_0x8 != 0) {
         auto* f_0 = this->field_0x0;
-        f_0->vfunc_0x10(f_0, this->field_0x8, (r8 * 8), 8) // -> RBX::Path2D::fn_0x3ee38d0;
+        f_0->vfunc_0x10(f_0, this->field_0x8, (((this->field_0x18 - this->field_0x8) >> 3) * 8), 8) // -> RBX::Path2D::fn_0x3ee38d0;
         this->field_0x8 = 0;
         this->field_0x10 = 0;
         this->field_0x18 = 0;
@@ -558,21 +560,24 @@ Operação  : 0x3e73043: mov/math reg, [flag] ; fn=0x3e73010..0x3e73160
       auto vret_1 = param_2->vfunc_0x8(param_2) // -> RBX::Path2D::fn_0x3ee38a0;
       if (vret_1 != 0) {
         if (param_2->field_0x8 < 0) {
-          if (AdornableLifetime >= 6 && AdornableLifetime >> 8 >= 3) {
-            FLog::Log("[FLog::AdornableLifetime] Collector %p: Adding 2D adorn %p");
-            "[FLog::AdornableLifetime] Collector %p: Adding 2D adorn %p";
+          if (AdornableLifetime >= 6) {
+            if (AdornableLifetime >> 8 >= 3) {
+              FLog::Log("[FLog::AdornableLifetime] Collector %p: Adding 2D adorn %p");
+              "[FLog::AdornableLifetime] Collector %p: Adding 2D adorn %p";
+            }
           }
           auto* f_8 = this->field_0x8;
           if (((this->field_0x10 - f_8) >> 3) - 1 >= 0) {
-            "[FLog::AdornableLifetime] Collector %p: Adding 2D adorn %p";
+            int32_t i_r14d = ((this->field_0x10 - f_8) >> 3) - 1;
+            int32_t i_r15d = ((this->field_0x10 - f_8) >> 3) - 1;
             do { // L_0x3e73470
               auto vret_3 = param_2->vfunc_0x18(param_2) // -> RBX::Path2D::fn_0x3ee3920;
-              auto vret_4 = f_8->field_0x0[r15 * 8]->vfunc(f_8->field_0x0[r15 * 8]);
+              auto vret_4 = (((f_8->field_0x0[i_r15d * 8])->field_0x0))->vfunc_0x18(f_8->field_0x0[i_r15d * 8]) // -> RBX::Path2D::fn_0x3ee3920;
               if (vret_3 >= vret_4) break;
-              call_0x3e73b00(this, param_2, 0);
-              break;
-            } while (((((this->field_0x10 - f_8) >> 3) - 1) - 1) >= 0); // loop -> L_0x3e73470
-            call_0x3e73b00(this, param_2, ((this->field_0x10 - f_8) >> 3) - 1 + 1);
+              i_r14d--;
+              i_r15d--;
+            } while (i_r15d >= 0); // loop -> L_0x3e73470
+            call_0x3e73b00(this, param_2, 0);
           } else {
             call_0x3e73b00(this, param_2, 0);
           }
@@ -584,30 +589,30 @@ Operação  : 0x3e73043: mov/math reg, [flag] ; fn=0x3e73010..0x3e73160
         call_0x3e73bc0(this, param_2);
       }
       auto vret_7 = param_2->vfunc_0x10(param_2) // -> RBX::Path2D::fn_0x3ee38d0;
-      auto* f_30 = this->field_0x30;
       auto* f_28 = this->field_0x28;
       if (vret_7 != 0) {
         if (param_2->field_0xc < 0) {
           if (AdornableLifetime >= 6 && AdornableLifetime >> 8 >= 3) {
             FLog::Log("[FLog::AdornableLifetime] Collector %p: Adding 3D adorn %p");
           }
-          param_2->field_0xc = (f_30 - f_28) >> 3;
-          if (f_30 != this->field_0x38) {
-            f_30->field_0x0 = param_2;
+          param_2->field_0xc = (this->field_0x30 - f_28) >> 3;
+          if (this->field_0x30 != this->field_0x38) {
+            this->field_0x30->field_0x0 = param_2;
+            this->field_0x30 = this->field_0x30 + 8;
             return;
           }
           auto local_0xb0 = param_2;
-          call_0xfb7d70(&this->field_0x20, f_30, &local_0xb0);
+          call_0xfb7d70(&this->field_0x20, this->field_0x30, &local_0xb0);
           return;
         }
-      } else {
-        if (param_2->field_0xc >= 0) {
-          if (param_2->field_0xc >= 0 && param_2->field_0xc < (f_30 - f_28) >> 3) {
-            f_28->field_0x0[param_2->field_0xc * 8] = f_30->field_m0x8;
-            f_30->field_m0x8->field_0xc = param_2->field_0xc;
-            param_2->field_0xc = -1;
-            return;
-          }
+        return;
+      }
+      if (param_2->field_0xc >= 0) {
+        if (param_2->field_0xc >= 0 && param_2->field_0xc < (this->field_0x30 - f_28) >> 3) {
+          f_28->field_0x0[param_2->field_0xc * 8] = this->field_0x30->field_m0x8;
+          this->field_0x30->field_m0x8->field_0xc = param_2->field_0xc;
+          this->field_0x30 = this->field_0x30 - 8;
+          param_2->field_0xc = -1;
           return;
         }
       }

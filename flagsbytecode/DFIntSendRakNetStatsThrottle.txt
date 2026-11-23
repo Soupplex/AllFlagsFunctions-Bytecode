@@ -21,7 +21,9 @@ Operação  : 0x461938e: mov/math reg, [flag] ; fn=0x461918e..0x4619711
   === [Decompilacao C++ da Funcao 0x461918e..0x4619711] ===
     // Flag defaults: SendRakNetStatsThrottle = 2, FixUninitializedStatsForRbxTransport = true, OverrideSendRakNetStatsThrottleCountries = "", DeprecateVectorInNS1 = true, SendsGoThroughConnection4 = true, DebugForcePacketHashes2 = false
     auto RBX::Network::NetworkStream::func_0x461918e(RBX::Network::NetworkStream* this, int64_t param_2) {
+      rax->field_0x0 = rax->field_0x0 ^ rax;
       this->field_m0x77 = this->field_m0x77 + this;
+      rax->field_0x0 = rax->field_0x0 ^ rax;
       rax->field_m0x7b = rax->field_m0x7b + this;
       call_0x4668dc0(rbx, atomic_exchange(&rax->field_0x0, param_2));
       call_0x4955ac0(rbx);
@@ -65,12 +67,7 @@ Operação  : 0x461938e: mov/math reg, [flag] ; fn=0x461918e..0x4619711
         call_0x4668dc0(prev_0x3038_5);
         call_0x4955ac0(prev_0x3038_5);
       }
-      if (!FixUninitializedStatsForRbxTransport) {
-        if (r14->field_0x2acf == 0) {
-          call_0x4650ca0(r14);
-          call_0x46510b0(r14);
-        }
-      } else {
+      if (FixUninitializedStatsForRbxTransport || r14->field_0x2acf == 0) {
         call_0x4650ca0(r14);
         call_0x46510b0(r14);
       }
@@ -85,7 +82,7 @@ Operação  : 0x461938e: mov/math reg, [flag] ; fn=0x461918e..0x4619711
         auto frame_0x320 = 0;
         call_0x6f7000(&frame_0x320, &sym_0x6648084, 1);
         auto ret_0x47e64c0_29 = call_0x47e64c0(&sym_0x81766c0, OverrideSendRakNetStatsThrottleCountries, &frame_0x320);
-        std::string::_Tidy_deallocate(v_rdx_1);
+        std::string::_Tidy_deallocate(frame_0x320);
         int32_t selected_ebx_1 = ret_0x47e64c0_29 != -1 ? ret_0x47e64c0_29 : SendRakNetStatsThrottle;
         v_rbx_2 = selected_ebx_1;
       }
@@ -530,19 +527,27 @@ Operação  : 0x461938e: mov/math reg, [flag] ; fn=0x461918e..0x4619711
     
     // Flag defaults: SendRakNetStatsThrottle = 2
     void RBX::SendRak::func_0x4668dc0(RBX::SendRak* this) {
+      void* v_rcx_1 = this;
+      void* i_ecx = v_rcx_1;
       auto* f_0 = this->field_0x0;
+      uint64_t i_esi = f_0->field_0x10;
       if (f_0 != 0) {
         if (f_0->field_0x8 != 0) {
-          auto i_esi = f_0->field_0x10;
+          v_rcx_1 = f_0->field_0x8;
+          L_0x4668df0:
           do { // L_0x4668df0
-            call_0x4955ac0(f_0->field_0x8);
-          } while ((f_0->field_0x8 + i_esi)->field_m0x10 != 0); // loop -> L_0x4668df0
+            call_0x4955ac0(i_ecx);
+            i_ecx = (i_ecx + i_esi)->field_m0x10;
+            i_esi = (i_ecx + i_esi)->field_m0x8;
+          } while ((i_ecx + i_esi)->field_m0x10 != 0); // loop -> L_0x4668df0
           f_0->field_0x8 = 0;
           f_0->field_0x0 = 0;
           f_0->field_0x20 = f_0->field_0x28;
         }
-        call_0x4955ac0(f_0);
+      } else {
+        goto L_0x4668df0;
       }
+      call_0x4955ac0(f_0);
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x4668dc0..0x4668e33)] ===
@@ -552,7 +557,7 @@ Operação  : 0x461938e: mov/math reg, [flag] ; fn=0x461918e..0x4619711
     0x4668dcb | 48 83 ec 30              | sub rsp, 0x30
     0x4668dcf | 48 8b 39                 | mov rdi, qword ptr [rcx]
     0x4668dd2 | 48 85 ff                 | test rdi, rdi
-    0x4668dd5 | 74 4c                    | je 0x4668e23
+    0x4668dd5 | 74 19                    | je 0x4668df0 ; [Nanomite Reconstructed: je +0x19 via cfg_join_label_resolver]
     0x4668dd7 | 0f 10 47 08              | movups xmm0, xmmword ptr [rdi + 0x8]
     0x4668ddb | 0f 11 44 24 20           | movups xmmword ptr [rsp + 0x20], xmm0
     0x4668de0 | 66 48 0f 7e c1           | movq rcx, xmm0
@@ -577,7 +582,6 @@ Operação  : 0x461938e: mov/math reg, [flag] ; fn=0x461918e..0x4619711
     0x4668e1a | 48 8b cf                 | mov rcx, rdi
     0x4668e1d | e8 9e cc 2e 00           | call 0x4955ac0
     0x4668e22 | 90                       | nop
-    L_0x4668e23:
     0x4668e23 | 48 8b 5c 24 40           | mov rbx, qword ptr [rsp + 0x40]
     0x4668e28 | 48 8b 74 24 48           | mov rsi, qword ptr [rsp + 0x48]
     0x4668e2d | 48 83 c4 30              | add rsp, 0x30
@@ -600,54 +604,55 @@ Operação  : 0x461938e: mov/math reg, [flag] ; fn=0x461918e..0x4619711
       this->field_0x0 = ret_0x4956040_1;
       if (prev_0x0_1 != 0) {
         if (this->field_0x0->field_0x8 != 0) {
-          auto i_esi = this->field_0x0->field_0x10;
+          uint64_t i_ecx = this->field_0x0->field_0x8;
+          void* i_esi = this->field_0x0->field_0x10;
           do { // L_0x4612081
-            call_0x4955ac0(this->field_0x0->field_0x8);
-          } while ((this->field_0x0->field_0x8 + i_esi)->field_m0x10 != 0); // loop -> L_0x4612081
+            call_0x4955ac0(i_ecx);
+            i_ecx = (i_ecx + i_esi)->field_m0x10;
+            i_esi = (i_ecx + i_esi)->field_m0x8;
+          } while ((i_ecx + i_esi)->field_m0x10 != 0); // loop -> L_0x4612081
           this->field_0x0->field_0x8 = 0;
           this->field_0x0->field_0x0 = 0;
           this->field_0x0->field_0x20 = this->field_0x0->field_0x28;
         }
         if (global_0x84a4442 != 0) {
           call_0x6cb5d0(prev_0x0_1);
-        } else {
-          if (global_0x844b680->field_0x0[((prev_0x0_1 >> 16) >> 13) * 8][(prev_0x0_1 >> 16 & 0x1fff) * 8] != 0) {
-            void* v_rsi_1;
-            void* v_rdi_2 = prev_0x0_1;
-            if ((rcx->field_0x0 >> 1 & 0x1) != 0) {
-              if ((rcx->field_0x30 & &rcx->field_0x30->field_m0x1) == 0) {
-                v_rsi_1 = rcx->field_0x30 - (&rcx->field_0x30->field_m0x1 & prev_0x0_1 - rcx->field_0x38);
-                v_rdi_2 = prev_0x0_1 - (&rcx->field_0x30->field_m0x1 & prev_0x0_1 - rcx->field_0x38);
-              } else {
-                v_rsi_1 = rcx->field_0x30 - (prev_0x0_1 - rcx->field_0x38) % rcx->field_0x30;
-                v_rdi_2 = prev_0x0_1 - (prev_0x0_1 - rcx->field_0x38) % rcx->field_0x30;
-              }
+        } else if (global_0x844b680->field_0x0[((prev_0x0_1 >> 16) >> 13) * 8][(prev_0x0_1 >> 16 & 0x1fff) * 8] != 0) {
+          void* v_rsi_1;
+          void* v_rdi_2 = prev_0x0_1;
+          if ((rcx->field_0x0 >> 1 & 0x1) != 0) {
+            if ((rcx->field_0x30 & &rcx->field_0x30->field_m0x1) == 0) {
+              v_rsi_1 = rcx->field_0x30 - (&rcx->field_0x30->field_m0x1 & prev_0x0_1 - rcx->field_0x38);
+              v_rdi_2 = prev_0x0_1 - (&rcx->field_0x30->field_m0x1 & prev_0x0_1 - rcx->field_0x38);
             } else {
-              v_rsi_1 = rcx->field_0x30;
+              v_rsi_1 = rcx->field_0x30 - (prev_0x0_1 - rcx->field_0x38) % rcx->field_0x30;
+              v_rdi_2 = prev_0x0_1 - (prev_0x0_1 - rcx->field_0x38) % rcx->field_0x30;
             }
-            if ((rcx->field_0x0 ^ 48) == 0) {
-              call_0x6cb1c0(global_0x844b680->field_0x0[((prev_0x0_1 >> 16) >> 13) * 8][(prev_0x0_1 >> 16 & 0x1fff) * 8], v_rdi_2, rcx->field_0x30, 0);
-            } else if ((rcx->field_0x0 ^ 48) <= 3) {
-              call_0x6cb1c0(global_0x844b680->field_0x0[((prev_0x0_1 >> 16) >> 13) * 8][(prev_0x0_1 >> 16 & 0x1fff) * 8], v_rdi_2, rcx->field_0x30, 1);
-            } else {
-              call_0x6cb4a0(global_0x844b680->field_0x0[((prev_0x0_1 >> 16) >> 13) * 8][(prev_0x0_1 >> 16 & 0x1fff) * 8], v_rdi_2);
+          } else {
+            v_rsi_1 = rcx->field_0x30;
+          }
+          if ((rcx->field_0x0 ^ 48) == 0) {
+            call_0x6cb1c0(global_0x844b680->field_0x0[((prev_0x0_1 >> 16) >> 13) * 8][(prev_0x0_1 >> 16 & 0x1fff) * 8], v_rdi_2, rcx->field_0x30, 0);
+          } else if ((rcx->field_0x0 ^ 48) <= 3) {
+            call_0x6cb1c0(global_0x844b680->field_0x0[((prev_0x0_1 >> 16) >> 13) * 8][(prev_0x0_1 >> 16 & 0x1fff) * 8], v_rdi_2, rcx->field_0x30, 1);
+          } else {
+            call_0x6cb4a0(global_0x844b680->field_0x0[((prev_0x0_1 >> 16) >> 13) * 8][(prev_0x0_1 >> 16 & 0x1fff) * 8], v_rdi_2);
+          }
+          if (global_0x84bfcae != 0) {
+            auto ret_0x497fea0_7 = call_0x497fea0();
+            void* v_rbx_3 = ret_0x497fea0_7->field_0x0;
+            if (ret_0x497fea0_7->field_0x0 == 0) {
+              v_rbx_3 = &ret_0x497fea0_7->field_0x8;
             }
-            if (global_0x84bfcae != 0) {
-              auto ret_0x497fea0_7 = call_0x497fea0();
-              void* v_rbx_4 = ret_0x497fea0_7->field_0x0;
-              if (ret_0x497fea0_7->field_0x0 == 0) {
-                v_rbx_4 = &ret_0x497fea0_7->field_0x8;
-              }
-              v_rbx_4->field_0x4 = v_rbx_4->field_0x4 + 1;
-              call_0x5e28c00(0.0);
-              v_rbx_4->field_0x1c = v_rbx_4->field_0x1c + (rax >> 4);
-              v_rbx_4->field_0x10 = v_rbx_4->field_0x10 + v_rsi_1;
-            } else {
-              global_0x8cde99c = global_0x8cde99c + 1;
-              call_0x5e28c00(0.0);
-              global_0x8cde9b4 = global_0x8cde9b4 + (rax >> 4);
-              global_0x8cde9a8 = global_0x8cde9a8 + v_rsi_1;
-            }
+            v_rbx_3->field_0x4++;
+            auto ret_0x5e28c00_8 = call_0x5e28c00(0.0);
+            v_rbx_3->field_0x1c = v_rbx_3->field_0x1c + (ret_0x5e28c00_8 >> 4);
+            v_rbx_3->field_0x10 = v_rbx_3->field_0x10 + v_rsi_1;
+          } else {
+            global_0x8cde99c++;
+            auto ret_0x5e28c00_6 = call_0x5e28c00(0.0);
+            global_0x8cde9b4 = global_0x8cde9b4 + (ret_0x5e28c00_6 >> 4);
+            global_0x8cde9a8 = global_0x8cde9a8 + v_rsi_1;
           }
         }
       }
@@ -1310,7 +1315,7 @@ Operação  : 0x461938e: mov/math reg, [flag] ; fn=0x461918e..0x4619711
 
   [Child Bytecode Hex 0x4668dc0..0x4668e33]
   0x4668dc0: 48 89 5c 24 08 | 48 89 74 24 10 | 57 | 48 83 ec 30
-  0x4668dcf: 48 8b 39 | 48 85 ff | 74 4c | 0f 10 47 08
+  0x4668dcf: 48 8b 39 | 48 85 ff | cc cc | 0f 10 47 08
   0x4668ddb: 0f 11 44 24 20 | 66 48 0f 7e c1 | 48 85 c9 | 74 30
   0x4668dea: 48 8b 74 24 28 | 90 | 48 8d 04 31 | 48 8b 70 f8
   0x4668df8: 48 8b 58 f0 | e8 bf cc 2e 00 | 48 8b cb | 48 85 db
