@@ -6,18 +6,19 @@ Operação  : 0x35ba7bc: mov/math reg, [flag] ; fn=0x35ba660..0x35ba8b3
 
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::RenderTexture)] ===
-    Classe  : RBX::RenderTexture (RTTI Resolvido)
+    Classe  : RBX::RenderTexture (Inferido)
     Padrão  : FIntRenderTextureOrphanMaxBudgetMB = 64 (default) [int, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : RenderTextureOrphanMaxBudgetMB << 20 < 0
-    Fórmula : (double)((RenderTextureOrphanMaxBudgetMB << 20) >> 1 | RenderTextureOrphanMaxBudgetMB << 20 & 0x1)
+    Fórmula : (double)((uint64_t)(RenderTextureOrphanMaxBudgetMB << 20) >> 1 | RenderTextureOrphanMaxBudgetMB << 20 & 0x1)
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x35baa2f (in fn_0x35ba8f0): call 0x35ba660  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
     Wasm    : .data=0x12ee440 [via FIntRenderTextureOrphanMinBudgetMB]
     [Wasm]  : w2c_WebClient_f125563(&RenderTextureOrphanMinBudgetMB, "FIntRenderTextureOrphanMinBudgetMB", 16)
-    [XREF #2 @0x35c624a] Classe  : RBX::RenderTexture (RTTI Resolvido)
-    [XREF #2 @0x35c624a] Fórmula : RenderTextureOrphanMaxBudgetMB < ((int64_t)fxmm1_2 + v_rax_1) >> 20
+    [XREF #2 @0x35c624a] Classe  : RBX::RenderTexture (Inferido)
+    [XREF #2 @0x35c624a] Fórmula : RenderTextureOrphanMaxBudgetMB < (uint64_t)((int64_t)fxmm1_2 + v_rax_1) >> 20
+    [XREF #2 @0x35c624a] Fórmula : std::clamp((uint64_t)param_2 >> 20, RenderTextureOrphanMinBudgetMB, RenderTextureOrphanMaxBudgetMB)
     [XREF #2 @0x35c624a] Altera  : this->field_0x0->field_0x17f0
   
   === [Decompilacao C++ da Funcao 0x35ba660..0x35ba8b3] ===
@@ -38,8 +39,9 @@ Operação  : 0x35ba7bc: mov/math reg, [flag] ; fn=0x35ba660..0x35ba8b3
       auto* f_19e8 = this->field_0x19e8;
       call_0x2008390((f_19e8 != 0 ? f_19e8->field_0x18 : 0)->field_0x18, this->field_0x19f0, 1, &local_0x20);
       void* v_rbx_4 = 0;
-      if (f_19e8 != 0) {
-        v_rbx_4 = f_19e8->field_0x18;
+      auto* f_19e8_2 = this->field_0x19e8;
+      if (f_19e8_2 != 0) {
+        v_rbx_4 = f_19e8_2->field_0x18;
       }
       call_0x2008390(v_rbx_4->field_0x18, this->field_0x19f4, 1, &local_0x20);
     }
@@ -218,31 +220,16 @@ Operação  : 0x35ba7bc: mov/math reg, [flag] ; fn=0x35ba660..0x35ba8b3
     // Flag defaults: RenderTextureOrphanMaxBudgetMB = 64, TextureManager2DisableBudgetControl = false, RenderTextureOrphanMinBudgetMB = 64, RenderTextureOrphanBudgetMB = 64, TextureManager2 = 0
     void RBX::RenderTexture::func_0x35c61f0(RBX::RenderTexture* this, float param_2) {
       if (!TextureManager2DisableBudgetControl) {
-        int32_t v_rax_1 = 0;
-        double fxmm1_2;
-        if (param_2 >= 9.22337e+18) {
-          if (param_2 - 9.22337e+18 < 9.22337e+18) {
-            v_rax_1 = 0x8000000000000000;
-            fxmm1_2 = param_2 - 9.22337e+18;
-          } else {
-            fxmm1_2 = param_2 - 9.22337e+18;
-          }
-        } else {
-          fxmm1_2 = param_2;
-        }
-        int32_t v_rcx_3 = RenderTextureOrphanMaxBudgetMB;
-        if (RenderTextureOrphanMaxBudgetMB >= ((int64_t)fxmm1_2 + v_rax_1) >> 20) {
-          v_rcx_3 = max(((int64_t)fxmm1_2 + v_rax_1) >> 20, RenderTextureOrphanMinBudgetMB);
-        }
+        int32_t v_rcx_3 = std::clamp((uint64_t)param_2 >> 20, RenderTextureOrphanMinBudgetMB, RenderTextureOrphanMaxBudgetMB);
         if (global_0x84bfaab != 0) {
           call_0x4982c80(v_rcx_3, RenderTextureOrphanBudgetMB, v_rcx_3);
         } else {
           RenderTextureOrphanBudgetMB = v_rcx_3;
         }
-        if (TextureManager2 >= 6 && TextureManager2 >> 8 >= 3) {
+        if (TextureManager2 >= 6 && (uint64_t)TextureManager2 >> 8 >= 3) {
           FLog::Log("[FLog::TextureManager2] PerfControl: TextureCache: new budget {} MB  becomes new OrphanBudget {}");
         }
-        this->field_0x0->field_0x17f0 = (int64_t)fxmm1_2 + v_rax_1;
+        this->field_0x0->field_0x17f0 = (uint64_t)param_2;
       }
     }
   
@@ -377,74 +364,6 @@ Operação  : 0x35ba7bc: mov/math reg, [flag] ; fn=0x35ba660..0x35ba8b3
       *(19850200 + 0x0) = "[FLog::UIDragDetectorLog] UIDragDetector Ancestry Changed, calling onCancel";
     }
 
-[Bytecode Hex]
-  0x35ba660: 48 89 5c 24 08 | 57 | 48 83 ec 60 | 4c 8b 91 68 17 00 00
-  0x35ba671: 48 8b f9 | 4c 8b 89 50 17 00 00 | 48 8b 89 b0 17 00 00 | 8b 05 50 09 b6 04
-  0x35ba688: 4c 63 05 19 e6 b5 04 | 4c 8b 9f e8 19 00 00 | 49 c1 e0 14 | 8d 14 85 00 00 00 00
-  0x35ba6a1: 48 8b 87 d8 17 00 00 | 4c 03 ca | 4d 3b c8 | 4d 0f 42 c8
-  0x35ba6b2: 4d 3b d1 | 4d 0f 42 d1 | 48 03 ca | 49 3b c8
-  0x35ba6bf: 49 0f 42 c8 | 48 3b c8 | 48 0f 42 c8 | 48 8b 87 e0 17 00 00
-  0x35ba6d1: 48 3b c8 | 48 0f 42 c8 | 33 db | 4d 85 db
-  0x35ba6dd: cc cc | 4d 8b 5b 18 | eb 03 | 4c 8b db
-  0x35ba6e8: 0f 28 25 61 6a ff 03 | 0f 57 db | 0f 57 c0 | 4d 85 c9
-  0x35ba6f8: 78 07 | f2 49 0f 2a c1 | eb 16 | 49 8b c1
-  0x35ba704: 41 83 e1 01 | 48 d1 e8 | 49 0b c1 | f2 48 0f 2a c0
-  0x35ba713: f2 0f 58 c0 | f2 0f 11 44 24 20 | 0f 57 c0 | 4d 85 d2
-  0x35ba723: 78 07 | f2 49 0f 2a c2 | eb 16 | 49 8b c2
-  0x35ba72f: 41 83 e2 01 | 48 d1 e8 | 49 0b c2 | f2 48 0f 2a c0
-  0x35ba73e: f2 0f 58 c0 | f2 0f 11 44 24 28 | 0f 57 d2 | 48 85 c9
-  0x35ba74e: 78 07 | f2 48 0f 2a d1 | eb 15 | 48 8b c1
-  0x35ba75a: 83 e1 01 | 48 d1 e8 | 48 0b c1 | f2 48 0f 2a d0
-  0x35ba768: f2 0f 58 d2 | 0f 10 44 24 20 | 8b 97 f0 19 00 00 | 4c 8d 4c 24 20
-  0x35ba77c: 49 8b 4b 18 | 41 b0 01 | 88 5c 24 38 | 0f 10 4c 24 30
-  0x35ba78c: 0f 29 44 24 20 | f2 0f 10 ca | 0f 29 5c 24 40 | 0f 11 4c 24 30
-  0x35ba79f: 0f 29 4c 24 30 | 0f 29 64 24 50 | e8 e2 db a4 fe | 48 8b 97 30 02 00 00
-  0x35ba7b5: 48 63 0d 94 e5 b5 04 | 4c 63 05 a5 e5 b5 04 | 48 8b 87 e8 19 00 00 | 48 c1 e1 14
-  0x35ba7ce: 48 3b d1 | 48 0f 42 d1 | 49 c1 e0 14 | 48 85 c0
-  0x35ba7dc: 74 04 | 48 8b 58 18 | 0f 28 25 67 69 ff 03 | 0f 57 db
-  0x35ba7ec: 0f 57 c0 | 48 85 c9 | 78 07 | f2 48 0f 2a c1
-  0x35ba7f9: eb 15 | 48 8b c1 | 83 e1 01 | 48 d1 e8
-  0x35ba804: 48 0b c1 | f2 48 0f 2a c0 | f2 0f 58 c0 | f2 0f 11 44 24 20
-  0x35ba816: 0f 57 c0 | 48 85 d2 | 78 07 | f2 48 0f 2a c2
-  0x35ba823: eb 15 | 48 8b c2 | 83 e2 01 | 48 d1 e8
-  0x35ba82e: 48 0b c2 | f2 48 0f 2a c0 | f2 0f 58 c0 | f2 0f 11 44 24 28
-  0x35ba840: 0f 57 d2 | 4d 85 c0 | 78 07 | f2 49 0f 2a d0
-  0x35ba84d: eb 16 | 49 8b c0 | 41 83 e0 01 | 48 d1 e8
-  0x35ba859: 49 0b c0 | f2 48 0f 2a d0 | f2 0f 58 d2 | 0f 10 44 24 20
-  0x35ba86a: 8b 97 f4 19 00 00 | 4c 8d 4c 24 20 | 48 8b 4b 18 | 41 b0 01
-  0x35ba87c: c6 44 24 38 00 | 0f 10 4c 24 30 | 0f 29 44 24 20 | f2 0f 10 ca
-  0x35ba88f: 0f 29 5c 24 40 | 0f 11 4c 24 30 | 0f 29 4c 24 30 | 0f 29 64 24 50
-  0x35ba8a3: e8 e8 da a4 fe | 48 8b 5c 24 70 | 48 83 c4 60 | 5f
-  0x35ba8b2: c3
-
-  [XREF #2 Bytecode Hex 0x35c61f0..0x35c63ce]
-  0x35c61f0: 40 57 | 48 81 ec b0 00 00 00 | 48 8b 05 e0 24 b1 04 | 48 33 c4
-  0x35c6203: 48 89 84 24 a0 00 00 00 | 80 3d c6 26 b5 04 00 | 48 8b f9 | 0f 85 9a 01 00 00
-  0x35c621b: f2 0f 10 05 05 aa fd 03 | 33 c0 | 66 0f 2f c8 | 48 89 9c 24 c8 00 00 00
-  0x35c6231: 72 17 | f2 0f 5c c8 | 66 0f 2f c8 | 73 0d
-  0x35c623d: 48 b9 00 00 00 00 00 00 00 80 | 48 8b c1 | 8b 0d 18 2b b5 04 | f2 48 0f 2c d9
-  0x35c6255: 48 03 d8 | 48 8b d3 | 48 c1 ea 14 | 3b ca
-  0x35c6261: 7c 0f | 3b 15 e7 2a b5 04 | 8b ca | 0f 4c 0d de 2a b5 04
-  0x35c6272: 0f b6 05 32 98 ef 04 | 90 | 84 c0 | 74 11
-  0x35c627e: 44 8b c1 | 48 8d 15 b0 2a b5 04 | e8 f3 c9 3b 01 | eb 06
-  0x35c628f: 89 0d a3 2a b5 04 | 48 8b 05 7c 26 b5 04 | 3c 06 | 0f 82 ff 00 00 00
-  0x35c62a4: 48 c1 e8 08 | 3c 03 | 0f 82 f3 00 00 00 | f3 0f 10 05 38 85 fd 03
-  0x35c62b8: 48 8d 05 ca 61 d2 07 | 48 89 44 24 40 | 0f 57 c9 | 48 8b 54 24 40
-  0x35c62cc: 66 0f 6e 15 64 2a b5 04 | 48 81 c2 f7 d3 0c fc | 0f 5b d2 | f3 0f 59 d0
-  0x35c62e2: 48 85 db | 78 07 | f3 48 0f 2a cb | eb 18
-  0x35c62ee: 48 8b c3 | 48 8b cb | 48 d1 e9 | 83 e0 01
-  0x35c62fa: 48 0b c8 | f3 48 0f 2a c9 | f3 0f 58 c9 | f3 0f 59 c8
-  0x35c630a: 48 c7 c0 ff ff ff ff | 48 89 54 24 30 | 48 ff c0 | 80 3c 02 00
-  0x35c631d: 75 f7 | 0f 10 44 24 50 | 48 89 44 24 38 | 4c 8d 4c 24 60
-  0x35c632e: 48 8d 84 24 80 00 00 00 | 48 c7 44 24 70 99 00 00 00 | f3 0f 10 c1 | 48 89 44 24 78
-  0x35c6348: 0f 10 4c 24 60 | 4c 8d 44 24 50 | b2 03 | 0f 11 44 24 50
-  0x35c6359: c6 44 24 20 00 | 48 8d 4c 24 30 | f3 0f 10 ca | 0f 11 84 24 80 00 00 00
-  0x35c636f: 0f 28 44 24 70 | 0f 11 4c 24 60 | 66 0f 7f 44 24 60 | 0f 10 05 92 25 b5 04
-  0x35c6386: 0f 11 8c 24 90 00 00 00 | 0f 28 4c 24 30 | 0f 29 44 24 30 | 66 0f 7f 4c 24 50
-  0x35c639e: e8 2d b9 3a 01 | 48 8b 07 | 48 89 98 f0 17 00 00 | 48 8b 9c 24 c8 00 00 00
-  0x35c63b5: 48 8b 8c 24 a0 00 00 00 | 48 33 cc | e8 db e4 81 02 | 48 81 c4 b0 00 00 00
-  0x35c63cc: 5f | c3
-
 [Strings .rdata na função]
   * [FLog::UIDragDetectorLog] UIDragDetector Ancestry Changed, calling onCancel
   * [FLog::TextureManager2] PerfControl: TextureCache: new budget {} MB  becomes new OrphanBudget {}
@@ -458,7 +377,7 @@ Operação  : 0x35ba7bc: mov/math reg, [flag] ; fn=0x35ba660..0x35ba8b3
   * FLogTextureManager2 = 0 (default)
   * DFIntDebugTier2DeviceMemoryInMbs = 4096 (default) [vizinha em .data]
   * FIntTPPreviewLimit = 1 (default) [vizinha em .data]
-  * FIntRenderTextureTotalBudgetMB = 4095 (default) [vizinha em .data]
+  * FIntRenderTextureTotalBudgetMB = 1024 (default) [vizinha em .data]
   * DFFlagDebugTextureUseRedFallback = false (default) [vizinha em .data]
   * DFIntDebugFakeMemoryMB = 0 (default) [vizinha em .data]
   * FIntRenderTextureDebugVisualization = 0 (default) [vizinha em .data]

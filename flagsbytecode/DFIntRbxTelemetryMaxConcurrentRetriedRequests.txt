@@ -6,7 +6,7 @@ Operação  : 0x2dd2839: mov/math reg, [flag] ; fn=0x2dd2810..0x2dd29fc
 
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::RbxTelemetry)] ===
-    Classe  : RBX::RbxTelemetry (RTTI Resolvido)
+    Classe  : RBX::RbxTelemetry (Inferido)
     Padrão  : DFIntRbxTelemetryMaxConcurrentRetriedRequests = 1 (default) [int, mode=2]
     Papel   : Parâmetro de configuração lido diretamente pela rotina
     Fórmula : RbxTelemetryMaxConcurrentRetriedRequests
@@ -23,20 +23,24 @@ Operação  : 0x2dd2839: mov/math reg, [flag] ; fn=0x2dd2810..0x2dd29fc
     };
     
     // Flag defaults: RbxTelemetryMaxRetryAttempts = 2, RbxTelemetryMaxConcurrentRetriedRequests = 1, TelemetryBatchManager = 6
-    void RBX::RbxTelemetry::func_0x2dd2810(RBX::RbxTelemetry* this, int64_t param_2) {
+    bool RBX::RbxTelemetry::func_0x2dd2810(RBX::RbxTelemetry* this, int64_t param_2) {
+      int32_t v_r8_1 = 2;
       int32_t v_r9_2 = 1;
       if (global_0x84a44d6 != 0) {
+        v_r8_1 = RbxTelemetryMaxRetryAttempts;
         v_r9_2 = RbxTelemetryMaxConcurrentRetriedRequests;
       }
       if (this->field_0x58 >= v_r9_2) {
         if (TelemetryBatchManager >= 6) {
-          if (TelemetryBatchManager >> 8 >= 5) {
+          if ((uint64_t)TelemetryBatchManager >> 8 >= 5) {
             FLog::Log("[FLog::TelemetryBatchManager] BatchManager::canRequestBeQueued - Max concurrent retries reached ");
-            return;
+            return false;
           }
         }
-        return;
+      } else if (param_2 < v_r8_1) {
+        return true;
       }
+      return false;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -148,34 +152,6 @@ Operação  : 0x2dd2839: mov/math reg, [flag] ; fn=0x2dd2810..0x2dd29fc
     0x2dd29ef | e8 ac 1e 01 03           | call 0x5de48a0
     0x2dd29f4 | 48 81 c4 88 00 00 00     | add rsp, 0x88
     0x2dd29fb | c3                       | ret
-
-[Bytecode Hex]
-  0x2dd2810: 48 81 ec 88 00 00 00 | 48 8b 05 c2 5e 30 05 | 48 33 c4 | 48 89 44 24 70
-  0x2dd2826: 80 3d a9 1c 6d 05 00 | 41 b9 01 00 00 00 | 45 8d 41 01 | 74 0e
-  0x2dd2839: 44 8b 0d 58 85 33 05 | 44 8b 05 69 85 33 05 | 8b 41 58 | 90
-  0x2dd284b: 41 3b c1 | 0f 8c c4 00 00 00 | 48 8b 05 e5 84 33 05 | 3c 06
-  0x2dd285d: 0f 82 6b 01 00 00 | 48 c1 e8 08 | 3c 05 | 0f 82 5f 01 00 00
-  0x2dd286f: 48 8d 05 89 53 7e 05 | 48 89 44 24 50 | 48 c7 c0 ff ff ff ff | 48 8b 4c 24 50
-  0x2dd2887: 48 81 c1 41 4d da fe | 48 89 4c 24 40 | 48 ff c0 | 80 3c 01 00
-  0x2dd289a: 75 f7 | 48 89 44 24 48 | 4c 8d 44 24 40 | 0f 28 4c 24 40
-  0x2dd28ab: 48 8d 44 24 50 | 44 89 4c 24 50 | 48 8d 4c 24 60 | 0f 28 44 24 50
-  0x2dd28bf: 4c 8d 4c 24 30 | 66 0f 7f 44 24 50 | b2 05 | 48 89 44 24 38
-  0x2dd28d1: 48 c7 44 24 30 01 00 00 00 | 0f 28 44 24 30 | 66 0f 7f 44 24 30 | 0f 10 05 54 84 33 05
-  0x2dd28ec: c6 44 24 20 01 | 66 0f 7f 4c 24 40 | 0f 29 44 24 60 | e8 cf f3 b9 01
-  0x2dd2901: 32 c0 | 48 8b 4c 24 70 | 48 33 cc | e8 90 1f 01 03
-  0x2dd2910: 48 81 c4 88 00 00 00 | c3 | 41 3b d0 | 0f 8c c4 00 00 00
-  0x2dd2921: 48 8b 05 18 84 33 05 | 3c 06 | 0f 82 9e 00 00 00 | 48 c1 e8 08
-  0x2dd2934: 3c 05 | 0f 82 92 00 00 00 | 48 8d 05 4b 24 81 05 | 48 89 44 24 50
-  0x2dd2948: 48 c7 c0 ff ff ff ff | 48 8b 4c 24 50 | 48 81 c1 32 7c d7 fe | 48 89 4c 24 30
-  0x2dd2960: 48 ff c0 | 80 3c 01 00 | 75 f7 | 48 89 44 24 38
-  0x2dd296e: 4c 8d 4c 24 40 | 0f 28 4c 24 30 | 48 8d 44 24 60 | 44 89 44 24 60
-  0x2dd2982: 48 8d 4c 24 50 | 0f 28 44 24 60 | 4c 8d 44 24 30 | 66 0f 7f 44 24 60
-  0x2dd2997: b2 05 | 48 89 44 24 48 | 48 c7 44 24 40 01 00 00 00 | 0f 28 44 24 40
-  0x2dd29ac: 66 0f 7f 44 24 40 | 0f 10 05 87 83 33 05 | c6 44 24 20 01 | 66 0f 7f 4c 24 30
-  0x2dd29c4: 0f 29 44 24 50 | e8 02 f3 b9 01 | 32 c0 | 48 8b 4c 24 70
-  0x2dd29d5: 48 33 cc | e8 c3 1e 01 03 | 48 81 c4 88 00 00 00 | c3
-  0x2dd29e5: b0 01 | 48 8b 4c 24 70 | 48 33 cc | e8 ac 1e 01 03
-  0x2dd29f4: 48 81 c4 88 00 00 00 | c3
 
 [Strings .rdata na função]
   * [FLog::TelemetryBatchManager] BatchManager::canRequestBeQueued - Max concurrent retries reached 

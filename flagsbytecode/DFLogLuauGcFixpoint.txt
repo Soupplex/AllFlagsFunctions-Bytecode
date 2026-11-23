@@ -6,13 +6,11 @@ Operação  : 0x40f001e: mov/math reg, [flag] ; fn=0x40eff30..0x40f0151
 
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::LuauGc)] ===
-    Classe  : RBX::LuauGc (RTTI Resolvido)
+    Classe  : RBX::LuauGc (Inferido)
     Padrão  : DFLogLuauGcFixpoint = 6 (default) [log, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : LuauGcFixpoint < 6
-    Fórmula : LuauGcFixpoint >> 8 < 2
-    [Child @0x40edaf0] Papel   : Parâmetro de configuração lido diretamente pela rotina
-    [Child @0x40eec60] Papel   : Parâmetro de configuração lido diretamente pela rotina
+    Fórmula : (uint64_t)LuauGcFixpoint >> 8 < 2
   
   === [Decompilacao C++ da Funcao 0x40eff30..0x40f0151] ===
     struct RBX::LuauGc {
@@ -23,7 +21,7 @@ Operação  : 0x40f001e: mov/math reg, [flag] ; fn=0x40eff30..0x40f0151
     };
     
     // Flag defaults: LuauGcFixpoint = 6
-    auto RBX::LuauGc::func_0x40eff30(RBX::LuauGc* this, int64_t param_2) {
+    bool RBX::LuauGc::func_0x40eff30(RBX::LuauGc* this, int64_t param_2) {
       if (this != 0) {
         void* sel_rdx_1 = this->field_0x0 != 0 ? 0 : this->field_0x8;
         if (sel_rdx_1 != 0) {
@@ -31,13 +29,13 @@ Operação  : 0x40f001e: mov/math reg, [flag] ; fn=0x40eff30..0x40f0151
           if (param_2->field_0x80 - 0x10 != &sym_0x67dbca8) {
             return param_2->field_0x80->field_m0x4 != 0;
           }
-          return 1;
+          return true;
         }
         void* sel_rbx_2 = this->field_0x0 != 1 ? 0 : this->field_0x8;
         if (sel_rbx_2 != 0) {
           auto ret_0x40eec60_1 = call_0x40eec60(sel_rbx_2->field_0x30, param_2);
           if (ret_0x40eec60_1 != 0) {
-            return 1;
+            return true;
           }
           void* stk_2;
           void* stk_3;
@@ -59,8 +57,8 @@ Operação  : 0x40f001e: mov/math reg, [flag] ; fn=0x40eff30..0x40f0151
           }
           if (stk_2 != 0) {
             if (LuauGcFixpoint >= 6) {
-              if (LuauGcFixpoint >> 8 >= 2) {
-                stk_2->vfunc_0x38(stk_2) // -> RBX::Solver::ConstraintAchievePosition::fn_0x4d35c30;
+              if ((uint64_t)LuauGcFixpoint >> 8 >= 2) {
+                stk_2->vfunc_0x38(stk_2);
                 FLog::Log("[DFLog::LuauGcFixpoint] Signal handler collected while owner "{}" ({}) is still alive");
               }
             }
@@ -69,9 +67,9 @@ Operação  : 0x40f001e: mov/math reg, [flag] ; fn=0x40eff30..0x40f0151
             call_0x6daf40(stk_3);
           }
           L_0x40f012e:
-          return 0;
+          return false;
         }
-        return 0;
+        return false;
       }
       goto L_0x40f012e;
     }
@@ -217,8 +215,8 @@ Operação  : 0x40f001e: mov/math reg, [flag] ; fn=0x40eff30..0x40f0151
     0x40f014f | 5f                       | pop rdi
     0x40f0150 | c3                       | ret
   
-  === [Sub-Rotina Chamada: 0x40edaf0..0x40edfbf via call @0x40eff6f (rcx = this (Direct Engine Sub-Call))] ===
-    struct RBX::LuauGc {
+  === [Sub-Rotina Chamada: 0x40edaf0..0x40edfbf via call @0x40eff6f (Direct Engine Sub-Call)] ===
+    struct SubObj_0x40edaf0 {
       /* +0x0 */ uint8_t field_0x0;
       /* +0x4 */ uint8_t field_0x4;
       /* +0x8 */ void*   field_0x8;
@@ -229,15 +227,14 @@ Operação  : 0x40f001e: mov/math reg, [flag] ; fn=0x40eff30..0x40f0151
       /* +0x80 */ void*   field_0x80;
     };
     
-    // Flag defaults: LuauGcFixpoint = 6, LuauCageSplitData = true
-    void RBX::LuauGc::func_0x40edaf0(RBX::LuauGc* this, int64_t param_2) {
+    // Flag defaults: LuauCageSplitData = true
+    void SubObj_0x40edaf0::func_0x40edaf0(SubObj_0x40edaf0* this, int64_t param_2) {
       auto ret_0xc06050_1 = call_0xc06050(param_2, &local_0x40);
       if (local_0x48 != 0) {
         call_0x6daf40(local_0x48);
       }
-      auto* f_58 = this->field_0x58;
       if (ret_0xc06050_1->field_0x0 == 0) {
-        if (&this->field_0x80->field_0x10 > f_58->field_0x18) {
+        if (&this->field_0x80->field_0x10 > this->field_0x58->field_0x18) {
           call_0x254b930(this, ret_0xc06050_1->field_0x0 + 1);
         }
         this->field_0x80->field_0xc = 0;
@@ -253,27 +250,28 @@ Operação  : 0x40f001e: mov/math reg, [flag] ; fn=0x40eff30..0x40f0151
             this->field_0x8 = f_68->field_0x50;
             f_68->field_0x50 = this;
           }
-          if (&this->field_0x80->field_0x10 > f_58->field_0x18) {
+          if (&this->field_0x80->field_0x10 > this->field_0x58->field_0x18) {
             call_0x254b930(this, 1);
           }
           void* v_rdi_4;
           if (global_0x81675d0 >= 0) {
-            void* v_rdx_2 = f_68->field_0x1b0[global_0x81675d0 * 8];
-            if (f_68->field_0x1b0[global_0x81675d0 * 8] == 0) {
-              v_rdx_2 = call_0x25a96d0(this, &f_68->field_0x1b0, &f_68->field_0x1a8, global_0x81675d0);
+            auto* f_68_2 = this->field_0x68;
+            void* v_rdx_2 = f_68_2->field_0x1b0[global_0x81675d0 * 8];
+            if (f_68_2->field_0x1b0[global_0x81675d0 * 8] == 0) {
+              v_rdx_2 = call_0x25a96d0(this, &f_68_2->field_0x1b0, &f_68_2->field_0x1a8, global_0x81675d0);
             }
             void* v_rdi_3;
             if (v_rdx_2->field_0x30 >= 0) {
               v_rdx_2->field_0x30 = v_rdx_2->field_0x30 - v_rdx_2->field_0x24;
               v_rdi_3 = &v_rdx_2->field_0x40 + v_rdx_2->field_0x30;
             } else {
-              void* prev_0x28_9 = v_rdx_2->field_0x28;
+              void* prev_0x28_10 = v_rdx_2->field_0x28;
               v_rdx_2->field_0x28 = v_rdx_2->field_0x28->field_0x8;
-              v_rdi_3 = prev_0x28_9;
+              v_rdi_3 = prev_0x28_10;
             }
             v_rdx_2->field_0x34++;
             if (v_rdx_2->field_0x28 == 0 && v_rdx_2->field_0x30 < 0) {
-              f_68->field_0x1b0[global_0x81675d0 * 8] = v_rdx_2->field_0x18;
+              this->field_0x68->field_0x1b0[global_0x81675d0 * 8] = v_rdx_2->field_0x18;
               if (v_rdx_2->field_0x18 != 0) {
                 v_rdx_2->field_0x18->field_0x10 = 0;
               }
@@ -281,7 +279,7 @@ Operação  : 0x40f001e: mov/math reg, [flag] ; fn=0x40eff30..0x40f0151
             }
             v_rdi_4 = v_rdi_3;
           } else {
-            auto vret_8 = f_68->vfunc_0x20(f_68->field_0x28, 0, 0, 112) // -> RBX::InputBinding::fn_0x40420e0;
+            auto vret_8 = this->field_0x68->vfunc_0x20(this->field_0x68->field_0x28, 0, 0, 112);
             vret_8->field_0x20 = 112;
             vret_8->field_0x10 = 0;
             vret_8->field_0x18 = 0;
@@ -294,25 +292,26 @@ Operação  : 0x40f001e: mov/math reg, [flag] ; fn=0x40eff30..0x40f0151
               vret_8->field_0x38 = 0;
             }
             if (this != 0) {
-              vret_8->field_0x8 = f_68->field_0x1a8;
-              if (f_68->field_0x1a8 != 0) {
-                f_68->field_0x1a8->field_0x0 = vret_8;
+              vret_8->field_0x8 = this->field_0x68->field_0x1a8;
+              if (this->field_0x68->field_0x1a8 != 0) {
+                this->field_0x68->field_0x1a8->field_0x0 = vret_8;
               }
-              f_68->field_0x1a8 = vret_8;
+              this->field_0x68->field_0x1a8 = vret_8;
             }
             vret_8->field_0x30 = vret_8->field_0x30 - vret_8->field_0x24;
             vret_8->field_0x34++;
             v_rdi_4 = &vret_8->field_0x40;
           }
-          f_68->field_0x38 = f_68->field_0x38 + 0x30;
-          f_68->field_0x3848[this->field_0x4 * 8] = f_68->field_0x3848[this->field_0x4 * 8] + 0x30;
-          if (f_68->field_0x668 != 0) {
-            f_68->vfunc_0x668(this, v_rdi_4, 0, 48);
+          this->field_0x68->field_0x38 = this->field_0x68->field_0x38 + 0x30;
+          this->field_0x68->field_0x3848[this->field_0x4 * 8] = this->field_0x68->field_0x3848[this->field_0x4 * 8] + 0x30;
+          if (this->field_0x68->field_0x668 != 0) {
+            this->field_0x68->vfunc_0x668(this, v_rdi_4, 0, 48);
           }
           v_rdi_4->field_0x1 = 7;
-          v_rdi_4->field_0x0 = f_68->field_0x58 & 0x3;
+          v_rdi_4->field_0x0 = this->field_0x68->field_0x58 & 0x3;
           v_rdi_4->field_0x2 = this->field_0x4;
           v_rdi_4->field_0x20 = &v_rdi_4->field_0x20;
+          auto* f_58 = this->field_0x58;
           v_rdi_4->field_0x10 = f_58 == this->field_0x20 ? this->field_0x50 : f_58->field_0x8->field_0x0->field_0x10;
           v_rdi_4->field_0x18 = 0;
           v_rdi_4->field_0x3 = 16777236;
@@ -322,67 +321,39 @@ Operação  : 0x40f001e: mov/math reg, [flag] ; fn=0x40eff30..0x40f0151
           this->field_0x80 = this->field_0x80 + 0x10;
           return;
         }
-        auto ret_0x40ec810_4 = call_0x40ec810(param_2);
-        if ((this->field_0x0 & 0x4) != 0) {
-          this->field_0x0 = this->field_0x0 & 0xfb;
-          this->field_0x8 = f_68->field_0x50;
-          f_68->field_0x50 = this;
-        }
-        if (&this->field_0x80->field_0x10 > f_58->field_0x18) {
-          call_0x254b930(this, 1);
-        }
-        auto ret_0x254b780_6 = call_0x254b780(this, -10000);
-        void* v_r8_1;
-        if (ret_0x40ec810_4 - 1 < ret_0x254b780_6->field_0x0->field_0x8) {
-          v_r8_1 = ((ret_0x40ec810_4 - 1) << 4) + ret_0x254b780_6->field_0x0->field_0x20;
-        } else if (ret_0x254b780_6->field_0x0->field_0x28 != &sym_0x67c4778) {
-          int32_t tmp_3 = ((((double)ret_0x40ec810_4 >> 32) >> 18 ^ (double)ret_0x40ec810_4) * 1540483477 >> 22 ^ (double)ret_0x40ec810_4 >> 32) * 1540483477 >> 17 ^ (((double)ret_0x40ec810_4 >> 32) >> 18 ^ (double)ret_0x40ec810_4) * 1540483477;
-          int32_t tmp_4 = tmp_3 * 1540483477 >> 19 ^ ((((double)ret_0x40ec810_4 >> 32) >> 18 ^ (double)ret_0x40ec810_4) * 1540483477 >> 22 ^ (double)ret_0x40ec810_4 >> 32) * 1540483477;
-          uint64_t i_r8d = (((1 << ret_0x254b780_6->field_0x0->field_0x4) - 1 & tmp_4 * 1540483477) << 5) + ret_0x254b780_6->field_0x0->field_0x28;
-          L_0x40edf50:
-          do { // L_0x40edf50
-            if ((i_r8d->field_0x1c & 0xf) == 3 && !isnan(i_r8d->field_0x10) && !isnan((double)ret_0x40ec810_4)) {
-              if (i_r8d->field_0x10 == (double)ret_0x40ec810_4) break;
-              if ((i_r8d->field_0x1c & 0xfffffff0) == 0) break;
-              i_r8d = i_r8d + ((i_r8d->field_0x1c >> 4) << 5);
-            } else {
-              if ((i_r8d->field_0x1c & 0xfffffff0) == 0) break;
-              i_r8d = i_r8d + ((i_r8d->field_0x1c >> 4) << 5);
-            }
-            L_0x40edf8a:
-            this->field_0x80->field_0x0 = v_r8_1->field_0x0;
-            this->field_0x80 = this->field_0x80 + 0x10;
-            return;
-          } while (true); // loop -> L_0x40edf50
-          L_0x40edf83:
-          v_r8_1 = &sym_0x67dbca8;
-        } else {
-          v_r8_1 = &sym_0x67dbca8;
-        }
-        this->field_0x80->field_0x0 = v_r8_1->field_0x0;
-        this->field_0x80 = this->field_0x80 + 0x10;
-        return;
       }
       auto ret_0x40ec810_4 = call_0x40ec810(param_2);
       if ((this->field_0x0 & 0x4) != 0) {
-        goto L_0x40ede55;
+        this->field_0x0 = this->field_0x0 & 0xfb;
+        auto* f_68_3 = this->field_0x68;
+        this->field_0x8 = f_68_3->field_0x50;
+        f_68_3->field_0x50 = this;
       }
-      if (&this->field_0x80->field_0x10 > f_58->field_0x18) {
+      if (&this->field_0x80->field_0x10 > this->field_0x58->field_0x18) {
         call_0x254b930(this, 1);
       }
       auto ret_0x254b780_6 = call_0x254b780(this, -10000);
-      void* v_r8_1;
+      uint64_t v_r8_1;
       if (ret_0x40ec810_4 - 1 < ret_0x254b780_6->field_0x0->field_0x8) {
         v_r8_1 = ((ret_0x40ec810_4 - 1) << 4) + ret_0x254b780_6->field_0x0->field_0x20;
-      } else if (ret_0x254b780_6->field_0x0->field_0x28 != &sym_0x67c4778) {
-        int32_t tmp_3 = ((((double)ret_0x40ec810_4 >> 32) >> 18 ^ (double)ret_0x40ec810_4) * 1540483477 >> 22 ^ (double)ret_0x40ec810_4 >> 32) * 1540483477 >> 17 ^ (((double)ret_0x40ec810_4 >> 32) >> 18 ^ (double)ret_0x40ec810_4) * 1540483477;
-        int32_t tmp_4 = tmp_3 * 1540483477 >> 19 ^ ((((double)ret_0x40ec810_4 >> 32) >> 18 ^ (double)ret_0x40ec810_4) * 1540483477 >> 22 ^ (double)ret_0x40ec810_4 >> 32) * 1540483477;
-        uint64_t i_r8d = (((1 << ret_0x254b780_6->field_0x0->field_0x4) - 1 & tmp_4 * 1540483477) << 5) + ret_0x254b780_6->field_0x0->field_0x28;
-        goto L_0x40edf50;
       } else {
-        goto L_0x40edf83;
+        if (ret_0x254b780_6->field_0x0->field_0x28 != &sym_0x67c4778) {
+          int32_t tmp_3 = (uint32_t)(((uint32_t)((uint64_t)(double)ret_0x40ec810_4 >> 32) >> 18 ^ (double)ret_0x40ec810_4) * 1540483477) >> 22 ^ (uint64_t)(double)ret_0x40ec810_4 >> 32;
+          int32_t tmp_4 = (uint32_t)(tmp_3 * 1540483477) >> 17 ^ ((uint32_t)((uint64_t)(double)ret_0x40ec810_4 >> 32) >> 18 ^ (double)ret_0x40ec810_4) * 1540483477 * 1540483477;
+          int64_t tmp_5 = (((1 << ret_0x254b780_6->field_0x0->field_0x4) - 1 & ((uint32_t)tmp_4 >> 19 ^ tmp_3 * 1540483477) * 1540483477) << 5) + ret_0x254b780_6->field_0x0->field_0x28;
+          uint64_t i_r8d = tmp_5;
+          do { // L_0x40edf50
+            if ((i_r8d->field_0x1c & 0xf) == 3 && !isnan(i_r8d->field_0x10) && !isnan((double)ret_0x40ec810_4)) {
+              if (i_r8d->field_0x10 == (double)ret_0x40ec810_4) break;
+            }
+            if ((i_r8d->field_0x1c & 0xfffffff0) == 0) break;
+            i_r8d = i_r8d + ((i_r8d->field_0x1c >> 4) << 5);
+          } while (true); // loop -> L_0x40edf50
+        }
+        v_r8_1 = &sym_0x67dbca8;
       }
-      goto L_0x40edf8a;
+      this->field_0x80->field_0x0 = v_r8_1->field_0x0;
+      this->field_0x80 = this->field_0x80 + 0x10;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x40edaf0..0x40edfbf)] ===
@@ -730,14 +701,14 @@ Operação  : 0x40f001e: mov/math reg, [flag] ; fn=0x40eff30..0x40f0151
     0x40edfb7 | 48 8b cb                 | mov rcx, rbx
     0x40edfba | e8 a1 1c 46 fe           | call 0x254fc60
   
-  === [Sub-Rotina Chamada: 0x40eec60..0x40eef28 via call @0x40effc4 (rcx = this (Direct Engine Sub-Call))] ===
-    struct RBX::LuauGc {
+  === [Sub-Rotina Chamada: 0x40eec60..0x40eef28 via call @0x40effc4 (Direct Engine Sub-Call)] ===
+    struct SubObj_0x40eec60 {
       /* +0x0 */ void*   field_0x0;
       /* +0x14 */ int32_t field_0x14;
     };
     
-    // Flag defaults: LuauGcFixpoint = 6, LuauCageSplitData = true
-    auto RBX::LuauGc::func_0x40eec60(RBX::LuauGc* this, int64_t param_2) {
+    // Flag defaults: LuauCageSplitData = true
+    bool SubObj_0x40eec60::func_0x40eec60(SubObj_0x40eec60* this, int64_t param_2) {
       if (param_2->field_0x68->field_0x2f0 != this->field_0x0) {
         if (param_2->field_0x68->field_0x38 >= param_2->field_0x68->field_0x30) {
           call_0x2575e10(param_2, 1);
@@ -775,7 +746,7 @@ Operação  : 0x40f001e: mov/math reg, [flag] ; fn=0x40eff30..0x40f0151
           }
           v_rdi_3 = v_rdi_2;
         } else {
-          auto vret_4 = param_2->field_0x68->vfunc_0x20(param_2->field_0x68->field_0x28, 0, 0, 112) // -> RBX::InputBinding::fn_0x40420e0;
+          auto vret_4 = param_2->field_0x68->vfunc_0x20(param_2->field_0x68->field_0x28, 0, 0, 112);
           vret_4->field_0x20 = 112;
           vret_4->field_0x10 = 0;
           vret_4->field_0x18 = 0;
@@ -814,7 +785,7 @@ Operação  : 0x40f001e: mov/math reg, [flag] ; fn=0x40eff30..0x40f0151
         param_2->field_0x80->field_0x0 = v_rdi_3;
         param_2->field_0x80->field_0xc = 7;
         param_2->field_0x80 = param_2->field_0x80 + 0x10;
-        return 1;
+        return true;
       }
       auto ret_0x25506c0_1 = call_0x25506c0(param_2, this->field_0x14);
       return ret_0x25506c0_1 != 0;
@@ -1020,169 +991,6 @@ Operação  : 0x40f001e: mov/math reg, [flag] ; fn=0x40eff30..0x40f0151
     0x40eef1b | ba 04 00 00 00           | mov edx, 0x4
     0x40eef20 | 48 8b cb                 | mov rcx, rbx
     0x40eef23 | e8 88 2c 46 fe           | call 0x2551bb0
-
-[Bytecode Hex]
-  0x40eff30: 48 89 5c 24 18 | 57 | 48 81 ec c0 00 00 00 | 48 8b 05 9c 87 fe 03
-  0x40eff44: 48 33 c4 | 48 89 84 24 b0 00 00 00 | 48 8b fa | 48 85 c9
-  0x40eff55: 0f 84 d3 01 00 00 | 48 8d 51 08 | 33 c0 | 39 01
-  0x40eff63: 48 0f 45 d0 | 48 85 d2 | 74 3d | 48 8b cf
-  0x40eff6f: e8 7c db ff ff | 48 8b 87 80 00 00 00 | 48 83 e8 10 | 48 8d 0d 22 bd 6e 02
-  0x40eff86: 48 3b c1 | 75 11 | 48 c7 c0 ff ff ff ff | 85 c0
-  0x40eff94: 0f 95 c0 | e9 94 01 00 00 | 8b 40 0c | 85 c0
-  0x40effa1: 0f 95 c0 | e9 87 01 00 00 | 48 8d 59 08 | 83 39 01
-  0x40effb0: 48 0f 45 d8 | 48 85 db | 0f 84 71 01 00 00 | 48 8b d7
-  0x40effc0: 48 8b 4b 30 | e8 97 ec ff ff | 84 c0 | 74 07
-  0x40effcd: b0 01 | e9 5c 01 00 00 | 0f 57 c0 | f3 0f 7f 44 24 30
-  0x40effdd: 48 8b 53 28 | 48 85 d2 | 74 2c | 8b 42 08
-  0x40effe9: 85 c0 | 74 25 | 0f 1f 00 | 8d 48 01
-  0x40efff3: f0 0f b1 4a 08 | 74 06 | 85 c0 | 75 f2
-  0x40efffe: eb 12 | 48 8b 43 20 | 48 89 44 24 30 | 48 8b 43 28
-  0x40f000d: 48 89 44 24 38 | 48 83 7c 24 30 00 | 0f 84 01 01 00 00 | 48 8b 05 bb 80 03 04
-  0x40f0025: 3c 06 | 0f 82 f2 00 00 00 | 48 c1 e8 08 | 3c 02
-  0x40f0033: 0f 82 e6 00 00 00 | 48 8d 05 a6 4c 58 03 | 48 89 44 24 50 | 48 8b 5c 24 50
-  0x40f004a: 48 81 c3 ca a3 db ff | 48 8b 7c 24 30 | 48 8b 07 | 48 8b cf
-  0x40f005c: 48 8b 40 38 | ff 15 da 9c 34 02 | 48 8b d0 | 48 83 78 18 10
-  0x40f006e: 72 03 | 48 8b 10 | 48 8b 4f 68 | 48 83 79 18 10
-  0x40f007c: 72 03 | 48 8b 09 | 48 89 5c 24 40 | 48 c7 c0 ff ff ff ff
-  0x40f008d: 0f 1f 00 | 48 ff c0 | 80 3c 03 00 | 75 f7
-  0x40f0099: 48 89 44 24 48 | 48 89 4c 24 60 | 48 89 54 24 70 | 0f 10 44 24 60
-  0x40f00ad: 0f 11 84 24 90 00 00 00 | 0f 10 4c 24 70 | 0f 11 8c 24 a0 00 00 00 | 48 c7 84 24 80 00 00 00 cc 00 00 00
-  0x40f00ce: 48 8d 84 24 90 00 00 00 | 48 89 84 24 88 00 00 00 | 0f 28 84 24 80 00 00 00 | 66 0f 7f 44 24 70
-  0x40f00ec: 0f 28 4c 24 40 | 66 0f 7f 4c 24 60 | 0f 10 05 e2 7f 03 04 | 0f 29 44 24 40
-  0x40f0103: c6 44 24 20 01 | 4c 8d 4c 24 70 | 4c 8d 44 24 60 | b2 02
-  0x40f0114: 48 8d 4c 24 40 | e8 b2 1b 88 00 | 90 | 48 8b 4c 24 38
-  0x40f0124: 48 85 c9 | 74 05 | e8 12 ae 5e fc | 32 c0
-  0x40f0130: 48 8b 8c 24 b0 00 00 00 | 48 33 cc | e8 60 47 cf 01 | 48 8b 9c 24 e0 00 00 00
-  0x40f0148: 48 81 c4 c0 00 00 00 | 5f | c3
-
-  [Child Bytecode Hex 0x40edaf0..0x40edfbf]
-  0x40edaf0: 40 53 | 56 | 57 | 48 83 ec 60
-  0x40edaf8: 48 8b fa | 48 8b d9 | 48 8b cf | 48 8d 54 24 40
-  0x40edb06: e8 45 85 b1 fc | 48 8b 4c 24 48 | 48 8b 30 | 48 85 c9
-  0x40edb16: 74 05 | e8 23 d4 5e fc | 48 85 f6 | 75 44
-  0x40edb22: 48 8b 4b 58 | 48 8b 83 80 00 00 00 | 48 83 c0 10 | 48 3b 41 18
-  0x40edb35: 76 13 | 8d 56 01 | 48 8b cb | e8 ee dd 45 fe
-  0x40edb42: 85 c0 | 0f 84 5e 04 00 00 | 48 8b 83 80 00 00 00 | 33 f6
-  0x40edb53: 89 70 0c | 48 83 83 80 00 00 00 10 | 48 83 c4 60 | 5f
-  0x40edb63: 5e | 5b | c3 | 48 8d 54 24 40
-  0x40edb6b: 48 8b cf | e8 dd 84 b1 fc | 48 8b 44 24 40 | 48 8b 4c 24 48
-  0x40edb7d: 48 85 c0 | 0f 84 b3 02 00 00 | 48 8b 70 28 | 48 85 c9
-  0x40edb8d: 74 05 | e8 ac d3 5e fc | 48 85 f6 | 0f 84 a6 02 00 00
-  0x40edb9d: 48 8b 46 68 | 48 8b 53 68 | 48 8b 88 f0 02 00 00 | 48 39 8a f0 02 00 00
-  0x40edbb3: 0f 84 8a 02 00 00 | 48 8b 42 30 | 48 39 42 38 | 72 0a
-  0x40edbc3: b2 01 | 48 8b cb | e8 43 82 48 fe | 0f b6 03
-  0x40edbd0: a8 04 | 74 14 | 48 8b 4b 68 | 24 fb
-  0x40edbda: 88 03 | 48 8b 41 50 | 48 89 43 08 | 48 89 59 50
-  0x40edbe8: 48 8b 4b 58 | 48 8b 83 80 00 00 00 | 48 83 c0 10 | 48 3b 41 18
-  0x40edbfb: 76 15 | ba 01 00 00 00 | 48 8b cb | e8 26 dd 45 fe
-  0x40edc0a: 85 c0 | 0f 84 96 03 00 00 | 48 8b 43 58 | 48 89 ac 24 80 00 00 00
-  0x40edc1e: 4c 89 a4 24 88 00 00 00 | 4c 89 ac 24 98 00 00 00 | 48 3b 43 20 | 75 06
-  0x40edc34: 4c 8b 63 50 | eb 0b | 48 8b 40 08 | 48 8b 08
-  0x40edc41: 4c 8b 61 10 | 48 0f be 05 83 99 07 04 | 44 0f b6 6b 04 | 48 8b 6b 68
-  0x40edc56: 85 c0 | 0f 88 9d 00 00 00 | 48 8b 94 c5 b0 01 00 00 | 4c 89 74 24 58
-  0x40edc6b: 4c 89 7c 24 50 | 4c 8b f8 | 48 85 d2 | 75 21
-  0x40edc78: 88 54 24 20 | 4c 8d 85 a8 01 00 00 | 48 8d 95 b0 01 00 00 | 44 0f b6 c8
-  0x40edc8e: 48 8b cb | e8 3a ba 4b fe | 48 8b d0 | 4c 63 42 30
-  0x40edc9d: 45 85 c0 | 78 11 | 48 8d 7a 40 | 49 03 f8
-  0x40edca9: 44 2b 42 24 | 44 89 42 30 | eb 0c | 48 8b 7a 28
-  0x40edcb7: 48 8b 47 08 | 48 89 42 28 | ff 42 34 | 33 f6
-  0x40edcc4: 48 39 72 28 | 75 22 | 45 85 c0 | 79 1d
-  0x40edccf: 48 8b 42 18 | 4a 89 84 fd b0 01 00 00 | 48 8b 42 18 | 48 85 c0
-  0x40edce2: 74 04 | 48 89 70 10 | 48 89 72 18 | 4c 8b 7c 24 50
-  0x40edcf1: 4c 8b 74 24 58 | e9 83 00 00 00 | 48 8b 45 20 | 48 8d bd a8 01 00 00
-  0x40edd06: 48 8b 4d 28 | 41 b9 70 00 00 00 | 45 33 c0 | 33 d2
-  0x40edd15: ff 15 25 c0 34 02 | 48 8b c8 | 48 85 c0 | 0f 84 99 02 00 00
-  0x40edd27: 33 f6 | c7 40 20 70 00 00 00 | 48 89 70 10 | 48 89 70 18
-  0x40edd38: 48 89 30 | 48 89 70 08 | 48 89 70 28 | 48 89 70 30
-  0x40edd47: c7 40 24 30 00 00 00 | 40 38 35 53 9c 07 04 | 74 03 | 89 70 38
-  0x40edd5a: 48 85 ff | 74 12 | 48 8b 07 | 48 89 41 08
-  0x40edd66: 48 85 c0 | 74 03 | 48 89 08 | 48 89 0f
-  0x40edd71: 8b 41 24 | 48 8d 79 40 | 29 41 30 | ff 41 34
-  0x40edd7e: 48 85 ff | 0f 84 39 02 00 00 | 48 83 45 38 30 | 4a 83 84 ed 48 38 00 00 30
-  0x40edd95: 48 8b 85 68 06 00 00 | 48 85 c0 | 74 26 | 89 74 24 30
-  0x40edda5: 41 b9 30 00 00 00 | c7 44 24 28 07 00 00 00 | 45 33 c0 | 48 8b d7
-  0x40eddb9: 44 88 6c 24 20 | 48 8b cb | ff 15 79 bf 34 02 | 48 8b 43 68
-  0x40eddcb: 48 8b ac 24 80 00 00 00 | 4c 8b ac 24 98 00 00 00 | 0f b6 48 58 | c6 47 01 07
-  0x40edde3: 80 e1 03 | 88 0f | 48 8d 0d 11 f3 ff ff | 0f b6 43 04
-  0x40eddf3: 88 47 02 | 48 8d 47 20 | 48 89 00 | 4c 89 67 10
-  0x40ede01: 4c 8b a4 24 88 00 00 00 | 48 89 77 18 | c7 47 03 14 00 00 01 | 48 89 4f 28
-  0x40ede18: 48 8b 83 80 00 00 00 | 48 89 38 | c7 40 0c 07 00 00 00 | 48 83 83 80 00 00 00 10
-  0x40ede31: 48 83 c4 60 | 5f | 5e | 5b
-  0x40ede38: c3 | 48 85 c9 | 74 05 | e8 fd d0 5e fc
-  0x40ede43: 48 8b cf | e8 c5 e9 ff ff | 0f b6 0b | 8b f0
-  0x40ede50: f6 c1 04 | 74 15 | 48 8b 53 68 | 80 e1 fb
-  0x40ede5c: 88 0b | 48 8b 4a 50 | 48 89 4b 08 | 48 89 5a 50
-  0x40ede6a: 48 8b 4b 58 | bf 01 00 00 00 | 48 8b 83 80 00 00 00 | 48 83 c0 10
-  0x40ede7e: 48 3b 41 18 | 76 12 | 8b d7 | 48 8b cb
-  0x40ede89: e8 a2 da 45 fe | 85 c0 | 0f 84 12 01 00 00 | ba f0 d8 ff ff
-  0x40ede9b: 48 8b cb | e8 dd d8 45 fe | 48 8b 08 | 8d 46 ff
-  0x40edea9: 3b 41 08 | 73 13 | 8d 46 ff | 4c 63 c0
-  0x40edeb4: 49 c1 e0 04 | 4c 03 41 20 | e9 c9 00 00 00 | 4c 8b 51 28
-  0x40edec5: 48 8d 05 ac 68 6d 02 | 4c 3b d0 | 0f 84 ae 00 00 00 | 0f b6 49 04
-  0x40eded9: d3 e7 | 66 0f 6e ce | ff cf | f3 0f e6 c9
-  0x40edee5: f2 0f 11 8c 24 90 00 00 00 | 48 8b 84 24 90 00 00 00 | 4c 8b c0 | 49 c1 e8 20
-  0x40edefd: 41 0f ba f0 1f | 41 8b d0 | c1 ea 12 | 33 d0
-  0x40edf0a: 44 69 ca 95 e9 d1 5b | 41 8b c1 | c1 e8 16 | 41 33 c0
-  0x40edf1a: 4c 63 c7 | 69 d0 95 e9 d1 5b | 8b c2 | c1 e8 11
-  0x40edf28: 41 33 c1 | 69 c8 95 e9 d1 5b | c1 e9 13 | 33 ca
-  0x40edf36: 69 c1 95 e9 d1 5b | 48 63 c8 | 4c 23 c1 | 49 c1 e0 05
-  0x40edf46: 4d 03 c2 | 0f 1f 80 00 00 00 00 | 49 63 48 1c | 8b c1
-  0x40edf56: 83 e0 0f | 3c 03 | 75 0e | f2 41 0f 10 40 10
-  0x40edf63: 66 0f 2e c1 | 7a 02 | 74 1f | f7 c1 f0 ff ff ff
-  0x40edf71: 74 10 | 48 8b c1 | 48 c1 f8 04 | 48 c1 e0 05
-  0x40edf7e: 4c 03 c0 | eb cd | 4c 8d 05 1e dd 6e 02 | 48 8b 83 80 00 00 00
-  0x40edf91: 41 0f 10 00 | 0f 11 00 | 48 83 83 80 00 00 00 10 | 48 83 c4 60
-  0x40edfa4: 5f | 5e | 5b | c3
-  0x40edfa8: 48 8d 15 59 b1 1d 03 | 48 8b cb | e8 e9 71 49 fe | 48 8b cb
-  0x40edfba: e8 a1 1c 46 fe
-
-  [Child Bytecode Hex 0x40eec60..0x40eef28]
-  0x40eec60: 40 53 | 48 83 ec 50 | 48 8b 01 | 48 8b da
-  0x40eec6c: 48 8b 52 68 | 48 39 82 f0 02 00 00 | 0f 84 70 02 00 00 | 48 8b 42 30
-  0x40eec81: 48 39 42 38 | 72 0a | b2 01 | 48 8b cb
-  0x40eec8c: e8 7f 71 48 fe | 0f b6 03 | a8 04 | 74 14
-  0x40eec98: 48 8b 4b 68 | 24 fb | 88 03 | 48 8b 41 50
-  0x40eeca4: 48 89 43 08 | 48 89 59 50 | 48 8b 4b 58 | 48 8b 83 80 00 00 00
-  0x40eecb7: 48 83 c0 10 | 48 3b 41 18 | 76 15 | ba 01 00 00 00
-  0x40eecc6: 48 8b cb | e8 62 cc 45 fe | 85 c0 | 0f 84 2d 02 00 00
-  0x40eecd6: 48 8b 43 58 | 48 89 6c 24 60 | 4c 89 64 24 78 | 4c 89 7c 24 40
-  0x40eece9: 48 3b 43 20 | 75 06 | 4c 8b 7b 50 | eb 0b
-  0x40eecf5: 48 8b 40 08 | 48 8b 08 | 4c 8b 79 10 | 48 0f be 0d c8 88 07 04
-  0x40eed08: 44 0f b6 63 04 | 48 8b 6b 68 | 48 89 74 24 68 | 48 89 7c 24 70
-  0x40eed1b: 85 c9 | 0f 88 8b 00 00 00 | 48 8d 95 b0 01 00 00 | 4c 89 74 24 48
-  0x40eed2f: 4c 8b 04 ca | 4c 8d 34 ca | 4d 85 c0 | 75 1b
-  0x40eed3c: 44 0f b6 c9 | c6 44 24 20 00 | 48 8b cb | 4c 8d 85 a8 01 00 00
-  0x40eed4f: e8 7c a9 4b fe | 4c 8b c0 | 49 63 50 30 | 85 d2
-  0x40eed5d: 78 11 | 49 8d 78 40 | 48 03 fa | 41 2b 50 24
-  0x40eed6a: 41 89 50 30 | eb 0c | 49 8b 78 28 | 48 8b 47 08
-  0x40eed78: 49 89 40 28 | 41 ff 40 34 | 33 f6 | 49 39 70 28
-  0x40eed86: 75 1c | 85 d2 | 79 18 | 49 8b 40 18
-  0x40eed90: 49 89 06 | 49 8b 40 18 | 48 85 c0 | 74 04
-  0x40eed9c: 48 89 70 10 | 49 89 70 18 | 4c 8b 74 24 48 | e9 83 00 00 00
-  0x40eedae: 48 8b 45 20 | 48 8d bd a8 01 00 00 | 48 8b 4d 28 | 41 b9 70 00 00 00
-  0x40eedc3: 45 33 c0 | 33 d2 | ff 15 72 af 34 02 | 48 8b c8
-  0x40eedd1: 48 85 c0 | 0f 84 41 01 00 00 | 33 f6 | c7 40 20 70 00 00 00
-  0x40eede3: 48 89 70 10 | 48 89 70 18 | 48 89 30 | 48 89 70 08
-  0x40eedf2: 48 89 70 28 | 48 89 70 30 | c7 40 24 30 00 00 00 | 40 38 35 a0 8b 07 04
-  0x40eee08: 74 03 | 89 70 38 | 48 85 ff | 74 12
-  0x40eee12: 48 8b 07 | 48 89 41 08 | 48 85 c0 | 74 03
-  0x40eee1e: 48 89 08 | 48 89 0f | 8b 41 24 | 48 8d 79 40
-  0x40eee2b: 29 41 30 | ff 41 34 | 48 85 ff | 0f 84 e1 00 00 00
-  0x40eee3a: 48 83 45 38 30 | 4a 83 84 e5 48 38 00 00 30 | 48 8b 85 68 06 00 00 | 48 85 c0
-  0x40eee52: 74 26 | 89 74 24 30 | 41 b9 30 00 00 00 | c7 44 24 28 07 00 00 00
-  0x40eee66: 45 33 c0 | 48 8b d7 | 44 88 64 24 20 | 48 8b cb
-  0x40eee74: ff 15 c6 ae 34 02 | 48 8b 43 68 | 4c 8b 64 24 78 | 48 8b 6c 24 60
-  0x40eee88: 0f b6 48 58 | c6 47 01 07 | 80 e1 03 | 88 0f
-  0x40eee95: 48 8d 0d 64 e2 ff ff | 0f b6 43 04 | 88 47 02 | 48 8d 47 20
-  0x40eeea7: 48 89 00 | 48 89 77 18 | 48 8b 74 24 68 | 4c 89 7f 10
-  0x40eeeb7: 4c 8b 7c 24 40 | c7 47 03 14 00 00 01 | 48 89 4f 28 | 48 8b 83 80 00 00 00
-  0x40eeece: 48 89 38 | 48 8b 7c 24 70 | c7 40 0c 07 00 00 00 | b0 01
-  0x40eeedf: 48 83 83 80 00 00 00 10 | 48 83 c4 50 | 5b | c3
-  0x40eeeed: 8b 51 14 | 48 8b cb | e8 c8 17 46 fe | 85 c0
-  0x40eeefa: 0f 95 c0 | 48 83 c4 50 | 5b | c3
-  0x40eef03: 48 8d 15 fe a1 1d 03 | 48 8b cb | e8 8e 62 49 fe | 48 8b cb
-  0x40eef15: e8 46 0d 46 fe | cc | ba 04 00 00 00 | 48 8b cb
-  0x40eef23: e8 88 2c 46 fe
 
 [Strings .rdata na função]
   * [DFLog::LuauGcFixpoint] Signal handler collected while owner "{}" ({}) is still alive

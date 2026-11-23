@@ -6,7 +6,7 @@ Operação  : 0x47317c0: mov/math reg, [flag] ; fn=0x47316e0..0x4731811
 
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::SlimIsr)] ===
-    Classe  : RBX::SlimIsr (RTTI Resolvido)
+    Classe  : RBX::SlimIsr (Inferido)
     Padrão  : DFIntSlimIsrSubChannelSenderMaxBandwidthBps = 0 (default) [int, mode=2]
     Papel   : Parâmetro de configuração lido diretamente pela rotina
   
@@ -19,28 +19,18 @@ Operação  : 0x47317c0: mov/math reg, [flag] ; fn=0x47316e0..0x4731811
     auto RBX::SlimIsr::func_0x47316e0(RBX::SlimIsr* this) {
       auto* f_20 = this->field_0x20;
       auto* f_20_0 = f_20->field_0x0;
-      if (!DebugHashTableMetrics && (f_20_0->field_0x3b28->field_0x510 >> 3 & 0x1) == 0) {
-        if (!NextGenReplicatorEnabledWrite4) {
-          if ((f_20_0->field_0x3b28->field_0x510 & 0x1) != 0) {
-            if (!DebugNextGenRepUsePropBlacklist) {
-              L_0x473171f:
-              if ((f_20_0->field_0x3b28->field_0x510 >> 2 & 0x1) == 0) {
-                int32_t v_rax_1 = 240;
-                if (S2PhysicsSenderRate <= 240) {
-                  v_rax_1 = max(S2PhysicsSenderRate, 10);
-                }
-                return (int32_t)(double)v_rax_1;
-              }
-            }
-          } else if ((f_20_0->field_0x3b28->field_0x510 >> 2 & 0x1) == 0) {
-            int32_t v_rax_1 = 240;
-            if (S2PhysicsSenderRate <= 240) {
-              v_rax_1 = max(S2PhysicsSenderRate, 10);
-            }
+      auto* f_20_0_3b28 = f_20_0->field_0x3b28;
+      if (!DebugHashTableMetrics && (f_20_0_3b28->field_0x510 >> 3 & 0x1) == 0) {
+        if (!NextGenReplicatorEnabledWrite4 && (f_20_0_3b28->field_0x510 & 0x1) == 0) {
+          if ((f_20_0_3b28->field_0x510 >> 2 & 0x1) == 0) {
+            int32_t v_rax_1 = std::clamp(S2PhysicsSenderRate, 10, 240);
             return (int32_t)(double)v_rax_1;
           }
-        } else if (!DebugNextGenRepUsePropBlacklist) {
-          goto L_0x473171f;
+          return (int32_t)(double)ISRSenderRate;
+        }
+        if (!DebugNextGenRepUsePropBlacklist && (f_20_0_3b28->field_0x510 >> 2 & 0x1) == 0) {
+          int32_t v_rax_1 = std::clamp(S2PhysicsSenderRate, 10, 240);
+          return (int32_t)(double)v_rax_1;
         }
       }
       return (int32_t)(double)ISRSenderRate;
@@ -143,29 +133,6 @@ Operação  : 0x47317c0: mov/math reg, [flag] ; fn=0x47316e0..0x4731811
     0x473180a | 8b 05 70 3d a0 03        | mov eax, dword ptr [rip + 0x3a03d70] ; DFIntISRSenderMaxBandwidthBps
     L_0x4731810:
     0x4731810 | c3                       | ret
-
-[Bytecode Hex]
-  0x47316e0: 80 3d 31 2a 9c 03 00 | 48 8b 41 20 | 48 8b 08 | 48 8b 89 28 3b 00 00
-  0x47316f5: 75 58 | 48 8b 89 10 05 00 00 | 0f b6 c1 | c0 e8 03
-  0x4731704: a8 01 | 75 47 | 80 3d 01 2f 9c 03 00 | 75 05
-  0x4731711: f6 c1 01 | 74 09 | 80 3d bb 2d 9c 03 00 | 75 30
-  0x473171f: c0 e9 02 | f6 c1 01 | 75 28 | 8b 0d b3 2e 9c 03
-  0x473172d: b8 f0 00 00 00 | 3b c8 | 7f 0c | ba 0a 00 00 00
-  0x473173b: 8b c1 | 3b ca | 0f 4c c2 | 66 0f 6e c0
-  0x4731746: f3 0f e6 c0 | f2 0f 2c c0 | c3 | 66 0f 6e 05 11 3e a0 03
-  0x4731757: f3 0f e6 c0 | f2 0f 2c c0 | c3 | 80 3d 21 3b a0 03 00
-  0x4731767: 74 43 | 48 8b 41 20 | 48 8b 08 | 48 8b 81 28 3b 00 00
-  0x4731777: 8b 88 28 07 00 00 | 85 c9 | 74 2b | 83 e9 01
-  0x4731784: 74 1f | 83 e9 01 | 74 13 | 83 f9 01
-  0x473178e: 74 07 | 8b 05 d2 3d a0 03 | c3 | 8b 05 3b 3d a0 03
-  0x473179d: c3 | 8b 05 4c 3d a0 03 | c3 | 8b 05 5d 3d a0 03
-  0x47317ab: c3 | 80 3d 85 3d a0 03 00 | b8 ff ff ff ff | 0f 45 05 61 3d a0 03
-  0x47317bf: c3 | 8b 05 32 3e a0 03 | 85 c0 | 75 46
-  0x47317ca: 38 05 b8 3a a0 03 | 74 38 | 48 8b 41 20 | 48 8b 08
-  0x47317d9: 48 8b 91 28 3b 00 00 | 8b 8a 2c 07 00 00 | 83 e9 01 | 74 18
-  0x47317eb: 83 e9 01 | 74 0c | 83 f9 01 | 75 15
-  0x47317f5: 8b 05 bd 3e a0 03 | c3 | 8b 05 a6 3c a0 03 | c3
-  0x4731803: 8b 05 b7 3c a0 03 | c3 | 8b 05 70 3d a0 03 | c3
 
 [Strings .rdata na função]
   (Nenhuma string literal direta neste bloco)

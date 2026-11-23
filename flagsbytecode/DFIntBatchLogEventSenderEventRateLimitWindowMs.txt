@@ -6,10 +6,11 @@ Operação  : 0x1134233: mov/math reg, [flag] ; fn=0x1134200..0x1134303
 
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::BatchLog)] ===
-    Classe  : RBX::BatchLog (RTTI Resolvido)
+    Classe  : RBX::BatchLog (Inferido)
     Padrão  : DFIntBatchLogEventSenderEventRateLimitWindowMs = 60000 (default) [int, mode=2]
     Papel   : Divisor / Taxa de frequência (Hz) usado em cálculos de intervalo e orçamento
-    Fórmula : (rdx >> 18) + ((rdx >> 18) >> 63) - ((rdx >> 18) + ((rdx >> 18) >> 63)) % (BatchLogEventSenderEventRateLimitWindowMs <= 0 ? 60000 : BatchLogEventSenderEventRateLimitWindowMs)
+    Fórmula : ((rdx >> 18) + ((uint64_t)(rdx >> 18) >> 63)) / (BatchLogEventSenderEventRateLimitWindowMs <= 0 ? 60000 : BatchLogEventSenderEventRateLimitWindowMs)
+    Fórmula : ((rdx >> 18) + ((uint64_t)(rdx >> 18) >> 63)) % (BatchLogEventSenderEventRateLimitWindowMs <= 0 ? 60000 : BatchLogEventSenderEventRateLimitWindowMs)
     Altera  : this->field_0x98, this->field_0xa0
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
@@ -23,20 +24,21 @@ Operação  : 0x1134233: mov/math reg, [flag] ; fn=0x1134200..0x1134303
     };
     
     // Flag defaults: BatchLogEventSenderEventRateLimitWindowMs = 60000, BatchLogEventSenderMaxEventsPerWindow = 0
-    void RBX::BatchLog::func_0x1134200(RBX::BatchLog* this, int64_t param_2) {
+    bool RBX::BatchLog::func_0x1134200(RBX::BatchLog* this, int64_t param_2) {
       if (BatchLogEventSenderMaxEventsPerWindow > 0) {
         call_0x5de64b0(this);
         call_0x5de6490();
-        int64_t tmp_1 = (rdx >> 18) + ((rdx >> 18) >> 63) - ((rdx >> 18) + ((rdx >> 18) >> 63)) % (BatchLogEventSenderEventRateLimitWindowMs <= 0 ? 60000 : BatchLogEventSenderEventRateLimitWindowMs);
-        if (tmp_1 != this->field_0x98) {
-          this->field_0x98 = tmp_1;
+        int64_t tmp_2 = ((rdx >> 18) + ((uint64_t)(rdx >> 18) >> 63)) % (BatchLogEventSenderEventRateLimitWindowMs <= 0 ? 60000 : BatchLogEventSenderEventRateLimitWindowMs);
+        if ((rdx >> 18) + ((uint64_t)(rdx >> 18) >> 63) - tmp_2 != this->field_0x98) {
+          this->field_0x98 = (rdx >> 18) + ((uint64_t)(rdx >> 18) >> 63) - tmp_2;
           this->field_0xa0 = 0;
         }
         if (this->field_0xa0 + param_2 > BatchLogEventSenderMaxEventsPerWindow) {
-          return;
+          return false;
         }
         this->field_0xa0 = this->field_0xa0 + param_2;
       }
+      return true;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -111,25 +113,6 @@ Operação  : 0x1134233: mov/math reg, [flag] ; fn=0x1134200..0x1134303
     0x11342fc | 48 83 c4 20              | add rsp, 0x20
     0x1134300 | 41 5e                    | pop r14
     0x1134302 | c3                       | ret
-
-[Bytecode Hex]
-  0x1134200: 48 89 5c 24 18 | 48 89 74 24 20 | 41 56 | 48 83 ec 20
-  0x1134210: 8b 35 92 48 fb 06 | 44 8b f2 | 48 8b d9 | 85 f6
-  0x113421e: 0f 8e cc 00 00 00 | b8 60 ea 00 00 | 48 89 6c 24 30 | 48 89 7c 24 38
-  0x1134233: 8b 3d 9f 48 fb 06 | 85 ff | 0f 4e f8 | e8 6d 22 cb 04
-  0x1134243: 48 8b e8 | e8 45 22 cb 04 | 48 81 fd 80 96 98 00 | 75 06
-  0x1134254: 48 6b c8 64 | eb 21 | 48 99 | 48 f7 fd
-  0x113425f: 4c 8b c0 | 48 69 c2 00 ca 9a 3b | 48 99 | 48 f7 fd
-  0x113426e: 48 8b c8 | 49 69 c0 00 ca 9a 3b | 48 03 c8 | 48 8b 6c 24 30
-  0x1134280: 48 b8 db 34 b6 d7 82 de 1b 43 | 48 f7 e9 | 8b cf | 48 8b 7c 24 38
-  0x1134294: 4c 8b c2 | 49 c1 f8 12 | 49 8b c0 | 48 c1 e8 3f
-  0x11342a2: 4c 03 c0 | 49 8b c0 | 48 99 | 48 f7 f9
-  0x11342ad: 4c 2b c2 | 4c 3b 83 98 00 00 00 | 74 11 | 4c 89 83 98 00 00 00
-  0x11342c0: c7 83 a0 00 00 00 00 00 00 00 | 8b 8b a0 00 00 00 | 41 03 ce | 3b ce
-  0x11342d5: 7e 13 | 32 c0 | 48 8b 5c 24 40 | 48 8b 74 24 48
-  0x11342e3: 48 83 c4 20 | 41 5e | c3 | 89 8b a0 00 00 00
-  0x11342f0: 48 8b 5c 24 40 | b0 01 | 48 8b 74 24 48 | 48 83 c4 20
-  0x1134300: 41 5e | c3
 
 [Strings .rdata na função]
   (Nenhuma string literal direta neste bloco)

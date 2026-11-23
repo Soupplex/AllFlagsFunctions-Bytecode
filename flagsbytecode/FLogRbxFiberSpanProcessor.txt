@@ -6,13 +6,12 @@ Operação  : 0x4defd84: mov/math reg, [flag] ; fn=0x4defd50..0x4defe37
 
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::RbxFiber)] ===
-    Classe  : RBX::RbxFiber (RTTI Resolvido)
+    Classe  : RBX::RbxFiber (Inferido)
     Padrão  : FLogRbxFiberSpanProcessor = 6 (default) [log, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : RbxFiberSpanProcessor < 6
-    Fórmula : RbxFiberSpanProcessor >> 8 < 3
+    Fórmula : (uint64_t)RbxFiberSpanProcessor >> 8 < 3
     Fórmula : "[FLog::RbxFiberSpanProcessor] span queue is full - dropping span"[0] != 0
-    [Child @0x4df03c0] Papel   : Parâmetro de configuração lido diretamente pela rotina
   
   === [Decompilacao C++ da Funcao 0x4defd50..0x4defe37] ===
     struct RBX::RbxFiber {
@@ -23,7 +22,7 @@ Operação  : 0x4defd84: mov/math reg, [flag] ; fn=0x4defd50..0x4defe37
     void RBX::RbxFiber::func_0x4defd50(RBX::RbxFiber* this) {
       if (this->field_0x48 == 0) {
         auto ret_0x4df03c0_1 = call_0x4df03c0(&this->field_0x28, param_2);
-        if (ret_0x4df03c0_1 == 0 && RbxFiberSpanProcessor >= 6 && RbxFiberSpanProcessor >> 8 >= 3) {
+        if (ret_0x4df03c0_1 == 0 && RbxFiberSpanProcessor >= 6 && (uint64_t)RbxFiberSpanProcessor >> 8 >= 3) {
           FLog::Log("[FLog::RbxFiberSpanProcessor] span queue is full - dropping span");
           return;
         }
@@ -83,53 +82,51 @@ Operação  : 0x4defd84: mov/math reg, [flag] ; fn=0x4defd50..0x4defe37
     0x4defe2f | 48 81 c4 88 00 00 00     | add rsp, 0x88
     0x4defe36 | c3                       | ret
   
-  === [Sub-Rotina Chamada: 0x4df03c0..0x4df04c9 via call @0x4defd77 (rcx = this (Direct Engine Sub-Call))] ===
-    struct RBX::RbxFiber {
+  === [Sub-Rotina Chamada: 0x4df03c0..0x4df04c9 via call @0x4defd77 (Direct Engine Sub-Call)] ===
+    struct SubObj_0x4df03c0 {
       /* +0x0 */ void*   field_0x0;
       /* +0x8 */ void*   field_0x8;
       /* +0x10 */ void*   field_0x10;
       /* +0x18 */ void*   field_0x18;
     };
     
-    // Flag defaults: RbxFiberSpanProcessor = 6
-    auto RBX::RbxFiber::func_0x4df03c0(RBX::RbxFiber* this, int64_t param_2) {
+    auto SubObj_0x4df03c0::func_0x4df03c0(SubObj_0x4df03c0* this, int64_t param_2) {
       uint8_t v_bl_1;
       auto* f_8 = this->field_0x8;
       if (this->field_0x10 - this->field_0x18 < &f_8->field_m0x1) {
-        void* i_r8d = this->field_0x10;
+        uint64_t i_r8d = this->field_0x10;
         void* i_r9d = f_8;
         do { // L_0x4df0400
-          auto* f_0 = this->field_0x0;
-          if (atomic_cas(&f_0->field_0x0[i_r8d % i_r9d * 8], 0, param_2->field_0x0) == 0) {
+          if (atomic_cas(&this->field_0x0->field_0x0[i_r8d % i_r9d * 8], 0, param_2->field_0x0) == 0) {
             if (atomic_cas(&this->field_0x10, i_r8d, i_r8d + 1) == 0) break;
             void* prev_0x0_1 = param_2->field_0x0;
-            param_2->field_0x0 = atomic_exchange(&f_0->field_0x0[i_r8d % i_r9d * 8], param_2->field_0x0);
+            param_2->field_0x0 = atomic_exchange(&this->field_0x0->field_0x0[i_r8d % i_r9d * 8], param_2->field_0x0);
             if (prev_0x0_1 != 0) {
-              param_2->field_0x0->vfunc_0x0(prev_0x0_1, 1) // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66420;
+              param_2->field_0x0->vfunc_0x0(prev_0x0_1, 1);
             }
             i_r8d = this->field_0x10;
-            i_r9d = f_8;
+            i_r9d = this->field_0x8;
             L_0x4df0478:
             v_bl_1 = 0;
             break;
           } else {
             i_r8d = this->field_0x10;
-            i_r9d = f_8;
+            i_r9d = this->field_0x8;
             v_bl_1 = 0;
             break;
           }
           if (param_2->field_0x0 == 0) {
             return v_bl_1;
           }
-          param_2->field_0x0->vfunc_0x0(param_2->field_0x0, 1) // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66420;
+          param_2->field_0x0->vfunc_0x0(param_2->field_0x0, 1);
           return v_bl_1;
-        } while (this->field_0x10 - this->field_0x18 < &f_8->field_m0x1); // loop -> L_0x4df0400
+        } while (this->field_0x10 - this->field_0x18 < &this->field_0x8->field_m0x1); // loop -> L_0x4df0400
         goto L_0x4df0478;
       } else {
         goto L_0x4df0478;
       }
       if (param_2->field_0x0 != 0) {
-        param_2->field_0x0->vfunc_0x0(param_2->field_0x0, 1) // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66420;
+        param_2->field_0x0->vfunc_0x0(param_2->field_0x0, 1);
       }
       return v_bl_1;
     }
@@ -221,43 +218,6 @@ Operação  : 0x4defd84: mov/math reg, [flag] ; fn=0x4defd50..0x4defe37
     L_0x4df04c5:
     0x4df04c5 | b3 01                    | mov bl, 0x1
     0x4df04c7 | eb b1                    | jmp 0x4df047a
-
-[Bytecode Hex]
-  0x4defd50: 48 81 ec 88 00 00 00 | 48 8b 05 82 89 2e 03 | 48 33 c4 | 48 89 44 24 70
-  0x4defd66: 0f b6 41 48 | 90 | 84 c0 | 0f 85 af 00 00 00
-  0x4defd73: 48 83 c1 28 | e8 44 06 00 00 | 84 c0 | 0f 85 9e 00 00 00
-  0x4defd84: 48 8b 05 8d 24 35 03 | 3c 06 | 0f 82 8f 00 00 00 | 48 c1 e8 08
-  0x4defd97: 3c 03 | 0f 82 83 00 00 00 | 48 8d 05 b5 9d 80 02 | 48 89 44 24 50
-  0x4defdab: 48 8b 4c 24 50 | 48 81 c1 e5 d1 ed ff | 48 89 4c 24 40 | 48 c7 c0 ff ff ff ff
-  0x4defdc3: 48 ff c0 | 80 3c 01 00 | 75 f7 | 48 89 44 24 48
-  0x4defdd1: 48 c7 44 24 30 00 00 00 00 | 48 8d 44 24 60 | 48 89 44 24 38 | 0f 28 44 24 30
-  0x4defde9: 66 0f 7f 44 24 30 | 0f 28 4c 24 40 | 66 0f 7f 4c 24 40 | 0f 10 05 17 24 35 03
-  0x4defe01: 0f 29 44 24 50 | c6 44 24 20 01 | 4c 8d 4c 24 30 | 4c 8d 44 24 40
-  0x4defe15: b2 03 | 48 8d 4c 24 50 | e8 af 1e b8 ff | 90
-  0x4defe22: 48 8b 4c 24 70 | 48 33 cc | e8 71 4a ff 00 | 48 81 c4 88 00 00 00
-  0x4defe36: c3
-
-  [Child Bytecode Hex 0x4df03c0..0x4df04c9]
-  0x4df03c0: 48 89 5c 24 10 | 48 89 74 24 18 | 57 | 48 83 ec 20
-  0x4df03cf: 48 8b 41 18 | 48 8b d9 | 90 | 33 f6
-  0x4df03d9: 4c 8b 41 10 | 48 8b fa | 90 | 4c 8b 49 08
-  0x4df03e5: 49 8b c8 | 48 2b c8 | 49 8d 41 ff | 48 3b c8
-  0x4df03f2: 0f 83 80 00 00 00 | 0f 1f 84 00 00 00 00 00 | 48 8b 0f | 33 d2
-  0x4df0405: 49 8b c0 | 49 f7 f1 | 33 c0 | 4c 8d 0c d5 00 00 00 00
-  0x4df0415: 48 8b 13 | f0 4a 0f b1 0c 0a | 75 3b | 48 89 37
-  0x4df0423: 49 8d 48 01 | 49 8b c0 | f0 48 0f b1 4b 10 | 74 77
-  0x4df0432: 48 8b 03 | 48 8b 17 | 48 89 37 | 49 87 14 01
-  0x4df043f: 48 8b 0f | 48 89 17 | 48 85 c9 | 74 11
-  0x4df044a: 48 8b 01 | ba 01 00 00 00 | 48 8b 00 | ff 15 e5 98 64 01
-  0x4df045b: 48 8b 43 18 | 90 | 4c 8b 43 10 | 90
-  0x4df0465: 4c 8b 4b 08 | 49 8b c8 | 48 2b c8 | 49 8d 41 ff
-  0x4df0473: 48 3b c8 | 72 88 | 32 db | 48 8b 0f
-  0x4df047d: 48 89 37 | 48 85 c9 | 74 11 | 4c 8b 01
-  0x4df0488: ba 01 00 00 00 | 49 8b 00 | ff 15 aa 98 64 01 | 48 8b 74 24 40
-  0x4df049b: 0f b6 c3 | 48 8b 5c 24 38 | 48 83 c4 20 | 5f
-  0x4df04a8: c3 | 48 8b 0f | 48 89 37 | 48 85 c9
-  0x4df04b2: 74 11 | 48 8b 01 | ba 01 00 00 00 | 48 8b 00
-  0x4df04bf: ff 15 7b 98 64 01 | b3 01 | eb b1
 
 [Strings .rdata na função]
   * [FLog::RbxFiberSpanProcessor] span queue is full - dropping span

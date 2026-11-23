@@ -6,11 +6,11 @@ Operação  : 0x2991bc5: cmp [flag], reg ; fn=0x2991b80..0x2991c5b
 
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::UnexpectedEvent)] ===
-    Classe  : RBX::UnexpectedEvent (RTTI Resolvido)
+    Classe  : RBX::UnexpectedEvent (Inferido)
     Padrão  : DFIntUnexpectedEventGlobalCapThrottleHP = 10000 (default) [int, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : v_r8_3 < f_18 ? min(f_18->field_0x0, UnexpectedEventGlobalCapThrottleHP) : 0
-    [XREF #2 @0x2991fd2] Classe  : RBX::UnexpectedEvent (RTTI Resolvido)
+    [XREF #2 @0x2991fd2] Classe  : RBX::UnexpectedEvent (Inferido)
     [XREF #2 @0x2991fd2] Fórmula : call_0x2963230(&local_0xa0, &local_0x50, this->field_0x18 != 0 ? min(this->field_0x18->field_0x0, UnexpectedEventGlobalCapThrottleHP) : 0, 1)
     [XREF #2 @0x2991fd2] Altera  : this->field_0x20
   
@@ -23,52 +23,35 @@ Operação  : 0x2991bc5: cmp [flag], reg ; fn=0x2991b80..0x2991c5b
     };
     
     // Flag defaults: UnexpectedEventGlobalCapIntervalSeconds = 7200, UnexpectedEventGlobalEnabled667 = true, UnexpectedEventGlobalCapThrottleHP = 10000
-    void RBX::UnexpectedEvent::func_0x2991b80(RBX::UnexpectedEvent* this) {
+    bool RBX::UnexpectedEvent::func_0x2991b80(RBX::UnexpectedEvent* this) {
       if (UnexpectedEventGlobalEnabled667) {
-        auto* f_10 = this->field_0x10;
-        auto* f_18 = this->field_0x18;
         if (this->field_0x28 == 1) {
-          if (!isnan(this->field_0x20) && !isnan(global_0x75a1440) && this->field_0x20 == global_0x75a1440) {
-            int32_t v_r8_3 = global_0x81a88d4;
-            if (global_0x81a88d4 == -1) {
-              auto ret_0x4975550_1 = call_0x4975550(this);
-              global_0x81a88d4 = ret_0x4975550_1 - (rdx >> 13) * 10000;
-              v_r8_3 = ret_0x4975550_1 - (rdx >> 13) * 10000;
-            }
-            if (v_r8_3 < f_18 ? min(f_18->field_0x0, UnexpectedEventGlobalCapThrottleHP) : 0) {
-              auto ret_0x4959ee0_2 = call_0x4959ee0();
-              int32_t v_rcx_4;
-              if (f_10 != 0) {
-                v_rcx_4 = max(f_10->field_0x0, UnexpectedEventGlobalCapIntervalSeconds);
-              } else {
-                v_rcx_4 = UnexpectedEventGlobalCapIntervalSeconds;
-              }
-              if (ret_0x4959ee0_2 - this->field_0x20 >= (double)v_rcx_4) {
-                return;
-              }
-            }
+          if (isnan(this->field_0x20) || isnan(global_0x75a1440) || this->field_0x20 != global_0x75a1440) {
+            return false;
           }
-        } else {
-          int32_t v_r8_3 = global_0x81a88d4;
-          if (global_0x81a88d4 == -1) {
-            auto ret_0x4975550_1 = call_0x4975550(this);
-            global_0x81a88d4 = ret_0x4975550_1 - (rdx >> 13) * 10000;
-            v_r8_3 = ret_0x4975550_1 - (rdx >> 13) * 10000;
+        }
+        int32_t v_r8_3 = global_0x81a88d4;
+        if (global_0x81a88d4 == -1) {
+          auto ret_0x4975550_1 = call_0x4975550(this);
+          global_0x81a88d4 = ret_0x4975550_1 - ((uint32_t)rdx >> 13) * 10000;
+          v_r8_3 = ret_0x4975550_1 - ((uint32_t)rdx >> 13) * 10000;
+        }
+        auto* f_18 = this->field_0x18;
+        if (v_r8_3 < f_18 ? min(f_18->field_0x0, UnexpectedEventGlobalCapThrottleHP) : 0) {
+          auto ret_0x4959ee0_2 = call_0x4959ee0();
+          int32_t v_rcx_4;
+          auto* f_10 = this->field_0x10;
+          if (f_10 != 0) {
+            v_rcx_4 = max(f_10->field_0x0, UnexpectedEventGlobalCapIntervalSeconds);
+          } else {
+            v_rcx_4 = UnexpectedEventGlobalCapIntervalSeconds;
           }
-          if (v_r8_3 < f_18 ? min(f_18->field_0x0, UnexpectedEventGlobalCapThrottleHP) : 0) {
-            auto ret_0x4959ee0_2 = call_0x4959ee0();
-            int32_t v_rcx_4;
-            if (f_10 != 0) {
-              v_rcx_4 = max(f_10->field_0x0, UnexpectedEventGlobalCapIntervalSeconds);
-            } else {
-              v_rcx_4 = UnexpectedEventGlobalCapIntervalSeconds;
-            }
-            if (ret_0x4959ee0_2 - this->field_0x20 >= (double)v_rcx_4) {
-              return;
-            }
+          if (ret_0x4959ee0_2 - this->field_0x20 >= (double)v_rcx_4) {
+            return true;
           }
         }
       }
+      return false;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -151,30 +134,30 @@ Operação  : 0x2991bc5: cmp [flag], reg ; fn=0x2991b80..0x2991c5b
       auto local_0xa0 = local_0xa0 | 0x1;
       call_0x2964930(&local_0xa0);
       if ((global_0x88b9080 & 0xfffffffc & 0xfffffff8) != 0) {
-        void* sel_rdx_1 = (global_0x88b9080 >> 1 & 0x1) == 0 ? global_0x88b9068 : sym_0x88b9068;
-        ((global_0x88b9080 & 0xfffffff8))->vfunc_0x0(&local_0x2f8, sel_rdx_1) // -> RBX::istreambuf_iterator::fn_0x2bf50a0;
+        uint64_t sel_rdx_1 = (global_0x88b9080 >> 1 & 0x1) == 0 ? global_0x88b9068 : sym_0x88b9068;
+        ((global_0x88b9080 & 0xfffffff8))->vfunc_0x0(&local_0x2f8, sel_rdx_1);
       }
       auto ret_0x2963eb0_3 = call_0x2963eb0(&local_0xa0, "name", 0);
       if (ret_0x2963eb0_3 != 0) {
         void* sel_rdx_2 = this->field_0x0 != 0 ? this->field_0x0 : sym_0x6647145;
-        call_0x295e9a0(ret_0x2963eb0_3, sel_rdx_2, min(0, 61440));
+        call_0x295e9a0(ret_0x2963eb0_3, sel_rdx_2, std::min<uint64_t>(0, 61440));
         if (local_0x2f8 != 0) {
-          local_0x2f8->vfunc_0x8(local_0x2f8, &local_0x40, this->field_0x0, 1) // -> RBX::AnimationKinematicJoint::fn_0x2da9080;
+          local_0x2f8->vfunc_0x8(local_0x2f8, &local_0x40, this->field_0x0, 1);
         }
       }
       auto ret_0x2963eb0_6 = call_0x2963eb0(&local_0xa0, "message", 0);
       if (ret_0x2963eb0_6 != 0) {
-        call_0x295e9a0(ret_0x2963eb0_6, param_2->field_0x0, min(param_2->field_0x8, 61440));
+        call_0x295e9a0(ret_0x2963eb0_6, param_2->field_0x0, std::min<uint64_t>(param_2->field_0x8, 61440));
         if (local_0x2f8 != 0) {
-          local_0x2f8->vfunc_0x10(local_0x2f8, &local_0x30, &local_0x40, (7 - 6)) // -> RBX::Hint::fn_0x3024460;
+          local_0x2f8->vfunc_0x10(local_0x2f8, &local_0x30, &local_0x40, 1);
         }
       }
       auto ret_0x2963eb0_9 = call_0x2963eb0(&local_0xa0, "team", 0);
       if (ret_0x2963eb0_9 != 0) {
         void* sel_rdx_3 = this->field_0x8 != 0 ? this->field_0x8 : sym_0x6647145;
-        call_0x295e9a0(ret_0x2963eb0_9, sel_rdx_3, min(0, 61440));
+        call_0x295e9a0(ret_0x2963eb0_9, sel_rdx_3, std::min<uint64_t>(0, 61440));
         if (local_0x2f8 != 0) {
-          local_0x2f8->vfunc_0x8(local_0x2f8, &local_0x40, this->field_0x8, 1) // -> RBX::AnimationKinematicJoint::fn_0x2da9080;
+          local_0x2f8->vfunc_0x8(local_0x2f8, &local_0x40, this->field_0x8, 1);
         }
       }
       void* v_rsi_1;
@@ -203,9 +186,9 @@ Operação  : 0x2991bc5: cmp [flag], reg ; fn=0x2991b80..0x2991c5b
       }
       auto ret_0x2963eb0_12 = call_0x2963eb0(&local_0xa0, "type", 0);
       if (ret_0x2963eb0_12 != 0) {
-        call_0x295e9a0(ret_0x2963eb0_12, v_rsi_3, min(v_rdi_4, 61440));
+        call_0x295e9a0(ret_0x2963eb0_12, v_rsi_3, std::min<uint64_t>(v_rdi_4, 61440));
         if (local_0x2f8 != 0) {
-          local_0x2f8->vfunc_0x10(local_0x2f8, &local_0x40, &local_0x30, 1) // -> RBX::Hint::fn_0x3024460;
+          local_0x2f8->vfunc_0x10(local_0x2f8, &local_0x40, &local_0x30, 1);
         }
       }
       auto ret_0x6fd950_15 = call_0x6fd950(32);
@@ -218,7 +201,7 @@ Operação  : 0x2991bc5: cmp [flag], reg ; fn=0x2991b80..0x2991c5b
       if (this->field_0x28 == 1 && global_0x84d6048 != 0) {
         call_0x1d48fe0(&local_0x80, &local_0x30, &local_0x40);
         local_0x50 = "UnexpectedEvent";
-        global_0x84d6048->field_0x8->vfunc_0x70(global_0x84d6048->field_0x8, &local_0x50, &local_0x80) // -> RBX::CornerWedgePoly::fn_0x2dac9b0;
+        global_0x84d6048->field_0x8->vfunc_0x70(global_0x84d6048->field_0x8, &local_0x50, &local_0x80);
         std::string::_Tidy_deallocate(local_0x50);
         std::string::_Tidy_deallocate(local_0x80);
       }
@@ -647,121 +630,6 @@ Operação  : 0x2991bc5: cmp [flag], reg ; fn=0x2991b80..0x2991c5b
     0x29922f6 | 90                       | nop
     L_0x29922f7:
     0x29922f7 | e8 84 22 48 03           | call 0x5e14580
-
-[Bytecode Hex]
-  0x2991b80: 40 53 | 48 83 ec 20 | 80 3d a3 36 77 05 00 | 48 8b d9
-  0x2991b90: 0f 84 bd 00 00 00 | 83 79 28 01 | 75 19 | f2 0f 10 41 20
-  0x2991ba1: 66 0f 2e 05 97 f8 c0 04 | 0f 8a a4 00 00 00 | 0f 85 9e 00 00 00 | 48 8b 41 18
-  0x2991bb9: 48 89 7c 24 30 | 48 85 c0 | 74 11 | 8b 38
-  0x2991bc5: 39 3d 7d 36 77 05 | 0f 4c 3d 76 36 77 05 | eb 02 | 33 ff
-  0x2991bd6: 44 8b 05 f7 6c 81 05 | 41 83 f8 ff | 75 23 | e8 68 39 fe 01
-  0x2991be8: 44 8b c0 | b8 59 17 b7 d1 | 41 f7 e0 | c1 ea 0d
-  0x2991bf6: 69 ca 10 27 00 00 | 44 2b c1 | 44 89 05 ce 6c 81 05 | 44 3b c7
-  0x2991c09: 48 8b 7c 24 30 | 7d 43 | e8 cb 82 fc 01 | 48 8b 43 10
-  0x2991c19: 0f 28 c8 | f2 0f 5c 4b 20 | 48 85 c0 | 74 11
-  0x2991c26: 8b 08 | 3b 0d 32 36 77 05 | 0f 4c 0d 2b 36 77 05 | eb 06
-  0x2991c37: 8b 0d 23 36 77 05 | 66 0f 6e c1 | f3 0f e6 c0 | 66 0f 2f c8
-  0x2991c49: 72 08 | b0 01 | 48 83 c4 20 | 5b
-  0x2991c52: c3 | 32 c0 | 48 83 c4 20 | 5b
-  0x2991c5a: c3
-
-  [XREF #2 Bytecode Hex 0x2991c60..0x29922fc]
-  0x2991c60: 48 89 5c 24 18 | 55 | 56 | 57
-  0x2991c68: 41 54 | 41 55 | 41 56 | 41 57
-  0x2991c70: 48 8d ac 24 f0 fd ff ff | 48 81 ec 10 03 00 00 | 48 8b 05 5a 6a 74 05 | 48 33 c4
-  0x2991c89: 48 89 85 08 02 00 00 | 4c 8b fa | 4c 8b f1 | 83 4d a0 01
-  0x2991c9a: 48 8d 4d a0 | e8 8d 2c fd ff | 90 | 45 33 e4
-  0x2991ca7: 4c 89 a5 a8 01 00 00 | 66 0f 6f 05 da ac c1 04 | f3 0f 7f 85 b8 01 00 00 | 44 88 a5 a8 01 00 00
-  0x2991cc5: 44 89 a5 c8 01 00 00 | c6 85 cc 01 00 00 01 | 4c 89 a5 d0 01 00 00 | f3 0f 7f 85 e0 01 00 00
-  0x2991ce2: 44 88 a5 d0 01 00 00 | 44 89 a5 f4 01 00 00 | 48 8b 0d 89 73 f2 05 | 48 8b c1
-  0x2991cfa: 48 83 e0 fc | 48 a9 f8 ff ff ff | 74 2c | 0f b6 c1
-  0x2991d09: d0 f8 | a8 01 | 48 8d 15 54 73 f2 05 | 48 0f 44 15 4c 73 f2 05
-  0x2991d1c: 48 83 e1 f8 | 48 8b 01 | 48 8d 8d f8 01 00 00 | ff 15 10 80 aa 03
-  0x2991d30: eb 0b | 0f 57 c0 | f3 0f 7f 85 f8 01 00 00 | 49 8b 3e
-  0x2991d40: 45 33 c0 | 48 8d 15 c6 3b 80 04 | 48 8d 4d a0 | e8 5d 21 fd ff
-  0x2991d53: 48 8d 35 eb 53 cb 03 | 48 c7 c3 ff ff ff ff | 41 bd 00 f0 00 00 | 48 85 c0
-  0x2991d6a: 74 74 | 48 8b d6 | 48 85 ff | 48 0f 45 d7
-  0x2991d76: 4c 8b c3 | 0f 1f 80 00 00 00 00 | 49 ff c0 | 42 80 3c 02 00
-  0x2991d88: 75 f6 | 4d 3b c5 | 4d 0f 43 c5 | 48 8b c8
-  0x2991d94: e8 07 cc fc ff | 48 8b 8d f8 01 00 00 | 48 85 c9 | 74 3b
-  0x2991da5: 48 8b 01 | 48 8d 15 61 3b 80 04 | 48 89 54 24 30 | 48 c7 44 24 38 04 00 00 00
-  0x2991dbd: 0f 28 44 24 30 | 66 0f 7f 44 24 40 | 41 b9 01 00 00 00 | 4c 8b c7
-  0x2991dd1: 48 8d 54 24 40 | 48 8b 40 08 | ff 15 60 7f aa 03 | 45 33 c0
-  0x2991de3: 48 8d 15 96 a8 80 04 | 48 8d 4d a0 | e8 bd 20 fd ff | bf 07 00 00 00
-  0x2991df8: 48 85 c0 | 74 73 | 41 0f 28 0f | 66 0f 6f c1
-  0x2991e05: 66 0f 73 d8 08 | 66 49 0f 7e c0 | 4d 3b c5 | 4d 0f 43 c5
-  0x2991e16: 66 48 0f 7e ca | 48 8b c8 | e8 7d cb fc ff | 48 8b 8d f8 01 00 00
-  0x2991e2a: 48 85 c9 | 74 41 | 48 8b 01 | 48 8d 15 47 a8 80 04
-  0x2991e39: 48 89 54 24 30 | 48 89 7c 24 38 | 41 0f 28 07 | 66 0f 7f 44 24 40
-  0x2991e4d: 0f 28 4c 24 30 | 66 0f 7f 4c 24 30 | 44 8d 4f fa | 4c 8d 44 24 40
-  0x2991e61: 48 8d 54 24 30 | 48 8b 40 10 | ff 15 d0 7e aa 03 | 4d 8b 7e 08
-  0x2991e74: 45 33 c0 | 48 8d 15 ea 3e 97 04 | 48 8d 4d a0 | e8 29 20 fd ff
-  0x2991e87: 48 85 c0 | 74 6c | 48 8b d6 | 4d 85 ff
-  0x2991e92: 49 0f 45 d7 | 48 ff c3 | 80 3c 1a 00 | 75 f7
-  0x2991e9f: 49 3b dd | 49 0f 43 dd | 4c 8b c3 | 48 8b c8
-  0x2991eac: e8 ef ca fc ff | 48 8b 8d f8 01 00 00 | 48 85 c9 | 74 3b
-  0x2991ebd: 48 8b 01 | 48 8d 15 a1 3e 97 04 | 48 89 54 24 30 | 48 c7 44 24 38 04 00 00 00
-  0x2991ed5: 0f 28 44 24 30 | 66 0f 7f 44 24 40 | 41 b9 01 00 00 00 | 4d 8b c7
-  0x2991ee9: 48 8d 54 24 40 | 48 8b 40 08 | ff 15 48 7e aa 03 | 41 8b 4e 28
-  0x2991efc: 85 c9 | 74 2b | 83 e9 01 | 74 18
-  0x2991f05: 83 f9 01 | 74 0a | 49 8b fc | 4c 89 64 24 38
-  0x2991f12: eb 28 | 48 8d 35 ed 3d 97 04 | eb 1a | 48 8d 35 d4 3d 97 04
-  0x2991f24: bf 09 00 00 00 | eb 0c | 48 8d 35 6e a7 81 04 | bf 06 00 00 00
-  0x2991f37: 48 89 7c 24 38 | 48 89 74 24 30 | 45 33 c0 | 48 8d 1d 01 68 80 04
-  0x2991f4b: 48 8b d3 | 48 8d 4d a0 | e8 59 1f fd ff | 48 85 c0
-  0x2991f5a: 74 62 | 49 3b fd | 49 0f 43 fd | 4c 8b c7
-  0x2991f66: 48 8b d6 | 48 8b c8 | e8 2f ca fc ff | 48 8b 8d f8 01 00 00
-  0x2991f78: 48 85 c9 | 74 41 | 48 8b 01 | 48 89 5c 24 40
-  0x2991f85: 48 c7 44 24 48 04 00 00 00 | 0f 28 44 24 30 | 66 0f 7f 44 24 30 | 0f 28 4c 24 40
-  0x2991f9e: 66 0f 7f 4c 24 40 | 41 b9 01 00 00 00 | 4c 8d 44 24 30 | 48 8d 54 24 40
-  0x2991fb4: 48 8b 40 10 | ff 15 82 7d aa 03 | 41 83 7e 28 01 | 40 0f 94 c7
-  0x2991fc7: 49 8b 46 18 | 48 85 c0 | 74 11 | 8b 18
-  0x2991fd2: 39 1d 70 32 77 05 | 0f 4c 1d 69 32 77 05 | eb 03 | 41 8b dc
-  0x2991fe4: 4c 89 64 24 50 | 4c 89 64 24 60 | 48 c7 44 24 68 0f 00 00 00 | c6 44 24 50 00
-  0x2991ffc: b9 20 00 00 00 | e8 4a b9 d6 fd | 48 c7 44 24 60 10 00 00 00 | 48 c7 44 24 68 1f 00 00 00
-  0x2992018: 0f 10 05 c1 3c 97 04 | 0f 11 00 | c6 40 10 00 | 48 89 44 24 50
-  0x299202b: 40 88 7c 24 20 | 41 b1 01 | 44 8b c3 | 48 8d 54 24 50
-  0x299203b: 48 8d 4d a0 | e8 ec 11 fd ff | 90 | 48 8b 44 24 68
-  0x299204a: 48 83 f8 10 | 72 2e | 48 ff c0 | 48 8b 4c 24 50
-  0x2992058: 48 8b d1 | 48 3d 00 10 00 00 | 72 15 | 48 8b 49 f8
-  0x2992067: 48 2b d1 | 48 8d 42 f8 | 48 83 f8 1f | 0f 87 73 02 00 00
-  0x2992078: e8 43 3a fc 01 | 90 | e8 5d 7e fc 01 | f2 41 0f 11 46 20
-  0x2992089: 41 83 7e 28 01 | 0f 85 59 01 00 00 | 48 8b 1d ad 3f b4 05 | 48 85 db
-  0x299209e: 0f 84 49 01 00 00 | 48 8d 05 65 3c 97 04 | 48 89 44 24 30 | 48 c7 44 24 38 09 00 00 00
-  0x29920b9: 49 8b 06 | 48 89 44 24 40 | 0f 28 44 24 40 | 66 0f 7f 44 24 70
-  0x29920cc: 48 c7 44 24 40 0c 00 00 00 | 48 8d 44 24 70 | 48 89 44 24 48 | 0f 28 44 24 40
-  0x29920e4: 66 0f 7f 44 24 40 | 0f 28 4c 24 30 | 66 0f 7f 4c 24 30 | 4c 8d 44 24 40
-  0x29920fa: 48 8d 54 24 30 | 48 8d 4d 80 | e8 d8 6e 3b ff | 90
-  0x2992109: 48 c7 44 24 68 0f 00 00 00 | 48 c7 44 24 60 0f 00 00 00 | f2 0f 10 05 fd 3b 97 04 | f2 0f 11 44 24 50
-  0x2992129: 8b 05 f9 3b 97 04 | 89 44 24 58 | 0f b7 05 f2 3b 97 04 | 66 89 44 24 5c
-  0x299213f: 0f b6 05 e8 3b 97 04 | 88 44 24 5e | c6 44 24 5f 00 | 48 8b 4b 08
-  0x2992153: 48 8b 01 | 4c 8d 45 80 | 48 8d 54 24 50 | 48 8b 40 70
-  0x2992163: ff 15 d7 7b aa 03 | 90 | 48 8b 44 24 68 | 48 83 f8 10
-  0x2992173: 72 2e | 48 ff c0 | 48 8b 4c 24 50 | 48 8b d1
-  0x2992180: 48 3d 00 10 00 00 | 72 15 | 48 8b 49 f8 | 48 2b d1
-  0x299218f: 48 8d 42 f8 | 48 83 f8 1f | 0f 87 54 01 00 00 | e8 1e 39 fc 01
-  0x29921a2: 90 | 4c 89 64 24 60 | 48 c7 44 24 68 0f 00 00 00 | c6 44 24 50 00
-  0x29921b6: 48 8b 45 98 | 48 83 f8 10 | 72 2d | 48 ff c0
-  0x29921c3: 48 8b 4d 80 | 48 8b d1 | 48 3d 00 10 00 00 | 72 15
-  0x29921d2: 48 8b 49 f8 | 48 2b d1 | 48 8d 42 f8 | 48 83 f8 1f
-  0x29921e1: 0f 87 10 01 00 00 | e8 d4 38 fc 01 | 90 | 48 8b 8d 00 02 00 00
-  0x29921f4: 48 85 c9 | 74 05 | e8 42 8d d4 fd | 48 8b 85 e8 01 00 00
-  0x2992205: 48 83 f8 10 | 72 30 | 48 ff c0 | 48 8b 8d d0 01 00 00
-  0x2992215: 48 8b d1 | 48 3d 00 10 00 00 | 72 15 | 48 8b 49 f8
-  0x2992224: 48 2b d1 | 48 8d 42 f8 | 48 83 f8 1f | 0f 87 b0 00 00 00
-  0x2992235: e8 86 38 fc 01 | 90 | 66 0f 6f 05 4d a7 c1 04 | f3 0f 7f 85 e0 01 00 00
-  0x299224b: c6 85 d0 01 00 00 00 | 48 8b 85 c0 01 00 00 | 48 83 f8 10 | 72 2c
-  0x299225f: 48 ff c0 | 48 8b 8d a8 01 00 00 | 48 8b d1 | 48 3d 00 10 00 00
-  0x2992272: 72 11 | 48 8b 49 f8 | 48 2b d1 | 48 8d 42 f8
-  0x299227f: 48 83 f8 1f | 77 60 | e8 36 38 fc 01 | 90
-  0x299228b: 66 0f 6f 05 fd a6 c1 04 | f3 0f 7f 85 b8 01 00 00 | c6 85 a8 01 00 00 00 | 48 8d 4d a0
-  0x29922a6: e8 75 02 da fd | f6 45 a0 01 | 75 0a | 48 8b 4d a8
-  0x29922b5: e8 06 38 fc 01 | 90 | 48 8b 8d 08 02 00 00 | 48 33 cc
-  0x29922c5: e8 d6 25 45 03 | 48 8b 9c 24 60 03 00 00 | 48 81 c4 10 03 00 00 | 41 5f
-  0x29922db: 41 5e | 41 5d | 41 5c | 5f
-  0x29922e2: 5e | 5d | c3 | e8 96 22 48 03
-  0x29922ea: 90 | e8 90 22 48 03 | 90 | e8 8a 22 48 03
-  0x29922f6: 90 | e8 84 22 48 03
 
 [Strings .rdata na função]
   * name

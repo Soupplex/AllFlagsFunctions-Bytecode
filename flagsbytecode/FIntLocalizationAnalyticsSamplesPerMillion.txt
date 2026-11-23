@@ -7,7 +7,7 @@ Operação  : 0x133133a: cmp byte [flag], imm8 ; fn=0x1331240..0x1331786 [via DF
 [Disassembly .text]
   === [Aviso: Sem XREF runtime direto — contexto inferido via flag vizinha DFFlagLocalizationTranslatorGcPinning2] ===
   === [Resumo do Efeito da FFlag no Engine (RBX::LocalizationTranslator)] ===
-    Classe  : RBX::LocalizationTranslator (RTTI Resolvido)
+    Classe  : RBX::LocalizationTranslator (Inferido)
     Padrão  : DFFlagLocalizationTranslatorGcPinning2 = false (default) [bool, mode=2]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
     Fórmula : !LocalizationTranslatorGcPinning2
@@ -15,10 +15,6 @@ Operação  : 0x133133a: cmp byte [flag], imm8 ; fn=0x1331240..0x1331786 [via DF
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x13311a1 (in fn_0x1331010): call 0x1331240  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
     Caller @0x1332aa0 (in fn_0x13329e0): call 0x1331240  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
-    [Child @0x13672c0] Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
-    [Child @0x1342dc0] Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
-    [Child @0x1346ba0] Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
-    [Child @0x1345510] Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
   
   === [Decompilacao C++ da Funcao 0x1331240..0x1331786] ===
     struct RBX::LocalizationTranslator {
@@ -39,8 +35,8 @@ Operação  : 0x133133a: cmp byte [flag], imm8 ; fn=0x1331240..0x1331786 [via DF
       int32_t v_rbx_3;
       if (this != 0) {
         do { // L_0x13312a2
+          atomic_try_incref(&this->field_0x10->field_0x8);
           auto* f_10 = this->field_0x10;
-          atomic_try_incref(&f_10->field_0x8);
           if (atomic_cas(&f_10->field_0x8, f_10->field_0x8, f_10->field_0x8 + 1) == 0) break;
         } while (true); // loop -> L_0x13312a2
         v_rdx_2 = this->field_0x8;
@@ -160,25 +156,21 @@ Operação  : 0x133133a: cmp byte [flag], imm8 ; fn=0x1331240..0x1331786 [via DF
         }
       }
       if (LocalizationTranslatorGcPinning2 && v_rdi_15 != 0) {
-        auto* f_498 = this->field_0x498;
         if (global_0x84a44d6 != 0 && SplitHashNoRehashOnExistingKey) {
           if (this->field_0x494 == 0) {
             call_0x1346ba0(&this->field_0x490, 16);
           } else {
-            int64_t idx_1 = f_498->field_0x8[(1 << this->field_0x4ac) * 4];
+            int64_t idx_1 = this->field_0x498->field_0x8[(1 << this->field_0x4ac) * 4];
             if (this->field_0x490 + idx_1 * 4 >= 1 << this->field_0x4ac) {
               call_0x1345510(&this->field_0x490);
             }
           }
         } else {
           if (this->field_0x490 == this->field_0x494) {
-            int32_t v_rcx_29 = 16384;
-            if (this->field_0x494 <= 16384) {
-              v_rcx_29 = max(this->field_0x494, 16);
-            }
+            int32_t v_rcx_29 = std::clamp(this->field_0x494, 16, 16384);
             call_0x1346ba0(&this->field_0x490, this->field_0x494 + v_rcx_29);
           } else if (this->field_0x494 != 0) {
-            int64_t idx_1 = f_498->field_0x8[(1 << this->field_0x4ac) * 4];
+            int64_t idx_1 = this->field_0x498->field_0x8[(1 << this->field_0x4ac) * 4];
             if (this->field_0x490 + idx_1 * 4 >= 1 << this->field_0x4ac) {
               call_0x1345510(&this->field_0x490);
             }
@@ -204,7 +196,7 @@ Operação  : 0x133133a: cmp byte [flag], imm8 ; fn=0x1331240..0x1331786 [via DF
           rcx->field_0x10->field_0x8 = param_2->field_0x8;
           rcx->field_0x10 = rcx->field_0x10 + 0x10;
         } else {
-          call_0xc6d080(((f_498->field_0x0[local_0x48 * 4] & this->field_0x4a8) << 5) + this->field_0x4a0 + 8, rcx->field_0x10, param_2);
+          call_0xc6d080(((this->field_0x498->field_0x0[local_0x48 * 4] & this->field_0x4a8) << 5) + this->field_0x4a0 + 8, rcx->field_0x10, param_2);
         }
       }
       std::string::_Tidy_deallocate(local_0x138);
@@ -215,7 +207,7 @@ Operação  : 0x133133a: cmp byte [flag], imm8 ; fn=0x1331240..0x1331786 [via DF
         call_0x6daf40(local_0x70);
       }
       if (param_3->field_0x8 != 0 && atomic_fetch_sub(&param_3->field_0x8->field_0xc, 1) == 1) {
-        param_3->field_0x8->vfunc_0x8() // -> RBX::VehicleSeat::fn_0x147a960;
+        param_3->field_0x8->vfunc_0x8();
       }
       call_0x6f8fb0(&param_4->field_0x28);
       call_0x6f8fb0(param_4);
@@ -643,23 +635,20 @@ Operação  : 0x133133a: cmp byte [flag], imm8 ; fn=0x1331240..0x1331786 [via DF
     L_0x1331781:
     0x1331781 | e8 1a 1a 41 ff           | call 0x7431a0
   
-  === [Sub-Rotina Chamada: 0x13672c0..0x1367368 via call @0x133148c (rcx = this (Direct Engine Sub-Call))] ===
-    // Flag defaults: LocalizationTranslatorGcPinning2 = false
+  === [Sub-Rotina Chamada: 0x13672c0..0x1367368 via call @0x133148c (Direct Engine Sub-Call)] ===
     void RBX::ClassDescriptor::func_0x13672c0(RBX::ClassDescriptor* this) {
       if (global_0x8cd8800 == 0) {
-        if (global_0x8d78bb8 <= rbp->field_0x58->field_0x0->field_0x0[40]) {
-          global_0x8cd8800 = &sym_0x8d78bc0;
-          return;
-        }
-        call_0x12e0(&sym_0x8d78bb8);
-        if (global_0x8d78bb8 == -1) {
-          auto ret_0x27c0390_2 = call_0x27c0390();
-          call_0x1c2c510(&sym_0x8d78bc0, &sym_0x6695d50, ret_0x27c0390_2);
-          global_0x8d78bc0 = &sym_0x7036b28;
-          call_0x5de4c80(&sym_0x63dc420);
-          call_0x14f0(&sym_0x8d78bb8);
-          global_0x8cd8800 = &sym_0x8d78bc0;
-          return;
+        if (global_0x8d78bb8 > rbp->field_0x58->field_0x0->field_0x0[40]) {
+          call_0x12e0(&sym_0x8d78bb8);
+          if (global_0x8d78bb8 == -1) {
+            auto ret_0x27c0390_2 = call_0x27c0390();
+            call_0x1c2c510(&sym_0x8d78bc0, &sym_0x6695d50, ret_0x27c0390_2);
+            global_0x8d78bc0 = &sym_0x7036b28;
+            call_0x5de4c80(&sym_0x63dc420);
+            call_0x14f0(&sym_0x8d78bb8);
+            global_0x8cd8800 = &sym_0x8d78bc0;
+            return;
+          }
         }
         global_0x8cd8800 = &sym_0x8d78bc0;
       }
@@ -708,14 +697,13 @@ Operação  : 0x133133a: cmp byte [flag], imm8 ; fn=0x1331240..0x1331786 [via DF
     0x1367366 | 5b                       | pop rbx
     0x1367367 | c3                       | ret
   
-  === [Sub-Rotina Chamada: 0x1342dc0..0x1342e97 via call @0x13314ff (rcx = this (Direct Engine Sub-Call))] ===
-    struct RBX::LocalizationTranslator {
+  === [Sub-Rotina Chamada: 0x1342dc0..0x1342e97 via call @0x13314ff (Direct Engine Sub-Call)] ===
+    struct SubObj_0x1342dc0 {
       /* +0x0 */ void*   field_0x0;
       /* +0x8 */ void*   field_0x8;
     };
     
-    // Flag defaults: LocalizationTranslatorGcPinning2 = false
-    auto RBX::LocalizationTranslator::func_0x1342dc0(RBX::LocalizationTranslator* this, int64_t param_2, void* param_3, void* param_4) {
+    auto SubObj_0x1342dc0::func_0x1342dc0(SubObj_0x1342dc0* this, int64_t param_2, void* param_3, void* param_4) {
       call_0xc700(global_0x84ae548, 1);
       call_0x13672c0();
       call_0x756470(&local_0x50, 696, 336);
@@ -777,8 +765,8 @@ Operação  : 0x133133a: cmp byte [flag], imm8 ; fn=0x1331240..0x1331786 [via DF
     0x1342e94 | 41 5e                    | pop r14
     0x1342e96 | c3                       | ret
   
-  === [Sub-Rotina Chamada: 0x1346ba0..0x1346dd6 via call @0x13315aa (rcx = this (Direct Engine Sub-Call))] ===
-    struct RBX::LocalizationTranslator {
+  === [Sub-Rotina Chamada: 0x1346ba0..0x1346dd6 via call @0x13315aa (Direct Engine Sub-Call)] ===
+    struct SubObj_0x1346ba0 {
       /* +0x0 */ int32_t field_0x0;
       /* +0x4 */ int32_t field_0x4;
       /* +0x8 */ void*   field_0x8;
@@ -787,21 +775,20 @@ Operação  : 0x133133a: cmp byte [flag], imm8 ; fn=0x1331240..0x1331786 [via DF
       /* +0x20 */ void*   field_0x20;
     };
     
-    // Flag defaults: LocalizationTranslatorGcPinning2 = false
-    void RBX::LocalizationTranslator::func_0x1346ba0(RBX::LocalizationTranslator* this, int64_t param_2) {
+    void SubObj_0x1346ba0::func_0x1346ba0(SubObj_0x1346ba0* this, int64_t param_2) {
       auto ret_0x10aea40_1 = call_0x10aea40(this, param_2);
       int32_t i_edi;
       if (this->field_0x0 != 0 && this->field_0x0 != (this->field_0x8 + (1 << this->field_0x1c) * 4)->field_0x4) {
         int64_t idx_1 = (this->field_0x8 + (1 << this->field_0x1c) * 4)->field_0x10;
         if (this->field_0x4 > 0) {
           do { // L_0x1346c04
-            if ((((this->field_0x8 + (1 << this->field_0x1c) * 4) + idx_1 * 8)->field_0x18[(i_edi >> 6) * 8] & 1 << (i_edi & 0x3f)) == 0) {
+            if ((((this->field_0x8 + (1 << this->field_0x1c) * 4) + idx_1 * 8)->field_0x18[((uint32_t)i_edi >> 6) * 8] & 1 << (i_edi & 0x3f)) == 0) {
               ret_0x10aea40_1->field_0x0[(i_edi << 5)] = (this->field_0x10 + (i_edi << 5))->field_0x0;
-              void* prev_0x18_4 = (this->field_0x10 + (i_edi << 5))->field_0x18;
+              uint64_t prev_0x18_4 = (this->field_0x10 + (i_edi << 5))->field_0x18;
               (this->field_0x10 + (i_edi << 5))->field_0x18 = 0;
-              void* prev_0x10_5 = (this->field_0x10 + (i_edi << 5))->field_0x10;
+              uint64_t prev_0x10_5 = (this->field_0x10 + (i_edi << 5))->field_0x10;
               (this->field_0x10 + (i_edi << 5))->field_0x10 = 0;
-              void* prev_0x8_6 = (this->field_0x10 + (i_edi << 5))->field_0x8;
+              uint64_t prev_0x8_6 = (this->field_0x10 + (i_edi << 5))->field_0x8;
               (this->field_0x10 + (i_edi << 5))->field_0x8 = 0;
               ret_0x10aea40_1->field_0x8[(i_edi << 5)] = prev_0x8_6;
               ret_0x10aea40_1->field_0x10[(i_edi << 5)] = prev_0x10_5;
@@ -816,11 +803,11 @@ Operação  : 0x133133a: cmp byte [flag], imm8 ; fn=0x1331240..0x1331786 [via DF
           i_edi = 0;
           do { // L_0x1346c80
             ret_0x10aea40_1->field_0x0[(i_edi << 5)] = (this->field_0x10 + (i_edi << 5))->field_0x0;
-            void* prev_0x18_1 = (this->field_0x10 + (i_edi << 5))->field_0x18;
+            uint64_t prev_0x18_1 = (this->field_0x10 + (i_edi << 5))->field_0x18;
             (this->field_0x10 + (i_edi << 5))->field_0x18 = 0;
-            void* prev_0x10_2 = (this->field_0x10 + (i_edi << 5))->field_0x10;
+            uint64_t prev_0x10_2 = (this->field_0x10 + (i_edi << 5))->field_0x10;
             (this->field_0x10 + (i_edi << 5))->field_0x10 = 0;
-            void* prev_0x8_3 = (this->field_0x10 + (i_edi << 5))->field_0x8;
+            uint64_t prev_0x8_3 = (this->field_0x10 + (i_edi << 5))->field_0x8;
             (this->field_0x10 + (i_edi << 5))->field_0x8 = 0;
             ret_0x10aea40_1->field_0x8[(i_edi << 5)] = prev_0x8_3;
             ret_0x10aea40_1->field_0x10[(i_edi << 5)] = prev_0x10_2;
@@ -833,12 +820,12 @@ Operação  : 0x133133a: cmp byte [flag], imm8 ; fn=0x1331240..0x1331786 [via DF
       int64_t local_0x30;
       int64_t local_0x40;
       int64_t local_0x70;
-      auto* f_20 = this->field_0x20;
       if (this->field_0x10 != 0) {
         local_0x70 = this->field_0x10;
         local_0x40 = (this->field_0x4 << 5) + 7 & 0xfffffff8;
         local_0x30 = 0;
-        f_20->vfunc_0x30(f_20, &local_0x70, &local_0x40, &local_0x30) // -> RBX::istreambuf_iterator::fn_0x1263750;
+        auto* f_20 = this->field_0x20;
+        f_20->vfunc_0x30(f_20, &local_0x70, &local_0x40, &local_0x30);
       }
       auto prev_0x4_7 = this->field_0x4;
       this->field_0x4 = param_2;
@@ -851,7 +838,8 @@ Operação  : 0x133133a: cmp byte [flag], imm8 ; fn=0x1331240..0x1331786 [via DF
           auto ret_0x6fdb30_5 = call_0x6fdb30(prev_0x4_7);
           local_0x70 = this->field_0x8;
           local_0x30 = &ret_0x6fdb30_5->field_0x3f & 0xffffffc0;
-          f_20->vfunc(f_20, &local_0x70, &local_0x30, &local_0x40);
+          auto* f_20_2 = this->field_0x20;
+          f_20_2->vfunc(f_20_2, &local_0x70, &local_0x30, &local_0x40);
         }
         this->field_0x8 = 0;
         this->field_0x1c = 0;
@@ -1018,8 +1006,8 @@ Operação  : 0x133133a: cmp byte [flag], imm8 ; fn=0x1331240..0x1331786 [via DF
     0x1346dd4 | 5f                       | pop rdi
     0x1346dd5 | c3                       | ret
   
-  === [Sub-Rotina Chamada: 0x1345510..0x13457b6 via call @0x1331606 (rcx = this (Direct Engine Sub-Call))] ===
-    struct RBX::LocalizationTranslator {
+  === [Sub-Rotina Chamada: 0x1345510..0x13457b6 via call @0x1331606 (Direct Engine Sub-Call)] ===
+    struct SubObj_0x1345510 {
       /* +0x0 */ int32_t field_0x0;
       /* +0x4 */ int32_t field_0x4;
       /* +0x8 */ void*   field_0x8;
@@ -1028,78 +1016,74 @@ Operação  : 0x133133a: cmp byte [flag], imm8 ; fn=0x1331240..0x1331786 [via DF
       /* +0x1c */ int32_t field_0x1c;
     };
     
-    // Flag defaults: LocalizationTranslatorGcPinning2 = false
-    void RBX::LocalizationTranslator::func_0x1345510(RBX::LocalizationTranslator* this) {
-      auto* f_8 = this->field_0x8;
-      if (f_8 != 0 && 4 << this->field_0x1c != 0) {
-        call_0x5e051b0(f_8, -1, 4 << this->field_0x1c);
+    void SubObj_0x1345510::func_0x1345510(SubObj_0x1345510* this) {
+      if (this->field_0x8 != 0 && 4 << this->field_0x1c != 0) {
+        call_0x5e051b0(this->field_0x8, -1, 4 << this->field_0x1c);
       }
       if (this->field_0x0 != 0) {
+        auto* f_8 = this->field_0x8;
         f_8->field_0x8[(1 << this->field_0x1c) * 4] = 0;
         int32_t v_rdx_1 = (f_8 + (1 << this->field_0x1c) * 4)->field_0x4;
         int32_t i_edx;
         if ((f_8 + (1 << this->field_0x1c) * 4)->field_0x4 != 0) {
           i_edx = (f_8 + (1 << this->field_0x1c) * 4)->field_0x4;
           do { // L_0x1345590
-            if ((r9->field_0x18[((i_edx - 1) >> 6) * 8] & 1ULL << (i_edx - 1 & 0x3f)) >= 0) break;
+            if ((r9->field_0x18[((uint64_t)(i_edx - 1) >> 6) * 8] & 1ULL << (i_edx - 1 & 0x3f)) >= 0) break;
             i_edx = i_edx - 1;
           } while (i_edx != 1); // loop -> L_0x1345590
         }
         (f_8 + (1 << this->field_0x1c) * 4)->field_0x4 = v_rdx_1;
-        auto* f_10 = this->field_0x10;
         if (this->field_0x0 != v_rdx_1) {
-          int64_t idx_2 = (f_8 + (1 << this->field_0x1c) * 4)->field_0x10;
+          int64_t idx_1 = (f_8 + (1 << this->field_0x1c) * 4)->field_0x10;
           if (this->field_0x4 > 0) {
             int32_t i_esi = 0;
             do { // L_0x13455e0
-              if ((((f_8 + (1 << this->field_0x1c) * 4) + idx_2 * 8)->field_0x18[(i_esi >> 6) * 8] & 1ULL << (i_esi & 0x3f)) >= 0) {
-                call_0x1346710(this, &local_0x50, (i_esi << 5) + f_10, 2);
-                f_8->field_0x0[local_0x50 * 4] = f_8->field_0x0[local_0x50 * 4] | i_esi;
+              if ((((f_8 + (1 << this->field_0x1c) * 4) + idx_1 * 8)->field_0x18[((uint64_t)i_esi >> 6) * 8] & 1ULL << (i_esi & 0x3f)) >= 0) {
+                call_0x1346710(this, &local_0x50, (i_esi << 5) + this->field_0x10, 2);
+                this->field_0x8->field_0x0[local_0x50 * 4] = this->field_0x8->field_0x0[local_0x50 * 4] | i_esi;
               }
               i_esi++;
             } while (i_esi < this->field_0x4); // loop -> L_0x13455e0
             return;
           }
-          return;
-        }
-        if (this->field_0x0 != 0) {
+        } else if (this->field_0x0 != 0) {
           uint64_t i_r8d = 0x4d72eb980136af5c;
           do { // L_0x1345670
             int32_t i_r11d = -1;
-            int32_t i_ebx = (f_10->field_0x0[i_edx << 5] >> 3) * -1640531535 >> (32 - this->field_0x1c) & 0xfffffff0;
+            auto* f_10 = this->field_0x10;
+            int32_t i_ebx = (uint32_t)(((uint64_t)f_10->field_0x0[i_edx << 5] >> 3) * -1640531535) >> (32 - this->field_0x1c) & 0xfffffff0;
             int32_t v_r9_3;
             do { // L_0x13456b0
               int32_t i_eax = 0;
               do { // L_0x13456c0
-                int64_t idx_1 = ((i_r8d >> i_eax * 4) + ((f_10->field_0x0[i_edx << 5] >> 3) * -1640531535 >> (32 - this->field_0x1c)) & 0xf) + i_ebx;
-                v_r9_3 = idx_1;
-                if (f_8->field_0x0[idx_1 * 4] == -1) break;
+                int32_t tmp_1 = ((uint64_t)i_r8d >> i_eax * 4) + ((uint32_t)(((uint64_t)f_10->field_0x0[i_edx << 5] >> 3) * -1640531535) >> (32 - this->field_0x1c));
+                v_r9_3 = (tmp_1 & 0xf) + i_ebx;
+                if (this->field_0x8->field_0x0[((tmp_1 & 0xf) + i_ebx) * 4] == -1) break;
                 int32_t v_r11_4 = i_r11d;
-                if (f_8->field_0x0[idx_1 * 4] == 2147483647) {
-                  v_r11_4 = i_r11d != -1 ? i_r11d : idx_1;
+                if (this->field_0x8->field_0x0[((tmp_1 & 0xf) + i_ebx) * 4] == 2147483647) {
+                  v_r11_4 = i_r11d != -1 ? i_r11d : (tmp_1 & 0xf) + i_ebx;
                   i_eax++;
-                  i_r8d = 0x4d72eb980136af5c;
-                  i_r11d = v_r11_4;
                   i_r11d = v_r11_4;
                   i_ebx = (1 << this->field_0x1c) - 1 & i_ebx + 0x10;
                   i_r8d = 0x4d72eb980136af5c;
                   break;
-                } else if ((~this->field_0x18 & (f_8->field_0x0[idx_1 * 4] ^ (f_10->field_0x0[i_edx << 5] >> 3) * -1640531535 << this->field_0x1c)) != 0 || f_10->field_0x0[i_edx << 5] != ((this->field_0x18 & f_8->field_0x0[idx_1 * 4]) << 5)[f_10]) {
-                  i_eax++;
-                  i_r8d = 0x4d72eb980136af5c;
-                  i_r11d = v_r11_4;
-                  i_r11d = v_r11_4;
-                  i_ebx = (1 << this->field_0x1c) - 1 & i_ebx + 0x10;
-                  i_r8d = 0x4d72eb980136af5c;
-                  break;
+                } else {
+                  int32_t tmp_2 = this->field_0x8->field_0x0[((tmp_1 & 0xf) + i_ebx) * 4] ^ ((uint64_t)f_10->field_0x0[i_edx << 5] >> 3) * -1640531535 << this->field_0x1c;
+                  if ((~this->field_0x18 & tmp_2) != 0 || f_10->field_0x0[i_edx << 5] != rdx[f_10]) {
+                    i_eax++;
+                    i_r11d = v_r11_4;
+                    i_ebx = (1 << this->field_0x1c) - 1 & i_ebx + 0x10;
+                    i_r8d = 0x4d72eb980136af5c;
+                    break;
+                  }
                 }
-                f_8->field_0x0[v_r9_3 * 4] = f_8->field_0x0[v_r9_3 * 4];
+                this->field_0x8->field_0x0[v_r9_3 * 4] = this->field_0x8->field_0x0[v_r9_3 * 4];
                 if (edx + 1 < this->field_0x0) break;
                 break;
               } while (i_eax < 16); // loop -> L_0x13456c0
               goto L_0x134572c;
             } while (true); // loop -> L_0x13456b0
-            f_8->field_0x0[v_r9_3 * 4] = f_8->field_0x0[v_r9_3 * 4];
+            this->field_0x8->field_0x0[v_r9_3 * 4] = this->field_0x8->field_0x0[v_r9_3 * 4];
             i_edx = edx + 1;
             i_r8d = 0x4d72eb980136af5c;
           } while (edx + 1 < this->field_0x0); // loop -> L_0x1345670
@@ -1305,218 +1289,6 @@ Operação  : 0x133133a: cmp byte [flag], imm8 ; fn=0x1331240..0x1331786 [via DF
     0x13457b0 | 48 83 c4 40              | add rsp, 0x40
     0x13457b4 | 5f                       | pop rdi
     0x13457b5 | c3                       | ret
-
-[Bytecode Hex]
-  0x1331240: 40 55 | 53 | 56 | 57
-  0x1331245: 41 54 | 41 55 | 41 56 | 41 57
-  0x133124d: 48 8d 6c 24 98 | 48 81 ec 68 01 00 00 | 48 8b 05 80 74 da 06 | 48 33 c4
-  0x1331263: 48 89 45 58 | 4d 8b f1 | 4d 8b e8 | 4c 8b e2
-  0x1331270: 48 8b f1 | 48 89 55 00 | 4c 89 45 08 | 4c 89 4d 30
-  0x133127f: 33 ff | 89 7c 24 40 | 48 85 c9 | 74 43
-  0x133128a: 48 8b 51 10 | 48 85 d2 | 0f 84 ea 04 00 00 | 8b 42 08
-  0x133129a: 85 c0 | 0f 84 df 04 00 00 | 8d 48 01 | f0 0f b1 4a 08
-  0x13312aa: 74 0a | 85 c0 | 0f 84 cd 04 00 00 | eb ec
-  0x13312b6: 48 8b 56 08 | 48 8b 46 10 | 48 89 45 90 | 48 8d 4d 88
-  0x13312c6: bb 60 02 00 00 | eb 11 | 48 89 7d 80 | 48 8d 4c 24 78
-  0x13312d6: bb 80 00 00 00 | 48 8b d7 | 48 89 54 24 68 | 48 8b 41 08
-  0x13312e7: 48 89 44 24 70 | 48 89 39 | 48 89 79 08 | 0f ba eb 08
-  0x13312f7: 89 5c 24 40 | 84 db | 79 16 | 0f ba f3 07
-  0x1331303: 89 5c 24 40 | 48 8b 4d 80 | 48 85 c9 | 74 05
-  0x1331310: e8 2b 9c 3a ff | f6 c3 40 | 74 15 | 83 e3 bf
-  0x133131d: 89 5c 24 40 | 48 8b 4d 90 | 48 85 c9 | 74 05
-  0x133132a: e8 11 9c 3a ff | f6 c3 20 | 74 07 | 83 e3 df
-  0x1331337: 89 5c 24 40 | 80 3d 36 9c db 06 00 | 74 62 | 0f 57 c0
-  0x1331347: f3 0f 7f 44 24 58 | 49 8b 55 08 | 48 85 d2 | 74 41
-  0x1331356: 8b 42 08 | 85 c0 | 74 36 | 0f 1f 00
-  0x1331360: 8d 48 01 | f0 0f b1 4a 08 | 74 17 | 85 c0
-  0x133136c: 75 f2 | 8b 5c 24 40 | 48 8d 44 24 58 | 83 cb 01
-  0x133137a: 48 8b 7c 24 58 | eb 30 | 49 8b 45 00 | 48 89 44 24 58
-  0x133138a: 49 8b 45 08 | 48 89 44 24 60 | 8b 5c 24 40 | 48 8d 44 24 58
-  0x133139c: 83 cb 01 | 48 8b 7c 24 58 | eb 0b | 48 89 7d a0
-  0x13313aa: 48 8d 45 98 | 83 cb 02 | 89 5c 24 40 | 48 89 7d d0
-  0x13313b9: 4c 8b 78 08 | 4c 89 7d d8 | 33 c9 | 48 89 08
-  0x13313c6: 48 89 48 08 | f6 c3 02 | 74 15 | 83 e3 fd
-  0x13313d2: 89 5c 24 40 | 48 8b 4d a0 | 48 85 c9 | 74 05
-  0x13313df: e8 5c 9b 3a ff | f6 c3 01 | 74 16 | 83 e3 fe
-  0x13313ec: 89 5c 24 40 | 48 8b 4c 24 60 | 48 85 c9 | 74 05
-  0x13313fa: e8 41 9b 3a ff | 49 8b d6 | 49 83 7e 18 10 | 72 03
-  0x1331409: 49 8b 16 | 0f ba eb 0a | 33 c0 | 48 c7 45 50 0f 00 00 00
-  0x133141a: 48 89 45 38 | 48 89 45 48 | 88 45 38 | 48 85 d2
-  0x1331428: 74 0d | 4d 8b 46 10 | 48 8d 4d 38 | e8 c9 5b 3c ff
-  0x1331437: 89 5c 24 40 | 80 3d e6 28 dc 06 00 | 0f 84 a7 00 00 00 | 48 8b 46 50
-  0x133144c: 48 83 e0 f8 | 75 12 | 8d 50 01 | 48 8b 0d ec d0 17 07
-  0x133145c: e8 9f b2 cd fe | 48 8b 00 | 48 89 45 a8 | c7 45 b0 d1 31 00 00
-  0x133146f: 48 8d 45 a8 | 48 89 45 e0 | 4c 89 6d e8 | 48 8d 45 38
-  0x133147f: 48 89 45 f0 | 48 8d 44 24 68 | 48 89 45 f8 | e8 2f 5e 03 00
-  0x1331491: 48 8b 88 b0 01 00 00 | 48 85 c9 | 74 04 | 8b 01
-  0x133149f: eb 06 | 8b 05 41 d6 17 07 | 48 8d 4d e0 | 48 89 4c 24 30
-  0x13314b0: 48 8d 0d 89 4e 01 00 | 48 89 4c 24 28 | 89 44 24 20 | ba b8 02 00 00
-  0x13314c5: 41 b8 50 01 00 00 | 48 8d 4d 10 | e8 9c 4f 42 ff | 90
-  0x13314d5: 0f 28 45 10 | 66 0f 7f 45 c0 | 0f ba eb 0c | 0f ba eb 0b
-  0x13314e6: 48 8d 4d c0 | 83 cb 04 | eb 1b | 4c 8d 4c 24 68
-  0x13314f4: 4c 8d 45 38 | 49 8b d5 | 48 8d 4d 20 | e8 bc 18 01 00
-  0x1331504: 48 8b c8 | 83 cb 08 | 33 d2 | 49 89 14 24
-  0x1331510: 49 89 54 24 08 | 48 8b 01 | 49 89 04 24 | 48 8b 41 08
-  0x1331520: 49 89 44 24 08 | 48 89 11 | 48 89 51 08 | 83 cb 10
-  0x133152f: 89 5c 24 40 | f6 c3 08 | 74 16 | 83 e3 f7
-  0x133153b: 89 5c 24 40 | 48 8b 4d 28 | 48 85 c9 | 74 06
-  0x1331548: e8 f3 99 3a ff | 90 | f6 c3 04 | 74 15
-  0x1331553: 83 e3 fb | 89 5c 24 40 | 48 8b 4d c8 | 48 85 c9
-  0x1331561: 74 05 | e8 d8 99 3a ff | 80 3d 09 9a db 06 00 | 0f 84 46 01 00 00
-  0x1331575: 48 85 ff | 0f 84 3d 01 00 00 | 48 8d 9e 90 04 00 00 | 48 89 7c 24 50
-  0x133158a: 80 3d 45 2f 17 07 00 | 74 1e | 80 3d ee b3 e0 06 00 | 74 15
-  0x133159c: 83 7b 04 00 | 75 3c | ba 10 00 00 00 | 48 8b cb
-  0x13315aa: e8 f1 55 01 00 | eb 5a | 8b 43 04 | 39 03
-  0x13315b6: 75 22 | b9 00 40 00 00 | 3b c1 | 77 0c
-  0x13315c1: 8b c8 | ba 10 00 00 00 | 3b c2 | 0f 42 ca
-  0x13315cd: 8d 14 08 | 48 8b cb | e8 c8 55 01 00 | eb 31
-  0x13315da: 85 c0 | 74 2d | 8b 4b 1c | ba 01 00 00 00
-  0x13315e6: 48 d3 e2 | 48 8b 43 08 | 8b 54 90 08 | 8b 03
-  0x13315f3: 44 8d 04 90 | b8 01 00 00 00 | d3 e0 | 44 3b c0
-  0x1331601: 72 08 | 48 8b cb | e8 05 3f 01 00 | 41 b9 01 00 00 00
-  0x1331611: 4c 8d 44 24 50 | 48 8d 54 24 48 | 48 8b cb | e8 ed 50 01 00
-  0x1331623: 8b 4c 24 48 | 48 8b 43 08 | 8b 14 88 | 23 53 18
-  0x1331631: 44 0f b6 44 24 4c | 45 84 c0 | 74 1e | 8b c2
-  0x133163e: 48 c1 e0 05 | 48 03 43 10 | 45 33 d2 | 4c 89 10
-  0x133164c: 4c 89 50 08 | 4c 89 50 10 | 4c 89 50 18 | eb 03
-  0x133165a: 45 33 d2 | 8b ca | 48 c1 e1 05 | 48 03 4b 10
-  0x1331667: 45 84 c0 | 74 08 | 48 8b 44 24 50 | 48 89 01
-  0x1331674: 48 8b 51 10 | 48 3b 51 18 | 74 30 | 4c 89 12
-  0x1331681: 4c 89 52 08 | 49 8b 44 24 08 | 48 85 c0 | 74 08
-  0x133168f: f0 ff 40 08 | 4c 8b 7d d8 | 49 8b 04 24 | 48 89 02
-  0x133169e: 49 8b 44 24 08 | 48 89 42 08 | 48 83 41 10 10 | eb 0d
-  0x13316ae: 4d 8b c4 | 48 83 c1 08 | e8 c6 b9 93 ff | 90
-  0x13316bb: 48 8b 45 50 | 48 83 f8 10 | 72 2d | 48 ff c0
-  0x13316c8: 48 8b 4d 38 | 48 8b d1 | 48 3d 00 10 00 00 | 72 15
-  0x13316d7: 48 8b 49 f8 | 48 2b d1 | 48 8d 42 f8 | 48 83 f8 1f
-  0x13316e6: 0f 87 8f 00 00 00 | e8 cf 43 62 03 | 90 | 33 c9
-  0x13316f4: 48 89 4d 48 | 48 c7 45 50 0f 00 00 00 | 88 4d 38 | 4d 85 ff
-  0x1331706: 74 09 | 49 8b cf | e8 30 98 3a ff | 90
-  0x1331711: 48 8b 4c 24 70 | 48 85 c9 | 74 06 | e8 20 98 3a ff
-  0x1331720: 90 | 49 8b 4d 08 | 48 85 c9 | 74 1d
-  0x133172a: b8 ff ff ff ff | f0 0f c1 41 0c | 83 f8 01 | 75 0e
-  0x1331739: 48 8b 11 | 48 8b 42 08 | ff 15 fa 85 10 05 | 90
-  0x1331747: 49 8d 4e 28 | e8 60 78 3c ff | 49 8b ce | e8 58 78 3c ff
-  0x1331758: 49 8b c4 | 48 8b 4d 58 | 48 33 cc | e8 39 31 ab 04
-  0x1331767: 48 81 c4 68 01 00 00 | 41 5f | 41 5e | 41 5d
-  0x1331774: 41 5c | 5f | 5e | 5b
-  0x1331779: 5d | c3 | e8 00 2e ae 04 | 90
-  0x1331781: e8 1a 1a 41 ff
-
-  [Child Bytecode Hex 0x13672c0..0x1367368]
-  0x13672c0: 40 53 | 48 83 ec 20 | 48 8b 05 33 15 97 07 | 48 85 c0
-  0x13672d0: 75 2d | 65 48 8b 04 25 58 00 00 00 | ba 28 00 00 00 | 48 8b 08
-  0x13672e3: 48 8d 1d d6 18 a1 07 | 8b 04 0a | 39 05 c5 18 a1 07 | 7f 10
-  0x13672f5: 48 89 1d 04 15 97 07 | 48 8b c3 | 48 83 c4 20 | 5b
-  0x1367304: c3 | 48 8d 0d ac 18 a1 07 | e8 cf 9f c9 fe | 83 3d a0 18 a1 07 ff
-  0x1367318: 75 db | e8 71 90 45 01 | 4c 8b c0 | 48 8d 15 27 ea 32 05
-  0x1367329: 48 8b cb | e8 df 51 8c 00 | 48 8d 15 f0 f7 cc 05 | 48 89 15 81 18 a1 07
-  0x136733f: 48 8d 0d da 50 07 05 | e8 35 d9 a7 04 | 90 | 48 8d 0d 65 18 a1 07
-  0x1367353: e8 98 a1 c9 fe | 48 89 1d a1 14 97 07 | 48 8b c3 | 48 83 c4 20
-  0x1367366: 5b | c3
-
-  [Child Bytecode Hex 0x1342dc0..0x1342e97]
-  0x1342dc0: 48 89 5c 24 08 | 48 89 74 24 10 | 48 89 7c 24 18 | 41 56
-  0x1342dd1: 48 81 ec 80 00 00 00 | 49 8b f1 | 49 8b f8 | 48 8b da
-  0x1342de1: 4c 8b f1 | ba 01 00 00 00 | 48 8b 0d 58 b7 16 07 | e8 0b 99 cc fe
-  0x1342df5: 4c 8b 10 | 4c 89 54 24 40 | c7 44 24 48 d1 31 00 00 | 48 8d 44 24 40
-  0x1342e0a: 48 89 44 24 60 | 48 89 5c 24 68 | 48 89 7c 24 70 | 48 89 74 24 78
-  0x1342e1e: e8 9d 44 02 00 | 48 8b 88 b0 01 00 00 | 48 85 c9 | 74 04
-  0x1342e2f: 8b 01 | eb 06 | 8b 05 af bc 16 07 | 48 8d 4c 24 60
-  0x1342e3e: 48 89 4c 24 30 | 48 8d 0d f6 34 00 00 | 48 89 4c 24 28 | 89 44 24 20
-  0x1342e53: ba b8 02 00 00 | 41 b8 50 01 00 00 | 48 8d 4c 24 50 | e8 08 36 41 ff
-  0x1342e68: 90 | 48 8b 44 24 50 | 49 89 06 | 48 8b 44 24 58
-  0x1342e76: 49 89 46 08 | 49 8b c6 | 4c 8d 9c 24 80 00 00 00 | 49 8b 5b 10
-  0x1342e89: 49 8b 73 18 | 49 8b 7b 20 | 49 8b e3 | 41 5e
-  0x1342e96: c3
-
-  [Child Bytecode Hex 0x1346ba0..0x1346dd6]
-  0x1346ba0: 48 89 5c 24 10 | 48 89 6c 24 18 | 48 89 74 24 20 | 57
-  0x1346bb0: 41 56 | 41 57 | 48 83 ec 50 | 44 8b fa
-  0x1346bbb: 48 8b d9 | e8 7d 7e d6 ff | 48 8b e8 | 44 8b 0b
-  0x1346bc9: 45 85 c9 | 0f 84 a2 00 00 00 | 8b 4b 1c | 41 b8 01 00 00 00
-  0x1346bdb: 49 d3 e0 | 48 8b 4b 08 | 4a 8d 14 81 | 44 3b 4a 04
-  0x1346bea: 0f 84 84 00 00 00 | 8b 4a 10 | 4c 8d 34 ca | 33 f6
-  0x1346bf9: 8b fe | 39 73 04 | 0f 86 ce 00 00 00 | 44 8b c7
-  0x1346c07: 41 c1 e8 06 | 8b cf | 83 e1 3f | ba 01 00 00 00
-  0x1346c15: 48 d3 e2 | 4b 85 54 c6 18 | 75 4c | 44 8b cf
-  0x1346c22: 49 c1 e1 05 | 4c 8b 43 10 | 4d 03 c1 | 49 8b 00
-  0x1346c30: 49 89 04 29 | 49 8b 50 18 | 49 89 70 18 | 49 8b 48 10
-  0x1346c40: 49 89 70 10 | 49 8b 40 08 | 49 89 70 08 | 49 89 44 29 08
-  0x1346c51: 49 89 4c 29 10 | 49 89 54 29 18 | 48 8b 4b 10 | 48 83 c1 08
-  0x1346c63: 49 03 c9 | e8 45 1d 3b ff | ff c7 | 3b 7b 04
-  0x1346c70: 72 92 | eb 5e | 33 f6 | 8b fe
-  0x1346c78: 45 85 c9 | 74 55 | 0f 1f 00 | 44 8b cf
-  0x1346c83: 49 c1 e1 05 | 4c 8b 43 10 | 4d 03 c1 | 49 8b 00
-  0x1346c91: 49 89 04 29 | 49 8b 50 18 | 49 89 70 18 | 49 8b 48 10
-  0x1346ca1: 49 89 70 10 | 49 8b 40 08 | 49 89 70 08 | 49 89 44 29 08
-  0x1346cb2: 49 89 4c 29 10 | 49 89 54 29 18 | 48 8b 4b 10 | 48 83 c1 08
-  0x1346cc4: 49 03 c9 | e8 e4 1c 3b ff | ff c7 | 3b 3b
-  0x1346cd0: 72 ae | 48 8b 43 10 | 48 89 44 24 70 | 4c 8d 35 0e c6 ac 01
-  0x1346ce2: 48 85 c0 | 74 4c | 48 8b 4b 20 | 48 8b 01
-  0x1346cee: 48 89 74 24 30 | 48 89 74 24 38 | 8b 53 04 | 48 c1 e2 05
-  0x1346cff: 48 83 c2 07 | 48 83 e2 f8 | 48 89 54 24 40 | 48 c7 44 24 48 08 00 00 00
-  0x1346d15: 4c 89 74 24 20 | 4c 8d 4c 24 30 | 4c 8d 44 24 40 | 48 8d 54 24 70
-  0x1346d29: 48 8b 40 30 | ff 15 0d 30 0f 05 | 8b 4b 04 | 44 89 7b 04
-  0x1346d3a: 48 89 6b 10 | 45 85 ff | 74 14 | 8b d1
-  0x1346d45: 48 8b cb | e8 33 36 e7 ff | 48 8b cb | e8 bb e7 ff ff
-  0x1346d55: eb 65 | 48 8b 43 08 | 48 89 44 24 70 | 48 85 c0
-  0x1346d63: 74 50 | 48 8b 7b 20 | 48 8b 07 | 4c 8b 58 30
-  0x1346d70: 48 89 74 24 40 | 48 89 74 24 48 | e8 b1 6d 3b ff | 48 83 c0 3f
-  0x1346d83: 48 83 e0 c0 | 48 89 44 24 30 | 48 c7 44 24 38 40 00 00 00 | 4c 89 74 24 20
-  0x1346d9a: 4c 8d 4c 24 40 | 4c 8d 44 24 30 | 48 8d 54 24 70 | 48 8b cf
-  0x1346dac: 49 8b c3 | ff 15 8b 2f 0f 05 | 48 89 73 08 | 89 73 1c
-  0x1346dbc: 4c 8d 5c 24 50 | 49 8b 5b 28 | 49 8b 6b 30 | 49 8b 73 38
-  0x1346dcd: 49 8b e3 | 41 5f | 41 5e | 5f
-  0x1346dd5: c3
-
-  [Child Bytecode Hex 0x1345510..0x13457b6]
-  0x1345510: 40 57 | 48 83 ec 40 | 48 8b 41 08 | 48 8b f9
-  0x134551d: 48 85 c0 | 74 1e | 8b 49 1c | 41 b8 04 00 00 00
-  0x134552b: 49 d3 e0 | 4d 85 c0 | 74 0d | ba ff ff ff ff
-  0x1345538: 48 8b c8 | e8 70 fc ab 04 | 83 3f 00 | 0f 84 67 02 00 00
-  0x1345549: 8b 4f 1c | ba 01 00 00 00 | 48 8b 47 08 | 48 d3 e2
-  0x1345558: 48 89 74 24 68 | 33 f6 | 89 74 90 08 | 8b 4f 1c
-  0x1345566: 4c 8d 1c 90 | 48 8b 47 08 | ba 01 00 00 00 | 48 d3 e2
-  0x1345576: 4c 8d 14 90 | 8b 44 90 10 | 41 8b 52 04 | 4d 8d 0c c2
-  0x1345586: 85 d2 | 74 2d | 66 0f 1f 44 00 00 | 44 8d 42 ff
-  0x1345594: 41 8b c0 | 83 e0 3f | 0f b6 c8 | 41 8b c0
-  0x13455a0: 48 c1 e8 06 | 49 8b 44 c1 18 | 48 0f a3 c8 | 73 08
-  0x13455af: 41 8b d0 | 45 85 c0 | 75 d9 | 41 89 52 04
-  0x13455bb: 8b 07 | 48 89 5c 24 58 | 3b c2 | 74 73
-  0x13455c6: 41 8b 43 10 | 49 8d 1c c3 | 39 77 04 | 0f 86 cf 01 00 00
-  0x13455d7: 66 0f 1f 84 00 00 00 00 00 | 8b c6 | 44 8b c6 | 83 e0 3f
-  0x13455e8: 0f b6 c8 | 8b c6 | 48 c1 e8 06 | 48 8b 44 c3 18
-  0x13455f6: 48 0f a3 c8 | 72 26 | 49 c1 e0 05 | 48 8d 54 24 50
-  0x1345605: 4c 03 47 10 | 41 b9 02 00 00 00 | 48 8b cf | e8 f9 10 00 00
-  0x1345617: 8b 4c 24 50 | 48 8b 47 08 | 09 34 88 | ff c6
-  0x1345624: 3b 77 04 | 72 b7 | 48 8b 5c 24 58 | 48 8b 74 24 68
-  0x1345633: 48 83 c4 40 | 5f | c3 | 8b d6
-  0x134563b: 89 54 24 50 | 85 c0 | 0f 84 5f 01 00 00 | 48 89 6c 24 60
-  0x134564c: 49 b8 5c af 36 01 98 eb 72 4d | 4c 89 64 24 38 | 4c 89 6c 24 30 | 4c 89 74 24 28
-  0x1345665: 4c 89 7c 24 20 | 66 0f 1f 44 00 00 | 48 8b 6f 10 | b9 20 00 00 00
-  0x1345679: 2b 4f 1c | 41 bb ff ff ff ff | 4c 8b 6f 08 | 8b c2
-  0x1345688: 48 c1 e0 05 | 4c 8b 34 28 | 49 8b c6 | 48 c1 e8 03
-  0x1345697: 44 69 f8 b1 79 37 9e | 45 8b e7 | 41 d3 ec | 8b 4f 1c
-  0x13456a7: 41 8b dc | 41 d3 e7 | 83 e3 f0 | 8b c6
-  0x13456b2: 0f 1f 40 00 | 66 66 0f 1f 84 00 00 00 00 00 | 4d 8b c8 | 8d 0c 85 00 00 00 00
-  0x13456ca: 49 d3 e9 | 45 03 cc | 41 83 e1 0f | 44 03 cb
-  0x13456d7: 47 8b 44 8d 00 | 41 83 f8 ff | 74 61 | 41 81 f8 ff ff ff 7f
-  0x13456e9: 75 0d | 41 83 fb ff | 45 0f 45 cb | 45 8b d9
-  0x13456f6: eb 23 | 44 8b 57 18 | 41 8b d0 | 41 8b ca
-  0x1345702: 41 33 d7 | f7 d1 | 85 d1 | 75 10
-  0x134570b: 41 8b d2 | 49 23 d0 | 48 c1 e2 05 | 4c 3b 34 2a
-  0x1345719: 74 4c | ff c0 | 49 b8 5c af 36 01 98 eb 72 4d | 83 f8 10
-  0x134572a: 72 94 | 8b 4f 1c | 8d 43 10 | ba 01 00 00 00
-  0x1345737: d3 e2 | 8d 5a ff | 23 d8 | e9 6d ff ff ff
-  0x1345743: 41 83 fb ff | 74 13 | 8b 4f 1c | b8 01 00 00 00
-  0x1345751: 48 d3 e0 | 45 8b cb | 41 ff 4c 85 08 | 48 8b 47 08
-  0x1345760: 41 8b c9 | 44 89 3c 88 | 8b 54 24 50 | 49 b8 5c af 36 01 98 eb 72 4d
-  0x1345775: 48 8b 47 08 | 41 8b c9 | 09 14 88 | ff c2
-  0x1345781: 89 54 24 50 | 3b 17 | 0f 82 e3 fe ff ff | 4c 8b 7c 24 20
-  0x1345792: 4c 8b 74 24 28 | 4c 8b 6c 24 30 | 4c 8b 64 24 38 | 48 8b 6c 24 60
-  0x13457a6: 48 8b 5c 24 58 | 48 8b 74 24 68 | 48 83 c4 40 | 5f
-  0x13457b5: c3
 
 [Strings .rdata na função]
   (Nenhuma string literal direta neste bloco)

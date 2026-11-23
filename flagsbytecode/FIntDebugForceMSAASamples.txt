@@ -6,7 +6,7 @@ Operação  : 0x35f47f8: mov/math reg, [flag] ; fn=0x35f4750..0x35f48c1
 
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::DebugForce)] ===
-    Classe  : RBX::DebugForce (RTTI Resolvido)
+    Classe  : RBX::DebugForce (Inferido)
     Padrão  : FIntDebugForceMSAASamples = 0 (default) [int, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : DebugForceMSAASamples == 0
@@ -15,8 +15,6 @@ Operação  : 0x35f47f8: mov/math reg, [flag] ; fn=0x35f4750..0x35f48c1
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x35f4bea (in fn_0x35f48d0): call 0x35f4750  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
-    [Child @0x3602c50] Papel   : Parâmetro de configuração lido diretamente pela rotina
-    [Child @0x3662290] Papel   : Parâmetro de configuração lido diretamente pela rotina
   
   === [Decompilacao C++ da Funcao 0x35f4750..0x35f48c1] ===
     struct RBX::DebugForce {
@@ -29,11 +27,11 @@ Operação  : 0x35f47f8: mov/math reg, [flag] ; fn=0x35f4750..0x35f48c1
     auto RBX::DebugForce::func_0x35f4750(RBX::DebugForce* this) {
       auto ret_0x3602c50_1 = call_0x3602c50(this);
       int32_t v_rbx_3 = this->field_0x7f4;
-      auto* f_0 = this->field_0x0;
-      auto* f_0_b38 = f_0->field_0xb38;
       if (ret_0x3602c50_1 != 0) {
         auto ret_0x48f6c60_3 = call_0x48f6c60();
         if (ret_0x48f6c60_3 != 0) {
+          auto* f_0 = this->field_0x0;
+          auto* f_0_b38 = f_0->field_0xb38;
           uint8_t v_al_2 = f_0_b38->field_0x13 == 0;
           if (FRMUseMemoryTierPolicy) {
             v_al_2 = f_0_b38->field_0x28 == 0;
@@ -49,9 +47,11 @@ Operação  : 0x35f47f8: mov/math reg, [flag] ; fn=0x35f4750..0x35f48c1
       } else {
         auto ret_0x48f6c60_2 = call_0x48f6c60();
         if (ret_0x48f6c60_2 != 0 && this->field_0x1f8 < 1.0) {
-          uint8_t v_dl_1 = f_0_b38->field_0x13 == 0;
+          auto* f_0_2 = this->field_0x0;
+          auto* f_0_2_b38 = f_0_2->field_0xb38;
+          uint8_t v_dl_1 = f_0_2_b38->field_0x13 == 0;
           if (FRMUseMemoryTierPolicy) {
-            v_dl_1 = f_0_b38->field_0x28 == 0;
+            v_dl_1 = f_0_2_b38->field_0x28 == 0;
           }
           v_rbx_3 = v_dl_1 != 0 ? 4 : 1;
         }
@@ -67,14 +67,16 @@ Operação  : 0x35f47f8: mov/math reg, [flag] ; fn=0x35f4750..0x35f48c1
         }
       }
       if (RenderSelectSupportedMSAASampleCounts) {
-        auto vret_6 = f_0->field_0xd8->vfunc_0xe8() // -> RBX::Graphics::RenderView::fn_0x3662290;
+        auto vret_6 = this->field_0x0->field_0xd8->vfunc_0xe8();
         if (vret_6->field_0x48 == 0) {
-          return std::clamp(v_rbx_4, 1, vret_6->field_0x44);
+          return std::min<uint32_t>(vret_6->field_0x44, std::max<uint32_t>(1, v_rbx_4));
         }
-        if (std::clamp(v_rbx_4, 1, vret_6->field_0x44) < 32 && (vret_6->field_0x48 & 1ULL << std::clamp(v_rbx_4, 1, vret_6->field_0x44)) < 0) {
-          return 1 ? std::clamp(v_rbx_4, 1, vret_6->field_0x44) : 1;
+        if (std::min<uint32_t>(vret_6->field_0x44, std::max<uint32_t>(1, v_rbx_4)) < 32 && (vret_6->field_0x48 & 1ULL << std::min<uint32_t>(vret_6->field_0x44, std::max<uint32_t>(1, v_rbx_4))) < 0) {
+          int32_t selected_edi_2 = 1 ? std::min<uint32_t>(vret_6->field_0x44, std::max<uint32_t>(1, v_rbx_4)) : 1;
+          return selected_edi_2;
         }
-        return 0 ? std::clamp(v_rbx_4, 1, vret_6->field_0x44) : 1;
+        int32_t selected_edi_1 = 0 ? std::min<uint32_t>(vret_6->field_0x44, std::max<uint32_t>(1, v_rbx_4)) : 1;
+        return selected_edi_1;
       }
       return v_rbx_4;
     }
@@ -200,15 +202,15 @@ Operação  : 0x35f47f8: mov/math reg, [flag] ; fn=0x35f4750..0x35f48c1
     0x35f48bf | 5f                       | pop rdi
     0x35f48c0 | c3                       | ret
   
-  === [Sub-Rotina Chamada: 0x3602c50..0x3602cb5 via call @0x35f4768 (rcx = this (Direct Engine Sub-Call))] ===
-    struct RBX::DebugForce {
+  === [Sub-Rotina Chamada: 0x3602c50..0x3602cb5 via call @0x35f4768 (Direct Engine Sub-Call)] ===
+    struct SubObj_0x3602c50 {
       /* +0x0 */ void*   field_0x0;
       /* +0x194 */ uint8_t field_0x194;
       /* +0x1f4 */ uint8_t field_0x1f4;
     };
     
-    // Flag defaults: DebugForceMSAASamples = 0, DisableDPIScale = false
-    auto RBX::DebugForce::func_0x3602c50(RBX::DebugForce* this) {
+    // Flag defaults: DisableDPIScale = false
+    bool SubObj_0x3602c50::func_0x3602c50(SubObj_0x3602c50* this) {
       if (!DisableDPIScale && this->field_0x1f4 == 0 && this->field_0x194 == 0) {
         auto ret_0x48f6c60_1 = call_0x48f6c60(this);
         auto* f_0 = this->field_0x0;
@@ -218,7 +220,7 @@ Operação  : 0x35f47f8: mov/math reg, [flag] ; fn=0x35f4750..0x35f48c1
         auto ret_0x3562de0_2 = call_0x3562de0(f_0);
         return ret_0x3562de0_2 >= 2.0;
       }
-      return 0;
+      return false;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x3602c50..0x3602cb5)] ===
@@ -253,63 +255,6 @@ Operação  : 0x35f47f8: mov/math reg, [flag] ; fn=0x35f4750..0x35f48c1
     0x3602caf | 48 83 c4 20              | add rsp, 0x20
     0x3602cb3 | 5b                       | pop rbx
     0x3602cb4 | c3                       | ret
-  
-  === [Sub-Rotina Chamada: 0x3662290..0x3662299 via vfunc_0xe8 @0x35f4843 (vfunc_0xe8 em RBX::Graphics::RenderView)] ===
-    struct RBX::Graphics::RenderView {
-      /* +0x20 */ void*   field_0x20;
-    };
-    
-    // Flag defaults: DebugForceMSAASamples = 0
-    auto RBX::Graphics::RenderView::func_0x3662290(RBX::Graphics::RenderView* this) {
-      return tailcall_0x3562e40(this->field_0x20, xmm1);
-    }
-  
-  === [Instrucoes x86-64 da Sub-Rotina Chamada (0x3662290..0x3662299)] ===
-    0x3662290 | 48 8b 49 20              | mov rcx, qword ptr [rcx + 0x20]
-    0x3662294 | e9 a7 0b f0 ff           | jmp 0x3562e40
-
-[Bytecode Hex]
-  0x35f4750: 48 89 5c 24 08 | 48 89 74 24 10 | 57 | 48 83 ec 20
-  0x35f475f: 8b 99 f4 07 00 00 | 48 8b f1 | e8 e3 e4 00 00 | bf 01 00 00 00
-  0x35f4772: 84 c0 | 74 39 | e8 e5 24 30 01 | 84 c0
-  0x35f477d: 74 29 | 48 8b 06 | 48 8b 88 38 0b 00 00 | 80 79 13 00
-  0x35f478d: 0f 94 c0 | 80 3d 99 4e b4 04 00 | 74 07 | 80 79 28 00
-  0x35f479d: 0f 94 c0 | 84 c0 | 75 04 | 8b df
-  0x35f47a6: eb 50 | bb 04 00 00 00 | eb 49 | e8 ac 24 30 01
-  0x35f47b4: 84 c0 | 74 40 | f3 0f 10 05 f4 ae fa 03 | 0f 2f 86 f8 01 00 00
-  0x35f47c7: 76 2f | 48 8b 06 | 48 8b 88 38 0b 00 00 | 80 79 13 00
-  0x35f47d7: 0f 94 c2 | 80 3d 4f 4e b4 04 00 | 74 07 | 80 79 28 00
-  0x35f47e7: 0f 94 c2 | bb 04 00 00 00 | 84 d2 | 8b c7
-  0x35f47f3: 0f 45 c3 | 8b d8 | 8b 05 fa 4c b2 04 | 85 c0
-  0x35f4800: 74 20 | 7e 1c | 66 0f 6e c0 | f3 0f e6 c0
-  0x35f480c: e8 3f 8e 83 02 | e8 7e e1 aa 02 | f2 0f 2c c8 | 8b df
-  0x35f481c: d3 e3 | eb 02 | 8b df | 80 3d 37 4b b2 04 00
-  0x35f4829: 0f 84 80 00 00 00 | 48 8b 06 | 48 8b 88 d8 00 00 00 | 48 8b 01
-  0x35f483c: 48 8b 80 e8 00 00 00 | ff 15 f7 54 e4 02 | 8b cf | 3b d9
-  0x35f484d: 8b 50 44 | 0f 47 cb | 3b ca | 0f 42 d1
-  0x35f4858: 8b 48 48 | 85 c9 | 75 12 | 8b c2
-  0x35f4861: 48 8b 5c 24 30 | 48 8b 74 24 38 | 48 83 c4 20 | 5f
-  0x35f4870: c3 | 83 fa 20 | 73 20 | 0f a3 d1
-  0x35f4879: 73 1b | 40 0f b6 c7 | 84 c0 | 0f 45 fa
-  0x35f4884: 8b c7 | 48 8b 5c 24 30 | 48 8b 74 24 38 | 48 83 c4 20
-  0x35f4894: 5f | c3 | 32 c0 | 84 c0
-  0x35f489a: 0f 45 fa | 8b c7 | 48 8b 5c 24 30 | 48 8b 74 24 38
-  0x35f48a9: 48 83 c4 20 | 5f | c3 | 48 8b 74 24 38
-  0x35f48b4: 8b c3 | 48 8b 5c 24 30 | 48 83 c4 20 | 5f
-  0x35f48c0: c3
-
-  [Child Bytecode Hex 0x3602c50..0x3602cb5]
-  0x3602c50: 40 53 | 48 83 ec 20 | 80 3d 5b 6f b3 04 00 | 48 8b d9
-  0x3602c60: 75 4b | 80 b9 f4 01 00 00 00 | 75 42 | 80 b9 94 01 00 00 00
-  0x3602c72: 75 39 | e8 e7 3f 2f 01 | 48 8b 0b | 84 c0
-  0x3602c7e: 74 18 | f3 0f 10 81 88 0d 00 00 | 0f 2f 05 81 d3 f9 03 | 0f 93 c0
-  0x3602c92: 48 83 c4 20 | 5b | c3 | e8 43 01 f6 ff
-  0x3602c9d: 0f 2f 05 6c d3 f9 03 | 0f 93 c0 | 48 83 c4 20 | 5b
-  0x3602cac: c3 | 32 c0 | 48 83 c4 20 | 5b
-  0x3602cb4: c3
-
-  [Child Bytecode Hex 0x3662290..0x3662299]
-  0x3662290: 48 8b 49 20 | e9 a7 0b f0 ff
 
 [Strings .rdata na função]
   (Nenhuma string literal direta neste bloco)

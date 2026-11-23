@@ -6,13 +6,14 @@ Operação  : 0x462de20: cmp dword [flag], imm ; fn=0x462de10..0x462de87
 
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::DebugRate)] ===
-    Classe  : RBX::DebugRate (RTTI Resolvido)
+    Classe  : RBX::DebugRate (Inferido)
     Padrão  : FIntDebugRateLimitRandom = 0 (default) [int, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : DebugRateLimitRandom <= 0
-    [XREF #2 @0x462de94] Classe  : RBX::DebugRate (RTTI Resolvido)
+    Fórmula : ret_0x4975550_1 - ((uint32_t)(ret_0x4975550_1 / 100) >> 5) * 100 < DebugRateLimitRandom
+    [XREF #2 @0x462de94] Classe  : RBX::DebugRate (Inferido)
     [XREF #2 @0x462de94] Fórmula : DebugRateLimitRandom <= 0
-    [XREF #2 @0x462de94] Fórmula : ret_0x4975550_1 - (ret_0x4975550_1 / 100 >> 5) * 100 >= DebugRateLimitRandom
+    [XREF #2 @0x462de94] Fórmula : ret_0x4975550_1 - ((uint32_t)(ret_0x4975550_1 / 100) >> 5) * 100 >= DebugRateLimitRandom
   
   === [Decompilacao C++ da Funcao 0x462de10..0x462de87] ===
     struct RBX::DebugRate {
@@ -24,7 +25,7 @@ Operação  : 0x462de20: cmp dword [flag], imm ; fn=0x462de10..0x462de87
       uint8_t v_r8b_1 = 0;
       if (DebugRateLimitRandom > 0) {
         auto ret_0x4975550_1 = call_0x4975550(this, param_2, 0);
-        v_r8b_1 = ret_0x4975550_1 - (ret_0x4975550_1 / 100 >> 5) * 100 < DebugRateLimitRandom;
+        v_r8b_1 = ret_0x4975550_1 - ((uint32_t)(ret_0x4975550_1 / 100) >> 5) * 100 < DebugRateLimitRandom;
       }
       auto* f_57f0 = this->field_0x57f0;
       if (f_57f0 != 0) {
@@ -77,19 +78,18 @@ Operação  : 0x462de20: cmp dword [flag], imm ; fn=0x462de10..0x462de87
     };
     
     // Flag defaults: DebugRateLimitRandom = 0
-    void RBX::DebugRate::func_0x462de90(RBX::DebugRate* this) {
+    bool RBX::DebugRate::func_0x462de90(RBX::DebugRate* this) {
       if (DebugRateLimitRandom > 0) {
         auto ret_0x4975550_1 = call_0x4975550(this);
-        if (ret_0x4975550_1 - (ret_0x4975550_1 / 100 >> 5) * 100 < DebugRateLimitRandom) {
-          return;
+        if (ret_0x4975550_1 - ((uint32_t)(ret_0x4975550_1 / 100) >> 5) * 100 < DebugRateLimitRandom) {
+          return true;
         }
-        return;
-      }
-      auto* f_5800 = this->field_0x5800;
-      if (f_5800 != 0) {
+        auto* f_5800 = this->field_0x5800;
+      } else if (f_5800 != 0) {
         switch (f_5800->field_0x0->field_0x8) {
         }
       }
+      return false;
     }
   
   === [Instrucoes x86-64 do XREF Runtime #2 (0x462de90..0x462deeb)] ===
@@ -120,25 +120,6 @@ Operação  : 0x462de20: cmp dword [flag], imm ; fn=0x462de10..0x462de87
     0x462dee4 | 32 c0                    | xor al, al
     0x462dee6 | 48 83 c4 28              | add rsp, 0x28
     0x462deea | c3                       | ret
-
-[Bytecode Hex]
-  0x462de10: 48 89 5c 24 08 | 57 | 48 83 ec 20 | 45 32 c0
-  0x462de1d: 48 8b fa | 83 3d 81 5a b0 03 00 | 48 8b d9 | 7e 25
-  0x462de2c: e8 1f 77 34 00 | 44 8b c8 | b8 1f 85 eb 51 | 41 f7 e1
-  0x462de3c: c1 ea 05 | 44 6b c2 64 | 45 2b c8 | 44 3b 0d 5b 5a b0 03
-  0x462de4d: 41 0f 92 c0 | 48 8b 8b f0 57 00 00 | 48 85 c9 | 74 1b
-  0x462de5d: 48 8b 01 | 48 8b d7 | 48 8b 40 10 | 48 8b 5c 24 30
-  0x462de6c: 48 83 c4 20 | 5f | 48 ff 25 c8 be e0 01 | 48 8b 5c 24 30
-  0x462de7d: 41 0f b6 c0 | 48 83 c4 20 | 5f | c3
-
-  [XREF #2 Bytecode Hex 0x462de90..0x462deeb]
-  0x462de90: 48 83 ec 28 | 83 3d 0d 5a b0 03 00 | 7e 29 | e8 ae 76 34 00
-  0x462dea2: 44 8b c0 | b8 1f 85 eb 51 | 41 f7 e0 | c1 ea 05
-  0x462deb0: 6b ca 64 | 44 2b c1 | 44 3b 05 eb 59 b0 03 | 73 25
-  0x462debf: b0 01 | 48 83 c4 28 | c3 | 48 8b 89 00 58 00 00
-  0x462decd: 48 85 c9 | 74 12 | 48 8b 01 | 48 8b 40 08
-  0x462ded9: 48 83 c4 28 | 48 ff 25 5c be e0 01 | 32 c0 | 48 83 c4 28
-  0x462deea: c3
 
 [Strings .rdata na função]
   (Nenhuma string literal direta neste bloco)

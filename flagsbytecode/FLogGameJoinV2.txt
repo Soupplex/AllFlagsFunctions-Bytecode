@@ -6,11 +6,11 @@ Operação  : 0x4ca5be1: mov/math reg, [flag] ; fn=0x4ca5bb0..0x4ca5d38
 
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::GameJoin)] ===
-    Classe  : RBX::GameJoin (RTTI Resolvido)
+    Classe  : RBX::GameJoin (Inferido)
     Padrão  : FLogGameJoinV2 = 6 (default) [log, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : GameJoinV2 < 6
-    Fórmula : GameJoinV2 >> 8 < 5
+    Fórmula : (uint64_t)GameJoinV2 >> 8 < 5
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x4ca5d57 (in fn_0x4ca5d40): call 0x4ca5bb0  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
@@ -18,22 +18,19 @@ Operação  : 0x4ca5be1: mov/math reg, [flag] ; fn=0x4ca5bb0..0x4ca5d38
     Caller @0x4ca5e17 (in fn_0x4ca5e00): call 0x4ca5bb0  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
     Caller @0x4ca5e77 (in fn_0x4ca5e60): call 0x4ca5bb0  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
     Caller @0x4ca5ed7 (in fn_0x4ca5ec0): call 0x4ca5bb0  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
-    [Child @0x4ca4c50] Papel   : Parâmetro de configuração lido diretamente pela rotina
   
   === [Decompilacao C++ da Funcao 0x4ca5bb0..0x4ca5d38] ===
     // Flag defaults: GameJoinV2 = 6, ReactiveJoinUserIdAllowlist = ""
-    void RBX::GameJoin::func_0x4ca5bb0(RBX::GameJoin* this) {
+    bool RBX::GameJoin::func_0x4ca5bb0(RBX::GameJoin* this) {
       if (ReactiveJoinUserIdAllowlist.size() != 0) {
         call_0x4ca4c50(this);
-        if (GameJoinV2 >= 6 && GameJoinV2 >> 8 >= 5) {
+        if (GameJoinV2 >= 6 && (uint64_t)GameJoinV2 >> 8 >= 5) {
           FLog::Log("[FLog::GameJoinV2] Checking if user is in GameJoinV2 allowlist UserId: {} Allowlist: {}");
         }
       }
       auto local_0x30 = this;
       call_0x188b760(&sym_0x84cfb28, &local_0x90, &local_0x30);
-      if (local_0x90 == 0 && local_0x98 == 0) {
-        return;
-      }
+      return local_0x90 != 0 || local_0x98 != 0;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -112,203 +109,205 @@ Operação  : 0x4ca5be1: mov/math reg, [flag] ; fn=0x4ca5bb0..0x4ca5d38
     0x4ca5d30 | 48 81 c4 d8 00 00 00     | add rsp, 0xd8
     0x4ca5d37 | c3                       | ret
   
-  === [Sub-Rotina Chamada: 0x4ca4c50..0x4ca5ba8 via call @0x4ca5bdc (rcx = this (Direct Engine Sub-Call))] ===
-    // Flag defaults: GameJoinV2 = 6, ReactiveJoinUserIdAllowlist = "", SplitHashNoRehashOnExistingKey = true
-    void RBX::GameJoin::func_0x4ca4c50(RBX::GameJoin* this) {
+  === [Sub-Rotina Chamada: 0x4ca4c50..0x4ca5ba8 via call @0x4ca5bdc (Direct Engine Sub-Call)] ===
+    // Flag defaults: ReactiveJoinUserIdAllowlist = "", SplitHashNoRehashOnExistingKey = true
+    void SubObj_0x4ca4c50::func_0x4ca4c50(SubObj_0x4ca4c50* this) {
       if (global_0x8195328 == ReactiveJoinUserIdAllowlist.size()) {
         auto ret_0x5e06820_1 = memcmp(ReactiveJoinUserIdAllowlist, ReactiveJoinUserIdAllowlist, global_0x8195328);
-        if (ret_0x5e06820_1 != 0) {
-          call_0x6f7000(ReactiveJoinUserIdAllowlist, ReactiveJoinUserIdAllowlist, ReactiveJoinUserIdAllowlist.size());
-          void* i_ebx = global_0x8195328;
-          int32_t i_r14d = -1;
-          void* i_esi = ReactiveJoinUserIdAllowlist;
-          int32_t i_r15d = 0;
-          L_0x4ca4d30:
-          int64_t local_0x60;
-          void* stk_7;
-          float fstk_6;
-          void* v_r15_4;
-          do { // L_0x4ca4d30
-            i_r14d--;
-            v_r15_4 = i_r15d;
-            if (i_ebx == 0) break;
-            auto ret_0x5e067a0_3 = memchr(i_esi, 44, i_ebx);
-            if (ret_0x5e067a0_3 == 0) break;
-            if (ret_0x5e067a0_3 - i_esi == -1) break;
-            void* v_r15_1 = i_r15d;
-            if (0.0 != i_r15d) {
-              0.0->field_0x0 = i_esi;
-            } else {
-              local_0x60 = i_esi;
-              call_0x1355790(&local_0x90, 0.0, &local_0x60);
-              v_r15_1 = local_0xa0;
-            }
-            void* sel_rdx_3 = min(ret_0x5e067a0_3 - i_esi + 1, i_ebx);
-            void* sel_rax_4 = i_ebx >= max(-1, sel_rdx_3) ? max(-1, sel_rdx_3) : local_0x88;
-            i_ebx = sel_rax_4->field_0x0 - sel_rdx_3;
-            i_esi = i_esi + sel_rdx_3;
-            i_r15d = v_r15_1;
-          } while (i_r14d != 0); // loop -> L_0x4ca4d30
-          void* v_rsi_8 = local_0x98;
-          int64_t local_0x88;
-          if (local_0x98 != v_r15_4) {
-            v_rsi_8 = &local_0x98->field_0x10;
-          } else {
-            auto local_0x80 = fstk_6;
-            auto local_0x84 = local_0x74;
-            local_0x88 = stk_7;
-            auto local_0x8c = local_0x7c;
-            call_0x1355790(&local_0x90, local_0x98, &local_0x80);
-          }
-          call_0x2e13190();
-          int64_t stk_17;
-          int64_t local_0x70;
-          int32_t i_r10d;
-          int32_t i_r9d;
-          int64_t local_0x34;
-          int64_t local_0x30;
-          if ((v_rsi_8 - local_0x90) >> 4 != 0) {
-            local_0x30 = 0;
-            auto ret_0x9af6b0_7 = call_0x9af6b0(&local_0x30, (v_rsi_8 - local_0x90) >> 4);
-            int32_t v_r10_13;
-            if (local_0x30 != 0) {
-              if (local_0x30 != (local_0x38 + (1 << local_0x4c) * 4)->field_0x4) {
-                if (local_0x34 != 0) {
-                  i_r9d = 0;
-                  i_r10d = local_0x34;
-                  int32_t v_r10_12;
-                  do { // L_0x4ca4ef0
-                    v_r10_12 = i_r10d;
-                    if ((r11->field_0x18[(i_r9d >> 6) * 8] & 1 << (i_r9d & 0x3f)) == 0) {
-                    ret_0x9af6b0_7->field_0x0[(i_r9d * 8)] = local_0x40->field_0x0[i_r9d * 8];
-                    v_r10_12 = local_0x34;
-                    }
-                    i_r9d++;
-                    i_r10d = v_r10_12;
-                  } while (i_r9d < v_r10_12); // loop -> L_0x4ca4ef0
-                  v_r10_13 = v_r10_12;
-                } else {
-                  v_r10_13 = local_0x34;
+        if (ret_0x5e06820_1 == 0) {
+          return;
+        }
+      }
+      call_0x6f7000(ReactiveJoinUserIdAllowlist, ReactiveJoinUserIdAllowlist, ReactiveJoinUserIdAllowlist.size());
+      uint64_t i_ebx = global_0x8195328;
+      int32_t i_r14d = -1;
+      void* i_esi = ReactiveJoinUserIdAllowlist;
+      int32_t i_r15d = 0;
+      int64_t local_0x60;
+      void* stk_7;
+      float fstk_6;
+      void* v_r15_4;
+      do { // L_0x4ca4d30
+        i_r14d--;
+        v_r15_4 = i_r15d;
+        if (i_ebx == 0) break;
+        auto ret_0x5e067a0_3 = memchr(i_esi, 44, i_ebx);
+        if (ret_0x5e067a0_3 == 0) break;
+        if (ret_0x5e067a0_3 - i_esi == -1) break;
+        void* v_r15_1 = i_r15d;
+        if (0.0 != i_r15d) {
+          0.0->field_0x0 = i_esi;
+        } else {
+          local_0x60 = i_esi;
+          call_0x1355790(&local_0x90, 0.0, &local_0x60);
+          v_r15_1 = local_0xa0;
+        }
+        void* sel_rdx_3 = min(ret_0x5e067a0_3 - i_esi + 1, i_ebx);
+        void* sel_rax_4 = i_ebx >= max(-1, sel_rdx_3) ? max(-1, sel_rdx_3) : local_0x88;
+        i_ebx = sel_rax_4->field_0x0 - sel_rdx_3;
+        i_esi = i_esi + sel_rdx_3;
+        i_r15d = v_r15_1;
+      } while (i_r14d != 0); // loop -> L_0x4ca4d30
+      void* v_rsi_8 = local_0x98;
+      int64_t local_0x88;
+      if (local_0x98 != v_r15_4) {
+        v_rsi_8 = &local_0x98->field_0x10;
+      } else {
+        auto local_0x80 = fstk_6;
+        auto local_0x84 = local_0x74;
+        local_0x88 = stk_7;
+        auto local_0x8c = local_0x7c;
+        call_0x1355790(&local_0x90, local_0x98, &local_0x80);
+      }
+      call_0x2e13190();
+      int64_t stk_17;
+      int64_t local_0x70;
+      int32_t i_r10d;
+      int32_t i_r9d;
+      int64_t local_0x34;
+      int64_t local_0x30;
+      if ((v_rsi_8 - local_0x90) >> 4 != 0) {
+        local_0x30 = 0;
+        auto ret_0x9af6b0_7 = call_0x9af6b0(&local_0x30, (v_rsi_8 - local_0x90) >> 4);
+        int32_t v_r10_13;
+        if (local_0x30 != 0) {
+          if (local_0x30 != (local_0x38 + (1 << local_0x4c) * 4)->field_0x4) {
+            if (local_0x34 != 0) {
+              i_r9d = 0;
+              i_r10d = local_0x34;
+              int32_t v_r10_12;
+              do { // L_0x4ca4ef0
+                v_r10_12 = i_r10d;
+                if ((r11->field_0x18[((uint32_t)i_r9d >> 6) * 8] & 1 << (i_r9d & 0x3f)) == 0) {
+                  ret_0x9af6b0_7->field_0x0[(i_r9d * 8)] = local_0x40->field_0x0[i_r9d * 8];
+                  v_r10_12 = local_0x34;
                 }
-              } else {
-                if (local_0x30 != 0) {
-                  call_0x5e05370(ret_0x9af6b0_7, local_0x40, local_0x30 << 3);
-                }
-                v_r10_13 = local_0x34;
-              }
+                i_r9d++;
+                i_r10d = v_r10_12;
+              } while (i_r9d < v_r10_12); // loop -> L_0x4ca4ef0
+              v_r10_13 = v_r10_12;
             } else {
               v_r10_13 = local_0x34;
             }
-            int32_t v_r10_14 = v_r10_13;
-            int64_t local_0x190;
-            if (local_0x40 != 0) {
-              local_0x190 = local_0x40;
-              auto local_0xb0 = v_r10_13 * 8 & 0xfffffff8;
-              local_0x70 = 0;
-              local_0x50->vfunc_0x30(local_0x50, &local_0x190, &local_0xb0, &local_0x70) // -> RBX::NavigationService::PathUpdateJob::fn_0x4067b60;
-              v_r10_14 = local_0x34;
-            }
-            local_0x34 = (v_rsi_8 - local_0x90) >> 4;
-            call_0x9af3d0(&local_0x30, v_r10_14);
-            if (local_0x38 != 0 && 4 << local_0x4c != 0) {
-              call_0x5e051b0(local_0x38, -1, 4 << local_0x4c);
-            }
+          } else {
             if (local_0x30 != 0) {
-              (local_0x38 + (1 << local_0x4c) * 4)->field_0x8 = 0;
-              int32_t v_r9_15 = (local_0x38 + (1 << local_0x4c) * 4)->field_0x4;
-              if ((local_0x38 + (1 << local_0x4c) * 4)->field_0x4 != 0) {
-                do { // L_0x4ca5040
-                  if ((r11->field_0x18[((i_r9d - 1) >> 6) * 8] & 1 << (i_r9d - 1 & 0x3f)) == 0) break;
-                  i_r9d = i_r9d - 1;
-                } while (i_r9d != 1); // loop -> L_0x4ca5040
-              }
-              (local_0x38 + (1 << local_0x4c) * 4)->field_0x4 = v_r9_15;
-              if (local_0x30 != v_r9_15) {
-                if (local_0x34 != 0) {
-                  int32_t i_r8d = local_0x34;
-                  int32_t v_r8_16;
-                  do { // L_0x4ca5090
-                    v_r8_16 = i_r8d;
-                    if ((rdi->field_0x18[(i_ebx >> 6) * 8] & 1ULL << (i_ebx & 0x3f)) >= 0) {
-                    call_0x11f0b30(&local_0x30, &local_0x190, local_0x40 + i_ebx * 8, 2);
-                    v_r8_16 = local_0x34;
-                    }
-                    i_ebx++;
-                    i_r8d = v_r8_16;
-                  } while (i_ebx < v_r8_16); // loop -> L_0x4ca5090
-                  stk_17 = local_0x38;
-                } else {
-                  stk_17 = local_0x38;
-                }
-              } else if (local_0x30 != 0) {
-                do { // L_0x4ca50f0
+              call_0x5e05370(ret_0x9af6b0_7, local_0x40, local_0x30 << 3);
+            }
+            v_r10_13 = local_0x34;
+          }
+        } else {
+          v_r10_13 = local_0x34;
+        }
+        int32_t v_r10_14 = v_r10_13;
+        int64_t local_0x190;
+        if (local_0x40 != 0) {
+          local_0x190 = local_0x40;
+          auto local_0xb0 = v_r10_13 * 8 & 0xfffffff8;
+          local_0x70 = 0;
+          local_0x50->vfunc_0x30(local_0x50, &local_0x190, &local_0xb0, &local_0x70);
+          v_r10_14 = local_0x34;
+        }
+        local_0x34 = (v_rsi_8 - local_0x90) >> 4;
+        call_0x9af3d0(&local_0x30, v_r10_14);
+        if (local_0x38 != 0 && 4 << local_0x4c != 0) {
+          call_0x5e051b0(local_0x38, -1, 4 << local_0x4c);
+        }
+        if (local_0x30 != 0) {
+          (local_0x38 + (1 << local_0x4c) * 4)->field_0x8 = 0;
+          int32_t v_r9_15 = (local_0x38 + (1 << local_0x4c) * 4)->field_0x4;
+          if ((local_0x38 + (1 << local_0x4c) * 4)->field_0x4 != 0) {
+            do { // L_0x4ca5040
+              if ((r11->field_0x18[((uint32_t)(i_r9d - 1) >> 6) * 8] & 1 << (i_r9d - 1 & 0x3f)) == 0) break;
+              i_r9d = i_r9d - 1;
+            } while (i_r9d != 1); // loop -> L_0x4ca5040
+          }
+          (local_0x38 + (1 << local_0x4c) * 4)->field_0x4 = v_r9_15;
+          if (local_0x30 != v_r9_15) {
+            if (local_0x34 != 0) {
+              int32_t i_r8d = local_0x34;
+              int32_t v_r8_16;
+              do { // L_0x4ca5090
+                v_r8_16 = i_r8d;
+                if ((rdi->field_0x18[((uint64_t)i_ebx >> 6) * 8] & 1ULL << (i_ebx & 0x3f)) >= 0) {
                   call_0x11f0b30(&local_0x30, &local_0x190, local_0x40 + i_ebx * 8, 2);
-                  i_ebx++;
-                } while (i_ebx < local_0x30); // loop -> L_0x4ca50f0
-              } else {
-                stk_17 = local_0x38;
-              }
+                  v_r8_16 = local_0x34;
+                }
+                i_ebx++;
+                i_r8d = v_r8_16;
+              } while (i_ebx < v_r8_16); // loop -> L_0x4ca5090
+              stk_17 = local_0x38;
             } else {
               stk_17 = local_0x38;
             }
+          } else if (local_0x30 != 0) {
+            do { // L_0x4ca50f0
+              call_0x11f0b30(&local_0x30, &local_0x190, local_0x40 + i_ebx * 8, 2);
+              i_ebx++;
+            } while (i_ebx < local_0x30); // loop -> L_0x4ca50f0
           } else {
-            stk_17 = 0;
+            stk_17 = local_0x38;
           }
-          int32_t v_r12_63 = 0;
-          int64_t stk_64;
-          if (local_0x90 != v_rsi_8) {
-            int32_t i_edi = 16;
-            int32_t i_r12d = 0;
-            void* v_r14_60;
-            void* v_rsi_57;
-            do { // L_0x4ca5170
-              auto ret_0x496ad70_14 = call_0x496ad70(i_r14d, &local_0x60, 0);
-              void* sel_rcx_5 = ret_0x496ad70_14 >= (i_r14d + 8)->field_0x0 ? i_r14d + 8 : ret_0x496ad70_14;
-              void* sel_rcx_6 = (i_r14d + 8)->field_0x0 < sel_rcx_5->field_0x0 ? i_r14d + 8 : sel_rcx_5->field_0x0;
-              auto local_0xc0 = i_r14d->field_0x0 + sel_rcx_6->field_0x0;
-              call_0x12f0a60(&local_0xc0, &local_0x70, &local_0x60);
-              v_rsi_57 = i_esi;
-              int32_t v_r12_58 = i_r12d;
-              v_r14_60 = i_r14d;
-              int64_t stk_62;
-              if (local_0x78 != 0) {
-                int32_t v_rdi_28 = i_edi;
-                float fstk_32;
-                void* i_r11d;
-                if (local_0x70->field_0x0 == 45) {
-                  void* sel_rax_8 = min(1, local_0x78);
-                  if (min(-1, local_0x78 - sel_rax_8) != 0) {
-                    do { // L_0x4ca5260
-                    int32_t v_rax_23;
-                    void* v_r9_24 = i_r9d;
-                    int32_t v_r10_25 = i_r10d;
-                    float fstk_27;
-                    if (i_r11d->field_0x0 >= 48 && i_r11d->field_0x0 <= 57) {
+        } else {
+          stk_17 = local_0x38;
+        }
+      } else {
+        stk_17 = 0;
+      }
+      int32_t v_r12_63 = 0;
+      int64_t stk_64;
+      if (local_0x90 != v_rsi_8) {
+        int32_t i_edi = 16;
+        int32_t i_r12d = 0;
+        void* v_r14_60;
+        void* v_rsi_57;
+        do { // L_0x4ca5170
+          auto ret_0x496ad70_14 = call_0x496ad70(i_r14d, &local_0x60, 0);
+          void* sel_rcx_5 = ret_0x496ad70_14 >= (i_r14d + 8)->field_0x0 ? i_r14d + 8 : ret_0x496ad70_14;
+          void* sel_rcx_6 = (i_r14d + 8)->field_0x0 < sel_rcx_5->field_0x0 ? i_r14d + 8 : sel_rcx_5->field_0x0;
+          auto local_0xc0 = i_r14d->field_0x0 + sel_rcx_6->field_0x0;
+          call_0x12f0a60(&local_0xc0, &local_0x70, &local_0x60);
+          v_rsi_57 = i_esi;
+          int32_t v_r12_58 = i_r12d;
+          v_r14_60 = i_r14d;
+          int64_t stk_62;
+          if (local_0x78 != 0) {
+            int32_t v_rdi_28 = i_edi;
+            float fstk_32;
+            void* i_r11d;
+            if (local_0x70->field_0x0 == 45) {
+              void* sel_rax_8 = min(1, local_0x78);
+              if (std::min<uint64_t>(-1, local_0x78 - sel_rax_8) != 0) {
+                do { // L_0x4ca5260
+                  int32_t v_rax_23;
+                  uint64_t v_r9_24 = i_r9d;
+                  int64_t v_r10_25 = i_r10d;
+                  float fstk_27;
+                  if (i_r11d->field_0x0 >= 48 && i_r11d->field_0x0 <= 57) {
                     v_rax_23 = i_r11d->field_0x0 - 0x30;
                     L_0x4ca5289:
                     if (v_rax_23 >= 10) break;
-                    if (rdx >> 3 < i_r10d) break;
+                    if ((uint64_t)rdx >> 3 < i_r10d) break;
                     void* sel_rcx_9 = min(1, i_r9d);
-                    i_r9d = min(-1, i_r9d - sel_rcx_9);
+                    i_r9d = std::min<uint64_t>(-1, i_r9d - sel_rcx_9);
                     i_r10d = v_rax_23 + (i_r10d + i_r10d * 4) * 2;
                     i_r11d = i_r11d + sel_rcx_9;
                     L_0x4ca52de:
-                    if (min(-1, local_0x78 - sel_rax_8) == v_r9_24) break;
+                    if (std::min<uint64_t>(-1, local_0x78 - sel_rax_8) == v_r9_24) break;
                     if (-v_r10_25 > 0) break;
                     v_rdi_28 = 16;
                     fstk_32 = fstk_27;
                     break;
-                    } else {
+                  } else {
                     if (i_r11d->field_0x0 >= 97) {
                     if (i_r11d->field_0x0 > 122) break;
                     v_rax_23 = i_r11d->field_0x0 - 0x57;
                     if (v_rax_23 >= 10) break;
-                    if (rdx >> 3 < i_r10d) break;
+                    if ((uint64_t)rdx >> 3 < i_r10d) break;
                     void* sel_rcx_9 = min(1, i_r9d);
-                    i_r9d = min(-1, i_r9d - sel_rcx_9);
+                    i_r9d = std::min<uint64_t>(-1, i_r9d - sel_rcx_9);
                     i_r10d = v_rax_23 + (i_r10d + i_r10d * 4) * 2;
                     i_r11d = i_r11d + sel_rcx_9;
-                    if (min(-1, local_0x78 - sel_rax_8) == v_r9_24) break;
+                    if (std::min<uint64_t>(-1, local_0x78 - sel_rax_8) == v_r9_24) break;
                     if (-v_r10_25 > 0) break;
                     v_rdi_28 = 16;
                     fstk_32 = fstk_27;
@@ -319,53 +318,53 @@ Operação  : 0x4ca5be1: mov/math reg, [flag] ; fn=0x4ca5bb0..0x4ca5d38
                     v_rax_23 = i_r11d->field_0x0 - 0x37;
                     goto L_0x4ca5289;
                     }
-                    }
-                    L_0x4ca5784:
-                    if (&v_r14_60->field_0x10 != v_rsi_57) break;
-                    v_r12_63 = v_r12_58;
-                    stk_64 = stk_62;
-                    break;
-                    } while (min(-1, i_r9d - sel_rcx_9) != 0); // loop -> L_0x4ca5260
-                    goto L_0x4ca52de;
-                  } else {
-                    stk_62 = stk_17;
                   }
+                  L_0x4ca5784:
+                  if (&v_r14_60->field_0x10 != v_rsi_57) break;
+                  v_r12_63 = v_r12_58;
+                  stk_64 = stk_62;
+                  break;
+                } while (std::min<uint64_t>(-1, i_r9d - sel_rcx_9) != 0); // loop -> L_0x4ca5260
+                goto L_0x4ca52de;
+              } else {
+                stk_62 = stk_17;
+              }
+            } else {
+              i_r11d = local_0x70;
+              do { // L_0x4ca5325
+                int32_t v_rax_18;
+                uint64_t v_r9_19 = i_r9d;
+                int64_t v_r10_20 = i_r10d;
+                if (i_r11d->field_0x0 >= 48 && i_r11d->field_0x0 <= 57) {
+                  v_rax_18 = i_r11d->field_0x0 - 0x30;
+                  L_0x4ca534e:
+                  if (v_rax_18 >= 10) break;
+                  if ((uint64_t)rdx >> 3 < i_r10d) break;
+                  void* sel_rcx_7 = min(1, i_r9d);
+                  i_r9d = std::min<uint64_t>(-1, i_r9d - sel_rcx_7);
+                  i_r10d = v_rax_18 + (i_r10d + i_r10d * 4) * 2;
+                  i_r11d = i_r11d + sel_rcx_7;
+                  L_0x4ca53a3:
+                  if (local_0x78 == v_r9_19) break;
+                  if (v_r10_20 < 0) break;
+                  if (fstk_32 != 0) break;
+                  if (global_0x84a44d6 == 0) break;
+                  if (!SplitHashNoRehashOnExistingKey) break;
+                  if (local_0x34 != 0) break;
+                  local_0x38 = stk_17;
+                  call_0x9af6b0(&local_0x30, v_rdi_28, local_0x30);
+                  if (local_0x30 == 0) break;
+                  if (local_0x30 == (local_0x38 + (1 << local_0x4c) * 4)->field_0x4) break;
+                  if (local_0x34 == 0) break;
+                  break;
                 } else {
-                  i_r11d = local_0x70;
-                  do { // L_0x4ca5325
-                    int32_t v_rax_18;
-                    void* v_r9_19 = i_r9d;
-                    int32_t v_r10_20 = i_r10d;
-                    if (i_r11d->field_0x0 >= 48 && i_r11d->field_0x0 <= 57) {
-                    v_rax_18 = i_r11d->field_0x0 - 0x30;
-                    L_0x4ca534e:
-                    if (v_rax_18 >= 10) break;
-                    if (rdx >> 3 < i_r10d) break;
-                    void* sel_rcx_7 = min(1, i_r9d);
-                    i_r9d = min(-1, i_r9d - sel_rcx_7);
-                    i_r10d = v_rax_18 + (i_r10d + i_r10d * 4) * 2;
-                    i_r11d = i_r11d + sel_rcx_7;
-                    L_0x4ca53a3:
-                    if (local_0x78 == v_r9_19) break;
-                    if (v_r10_20 < 0) break;
-                    if (fstk_32 != 0) break;
-                    if (global_0x84a44d6 == 0) break;
-                    if (!SplitHashNoRehashOnExistingKey) break;
-                    if (local_0x34 != 0) break;
-                    local_0x38 = stk_17;
-                    call_0x9af6b0(&local_0x30, v_rdi_28, local_0x30);
-                    if (local_0x30 == 0) break;
-                    if (local_0x30 == (local_0x38 + (1 << local_0x4c) * 4)->field_0x4) break;
-                    if (local_0x34 == 0) break;
-                    break;
-                    } else {
-                    if (i_r11d->field_0x0 >= 97) {
+                  if (i_r11d->field_0x0 >= 97) {
                     if (i_r11d->field_0x0 > 122) break;
                     v_rax_18 = i_r11d->field_0x0 - 0x57;
                     if (v_rax_18 >= 10) break;
-                    if (rdx >> 3 < i_r10d) break;
+                    if ((uint64_t)rdx >> 3 < i_r10d) break;
                     void* sel_rcx_7 = min(1, i_r9d);
-                    i_r9d = min(-1, i_r9d - sel_rcx_7);
+                    i_r9d = std::min<uint64_t>(-1, i_r9d - sel_rcx_7);
                     i_r10d = v_rax_18 + (i_r10d + i_r10d * 4) * 2;
                     i_r11d = i_r11d + sel_rcx_7;
                     if (local_0x78 == v_r9_19) break;
@@ -380,55 +379,44 @@ Operação  : 0x4ca5be1: mov/math reg, [flag] ; fn=0x4ca5bb0..0x4ca5d38
                     if (local_0x30 == (local_0x38 + (1 << local_0x4c) * 4)->field_0x4) break;
                     if (local_0x34 == 0) break;
                     break;
-                    } else {
+                  } else {
                     if (i_r11d->field_0x0 < 65) break;
                     if (i_r11d->field_0x0 > 90) break;
                     v_rax_18 = i_r11d->field_0x0 - 0x37;
                     goto L_0x4ca534e;
-                    }
-                    }
-                    if (&v_r14_60->field_0x10 != v_rsi_57) break;
-                    v_r12_63 = v_r12_58;
-                    stk_64 = stk_62;
-                    break;
-                  } while (min(-1, i_r9d - sel_rcx_7) != 0); // loop -> L_0x4ca5325
-                  goto L_0x4ca53a3;
+                  }
                 }
-              } else {
-                stk_62 = stk_17;
-              }
-              goto L_0x4ca5784;
-            } while (&v_r14_60->field_0x10 != v_rsi_57); // loop -> L_0x4ca5170
-            goto L_0x4ca579d;
+                if (&v_r14_60->field_0x10 != v_rsi_57) break;
+                v_r12_63 = v_r12_58;
+                stk_64 = stk_62;
+                break;
+              } while (std::min<uint64_t>(-1, i_r9d - sel_rcx_7) != 0); // loop -> L_0x4ca5325
+              goto L_0x4ca53a3;
+            }
           } else {
-            stk_64 = stk_17;
+            stk_62 = stk_17;
           }
-          call_0x9aac20(&sym_0x84cfb28);
-          global_0x84cfb48 = local_0x50;
-          global_0x84cfb28 = local_0x30;
-          global_0x84cfb2c = local_0x34;
-          global_0x84cfb40 = local_0x48;
-          global_0x84cfb44 = local_0x4c;
-          global_0x84cfb30 = stk_64;
-          global_0x84cfb38 = local_0x40;
-          local_0x30 = 0;
-          local_0x38 = v_r12_63;
-          call_0x9aac20(&local_0x30);
-          if (local_0x90 != 0) {
-            void* v_r15_66 = local_0x90;
-            call_0x4955ac0(v_r15_66);
-            return;
-          }
-          return;
-        }
-        return;
+          goto L_0x4ca5784;
+        } while (&v_r14_60->field_0x10 != v_rsi_57); // loop -> L_0x4ca5170
+        goto L_0x4ca579d;
+      } else {
+        stk_64 = stk_17;
       }
-      call_0x6f7000(ReactiveJoinUserIdAllowlist, ReactiveJoinUserIdAllowlist, ReactiveJoinUserIdAllowlist.size());
-      void* i_ebx = global_0x8195328;
-      int32_t i_r14d = -1;
-      void* i_esi = ReactiveJoinUserIdAllowlist;
-      int32_t i_r15d = 0;
-      goto L_0x4ca4d30;
+      call_0x9aac20(&sym_0x84cfb28);
+      global_0x84cfb48 = local_0x50;
+      global_0x84cfb28 = local_0x30;
+      global_0x84cfb2c = local_0x34;
+      global_0x84cfb40 = local_0x48;
+      global_0x84cfb44 = local_0x4c;
+      global_0x84cfb30 = stk_64;
+      global_0x84cfb38 = local_0x40;
+      local_0x30 = 0;
+      local_0x38 = v_r12_63;
+      call_0x9aac20(&local_0x30);
+      if (local_0x90 != 0) {
+        void* v_r15_66 = local_0x90;
+        call_0x4955ac0(v_r15_66);
+      }
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x4ca4c50..0x4ca5ba8)] ===
@@ -1480,271 +1468,6 @@ Operação  : 0x4ca5be1: mov/math reg, [flag] ; fn=0x4ca5bb0..0x4ca5d38
     0x4ca5b9e | e9 98 fb ff ff           | jmp 0x4ca573b
     L_0x4ca5ba3:
     0x4ca5ba3 | e8 d8 e9 16 01           | call 0x5e14580
-
-[Bytecode Hex]
-  0x4ca5bb0: 48 81 ec d8 00 00 00 | 48 8b 05 22 2b 43 03 | 48 33 c4 | 48 89 84 24 c0 00 00 00
-  0x4ca5bc9: 48 83 3d 37 f7 4e 03 00 | 48 89 4c 24 30 | cc cc | cc cc
-  0x4ca5bda: cc cc | e8 6f f0 ff ff | 48 8b 05 c8 b1 49 03 | 3c 06
-  0x4ca5bea: 0f 82 e6 00 00 00 | 48 c1 e8 08 | 3c 05 | 0f 82 da 00 00 00
-  0x4ca5bfc: 48 8d 05 68 ec a8 02 | 48 89 44 24 60 | 48 c7 c0 ff ff ff ff | 48 8b 4c 24 60
-  0x4ca5c14: 48 81 c1 d5 55 d9 ff | 48 89 4c 24 50 | 48 ff c0 | 80 3c 01 00
-  0x4ca5c27: 75 f7 | 48 83 3d ff f6 4e 03 10 | 4c 8d 4c 24 70 | 48 89 44 24 58
-  0x4ca5c3b: 4c 8d 44 24 50 | 48 8b 44 24 30 | 48 8d 4c 24 40 | 48 89 44 24 70
-  0x4ca5c4f: b2 05 | 0f 10 44 24 70 | 48 c7 44 24 40 d3 00 00 00 | 48 8d 05 b2 f6 4e 03
-  0x4ca5c66: 48 0f 43 05 aa f6 4e 03 | 48 89 84 24 80 00 00 00 | 48 8b 05 ab f6 4e 03 | 48 89 84 24 88 00 00 00
-  0x4ca5c85: 48 8d 84 24 a0 00 00 00 | 0f 10 8c 24 80 00 00 00 | 48 89 44 24 48 | 0f 11 84 24 a0 00 00 00
-  0x4ca5ca2: c6 44 24 20 01 | 0f 28 44 24 40 | 66 0f 7f 44 24 70 | 0f 10 05 f7 b0 49 03
-  0x4ca5cb9: 0f 11 8c 24 b0 00 00 00 | 0f 28 4c 24 50 | 0f 29 44 24 40 | 66 0f 7f 4c 24 50
-  0x4ca5cd1: e8 fa bf cc ff | 4c 8d 44 24 30 | 48 8d 94 24 90 00 00 00 | 48 8d 0d 3e 9e 82 03
-  0x4ca5cea: e8 71 5a be fc | 48 83 bc 24 90 00 00 00 00 | 75 24 | 83 bc 24 98 00 00 00 00
-  0x4ca5d02: 75 1a | 32 c0 | 48 8b 8c 24 c0 00 00 00 | 48 33 cc
-  0x4ca5d11: e8 8a eb 13 01 | 48 81 c4 d8 00 00 00 | c3 | b0 01
-  0x4ca5d20: 48 8b 8c 24 c0 00 00 00 | 48 33 cc | e8 70 eb 13 01 | 48 81 c4 d8 00 00 00
-  0x4ca5d37: c3
-
-  [Child Bytecode Hex 0x4ca4c50..0x4ca5ba8]
-  0x4ca4c50: 40 55 | 53 | 56 | 57
-  0x4ca4c55: 41 54 | 41 55 | 41 56 | 41 57
-  0x4ca4c5d: 48 8d 6c 24 b8 | 48 81 ec 48 01 00 00 | 0f 29 b4 24 30 01 00 00 | 48 8d 3d 80 06 4f 03
-  0x4ca4c78: 48 8b d7 | 48 8b 35 76 06 4f 03 | 4c 8b 35 87 06 4f 03 | 49 83 fe 10
-  0x4ca4c8d: 48 0f 43 d6 | 48 8d 1d 80 06 4f 03 | 48 8b cb | 48 83 3d 8d 06 4f 03 10
-  0x4ca4ca3: 48 0f 43 0d 6d 06 4f 03 | 4c 8b 05 76 06 4f 03 | 4c 8b 3d 4f 06 4f 03 | 4d 3b c7
-  0x4ca4cbc: 75 0d | e8 5d 1b 16 01 | 85 c0 | 0f 84 92 0b 00 00
-  0x4ca4ccb: 49 83 fe 10 | 48 0f 43 fe | 4d 8b c7 | 48 8b d7
-  0x4ca4cd9: 48 8b cb | e8 1f 23 a5 fb | 0f 57 c0 | f3 0f 7f 45 90
-  0x4ca4ce9: 45 33 e4 | 45 8b fc | 4c 89 65 a0 | 48 83 3d 35 06 4f 03 10
-  0x4ca4cfb: 48 0f 43 1d 15 06 4f 03 | 48 89 5c 24 70 | 48 8b 05 19 06 4f 03 | 48 89 44 24 78
-  0x4ca4d14: 45 8d 74 24 ff | 0f 28 44 24 70 | 66 0f 7f 45 80 | 48 8b 5d 88
-  0x4ca4d27: 48 8b 75 80 | 0f 1f 44 00 00 | 41 ff ce | 48 85 db
-  0x4ca4d36: 0f 84 ec 00 00 00 | 4c 8b c3 | ba 2c 00 00 00 | 48 8b ce
-  0x4ca4d47: e8 54 1a 16 01 | 48 8b f8 | 48 85 c0 | 0f 84 d0 00 00 00
-  0x4ca4d58: 48 2b fe | 48 83 ff ff | 0f 84 c3 00 00 00 | 48 89 bd 90 00 00 00
-  0x4ca4d6c: 4c 89 a5 98 00 00 00 | 48 8d 8d 90 00 00 00 | 48 8d 85 98 00 00 00 | 48 85 ff
-  0x4ca4d84: 48 0f 44 c8 | 48 8d 45 88 | 48 3b 19 | 48 0f 43 c1
-  0x4ca4d93: 48 8b 00 | 48 89 74 24 60 | 48 89 44 24 68 | 48 8b 45 98
-  0x4ca4da4: 49 3b c7 | 74 12 | 0f 10 44 24 60 | 0f 11 00
-  0x4ca4db1: 48 83 c0 10 | 48 89 45 98 | eb 15 | 4c 8d 44 24 60
-  0x4ca4dc0: 48 8b d0 | 48 8d 4d 90 | e8 c4 09 6b fc | 4c 8b 7d a0
-  0x4ca4dd0: 48 c7 85 90 00 00 00 ff ff ff ff | 48 8d 57 01 | 48 3b da | 48 0f 42 d3
-  0x4ca4de6: 48 89 95 98 00 00 00 | 48 8d 8d 90 00 00 00 | 48 8d 85 98 00 00 00 | 48 83 fa ff
-  0x4ca4dff: 48 0f 43 c8 | 48 8d 45 88 | 48 3b 19 | 48 0f 43 c1
-  0x4ca4e0e: 48 8b 18 | 48 2b da | 48 03 f2 | 48 89 75 80
-  0x4ca4e1b: 48 89 5d 88 | 45 85 f6 | 0f 85 08 ff ff ff | 4c 89 bd a0 00 00 00
-  0x4ca4e2f: 48 8b 75 98 | 49 3b f7 | 74 11 | 0f 28 45 80
-  0x4ca4e3c: 0f 11 06 | 48 83 c6 10 | 48 89 75 98 | eb 1f
-  0x4ca4e49: 4c 8d 45 80 | 48 8b d6 | 48 8d 4d 90 | e8 37 09 6b fc
-  0x4ca4e59: 48 8b 45 a0 | 48 89 85 a0 00 00 00 | 48 8b 75 98 | e8 23 e3 16 fe
-  0x4ca4e6d: 48 89 44 24 50 | 4c 89 64 24 40 | 4c 89 64 24 30 | 4c 89 64 24 38
-  0x4ca4e81: 4c 89 64 24 48 | 48 8b de | 4c 8b 7d 90 | 49 2b df
-  0x4ca4e90: 48 c1 fb 04 | 4c 8d 2d 55 e4 16 fe | 85 db | 0f 84 85 02 00 00
-  0x4ca4ea3: 8b d3 | 48 8d 4c 24 30 | e8 01 a8 d0 fb | 48 8b f8
-  0x4ca4eb2: 8b 44 24 30 | 85 c0 | 0f 84 8d 00 00 00 | 8b 4c 24 4c
-  0x4ca4ec2: ba 01 00 00 00 | 48 d3 e2 | 48 8b 4c 24 38 | 4c 8d 04 91
-  0x4ca4ed3: 41 3b 40 04 | 74 5a | 41 8b 48 10 | 4d 8d 1c c8
-  0x4ca4ee1: 45 8b cc | 44 8b 54 24 34 | 45 85 d2 | 74 62
-  0x4ca4eee: 66 90 | 45 8b c1 | 41 c1 e8 06 | 41 8b c9
-  0x4ca4efa: 83 e1 3f | ba 01 00 00 00 | 48 d3 e2 | 4b 85 54 c3 18
-  0x4ca4f0a: 75 1d | 41 8b c1 | 48 8d 14 c5 00 00 00 00 | 48 8b 44 24 40
-  0x4ca4f1c: 48 8b 0c 10 | 48 89 0c 17 | 44 8b 54 24 34 | 41 ff c1
-  0x4ca4f2c: 45 3b ca | 72 bf | eb 1d | 85 c0
-  0x4ca4f35: 74 14 | 4c 8b c0 | 49 c1 e0 03 | 48 8b 54 24 40
-  0x4ca4f43: 48 8b cf | e8 25 04 16 01 | 44 8b 54 24 34 | 48 8b 44 24 40
-  0x4ca4f55: 48 89 85 90 00 00 00 | 48 85 c0 | 74 51 | 48 8b 4c 24 50
-  0x4ca4f66: 48 8b 01 | 4c 89 64 24 70 | 4c 89 64 24 78 | 41 8b d2
-  0x4ca4f76: 48 8d 14 d5 07 00 00 00 | 48 83 e2 f8 | 48 89 55 b0 | 48 c7 45 b8 08 00 00 00
-  0x4ca4f8e: 4c 89 6c 24 20 | 4c 8d 4c 24 70 | 4c 8d 45 b0 | 48 8d 95 90 00 00 00
-  0x4ca4fa3: 48 8b 40 30 | ff 15 93 4d 79 01 | 44 8b 54 24 34 | 89 5c 24 34
-  0x4ca4fb6: 48 89 7c 24 40 | 41 8b d2 | 48 8d 4c 24 30 | e8 08 a4 d0 fb
-  0x4ca4fc8: 4c 8b 4c 24 38 | 4d 85 c9 | 74 24 | 8b 4c 24 4c
-  0x4ca4fd6: 41 b8 04 00 00 00 | 49 d3 e0 | 4d 85 c0 | 74 12
-  0x4ca4fe4: ba ff ff ff ff | 49 8b c9 | e8 bf 01 16 01 | 4c 8b 4c 24 38
-  0x4ca4ff6: 83 7c 24 30 00 | 0f 84 27 01 00 00 | 8b 4c 24 4c | b8 01 00 00 00
-  0x4ca500a: 48 d3 e0 | 49 8d 3c 81 | 44 89 67 08 | 8b 4c 24 4c
-  0x4ca5019: ba 01 00 00 00 | 48 d3 e2 | 48 8b 44 24 38 | 48 8d 1c 90
-  0x4ca502a: 8b 43 10 | 4c 8d 1c c3 | 44 8b 4b 04 | 45 85 c9
-  0x4ca5038: 74 2e | 66 0f 1f 44 00 00 | 45 8d 51 ff | 45 8b c2
-  0x4ca5047: 41 c1 e8 06 | 41 8b ca | 83 e1 3f | ba 01 00 00 00
-  0x4ca5056: 48 d3 e2 | 4b 85 54 c3 18 | 74 08 | 45 8b ca
-  0x4ca5063: 45 85 d2 | 75 d8 | 44 89 4b 04 | 8b 44 24 30
-  0x4ca5070: 41 8b dc | 41 3b c1 | 74 6f | 8b 47 10
-  0x4ca507b: 48 8d 3c c7 | 44 8b 44 24 34 | 45 85 c0 | 0f 84 9b 00 00 00
-  0x4ca508d: 0f 1f 00 | 8b d3 | 8b c3 | 83 e0 3f
-  0x4ca5097: 0f b6 c8 | 8b c3 | 48 c1 e8 06 | 48 8b 44 c7 18
-  0x4ca50a5: 48 0f a3 c8 | 72 33 | 48 8b 44 24 40 | 4c 8d 04 d0
-  0x4ca50b4: 41 b9 02 00 00 00 | 48 8d 95 90 00 00 00 | 48 8d 4c 24 30 | e8 65 ba 54 fc
-  0x4ca50cb: 8b 8d 90 00 00 00 | 48 8b 44 24 38 | 09 1c 88 | 44 8b 44 24 34
-  0x4ca50de: ff c3 | 41 3b d8 | 72 ab | eb 41
-  0x4ca50e7: 85 c0 | 74 3d | 0f 1f 44 00 00 | 8b cb
-  0x4ca50f2: 48 8b 44 24 40 | 4c 8d 04 c8 | 41 b9 02 00 00 00 | 48 8d 95 90 00 00 00
-  0x4ca5108: 48 8d 4c 24 30 | e8 1e ba 54 fc | 8b 8d 90 00 00 00 | 48 8b 44 24 38
-  0x4ca511d: 09 1c 88 | ff c3 | 3b 5c 24 30 | 72 c8
-  0x4ca5128: 4d 8b f7 | 4c 89 bd 98 00 00 00 | 4c 3b fe | 0f 84 66 06 00 00
-  0x4ca513b: 48 8d 05 82 80 57 02 | 48 89 44 24 70 | 48 c7 44 24 78 06 00 00 00 | bf 10 00 00 00
-  0x4ca5155: 49 bf cd cc cc cc cc cc cc cc | 0f 28 74 24 70 | 0f 1f 40 00 | 0f 1f 84 00 00 00 00 00
-  0x4ca5170: 66 0f 7f 74 24 60 | 45 33 c0 | 48 8d 54 24 60 | 49 8b ce
-  0x4ca5181: e8 ea 5b cc ff | 48 89 85 90 00 00 00 | 49 8d 56 08 | 4c 8b 0a
-  0x4ca5194: 48 8d 8d 90 00 00 00 | 49 3b c1 | 48 0f 43 ca | 48 8b 01
-  0x4ca51a5: 48 89 85 90 00 00 00 | 48 8d 8d 90 00 00 00 | 4c 3b c8 | 48 0f 42 ca
-  0x4ca51ba: 4c 8b 01 | 4d 2b c8 | 48 c7 c2 ff ff ff ff | 4c 3b ca
-  0x4ca51ca: 49 0f 42 d1 | 49 8b 0e | 49 03 c8 | 48 89 4d c0
-  0x4ca51d8: 48 89 55 c8 | 66 0f 7f 74 24 60 | 4c 8d 44 24 60 | 48 8d 54 24 70
-  0x4ca51ec: 48 8d 4d c0 | e8 6b b8 64 fc | 48 8b 5c 24 78 | 48 85 db
-  0x4ca51fd: 0f 84 81 05 00 00 | 48 8b 4c 24 70 | 80 39 2d | 0f 85 fc 00 00 00
-  0x4ca5211: b8 01 00 00 00 | 48 3b d8 | 48 0f 42 c3 | 48 2b d8
-  0x4ca5220: 48 c7 c7 ff ff ff ff | 48 3b df | 48 0f 42 fb | 48 03 c1
-  0x4ca5231: 48 89 45 b0 | 48 89 7d b8 | 48 85 ff | 0f 84 42 05 00 00
-  0x4ca5242: 0f 28 45 b0 | 66 0f 7f 44 24 60 | 4d 8b d4 | 4c 8b 4c 24 68
-  0x4ca5254: 4c 8b 5c 24 60 | 0f 1f 80 00 00 00 00 | 41 0f be 03 | 3c 30
-  0x4ca5266: 7c 09 | 3c 39 | 7f 05 | 83 e8 30
-  0x4ca526f: eb 18 | 3c 61 | 7c 09 | 3c 7a
-  0x4ca5277: 7f 65 | 83 e8 57 | eb 0b | 3c 41
-  0x4ca5280: 7c 5c | 3c 5a | 7f 58 | 83 e8 37
-  0x4ca5289: 83 f8 0a | 73 50 | 4d 8b c2 | 4b 8d 0c 92
-  0x4ca5295: 4c 8d 14 48 | 49 8b c7 | 49 f7 e2 | 48 c1 ea 03
-  0x4ca52a3: 49 3b d0 | 0f 82 d8 04 00 00 | b9 01 00 00 00 | 4c 3b c9
-  0x4ca52b4: 49 0f 42 c9 | 4c 2b c9 | 49 8b c1 | 49 c7 c1 ff ff ff ff
-  0x4ca52c5: 49 3b c1 | 4c 0f 42 c8 | 4c 03 d9 | 4c 89 5c 24 60
-  0x4ca52d4: 4c 89 4c 24 68 | 4d 85 c9 | 75 82 | 49 3b f9
-  0x4ca52e1: 0f 84 9d 04 00 00 | 0f 28 44 24 60 | 66 0f 7f 45 b0 | 49 f7 da
-  0x4ca52f4: 4d 85 d2 | 0f 8f 87 04 00 00 | 66 0f 7f 44 24 60 | bf 10 00 00 00
-  0x4ca5308: e9 b3 00 00 00 | 0f 28 44 24 70 | 66 0f 7f 44 24 60 | 4d 8b d4
-  0x4ca531b: 4c 8b 4c 24 68 | 4c 8b 5c 24 60 | 41 0f be 03 | 3c 30
-  0x4ca532b: 7c 09 | 3c 39 | 7f 05 | 83 e8 30
-  0x4ca5334: eb 18 | 3c 61 | 7c 09 | 3c 7a
-  0x4ca533c: 7f 65 | 83 e8 57 | eb 0b | 3c 41
-  0x4ca5345: 7c 5c | 3c 5a | 7f 58 | 83 e8 37
-  0x4ca534e: 83 f8 0a | 73 50 | 4d 8b c2 | 4b 8d 0c 92
-  0x4ca535a: 4c 8d 14 48 | 49 8b c7 | 49 f7 e2 | 48 c1 ea 03
-  0x4ca5368: 49 3b d0 | 0f 82 13 04 00 00 | b9 01 00 00 00 | 4c 3b c9
-  0x4ca5379: 49 0f 42 c9 | 4c 2b c9 | 49 8b c1 | 49 c7 c1 ff ff ff ff
-  0x4ca538a: 49 3b c1 | 4c 0f 42 c8 | 4c 03 d9 | 4c 89 5c 24 60
-  0x4ca5399: 4c 89 4c 24 68 | 4d 85 c9 | 75 82 | 49 3b d9
-  0x4ca53a6: 0f 84 d8 03 00 00 | 0f 28 44 24 60 | 66 0f 7f 44 24 60 | 4d 85 d2
-  0x4ca53ba: 0f 88 c4 03 00 00 | 48 83 7c 24 68 00 | 0f 85 b8 03 00 00 | 4c 89 55 80
-  0x4ca53d0: 44 8b 44 24 30 | 80 3d fa f0 7f 03 00 | 0f 84 b1 05 00 00 | 80 3d 9f 75 49 03 00
-  0x4ca53e9: 0f 84 a4 05 00 00 | 83 7c 24 34 00 | 0f 85 71 07 00 00 | 8b d7
-  0x4ca53fc: 48 8d 4c 24 30 | e8 aa a2 d0 fb | 48 8b d8 | 44 8b 44 24 30
-  0x4ca540e: 45 85 c0 | 0f 84 92 00 00 00 | 8b 4c 24 4c | ba 01 00 00 00
-  0x4ca5420: 48 d3 e2 | 48 8b 4c 24 38 | 48 8d 04 91 | 44 3b 40 04
-  0x4ca5430: 74 61 | 8b 48 10 | 4c 8d 1c c8 | 45 8b cc
-  0x4ca543c: 44 8b 54 24 34 | 45 85 d2 | 74 68 | 66 66 0f 1f 84 00 00 00 00 00
-  0x4ca5450: 45 8b c1 | 41 c1 e8 06 | 41 8b c9 | 83 e1 3f
-  0x4ca545d: ba 01 00 00 00 | 48 d3 e2 | 4b 85 54 c3 18 | 75 1d
-  0x4ca546c: 41 8b c1 | 48 8d 14 c5 00 00 00 00 | 48 8b 44 24 40 | 48 8b 0c 02
-  0x4ca5480: 48 89 0c 13 | 44 8b 54 24 34 | 41 ff c1 | 45 3b ca
-  0x4ca548f: 72 bf | eb 1b | 45 85 c0 | 74 11
-  0x4ca5498: 49 c1 e0 03 | 48 8b 54 24 40 | 48 8b cb | e8 c7 fe 15 01
-  0x4ca54a9: 44 8b 54 24 34 | 48 8b 44 24 40 | 48 89 85 90 00 00 00 | 48 85 c0
-  0x4ca54bd: 74 4e | 48 8b 4c 24 50 | 48 8b 01 | 4c 89 65 d0
-  0x4ca54cb: 4c 89 65 d8 | 41 8b d2 | 48 8d 14 d5 07 00 00 00 | 48 83 e2 f8
-  0x4ca54de: 48 89 55 e0 | 48 c7 45 e8 08 00 00 00 | 4c 89 6c 24 20 | 4c 8d 4d d0
-  0x4ca54f3: 4c 8d 45 e0 | 48 8d 95 90 00 00 00 | 48 8b 40 30 | ff 15 38 48 79 01
-  0x4ca5508: 44 8b 54 24 34 | 89 7c 24 34 | 48 89 5c 24 40 | 41 8b d2
-  0x4ca5519: 48 8d 4c 24 30 | e8 ad 9e d0 fb | 4c 8b 4c 24 38 | 4d 85 c9
-  0x4ca552b: 74 24 | 8b 4c 24 4c | 41 b8 04 00 00 00 | 49 d3 e0
-  0x4ca553a: 4d 85 c0 | 74 12 | ba ff ff ff ff | 49 8b c9
-  0x4ca5547: e8 64 fc 15 01 | 4c 8b 4c 24 38 | 83 7c 24 30 00 | 0f 84 df 01 00 00
-  0x4ca555c: 8b 4c 24 4c | b8 01 00 00 00 | 48 d3 e0 | 49 8d 3c 81
-  0x4ca556c: 44 89 67 08 | 8b 4c 24 4c | ba 01 00 00 00 | 48 d3 e2
-  0x4ca557c: 48 8b 44 24 38 | 48 8d 1c 90 | 8b 43 10 | 4c 8d 1c c3
-  0x4ca558c: 44 8b 4b 04 | 45 85 c9 | 74 33 | 66 66 66 0f 1f 84 00 00 00 00 00
-  0x4ca55a0: 45 8d 51 ff | 45 8b c2 | 41 c1 e8 06 | 41 8b ca
-  0x4ca55ae: 83 e1 3f | ba 01 00 00 00 | 48 d3 e2 | 4b 85 54 c3 18
-  0x4ca55be: 74 08 | 45 8b ca | 45 85 d2 | 75 d8
-  0x4ca55c8: 44 89 4b 04 | 8b 44 24 30 | 41 3b c1 | 0f 84 a0 02 00 00
-  0x4ca55d9: 44 8b 4f 10 | 49 83 c1 03 | 4e 8d 0c cf | 4c 89 8d 90 00 00 00
-  0x4ca55ec: 45 8b ec | 8b 54 24 34 | 85 d2 | 0f 84 39 01 00 00
-  0x4ca55fb: 0f 1f 44 00 00 | 45 8b c5 | 41 8b c5 | 83 e0 3f
-  0x4ca5609: 0f b6 c8 | 41 8b c5 | 48 c1 e8 06 | 49 8b 04 c1
-  0x4ca5617: 48 0f a3 c8 | 0f 82 f2 00 00 00 | 4c 8b 74 24 40 | 4f 8d 3c c6
-  0x4ca562a: 41 69 37 b1 79 37 9e | b9 20 00 00 00 | 2b 4c 24 4c | 8b de
-  0x4ca563c: d3 eb | 44 8b e3 | 41 83 e4 0f | 8b 4c 24 4c
-  0x4ca5649: d3 e6 | 83 e3 f0 | 41 ba ff ff ff ff | 44 8b 5c 24 48
-  0x4ca5659: 48 8b 7c 24 38 | 66 90 | 45 33 c0 | 42 8d 0c 85 00 00 00 00
-  0x4ca566b: 49 b9 5c af 36 01 98 eb 72 4d | 49 d3 e9 | 45 03 cc | 41 83 e1 0f
-  0x4ca567f: 44 03 cb | 42 8b 14 8f | 83 fa ff | 74 4d
-  0x4ca568b: 81 fa ff ff ff 7f | 75 0b | 41 83 fa ff | 75 21
-  0x4ca5699: 45 8b d1 | eb 1c | 8b ce | 33 ca
-  0x4ca56a2: 41 8b c3 | f7 d0 | 85 c8 | 75 0f
-  0x4ca56ab: 49 8b cb | 48 23 ca | 49 8b 04 ce | 49 39 07
-  0x4ca56b8: 74 47 | 41 ff c0 | 41 83 f8 10 | 72 a0
-  0x4ca56c3: 8b 4c 24 4c | ba 01 00 00 00 | d3 e2 | 8d 43 10
-  0x4ca56d1: 8d 5a ff | 23 d8 | eb 88 | 41 83 fa ff
-  0x4ca56dc: 74 18 | 45 8b ca | 8b 4c 24 4c | b8 01 00 00 00
-  0x4ca56ea: 48 d3 e0 | ff 4c 87 08 | 48 8b 7c 24 38 | 41 8b c1
-  0x4ca56f9: 89 34 87 | 48 8b 7c 24 38 | 41 8b c1 | 44 09 2c 87
-  0x4ca5708: 8b 54 24 34 | 4c 8b 8d 90 00 00 00 | 41 ff c5 | 44 3b ea
-  0x4ca5719: 0f 82 e1 fe ff ff | 48 8b 75 98 | 4c 8b b5 98 00 00 00 | 49 bf cd cc cc cc cc cc cc cc
-  0x4ca5734: 4c 8d 2d b5 db 16 fe | 41 b9 01 00 00 00 | 4c 8d 45 80 | 48 8d 95 a8 00 00 00
-  0x4ca574c: 48 8d 4c 24 30 | e8 da b3 54 fc | 8b 8d a8 00 00 00 | 48 8b 44 24 38
-  0x4ca5761: 8b 14 88 | 23 54 24 48 | 45 33 e4 | 44 38 a5 ac 00 00 00
-  0x4ca5772: 74 10 | 48 8b 44 24 40 | 48 8d 14 d0 | 48 8b 45 80
-  0x4ca5781: 48 89 02 | 49 83 c6 10 | 4c 89 b5 98 00 00 00 | 4c 3b f6
-  0x4ca5792: bf 10 00 00 00 | 0f 85 d3 f9 ff ff | 4c 8b 7d 90 | 48 8d 0d 80 a3 82 03
-  0x4ca57a8: e8 73 54 d0 fb | 48 8b 44 24 50 | 48 89 05 8f a3 82 03 | 8b 44 24 30
-  0x4ca57bd: 89 05 65 a3 82 03 | 8b 44 24 34 | 89 05 5f a3 82 03 | 8b 44 24 48
-  0x4ca57d1: 89 05 69 a3 82 03 | 8b 44 24 4c | 89 05 63 a3 82 03 | 48 8b 44 24 38
-  0x4ca57e6: 48 89 05 43 a3 82 03 | 48 8b 44 24 40 | 48 89 05 3f a3 82 03 | 48 c7 44 24 30 00 00 00 00
-  0x4ca5802: 4c 89 64 24 40 | 4c 89 64 24 38 | 48 c7 44 24 48 00 00 00 00 | 48 8d 4c 24 30
-  0x4ca581a: e8 01 54 d0 fb | 90 | 4d 85 ff | 74 38
-  0x4ca5825: 48 8b 8d a0 00 00 00 | 49 2b cf | 48 83 e1 f0 | 49 8b c7
-  0x4ca5836: 48 81 f9 00 10 00 00 | 72 15 | 4d 8b 7f f8 | 49 2b c7
-  0x4ca5846: 48 83 c0 f8 | 48 83 f8 1f | 0f 87 4f 03 00 00 | 49 8b cf
-  0x4ca5857: e8 64 02 cb ff | 90 | 0f 28 b4 24 30 01 00 00 | 48 81 c4 48 01 00 00
-  0x4ca586c: 41 5f | 41 5e | 41 5d | 41 5c
-  0x4ca5874: 5f | 5e | 5b | 5d
-  0x4ca5878: c3 | 41 8b cc | 89 8d 90 00 00 00 | 85 c0
-  0x4ca5884: 0f 84 b1 fe ff ff | 66 0f 1f 44 00 00 | 8b c1 | 4c 8b 74 24 40
-  0x4ca5897: 4d 8d 3c c6 | 41 69 37 b1 79 37 9e | b9 20 00 00 00 | 44 8b 6c 24 4c
-  0x4ca58ac: 41 2b cd | 8b de | d3 eb | 44 8b e3
-  0x4ca58b6: 41 83 e4 0f | 41 8b cd | d3 e6 | 83 e3 f0
-  0x4ca58c2: 41 ba ff ff ff ff | 44 8b 5c 24 48 | 48 8b 7c 24 38 | 45 33 c0
-  0x4ca58d5: 42 8d 0c 85 00 00 00 00 | 49 b9 5c af 36 01 98 eb 72 4d | 49 d3 e9 | 45 03 cc
-  0x4ca58ed: 41 83 e1 0f | 44 03 cb | 42 8b 04 8f | 83 f8 ff
-  0x4ca58fb: 74 4b | 3d ff ff ff 7f | 75 0b | 41 83 fa ff
-  0x4ca5908: 75 21 | 45 8b d1 | eb 1c | 8b d0
-  0x4ca5911: 33 d6 | 41 8b cb | f7 d1 | 85 d1
-  0x4ca591a: 75 0f | 48 8b c8 | 49 23 cb | 49 8b 04 ce
-  0x4ca5926: 49 39 07 | 74 45 | 41 ff c0 | 41 83 f8 10
-  0x4ca5932: 72 a1 | 41 8b cd | ba 01 00 00 00 | d3 e2
-  0x4ca593e: 8d 43 10 | 8d 5a ff | 23 d8 | eb 8a
-  0x4ca5948: 41 83 fa ff | 74 17 | 45 8b ca | 41 8b cd
-  0x4ca5954: b8 01 00 00 00 | 48 d3 e0 | ff 4c 87 08 | 48 8b 7c 24 38
-  0x4ca5965: 41 8b c1 | 89 34 87 | 48 8b 7c 24 38 | 41 8b c1
-  0x4ca5973: 8b 8d 90 00 00 00 | 09 0c 87 | ff c1 | 89 8d 90 00 00 00
-  0x4ca5984: 3b 4c 24 30 | 0f 82 02 ff ff ff | e9 8c fd ff ff | 8b 44 24 34
-  0x4ca5997: 44 3b c0 | 0f 85 c3 01 00 00 | 3d 00 40 00 00 | 76 07
-  0x4ca59a7: b9 00 40 00 00 | eb 08 | 8b c8 | 83 f8 10
-  0x4ca59b3: 0f 42 cf | 8d 3c 01 | 8b d7 | 48 8d 4c 24 30
-  0x4ca59c0: e8 eb 9c d0 fb | 48 8b d8 | 44 8b 44 24 30 | 45 85 c0
-  0x4ca59d0: 0f 84 93 00 00 00 | 8b 4c 24 4c | ba 01 00 00 00 | 48 d3 e2
-  0x4ca59e2: 48 8b 4c 24 38 | 48 8d 04 91 | 44 3b 40 04 | 74 62
-  0x4ca59f1: 8b 48 10 | 4c 8d 1c c8 | 45 8b cc | 44 8b 54 24 34
-  0x4ca5a00: 45 85 d2 | 74 69 | 66 66 66 0f 1f 84 00 00 00 00 00 | 45 8b c1
-  0x4ca5a13: 41 c1 e8 06 | 41 8b c9 | 83 e1 3f | ba 01 00 00 00
-  0x4ca5a22: 48 d3 e2 | 4b 85 54 c3 18 | 75 1d | 41 8b c1
-  0x4ca5a2f: 48 8d 14 c5 00 00 00 00 | 48 8b 44 24 40 | 48 8b 0c 02 | 48 89 0c 13
-  0x4ca5a44: 44 8b 54 24 34 | 41 ff c1 | 45 3b ca | 72 bf
-  0x4ca5a51: eb 1b | 45 85 c0 | 74 11 | 49 c1 e0 03
-  0x4ca5a5c: 48 8b 54 24 40 | 48 8b cb | e8 07 f9 15 01 | 44 8b 54 24 34
-  0x4ca5a6e: 48 8b 44 24 40 | 48 89 85 90 00 00 00 | 48 85 c0 | 74 4e
-  0x4ca5a7f: 48 8b 4c 24 50 | 48 8b 01 | 4c 89 65 f0 | 4c 89 65 f8
-  0x4ca5a8f: 41 8b d2 | 48 8d 14 d5 07 00 00 00 | 48 83 e2 f8 | 48 89 55 00
-  0x4ca5aa2: 48 c7 45 08 08 00 00 00 | 4c 89 6c 24 20 | 4c 8d 4d f0 | 4c 8d 45 00
-  0x4ca5ab7: 48 8d 95 90 00 00 00 | 48 8b 40 30 | ff 15 78 42 79 01 | 44 8b 54 24 34
-  0x4ca5acd: 89 7c 24 34 | 48 89 5c 24 40 | 85 ff | 74 1c
-  0x4ca5ada: 41 8b d2 | 48 8d 4c 24 30 | e8 e9 98 d0 fb | 48 8d 4c 24 30
-  0x4ca5aec: e8 0f a3 54 fc | e9 45 fc ff ff | 41 8b ca | e8 32 80 a5 fb
-  0x4ca5afe: 4c 8b d8 | 48 8b 4c 24 38 | 48 89 8d 90 00 00 00 | 48 85 c9
-  0x4ca5b10: 74 42 | 48 8b 4c 24 50 | 48 8b 11 | 48 8b 42 30
-  0x4ca5b1e: 4c 89 65 10 | 4c 89 65 18 | 49 8d 53 3f | 48 83 e2 c0
-  0x4ca5b2e: 48 89 55 20 | 48 c7 45 28 40 00 00 00 | 4c 89 6c 24 20 | 4c 8d 4d 10
-  0x4ca5b43: 4c 8d 45 20 | 48 8d 95 90 00 00 00 | ff 15 ec 41 79 01 | 4c 89 64 24 38
-  0x4ca5b59: 44 89 64 24 4c | e9 d8 fb ff ff | 85 c0 | 0f 84 d0 fb ff ff
-  0x4ca5b6b: 8b 4c 24 4c | ba 01 00 00 00 | 48 d3 e2 | 48 8b 44 24 38
-  0x4ca5b7c: 8b 54 90 08 | 45 8d 04 90 | b8 01 00 00 00 | d3 e0
-  0x4ca5b8b: 44 3b c0 | 0f 82 a7 fb ff ff | 48 8d 4c 24 30 | e8 62 a2 54 fc
-  0x4ca5b9e: e9 98 fb ff ff | e8 d8 e9 16 01
 
 [Strings .rdata na função]
   * [FLog::GameJoinV2] Checking if user is in GameJoinV2 allowlist UserId: {} Allowlist: {}

@@ -6,12 +6,11 @@ Operação  : 0x4e497e6: mov/math reg, [flag] ; fn=0x4e49700..0x4e49950
 
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::TaskScheduler)] ===
-    Classe  : RBX::TaskScheduler (RTTI Resolvido)
+    Classe  : RBX::TaskScheduler (Inferido)
     Padrão  : DFIntTaskSchedulerJobInGameThreads = 3 (default) [int, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : TaskSchedulerJobInGameThreads <= 5
     Fórmula : TaskSchedulerJobInGameThreads > 5 ? 5 : max(TaskSchedulerJobInGameThreads, 1)
-    [Child @0x4e4cc40] Papel   : Parâmetro de configuração lido diretamente pela rotina
   
   === [Decompilacao C++ da Funcao 0x4e49700..0x4e49950] ===
     struct RBX::TaskScheduler {
@@ -44,20 +43,12 @@ Operação  : 0x4e497e6: mov/math reg, [flag] ; fn=0x4e49700..0x4e49950
           fstk_4 = 0.0;
         }
         if (fstk_4 != 0) {
-          int32_t v_rax_5 = 15000;
-          if (TaskSchedulerJobInGameExecFreqMin <= 15000) {
-            v_rax_5 = max(TaskSchedulerJobInGameExecFreqMin, 5000);
-          }
-          global_0x847697c = v_rax_5;
-          int32_t v_rax_6 = 60000;
-          if (TaskSchedulerJobInGameExecFreqMax <= 60000) {
-            v_rax_6 = max(TaskSchedulerJobInGameExecFreqMax, 10000);
-          }
-          global_0x8475fbc = v_rax_6;
+          global_0x847697c = std::clamp(TaskSchedulerJobInGameExecFreqMin, 5000, 15000);
+          global_0x8475fbc = std::clamp(TaskSchedulerJobInGameExecFreqMax, 10000, 60000);
           global_0x8476cbc = TaskSchedulerJobInGameThreads > 5 ? 5 : max(TaskSchedulerJobInGameThreads, 1);
-          this->vfunc_0x78(this, param_2) // -> RBX::Lua::LuaArguments::fn_0x4089a70;
+          this->vfunc_0x78(this, param_2);
           call_0x4e4cc40(this, param_2);
-          if (ClientMemStatus >= 6 && ClientMemStatus >> 8 >= 4) {
+          if (ClientMemStatus >= 6 && (uint64_t)ClientMemStatus >> 8 >= 4) {
             FLog::Log("[FLog::ClientMemStatus] {}.{}");
           }
         }
@@ -216,9 +207,9 @@ Operação  : 0x4e497e6: mov/math reg, [flag] ; fn=0x4e49700..0x4e49950
     0x4e4994e | 5f                       | pop rdi
     0x4e4994f | c3                       | ret
   
-  === [Sub-Rotina Chamada: 0x4e4cc40..0x4e4cef1 via call @0x4e49821 (rcx = this (Direct Engine Sub-Call))] ===
-    // Flag defaults: TaskSchedulerJobInGameThreads = 3, ReliableCheckInterval = 5
-    void RBX::TaskScheduler::func_0x4e4cc40(RBX::TaskScheduler* this, int64_t param_2) {
+  === [Sub-Rotina Chamada: 0x4e4cc40..0x4e4cef1 via call @0x4e49821 (Direct Engine Sub-Call)] ===
+    // Flag defaults: ReliableCheckInterval = 5
+    void SubObj_0x4e4cc40::func_0x4e4cc40(SubObj_0x4e4cc40* this, int64_t param_2) {
       if (param_2->field_0x0 != 0 && param_2->field_0x0->field_0x58 != 0 && param_2->field_0x0->field_0x20 != 0) {
         auto ret_0x5e064d0_1 = call_0x5e064d0(param_2->field_0x0->field_0x20, 0, &sym_0x83e1798, &sym_0x81c3ee0);
         void* v_rbx_1 = ret_0x5e064d0_1;
@@ -284,7 +275,7 @@ Operação  : 0x4e497e6: mov/math reg, [flag] ; fn=0x4e49700..0x4e49950
                   call_0x6daf40(local_0x148);
                 }
                 if (local_0x138 != 0 && atomic_fetch_sub(&local_0x138->field_0xc, 1) == 1) {
-                  local_0x138->vfunc_0x8() // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66540;
+                  local_0x138->vfunc_0x8();
                   fstk_10 = 0.0;
                 } else {
                   fstk_10 = 0.0;
@@ -535,88 +526,6 @@ Operação  : 0x4e497e6: mov/math reg, [flag] ; fn=0x4e49700..0x4e49950
     0x4e4ceee | 5e                       | pop rsi
     0x4e4ceef | 5d                       | pop rbp
     0x4e4cef0 | c3                       | ret
-
-[Bytecode Hex]
-  0x4e49700: 48 89 5c 24 18 | 48 89 74 24 20 | 57 | 48 81 ec c0 00 00 00
-  0x4e49712: 48 8b 05 c7 ef 28 03 | 48 33 c4 | 48 89 84 24 b0 00 00 00 | 48 8b fa
-  0x4e49727: 48 8b f1 | 48 8b 1a | 48 8b 4b 20 | 80 79 08 00
-  0x4e49735: 0f 84 f0 01 00 00 | 48 85 db | 74 4f | 48 85 c9
-  0x4e49743: 74 4a | c7 44 24 20 00 00 00 00 | 4c 8d 0d 8c a7 37 03 | 4c 8d 05 3d 80 59 03
-  0x4e4975b: 33 d2 | e8 6e cd fb 00 | 48 85 c0 | 74 1d
-  0x4e49767: 48 8b 4b 28 | 48 85 c9 | 74 04 | f0 ff 41 08
-  0x4e49774: 48 89 44 24 30 | 48 8b 43 28 | 48 89 44 24 38 | eb 09
-  0x4e49784: 0f 57 c9 | f3 0f 7f 4c 24 30 | eb 09 | 0f 57 c9
-  0x4e49792: f3 0f 7f 4c 24 30 | 48 83 7c 24 30 00 | 0f 84 78 01 00 00 | 8b 0d a6 aa 2b 03
-  0x4e497aa: b8 98 3a 00 00 | 3b c8 | 7f 0c | 8b c1
-  0x4e497b5: ba 88 13 00 00 | 3b ca | 0f 4c c2 | 89 05 b7 d1 62 03
-  0x4e497c5: 8b 0d 6d aa 2b 03 | b8 60 ea 00 00 | 3b c8 | 7f 0c
-  0x4e497d4: 8b c1 | ba 10 27 00 00 | 3b ca | 0f 4c c2
-  0x4e497e0: 89 05 d6 c7 62 03 | 8b 05 34 aa 2b 03 | 83 f8 05 | 7e 07
-  0x4e497f1: b8 05 00 00 00 | eb 0a | b9 01 00 00 00 | 3b c1
-  0x4e497ff: 0f 4c c1 | 89 05 b4 d4 62 03 | 48 8b 06 | 48 8b d7
-  0x4e4980e: 48 8b ce | 48 8b 40 78 | ff 15 25 05 5f 01 | 48 8b d7
-  0x4e4981e: 48 8b ce | e8 1a 34 00 00 | 48 8b 05 d3 a0 2f 03 | 3c 06
-  0x4e4982f: 0f 82 e7 00 00 00 | 48 c1 e8 08 | 3c 04 | 0f 82 db 00 00 00
-  0x4e49841: 48 8d 05 04 06 ba 02 | 48 89 44 24 60 | 48 8b 54 24 60 | 48 81 c2 f4 15 af ff
-  0x4e49859: 48 8b 0f | 48 89 54 24 50 | 48 c7 c0 ff ff ff ff | 0f 1f 84 00 00 00 00 00
-  0x4e49870: 48 ff c0 | 80 3c 02 00 | 75 f7 | 48 89 44 24 58
-  0x4e4987e: b8 72 25 72 df | 48 89 44 24 70 | 48 8d 51 30 | 48 83 79 48 10
-  0x4e49891: 72 04 | 48 8b 51 30 | 48 8b 41 40 | 48 89 94 24 80 00 00 00
-  0x4e498a3: 48 89 84 24 88 00 00 00 | 0f 10 44 24 70 | 0f 11 84 24 90 00 00 00 | 0f 10 8c 24 80 00 00 00
-  0x4e498c0: 0f 11 8c 24 a0 00 00 00 | 48 c7 44 24 40 d3 00 00 00 | 48 8d 84 24 90 00 00 00 | 48 89 44 24 48
-  0x4e498de: 0f 28 44 24 40 | 66 0f 7f 44 24 70 | 0f 28 4c 24 50 | 66 0f 7f 4c 24 50
-  0x4e498f4: 0f 10 05 05 a0 2f 03 | 0f 29 44 24 40 | c6 44 24 20 01 | 4c 8d 4c 24 70
-  0x4e4990a: 4c 8d 44 24 50 | b2 04 | 48 8d 4c 24 40 | e8 b5 83 b2 ff
-  0x4e4991b: 90 | 48 8b 4c 24 38 | 48 85 c9 | 74 05
-  0x4e49926: e8 15 16 89 fb | 48 8b 8c 24 b0 00 00 00 | 48 33 cc | e8 65 af f9 00
-  0x4e4993b: 4c 8d 9c 24 c0 00 00 00 | 49 8b 5b 20 | 49 8b 73 28 | 49 8b e3
-  0x4e4994e: 5f | c3
-
-  [Child Bytecode Hex 0x4e4cc40..0x4e4cef1]
-  0x4e4cc40: 48 89 5c 24 18 | 55 | 56 | 57
-  0x4e4cc48: 41 56 | 41 57 | 48 8d ac 24 50 ff ff ff | 48 81 ec b0 01 00 00
-  0x4e4cc5b: 48 8b 05 7e ba 28 03 | 48 33 c4 | 48 89 85 a0 00 00 00 | 48 8b f2
-  0x4e4cc6f: 4c 8b f1 | 48 8b 3a | 48 85 ff | 0f 84 4d 02 00 00
-  0x4e4cc7e: 80 7f 58 00 | 0f 84 43 02 00 00 | 48 8b 4f 20 | 48 85 c9
-  0x4e4cc8f: 0f 84 36 02 00 00 | c7 44 24 20 00 00 00 00 | 4c 8d 0d 3c 72 37 03 | 4c 8d 05 ed 4a 59 03
-  0x4e4ccab: 33 d2 | e8 1e 98 fb 00 | 48 8b d8 | 48 85 c0
-  0x4e4ccb8: 74 1d | 48 8b 47 28 | 48 85 c0 | 74 04
-  0x4e4ccc3: f0 ff 40 08 | 48 89 5c 24 30 | 48 8b 47 28 | 48 89 44 24 38
-  0x4e4ccd5: eb 0e | 0f 57 c9 | f3 0f 7f 4c 24 30 | 48 8b 5c 24 30
-  0x4e4cce5: 48 85 db | 0f 84 ce 01 00 00 | 48 8d 4b 68 | e8 d9 62 fc fd
-  0x4e4ccf7: 0f 10 43 10 | 0f 29 45 90 | 48 8b 43 68 | 90
-  0x4e4cd04: 41 bf 01 00 00 00 | 48 83 f8 03 | 75 08 | f0 4c 0f b1 7b 68
-  0x4e4cd16: 74 0a | 48 8d 4b 68 | e8 9f 0d 1c fb | 90
-  0x4e4cd22: 83 7d 90 00 | 74 3f | 48 8d 4c 24 50 | e8 ee d4 b0 ff
-  0x4e4cd32: f2 0f 10 44 24 50 | f2 0f 5c 45 98 | 8b 05 cd 6b 2f 03 | 83 f8 0a
-  0x4e4cd46: 7e 07 | b8 0a 00 00 00 | eb 07 | 83 f8 01
-  0x4e4cd52: 41 0f 4c c7 | 48 63 c8 | f2 48 0f 2c c0 | 48 3b c1
-  0x4e4cd61: 0f 8c 55 01 00 00 | 4c 8b 06 | 0f 57 c0 | f3 0f 7f 44 24 40
-  0x4e4cd73: 49 8b 50 08 | 48 85 d2 | 74 28 | 8b 42 08
-  0x4e4cd7f: 85 c0 | 74 21 | 8d 48 01 | f0 0f b1 4a 08
-  0x4e4cd8b: 74 06 | 85 c0 | 75 f2 | eb 11
-  0x4e4cd93: 49 8b 00 | 48 89 44 24 40 | 49 8b 40 08 | 48 89 44 24 48
-  0x4e4cda4: 48 83 7c 24 40 00 | 0f 84 fc 00 00 00 | 48 8d 55 f0 | 49 8b ce
-  0x4e4cdb7: e8 d4 d7 ff ff | 48 8b 1e | 48 8d 4c 24 58 | e8 57 d4 b0 ff
-  0x4e4cdc9: 0f 57 c0 | 66 0f 7f 45 30 | 48 83 7b 18 00 | 74 14
-  0x4e4cdd8: 48 8b 43 10 | 48 89 45 30 | 48 8b 43 18 | 48 89 45 38
-  0x4e4cde8: f0 ff 40 0c | 48 8b 44 24 30 | 48 89 45 40 | 48 8b 44 24 38
-  0x4e4cdfa: 48 89 45 48 | f3 0f 7f 44 24 30 | f2 0f 10 44 24 58 | f2 0f 11 45 50
-  0x4e4ce0f: 0f 28 4d f0 | 0f 11 4d 58 | 0f 28 45 00 | 0f 11 45 68
-  0x4e4ce1f: 0f 28 4d 10 | 0f 11 4d 78 | 0f 28 45 20 | 0f 11 85 88 00 00 00
-  0x4e4ce32: 48 c7 45 80 00 00 00 00 | 48 8d 05 3f 20 00 00 | 48 89 44 24 28 | 48 8d 05 73 14 31 02
-  0x4e4ce4d: 48 89 44 24 20 | 4c 8d 4d 30 | ba 68 00 00 00 | 48 8d 4c 24 68
-  0x4e4ce60: e8 8b b0 8b fb | 45 8b c7 | 48 8d 54 24 68 | 48 8b 4c 24 40
-  0x4e4ce72: e8 d9 8c 21 ff | 90 | 48 8b 4d 48 | 48 85 c9
-  0x4e4ce7f: 74 05 | e8 ba e0 88 fb | 48 8b 4d 38 | 48 85 c9
-  0x4e4ce8d: 74 1d | b8 ff ff ff ff | f0 0f c1 41 0c | 83 f8 01
-  0x4e4ce9c: 75 0e | 48 8b 01 | 48 8b 40 08 | ff 15 95 ce 5e 01
-  0x4e4ceab: 90 | 48 8b 4c 24 48 | 48 85 c9 | 74 06
-  0x4e4ceb6: e8 85 e0 88 fb | 90 | 48 8b 4c 24 38 | 48 85 c9
-  0x4e4cec4: 74 05 | e8 75 e0 88 fb | 48 8b 8d a0 00 00 00 | 48 33 cc
-  0x4e4ced5: e8 c6 79 f9 00 | 48 8b 9c 24 f0 01 00 00 | 48 81 c4 b0 01 00 00 | 41 5f
-  0x4e4ceeb: 41 5e | 5f | 5e | 5d
-  0x4e4cef0: c3
 
 [Strings .rdata na função]
   * [FLog::ClientMemStatus] {}.{}

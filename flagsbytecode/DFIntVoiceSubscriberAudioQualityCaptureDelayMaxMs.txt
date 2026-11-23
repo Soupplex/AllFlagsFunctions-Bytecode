@@ -6,11 +6,11 @@ Operação  : 0x513a27e: mov/math reg, [flag] ; fn=0x513a07e..0x513a4e8
 
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::VoiceSubscriber)] ===
-    Classe  : RBX::VoiceSubscriber (RTTI Resolvido)
+    Classe  : RBX::VoiceSubscriber (Inferido)
     Padrão  : DFIntVoiceSubscriberAudioQualityCaptureDelayMaxMs = 15000 (default) [int, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : VoiceSubscriberAudioQualityCaptureDelayMaxMs > max(0, VoiceSubscriberAudioQualityCaptureDelayMinMs)
-    [Child @0x5134520] Papel   : Parâmetro de configuração lido diretamente pela rotina
+    Fórmula : VoiceSubscriberAudioQualityCaptureDelayMaxMs - max(0, expr_1)
   
   === [Decompilacao C++ da Funcao 0x513a07e..0x513a4e8] ===
     // Flag defaults: VoiceSubscriberAudioQualityCaptureDelayMaxMs = 15000, VoiceRtcStatsCombinedEventDisabled = false, VoiceRtcStatsCollectionIntervalMs = 30000, VoiceSubscriberAudioQualityEnabled2 = true, VoiceSubscriberAudioQualitySampleRateThousandths = 50, VoiceSubscriberAudioQualityMaxCapturesPerSession = 1, VoiceSubscriberAudioQualityCaptureDelayMinMs = 0, VoiceChatLogs = 0
@@ -36,7 +36,7 @@ Operação  : 0x513a27e: mov/math reg, [flag] ; fn=0x513a07e..0x513a4e8
             auto ret_0x49755c0_5 = call_0x49755c0(this);
             auto local_0x70 = ret_0x49755c0_5 * 0x5851f42d4c957f2d + 0x399d2694695129de;
             auto ret_0x4975830_6 = call_0x4975830(&local_0x70, 0, 1000);
-            if (ret_0x4975830_6 <= min(1000, VoiceSubscriberAudioQualitySampleRateThousandths)) {
+            if (ret_0x4975830_6 <= std::min<uint32_t>(1000, VoiceSubscriberAudioQualitySampleRateThousandths)) {
               v_al_2 = 1;
             } else {
               v_al_2 = 0;
@@ -54,7 +54,7 @@ Operação  : 0x513a27e: mov/math reg, [flag] ; fn=0x513a07e..0x513a4e8
             int32_t v_r14_3;
             auto expr_1 = VoiceSubscriberAudioQualityCaptureDelayMinMs;
             if (VoiceSubscriberAudioQualityCaptureDelayMaxMs <= max(0, expr_1)) {
-              if (VoiceChatLogs >= 6 && VoiceChatLogs >> 8 >= 3) {
+              if (VoiceChatLogs >= 6 && (uint64_t)VoiceChatLogs >> 8 >= 3) {
                 FLog::Log("[FLog::VoiceChatLogs] VoiceSubscriberAudioQualityCaptureDelay misconfigured: min={}ms >= max={}m");
               }
               v_r14_3 = 1;
@@ -351,14 +351,13 @@ Operação  : 0x513a27e: mov/math reg, [flag] ; fn=0x513a07e..0x513a4e8
     0x513a4dc | 48 8d 8d 30 06 00 00     | lea rcx, [rbp + 0x630]
     0x513a4e3 | e8 08 c2 cc 00           | call 0x5e066f0
   
-  === [Sub-Rotina Chamada: 0x5134520..0x513456c via call @0x513a1dc (rcx = this (Direct Engine Sub-Call))] ===
-    struct RBX::VoiceSubscriber {
+  === [Sub-Rotina Chamada: 0x5134520..0x513456c via call @0x513a1dc (Direct Engine Sub-Call)] ===
+    struct SubObj_0x5134520 {
       /* +0x0 */ void*   field_0x0;
     };
     
-    // Flag defaults: VoiceSubscriberAudioQualityCaptureDelayMaxMs = 15000
-    float RBX::VoiceSubscriber::func_0x5134520(RBX::VoiceSubscriber* this, int64_t param_2) {
-      auto vret_1 = this->vfunc_0x10(this) // -> RBX::Solver::ForceAngular::fn_0x4d4ce00;
+    float SubObj_0x5134520::func_0x5134520(SubObj_0x5134520* this, int64_t param_2) {
+      auto vret_1 = this->vfunc_0x10(this);
       auto ret_0x5133480_2 = call_0x5133480(vret_1->field_0x10, param_2);
       if (param_2->field_0x0 != 0) {
         switch (param_2->field_0x0->field_0x0->field_0x0) {
@@ -393,76 +392,6 @@ Operação  : 0x513a27e: mov/math reg, [flag] ; fn=0x513a07e..0x513a4e8
     0x5134566 | 48 83 c4 20              | add rsp, 0x20
     0x513456a | 5b                       | pop rbx
     0x513456b | c3                       | ret
-
-[Bytecode Hex]
-  0x513a07e: 3d 34 ab 01 03 | 00 75 53 | 80 3d 3b aa 00 03 00 | 75 4a
-  0x513a08f: 48 8d 4d f8 | e8 88 01 82 ff | 48 8b 5f 30 | f2 0f 10 8b b8 7b 00 00
-  0x513a0a4: 66 0f 2e 0d 94 73 46 02 | 0f 8a c7 00 00 00 | 0f 85 c1 00 00 00 | 66 0f 6e 0d b0 aa 00 03
-  0x513a0c0: f3 0f e6 c9 | f2 0f 59 cf | f2 0f 10 45 f8 | f2 0f 58 c1
-  0x513a0d1: f2 0f 11 83 b8 7b 00 00 | 80 3d 18 ad 00 03 00 | 0f 84 eb 02 00 00 | 48 8b 47 30
-  0x513a0ea: 80 b8 21 82 00 00 00 | 0f 84 da 02 00 00 | 80 b8 10 85 00 00 00 | 0f 85 cd 02 00 00
-  0x513a104: 80 b8 12 85 00 00 00 | 0f 85 15 01 00 00 | 8b 05 f9 ac 00 03 | 85 c0
-  0x513a119: 0f 8e ec 00 00 00 | 89 45 40 | c7 45 44 e8 03 00 00 | bb e8 03 00 00
-  0x513a12e: 3b c3 | 0f 42 d8 | e8 88 b4 83 ff | 48 b9 2d 7f 95 4c 2d f4 51 58
-  0x513a142: 48 0f af c1 | 48 b9 de 29 51 69 94 26 9d 39 | 48 03 c1 | 48 89 44 24 70
-  0x513a158: 33 d2 | 41 b8 e8 03 00 00 | 48 8d 4c 24 70 | e8 c6 b6 83 ff
-  0x513a16a: 3b c3 | 0f 87 99 00 00 00 | b0 01 | e9 94 00 00 00
-  0x513a179: f2 0f 10 45 f8 | 66 0f 2f c1 | 0f 86 51 ff ff ff | ff 83 c8 7b 00 00
-  0x513a18e: 48 8b 77 30 | b9 d8 02 00 00 | e8 a4 be 81 ff | 48 85 c0
-  0x513a19f: 0f 84 24 03 00 00 | 48 89 44 24 48 | 66 0f 6e 1d be a9 00 03 | f3 0f e6 db
-  0x513a1b6: 44 8b 83 c8 7b 00 00 | 48 8b d6 | 48 8b c8 | e8 b8 9a 03 00
-  0x513a1c8: 90 | 48 c7 45 10 00 00 00 00 | 48 89 45 00 | 48 8d 55 00
-  0x513a1d9: 48 8b cf | e8 3f a3 ff ff | 90 | 66 0f 6e 05 86 a9 00 03
-  0x513a1ea: f3 0f e6 c0 | f2 0f 59 c7 | 48 8b 47 30 | f2 0f 58 80 b8 7b 00 00
-  0x513a1fe: f2 0f 11 80 b8 7b 00 00 | e9 ce fe ff ff | 32 c0 | 88 44 24 40
-  0x513a211: c6 44 24 41 01 | 48 8b 4f 30 | 0f b7 44 24 40 | 66 89 81 11 85 00 00
-  0x513a226: 48 8b 4f 30 | 80 b9 11 85 00 00 00 | 0f 84 9a 01 00 00 | 8b 05 eb ab 00 03
-  0x513a23d: 39 81 00 85 00 00 | 0f 8d 88 01 00 00 | 48 8d 4d 08 | e8 ce ff 81 ff
-  0x513a252: 48 8b 5f 30 | f2 0f 10 8b 08 85 00 00 | 66 0f 2e 0d da 71 46 02 | 0f 8a f2 01 00 00
-  0x513a26c: 0f 85 ec 01 00 00 | 33 f6 | 8b 05 c6 ab 00 03 | 85 c0
-  0x513a27c: 0f 4f f0 | 8b 0d d3 ab 00 03 | 3b ce | 0f 8f bc 00 00 00
-  0x513a28d: 48 8b 05 fc e3 ff 02 | 3c 06 | 0f 82 a5 00 00 00 | 48 c1 e8 08
-  0x513a2a0: 3c 03 | 0f 82 99 00 00 00 | 48 8d 05 1f 71 36 03 | 48 89 44 24 70
-  0x513a2b4: 48 8b 44 24 70 | 48 2d de 72 fb 00 | 48 89 45 b0 | 48 c7 c2 ff ff ff ff
-  0x513a2ca: 66 0f 1f 44 00 00 | 48 ff c2 | 80 3c 10 00 | 75 f7
-  0x513a2d9: 48 89 55 b8 | 89 75 70 | 89 4d 20 | 0f 10 45 70
-  0x513a2e7: 0f 11 85 e0 07 00 00 | 0f 10 4d 20 | 0f 11 8d f0 07 00 00 | 48 c7 45 c0 11 00 00 00
-  0x513a301: 48 8d 85 e0 07 00 00 | 48 89 45 c8 | 0f 28 45 c0 | 66 0f 7f 45 20
-  0x513a315: 0f 28 4d b0 | 66 0f 7f 4d 70 | 0f 10 05 6b e3 ff 02 | 0f 29 45 c0
-  0x513a329: c6 44 24 20 01 | 4c 8d 4d 20 | 4c 8d 45 70 | b2 03
-  0x513a338: 48 8d 4d c0 | e8 8f 79 83 ff | 41 be 01 00 00 00 | eb 06
-  0x513a349: 44 8b f1 | 44 2b f6 | 65 48 8b 04 25 58 00 00 00 | 48 8b 08
-  0x513a35b: ba 10 40 00 00 | 8b 04 0a | 41 bf 20 40 00 00 | a8 01
-  0x513a36b: 75 1c | 83 c8 01 | 89 04 0a | 41 8b df
-  0x513a376: 48 03 d9 | e8 92 c5 ca 00 | 8b d0 | 48 8b cb
-  0x513a383: e8 08 b7 5b fb | 90 | c7 44 24 58 00 00 00 00 | 41 8d 46 ff
-  0x513a395: 89 44 24 5c | 65 48 8b 04 25 58 00 00 00 | 41 8b d7 | 48 03 10
-  0x513a3a8: 48 8d 4c 24 58 | e8 2e 0f 5c fb | 03 c6 | 66 0f 6e c0
-  0x513a3b8: f3 0f e6 c0 | f2 0f 59 c7 | f2 0f 58 45 08 | 48 8b 47 30
-  0x513a3c9: f2 0f 11 80 08 85 00 00 | 48 8d 4d 60 | e8 76 0d 5a fb | 48 8b 10
-  0x513a3dd: 48 8b 47 30 | 83 b8 e4 00 00 00 03 | 75 34 | 48 63 0d 97 a7 00 03
-  0x513a3f1: 4c 8b c2 | 4c 2b 80 c0 7b 00 00 | 48 69 c9 40 42 0f 00 | 4c 3b c1
-  0x513a405: 7c 17 | 48 89 90 c0 7b 00 00 | 48 8b 4f 30 | 48 8b 89 e0 7b 00 00
-  0x513a419: e8 02 57 05 00 | 48 8b cf | e8 6a d6 ff ff | 48 8b c7
-  0x513a429: 48 8b 8d 30 15 00 00 | 48 33 cc | e8 68 a4 ca 00 | 4c 8d 9c 24 50 16 00 00
-  0x513a440: 49 8b 5b 38 | 49 8b 73 40 | 49 8b 7b 48 | 41 0f 28 7b f0
-  0x513a451: 49 8b e3 | 41 5f | 41 5e | 41 5d
-  0x513a45a: 41 5c | 5d | c3 | f2 0f 10 45 08
-  0x513a463: 66 0f 2f c1 | 0f 86 64 ff ff ff | b9 00 01 00 00 | e8 c9 bb 81 ff
-  0x513a477: 48 85 c0 | 74 6d | 48 89 45 10 | 48 8b d3
-  0x513a483: 48 8b c8 | e8 45 02 03 00 | 90 | 48 c7 45 c0 00 00 00 00
-  0x513a494: 48 89 44 24 58 | 48 8d 54 24 58 | 48 8b cf | e8 7a a0 ff ff
-  0x513a4a6: 90 | 48 8b 47 30 | ff 80 00 85 00 00 | 48 8b 47 30
-  0x513a4b5: c6 80 10 85 00 00 01 | f2 0f 10 05 7c 6f 46 02 | e9 fc fe ff ff | 48 8d 8d 30 06 00 00
-  0x513a4d0: e8 fb 02 59 fb | 48 8d 15 e4 16 f9 02 | 48 8d 8d 30 06 00 00 | e8 08 c2 cc 00
-
-  [Child Bytecode Hex 0x5134520..0x513456c]
-  0x5134520: 48 89 54 24 10 | 53 | 48 83 ec 20 | 48 8b da
-  0x513452d: 48 8b 01 | 48 8b 40 10 | ff 15 06 58 30 01 | 48 8b d3
-  0x513453d: 48 8b 48 10 | e8 3a ef ff ff | 90 | 48 8b 0b
-  0x513454a: 48 85 c9 | 74 17 | 48 8b 01 | ba 01 00 00 00
-  0x5134557: 48 8b 00 | 48 83 c4 20 | 5b | 48 ff 25 da 57 30 01
-  0x5134566: 48 83 c4 20 | 5b | c3
 
 [Strings .rdata na função]
   * [FLog::VoiceChatLogs] VoiceSubscriberAudioQualityCaptureDelay misconfigured: min={}ms >= max={}m

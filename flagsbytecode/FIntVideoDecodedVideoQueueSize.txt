@@ -6,12 +6,11 @@ Operação  : 0x3c1923f: mov/math reg, [flag] ; fn=0x3c191b0..0x3c192c5
 
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::VideoDecoded)] ===
-    Classe  : RBX::VideoDecoded (RTTI Resolvido)
+    Classe  : RBX::VideoDecoded (Inferido)
     Padrão  : FIntVideoDecodedVideoQueueSize = 2 (default) [int, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : this->field_0x0->field_0x588 >= VideoDecodedVideoQueueSize
     Altera  : this->field_0x0->field_0x560
-    [Child @0x3bfaef0] Papel   : Parâmetro de configuração lido diretamente pela rotina
   
   === [Decompilacao C++ da Funcao 0x3c191b0..0x3c192c5] ===
     struct RBX::VideoDecoded {
@@ -19,30 +18,31 @@ Operação  : 0x3c1923f: mov/math reg, [flag] ; fn=0x3c191b0..0x3c192c5
     };
     
     // Flag defaults: VideoDecodedVideoQueueSize = 2, VideokFrameSlackForJitter = 32
-    auto RBX::VideoDecoded::func_0x3c191b0(RBX::VideoDecoded* this, int64_t param_2) {
+    bool RBX::VideoDecoded::func_0x3c191b0(RBX::VideoDecoded* this, int64_t param_2) {
       auto* f_0 = this->field_0x0;
       if (param_2->field_0x0->field_0x0 >= f_0->field_0x220 * 1000000) {
         auto ret_0x4522a80_1 = call_0x4522a80(&f_0->field_0x68);
         if (param_2->field_0x8 != 0) {
           param_2->field_0x8->field_0x8++;
         }
-        if (param_2->field_0x0 != 0 && param_2->field_0x0->field_0x0 >= (ret_0x4522a80_1 - VideokFrameSlackForJitter) * 1000000 && f_0->field_0x588 < VideoDecodedVideoQueueSize) {
-          call_0x81b680(&f_0->field_0x570, &local_0x30, &local_0x40);
+        auto* f_0_2 = this->field_0x0;
+        if (param_2->field_0x0 != 0 && param_2->field_0x0->field_0x0 >= (ret_0x4522a80_1 - VideokFrameSlackForJitter) * 1000000 && f_0_2->field_0x588 < VideoDecodedVideoQueueSize) {
+          call_0x81b680(&f_0_2->field_0x570, &local_0x30, &local_0x40);
           if (local_0x38 != 0) {
             call_0x6daf40(local_0x38);
           }
-          f_0->field_0x560 = 1;
+          this->field_0x0->field_0x560 = 1;
         } else {
           if (param_2->field_0x8 != 0) {
             call_0x6daf40(param_2->field_0x8);
           }
-          call_0x3bfaef0(f_0->field_0x2f8, "FrameDropsInDecode");
+          call_0x3bfaef0(this->field_0x0->field_0x2f8, "FrameDropsInDecode");
         }
       }
       if (param_2->field_0x8 != 0) {
         call_0x6daf40(param_2->field_0x8);
       }
-      return 0;
+      return false;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -122,16 +122,14 @@ Operação  : 0x3c1923f: mov/math reg, [flag] ; fn=0x3c191b0..0x3c192c5
     0x3c192c3 | 5f                       | pop rdi
     0x3c192c4 | c3                       | ret
   
-  === [Sub-Rotina Chamada: 0x3bfaef0..0x3bfb088 via call @0x3c192a3 (rcx = this (Direct Engine Sub-Call))] ===
+  === [Sub-Rotina Chamada: 0x3bfaef0..0x3bfb088 via call @0x3c192a3 (Direct Engine Sub-Call)] ===
     struct RBX::RVideo::VideoAnalytics {
       /* +0x10 */ void*   field_0x10;
       /* +0x120 */ void*   field_0x120;
     };
     
-    // Flag defaults: VideoDecodedVideoQueueSize = 2
     void RBX::RVideo::VideoAnalytics::func_0x3bfaef0(RBX::RVideo::VideoAnalytics* this, int64_t param_2) {
-      auto* f_10 = this->field_0x10;
-      call_0x2e12fd0(&f_10);
+      call_0x2e12fd0(&this->field_0x10);
       auto ret_0x3bfad90_2 = call_0x3bfad90(this, param_2);
       void* v_rdx_1 = ret_0x3bfad90_2;
       if (ret_0x3bfad90_2->field_0x18 >= 16) {
@@ -161,11 +159,12 @@ Operação  : 0x3c1923f: mov/math reg, [flag] ; fn=0x3c191b0..0x3c192c5
         void* prev_0x30_1 = ret_0x3c00790_5->field_0x0->field_0x30;
         ret_0x3c00790_5->field_0x0->field_0x30 = ret_0x4956040_4;
         if (prev_0x30_1 != 0) {
-          ret_0x3c00790_5->field_0x0->field_0x30->vfunc_0x0(prev_0x30_1, 1) // -> RBX::BackpackItem::fn_0x3c943b0;
+          ret_0x3c00790_5->field_0x0->field_0x30->vfunc_0x0(prev_0x30_1, 1);
         }
       }
+      auto* f_10 = this->field_0x10;
       if (f_10 != 3 || atomic_cas(&&f_10->field_0x0, f_10, 1) != 0) {
-        call_0xdac0(&f_10);
+        call_0xdac0(&this->field_0x10);
       }
     }
   
@@ -283,53 +282,6 @@ Operação  : 0x3c1923f: mov/math reg, [flag] ; fn=0x3c191b0..0x3c192c5
     0x3bfb077 | 48 8d 15 42 0b 4d 04     | lea rdx, [rip + 0x44d0b42]
     0x3bfb07e | 48 8d 4c 24 30           | lea rcx, [rsp + 0x30]
     0x3bfb083 | e8 68 b6 20 02           | call 0x5e066f0
-
-[Bytecode Hex]
-  0x3c191b0: 48 89 5c 24 18 | 57 | 48 83 ec 40 | 48 8b f9
-  0x3c191bd: 4c 8b 02 | 4c 89 44 24 20 | 48 8b 4a 08 | 48 89 4c 24 28
-  0x3c191ce: 33 c0 | 48 89 02 | 48 89 42 08 | 48 8d 44 24 20
-  0x3c191dc: 48 89 44 24 50 | 48 8b 17 | 48 69 82 20 02 00 00 40 42 0f 00 | 49 39 00
-  0x3c191f2: 7d 05 | e9 b5 00 00 00 | 48 8d 4a 68 | e8 7e 98 90 00
-  0x3c19202: 48 8b 1f | 4c 69 c0 40 42 0f 00 | 48 8b 4c 24 28 | 48 85 c9
-  0x3c19214: 74 09 | f0 ff 41 08 | 48 8b 4c 24 28 | 4c 8b 4c 24 20
-  0x3c19224: 4d 85 c9 | 74 5f | 48 63 05 48 97 50 04 | 48 69 d0 40 42 0f 00
-  0x3c19237: 4c 2b c2 | 4d 39 01 | 7c 49 | 48 63 05 02 97 50 04
-  0x3c19246: 48 39 83 88 05 00 00 | 73 39 | 0f 28 44 24 20 | 66 0f 7f 44 24 30
-  0x3c1925a: 48 8d 8b 70 05 00 00 | 4c 8d 44 24 40 | 48 8d 54 24 30 | e8 10 24 c0 fc
-  0x3c19270: 48 8b 4c 24 38 | 48 85 c9 | 74 05 | e8 c1 1c ac fc
-  0x3c1927f: c6 83 60 05 00 00 01 | eb 21 | 48 85 c9 | 74 05
-  0x3c1928d: e8 ae 1c ac fc | 48 8b 07 | 48 8d 15 34 2d 7e 03 | 48 8b 88 f8 02 00 00
-  0x3c192a3: e8 48 1c fe ff | 90 | 48 8b 4c 24 28 | 48 85 c9
-  0x3c192b1: 74 05 | e8 88 1c ac fc | 33 c0 | 48 8b 5c 24 60
-  0x3c192bf: 48 83 c4 40 | 5f | c3
-
-  [Child Bytecode Hex 0x3bfaef0..0x3bfb088]
-  0x3bfaef0: 48 89 5c 24 10 | 48 89 6c 24 18 | 48 89 74 24 20 | 57
-  0x3bfaf00: 41 56 | 41 57 | 48 83 ec 60 | 48 8b da
-  0x3bfaf0b: 48 8b e9 | 4c 8d 71 10 | 4c 89 74 24 20 | c6 44 24 28 01
-  0x3bfaf1c: 49 8b ce | e8 ac 80 21 ff | 90 | 48 8b d3
-  0x3bfaf28: 48 8b cd | e8 60 fe ff ff | 48 8b f8 | 4c 8b 40 10
-  0x3bfaf37: 48 8b d0 | 48 83 78 18 10 | 72 03 | 48 8b 10
-  0x3bfaf44: 33 c9 | 49 b9 25 23 22 84 e4 9c f2 cb | 4d 85 c0 | 74 1e
-  0x3bfaf55: 49 ba b3 01 00 00 00 01 00 00 | 90 | 0f b6 04 11 | 4c 33 c8
-  0x3bfaf67: 4d 0f af ca | 48 ff c1 | 49 3b c8 | 72 ed
-  0x3bfaf73: 4c 8b c7 | 48 8d 54 24 30 | 48 8d 8d 18 01 00 00 | e8 c9 1b b0 fc
-  0x3bfaf87: 48 8b 48 08 | 48 85 c9 | 75 07 | 48 8b 8d 20 01 00 00
-  0x3bfaf97: 41 bf 01 00 00 00 | 48 3b 8d 20 01 00 00 | 74 21 | 4c 8b c7
-  0x3bfafa9: 48 8d 54 24 48 | 48 8d 8d 18 01 00 00 | e8 d6 57 00 00 | 48 8b 00
-  0x3bfafbd: 48 8b 40 30 | 48 ff 40 10 | eb 6b | b9 18 00 00 00
-  0x3bfafcc: e8 6f b0 d5 00 | 48 8b d8 | 48 85 c0 | 0f 84 90 00 00 00
-  0x3bfafdd: c6 40 0c 00 | 48 8d 05 48 6f 4d 03 | 48 89 03 | c7 43 08 00 00 00 00
-  0x3bfaff2: 4c 89 7b 10 | 48 89 9c 24 80 00 00 00 | 4c 8b c7 | 48 8d 54 24 48
-  0x3bfb006: 48 8d 8d 18 01 00 00 | e8 7e 57 00 00 | 48 8b 10 | 48 8b 4a 30
-  0x3bfb019: 48 89 5a 30 | 48 85 c9 | 74 10 | 48 8b 01
-  0x3bfb025: 41 8b d7 | 48 8b 00 | ff 15 0f ed 83 02 | 90
-  0x3bfb032: 49 8b 06 | 90 | 48 83 f8 03 | 75 0c
-  0x3bfb03c: 48 8b 4c 24 20 | f0 4c 0f b1 39 | 74 0b | 48 8b 4c 24 20
-  0x3bfb04d: e8 6e 2a 41 fc | 90 | 4c 8d 5c 24 60 | 49 8b 5b 28
-  0x3bfb05c: 49 8b 6b 30 | 49 8b 73 38 | 49 8b e3 | 41 5f
-  0x3bfb069: 41 5e | 5f | c3 | 48 8d 4c 24 30
-  0x3bfb072: e8 59 f7 ac fc | 48 8d 15 42 0b 4d 04 | 48 8d 4c 24 30 | e8 68 b6 20 02
 
 [Strings .rdata na função]
   * FrameDropsInDecode

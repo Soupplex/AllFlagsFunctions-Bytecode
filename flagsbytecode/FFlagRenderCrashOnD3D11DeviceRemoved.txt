@@ -6,7 +6,7 @@ Operação  : 0x2715a33: cmp byte [flag], imm8 ; fn=0x2715820..0x2715ad0
 
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::RenderCrash)] ===
-    Classe  : RBX::RenderCrash (RTTI Resolvido)
+    Classe  : RBX::RenderCrash (Inferido)
     Padrão  : FFlagRenderCrashOnD3D11DeviceRemoved = true (default) [bool, mode=1]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
     Fórmula : !RenderCrashOnD3D11DeviceRemoved
@@ -15,8 +15,6 @@ Operação  : 0x2715a33: cmp byte [flag], imm8 ; fn=0x2715820..0x2715ad0
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x271519a (in fn_0x2715170): call 0x2715820  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
     Caller @0x271601f (in fn_0x2715be0): call 0x2715820  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
-    [Child @0x281d520] Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
-    [Child @0x2721d30] Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
   
   === [Decompilacao C++ da Funcao 0x2715820..0x2715ad0] ===
     struct RBX::RenderCrash {
@@ -29,35 +27,32 @@ Operação  : 0x2715a33: cmp byte [flag], imm8 ; fn=0x2715820..0x2715ad0
       if (DeviceRecoveryEnabled2 && this->field_0x279 != 0) {
         return;
       }
-      auto vret_1 = this->field_0x180->vfunc_0x138() // -> RBX::Graphics::OpenXrDevice::fn_0x272cdb0;
+      auto vret_1 = this->field_0x180->vfunc_0x138();
       if ((-2147483648 & vret_1 - 0x80000000) == 0 && vret_1 != -2147467263) {
         if (this->field_0x279 == 0) {
           this->field_0x279 = 1;
-          if (Graphics >= 6 && Graphics >> 8 >= 3) {
+          if (Graphics >= 6 && (uint64_t)Graphics >> 8 >= 3) {
             FLog::Log("[FLog::Graphics] D3D11 FATAL ERROR: Device removed with reason 0x%x (%s)");
           }
-          if (DeviceRecovery >= 6 && DeviceRecovery >> 8 >= 3) {
+          if (DeviceRecovery >= 6 && (uint64_t)DeviceRecovery >> 8 >= 3) {
             FLog::Log("[FLog::DeviceRecovery] DEVICE RECOVERY: deviceRemoved = true, reason = %s (0x%x)");
           }
           global_0x8171368 = vret_1;
           if (!DeviceRecoveryEnabled2) {
             if (global_0x844d9e0 != 0) {
               (*global_0x844d9e0)();
-              if (!DeviceRecoveryEnabled2) {
-                L_0x2715a33:
-                if (RenderCrashOnD3D11DeviceRemoved) {
-                  return tailcall_0x2715b45();
-                }
-              }
             } else {
               if (RenderCrashOnD3D11DeviceRemoved) {
                 return tailcall_0x2715b45();
               }
             }
+          } else {
+            return;
           }
-        } else {
-          if (!DeviceRecoveryEnabled2) {
-            goto L_0x2715a33;
+        }
+        if (!DeviceRecoveryEnabled2) {
+          if (RenderCrashOnD3D11DeviceRemoved) {
+            return tailcall_0x2715b45();
           }
         }
       }
@@ -232,91 +227,11 @@ Operação  : 0x2715a33: cmp byte [flag], imm8 ; fn=0x2715820..0x2715ad0
     0x2715ac6 | 48 8d 4c 24 60           | lea rcx, [rsp + 0x60]
     0x2715acb | e8 20 0c 6f 03           | call 0x5e066f0
   
-  === [Sub-Rotina Chamada: 0x281d520..0x281d57b via vfunc_0x138 @0x2715873 (vfunc_0x138 em FMOD::ChannelGroupI)] ===
-    struct FMOD::ChannelGroupI {
-      /* +0x10 */ void*   field_0x10;
-      /* +0x18 */ void*   field_0x18;
-      /* +0x60 */ void*   field_0x60;
-    };
-    
-    // Flag defaults: RenderCrashOnD3D11DeviceRemoved = true
-    auto FMOD::ChannelGroupI::func_0x281d520(FMOD::ChannelGroupI* this, int64_t param_2, void* param_3) {
-      if (param_2 == 0) {
-        return param_2 + 0x1f;
-      }
-      if (param_3 != 0) {
-        param_3->field_0x0 = 0;
-      }
-      if (this->field_0x10 == 0) {
-        if (param_2 != this->field_0x60) {
-          return 9;
-        }
-        return 0;
-      }
-      if (this->field_0x18 > 0) {
-        void* i_eax = this->field_0x10;
-        int32_t i_ecx = 0;
-        int32_t i_edx = 0;
-        do { // L_0x281d557
-          if (i_eax->field_0x0 == param_2) break;
-          i_edx++;
-          i_ecx++;
-          i_eax += 8;
-        } while (i_ecx < this->field_0x18); // loop -> L_0x281d557
-        return 9;
-      }
-      return 9;
-    }
-  
-  === [Instrucoes x86-64 da Sub-Rotina Chamada (0x281d520..0x281d57b)] ===
-    0x281d520 | 4c 8b ca                 | mov r9, rdx
-    0x281d523 | 48 85 d2                 | test rdx, rdx
-    0x281d526 | 75 04                    | jne 0x281d52c
-    0x281d528 | 8d 42 1f                 | lea eax, [rdx + 0x1f]
-    0x281d52b | c3                       | ret
-    L_0x281d52c:
-    0x281d52c | 33 d2                    | xor edx, edx
-    0x281d52e | 4d 85 c0                 | test r8, r8
-    0x281d531 | 74 03                    | je 0x281d536
-    0x281d533 | 41 89 10                 | mov dword ptr [r8], edx
-    L_0x281d536:
-    0x281d536 | 48 8b 41 10              | mov rax, qword ptr [rcx + 0x10]
-    0x281d53a | 48 85 c0                 | test rax, rax
-    0x281d53d | 75 0c                    | jne 0x281d54b
-    0x281d53f | 4c 3b 49 60              | cmp r9, qword ptr [rcx + 0x60]
-    0x281d543 | 74 33                    | je 0x281d578
-    L_0x281d545:
-    0x281d545 | b8 09 00 00 00           | mov eax, 0x9
-    0x281d54a | c3                       | ret
-    L_0x281d54b:
-    0x281d54b | 4c 63 51 18              | movsxd r10, dword ptr [rcx + 0x18]
-    0x281d54f | 45 85 d2                 | test r10d, r10d
-    0x281d552 | 7e f1                    | jle 0x281d545
-    0x281d554 | 48 8b ca                 | mov rcx, rdx
-    L_0x281d557:
-    0x281d557 | 4c 39 08                 | cmp qword ptr [rax], r9
-    0x281d55a | 74 14                    | je 0x281d570
-    0x281d55c | ff c2                    | inc edx
-    0x281d55e | 48 ff c1                 | inc rcx
-    0x281d561 | 48 83 c0 08              | add rax, 0x8
-    0x281d565 | 49 3b ca                 | cmp rcx, r10
-    0x281d568 | 7c ed                    | jl 0x281d557
-    0x281d56a | b8 09 00 00 00           | mov eax, 0x9
-    0x281d56f | c3                       | ret
-    L_0x281d570:
-    0x281d570 | 4d 85 c0                 | test r8, r8
-    0x281d573 | 74 03                    | je 0x281d578
-    0x281d575 | 41 89 10                 | mov dword ptr [r8], edx
-    L_0x281d578:
-    0x281d578 | 33 c0                    | xor eax, eax
-    0x281d57a | c3                       | ret
-  
-  === [Sub-Rotina Chamada: 0x2721d30..0x2721e93 via call @0x2715aba (rcx = this (Direct Engine Sub-Call))] ===
+  === [Sub-Rotina Chamada: 0x2721d30..0x2721e93 via call @0x2715aba (Direct Engine Sub-Call)] ===
     struct RBX::Graphics::DeviceD3D11InternalDriverError {
       /* +0x0 */ void*   field_0x0;
     };
     
-    // Flag defaults: RenderCrashOnD3D11DeviceRemoved = true
     auto RBX::Graphics::DeviceD3D11InternalDriverError::func_0x2721d30(RBX::Graphics::DeviceD3D11InternalDriverError* this, int64_t param_2, void* param_3) {
       uint64_t i_r8d = -1;
       do { // L_0x2721d87
@@ -437,82 +352,6 @@ Operação  : 0x2715a33: cmp byte [flag], imm8 ; fn=0x2715820..0x2715ad0
     L_0x2721e8d:
     0x2721e8d | e8 ee 26 6f 03           | call 0x5e14580
     0x2721e92 | 90                       | nop
-
-[Bytecode Hex]
-  0x2715820: 48 89 5c 24 10 | 48 89 6c 24 18 | 48 89 74 24 20 | 57
-  0x2715830: 48 81 ec f0 00 00 00 | 48 8b 05 a2 2e 9c 05 | 48 33 c4 | 48 89 84 24 e0 00 00 00
-  0x2715849: 48 8b f1 | 80 3d 95 85 9e 05 00 | 74 0d | 80 b9 79 02 00 00 00
-  0x271585c: 0f 85 29 02 00 00 | 48 8b 89 80 01 00 00 | 48 8b 01 | 48 8b 80 38 01 00 00
-  0x2715873: ff 15 c7 44 d2 03 | 48 63 d8 | b8 00 00 00 80 | 8d 0c 03
-  0x2715884: 85 c8 | 0f 85 ff 01 00 00 | 81 fb 01 40 00 80 | 0f 84 f3 01 00 00
-  0x2715898: 80 be 79 02 00 00 00 | 0f 85 85 01 00 00 | c6 86 79 02 00 00 01 | 48 8d 05 d5 92 bc 04
-  0x27158b3: 81 fb 06 00 7a 88 | 75 09 | 48 8d 3d 8e 92 bc 04 | eb 44
-  0x27158c4: 81 fb 05 00 7a 88 | 75 09 | 48 8d 3d 95 92 bc 04 | eb 33
-  0x27158d5: 81 fb 07 00 7a 88 | 75 09 | 48 8d 3d 2c 92 bc 04 | eb 22
-  0x27158e6: 81 fb 20 00 7a 88 | 75 09 | 48 8d 3d 33 92 bc 04 | eb 11
-  0x27158f7: 48 8d 3d a2 91 bc 04 | 81 fb 01 00 7a 88 | 48 0f 45 f8 | 33 ed
-  0x271590a: 48 8b 05 bf 83 9e 05 | 3c 06 | 72 4b | 48 c1 e8 08
-  0x2715919: 3c 03 | 72 43 | 48 8d 05 c2 a5 d2 05 | 48 89 44 24 40
-  0x2715929: 48 8b 54 24 40 | 48 81 ea 26 14 16 01 | 0f 10 05 94 83 9e 05 | 0f 29 44 24 40
-  0x2715941: 4c 8b c3 | 48 89 6c 24 30 | 48 89 6c 24 28 | 48 89 6c 24 20
-  0x2715953: 4c 8b cf | 48 8d 4c 24 40 | e8 c0 c6 25 02 | 48 8b 05 f1 84 9e 05
-  0x2715967: 3c 06 | 72 4b | 48 c1 e8 08 | 3c 03
-  0x2715971: 72 43 | 48 8d 05 d9 e8 d2 05 | 48 89 44 24 40 | 48 8b 54 24 40
-  0x2715984: 48 81 ea b3 55 16 01 | 0f 10 05 c6 84 9e 05 | 0f 29 44 24 50 | 4c 8b cb
-  0x271599a: 48 89 6c 24 30 | 48 89 6c 24 28 | 48 89 6c 24 20 | 4c 8b c7
-  0x27159ac: 48 8d 4c 24 50 | e8 6a c6 25 02 | 89 1d ac b9 a5 05 | 40 38 2d 25 84 9e 05
-  0x27159c3: 0f 85 c2 00 00 00 | 48 8b 05 10 80 d3 05 | 48 85 c0 | 74 5e
-  0x27159d5: b9 07 00 00 00 | 81 fb 06 00 7a 88 | 75 07 | b9 01 00 00 00
-  0x27159e7: eb 3b | 81 fb 05 00 7a 88 | 75 07 | b9 02 00 00 00
-  0x27159f6: eb 2c | 81 fb 07 00 7a 88 | 75 07 | b9 03 00 00 00
-  0x2715a05: eb 1d | 81 fb 20 00 7a 88 | 75 07 | b9 04 00 00 00
-  0x2715a14: eb 0e | ba 05 00 00 00 | 81 fb 01 00 7a 88 | 0f 44 ca
-  0x2715a24: ff 15 16 43 d2 03 | 80 3d b7 83 9e 05 00 | 75 58 | 80 3d 66 88 9e 05 00
-  0x2715a3a: 74 3d | 81 fb 06 00 7a 88 | 0f 84 b5 00 00 00 | 81 fb 05 00 7a 88
-  0x2715a4e: 0f 84 bb 00 00 00 | 81 fb 07 00 7a 88 | 0f 84 c1 00 00 00 | 81 fb 20 00 7a 88
-  0x2715a66: 0f 84 c7 00 00 00 | 81 fb 01 00 7a 88 | 74 5d | e9 cc 00 00 00
-  0x2715a79: 48 8b d6 | 48 8d 4c 24 60 | 81 fb 20 00 7a 88 | 75 5a
-  0x2715a89: eb 29 | 48 8b 8c 24 e0 00 00 00 | 48 33 cc | e8 05 ee 6c 03
-  0x2715a9b: 4c 8d 9c 24 f0 00 00 00 | 49 8b 5b 18 | 49 8b 6b 20 | 49 8b 73 28
-  0x2715aaf: 49 8b e3 | 5f | c3 | 41 b8 20 00 7a 88
-  0x2715aba: e8 71 c2 00 00 | 48 8d 15 6a 82 9b 05 | 48 8d 4c 24 60 | e8 20 0c 6f 03
-
-  [Child Bytecode Hex 0x281d520..0x281d57b]
-  0x281d520: 4c 8b ca | 48 85 d2 | 75 04 | 8d 42 1f
-  0x281d52b: c3 | 33 d2 | 4d 85 c0 | 74 03
-  0x281d533: 41 89 10 | 48 8b 41 10 | 48 85 c0 | 75 0c
-  0x281d53f: 4c 3b 49 60 | 74 33 | b8 09 00 00 00 | c3
-  0x281d54b: 4c 63 51 18 | 45 85 d2 | 7e f1 | 48 8b ca
-  0x281d557: 4c 39 08 | 74 14 | ff c2 | 48 ff c1
-  0x281d561: 48 83 c0 08 | 49 3b ca | 7c ed | b8 09 00 00 00
-  0x281d56f: c3 | 4d 85 c0 | 74 03 | 41 89 10
-  0x281d578: 33 c0 | c3
-
-  [Child Bytecode Hex 0x2721d30..0x2721e93]
-  0x2721d30: 40 53 | 55 | 56 | 57
-  0x2721d35: 41 56 | 48 81 ec 80 00 00 00 | 48 8b 05 9b 69 9b 05 | 48 33 c4
-  0x2721d48: 48 89 44 24 78 | 41 8b e8 | 48 8b f2 | 48 8b f9
-  0x2721d56: 48 89 4c 24 30 | 45 33 f6 | 4c 89 74 24 58 | 4c 89 74 24 68
-  0x2721d68: 48 c7 44 24 70 0f 00 00 00 | 44 88 74 24 58 | 48 8d 15 bb 39 0c 04 | 48 c7 c3 ff ff ff ff
-  0x2721d84: 4c 8b c3 | 49 ff c0 | 46 38 34 02 | 75 f7
-  0x2721d90: 48 8d 4c 24 58 | e8 66 52 fd fd | 90 | 4c 89 74 24 38
-  0x2721da0: 4c 89 74 24 48 | 48 c7 44 24 50 0f 00 00 00 | c6 44 24 38 00 | 48 8d 15 d6 39 0c 04
-  0x2721dba: 66 0f 1f 44 00 00 | 48 ff c3 | 80 3c 1a 00 | 75 f7
-  0x2721dc9: 4c 8b c3 | 48 8d 4c 24 38 | e8 2a 52 fd fd | 90
-  0x2721dd7: 48 8d 44 24 58 | 48 89 44 24 20 | 44 8b cd | 4c 8b c6
-  0x2721de7: 48 8d 54 24 38 | 48 8b cf | e8 2c fd ff ff | 90
-  0x2721df5: 48 8b 44 24 50 | 48 83 f8 10 | 72 2a | 48 ff c0
-  0x2721e03: 48 8b 4c 24 38 | 48 8b d1 | 48 3d 00 10 00 00 | 72 11
-  0x2721e13: 48 8b 49 f8 | 48 2b d1 | 48 8d 42 f8 | 48 83 f8 1f
-  0x2721e22: 77 69 | e8 97 3c 23 02 | 90 | 48 8b 44 24 70
-  0x2721e2f: 48 83 f8 10 | 72 2a | 48 ff c0 | 48 8b 4c 24 58
-  0x2721e3d: 48 8b d1 | 48 3d 00 10 00 00 | 72 11 | 48 8b 49 f8
-  0x2721e4c: 48 2b d1 | 48 8d 42 f8 | 48 83 f8 1f | 77 2e
-  0x2721e59: e8 62 3c 23 02 | 90 | 48 8d 05 ca c1 92 04 | 48 89 07
-  0x2721e69: 48 8b c7 | 48 8b 4c 24 78 | 48 33 cc | e8 27 2a 6c 03
-  0x2721e79: 48 81 c4 80 00 00 00 | 41 5e | 5f | 5e
-  0x2721e84: 5d | 5b | c3 | e8 f4 26 6f 03
-  0x2721e8c: 90 | e8 ee 26 6f 03 | 90
 
 [Strings .rdata na função]
   * <unhandled>

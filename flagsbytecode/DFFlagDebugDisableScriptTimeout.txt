@@ -6,13 +6,13 @@ Operação  : 0x41d0325: cmp byte [flag], imm8 ; fn=0x41d0280..0x41d0347
 
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::DebugDisable)] ===
-    Classe  : RBX::DebugDisable (RTTI Resolvido)
+    Classe  : RBX::DebugDisable (Inferido)
     Padrão  : DFFlagDebugDisableScriptTimeout = false (default) [bool, mode=2]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
     Altera  : this->field_0x20
-    [XREF #2 @0x41d0385] Classe  : RBX::DebugDisable (RTTI Resolvido)
+    [XREF #2 @0x41d0385] Classe  : RBX::DebugDisable (Inferido)
     [XREF #2 @0x41d0385] Fórmula : !DebugDisableScriptTimeout
-    [XREF #3 @0x41d0cb6] Classe  : RBX::DebugDisable (RTTI Resolvido)
+    [XREF #3 @0x41d0cb6] Classe  : RBX::DebugDisable (Inferido)
     [XREF #3 @0x41d0cb6] Fórmula : DebugDisableScriptTimeout
   
   === [Decompilacao C++ da Funcao 0x41d0280..0x41d0347] ===
@@ -109,20 +109,19 @@ Operação  : 0x41d0325: cmp byte [flag], imm8 ; fn=0x41d0280..0x41d0347
     };
     
     // Flag defaults: DebugDisableScriptTimeout = false
-    void RBX::DebugDisable::func_0x41d0350(RBX::DebugDisable* this, int64_t param_2, void* param_3, void* param_4) {
+    bool RBX::DebugDisable::func_0x41d0350(RBX::DebugDisable* this, double param_2, double param_3, double param_4) {
       if (this->field_0x40 != 0 && param_2 > this->field_0x38) {
-        L_0x41d03a1:
-        return;
+        return true;
       }
-      if (param_4 > 0.0 && param_2 - param_3 > param_4 && !DebugDisableScriptTimeout) {
-        return;
+      if (param_4 > 0.0 && param_2 - param_3 > param_4) {
+        if (!DebugDisableScriptTimeout) {
+          return true;
+        }
       }
       if (!isnan(this->field_0x20) && this->field_0x20 == 0.0) {
-        return;
+        return false;
       }
-      if (param_2 >= this->field_0x20) {
-        goto L_0x41d03a1;
-      }
+      return param_2 >= this->field_0x20;
     }
   
   === [Instrucoes x86-64 do XREF Runtime #2 (0x41d0350..0x41d03a7)] ===
@@ -186,18 +185,23 @@ Operação  : 0x41d0325: cmp byte [flag], imm8 ; fn=0x41d0280..0x41d0347
         auto local_0x10 = param_2;
         call_0x755c20(&this->field_m0xf30, &local_0xb8);
         if (ret_0xc700_4->field_0x0 < 2 || ret_0xc700_4->field_0x0 > 6 && ret_0xc700_4->field_0x0 < 11 || ret_0xc700_4->field_0x0 > 12) {
-          if (StopAssistantSecurityHangingStudio && ret_0xc700_4->field_0x0 == 10) {
-            if (LuauPerScriptExecutionTimeout) {
-              void* v_rbx_2 = 0;
-              if (local_0xb8 != 0) {
-                v_rbx_2 = local_0xb8->field_0x48;
-              }
-              if (this->field_0x40 != 0) {
-                if (local_0xc8 <= this->field_0x38) {
-                  L_0x41d0c76:
-                  if ((!isnan(v_rbx_2->field_0xa8) ? &this->field_0x28 : &local_0x38)->field_0x0 > 0.0) {
-                    L_0x41d0cb4:
-                    if ((LuauPerScriptExecutionTimeout ? local_0xb8 : this->field_0x40) > 0 && !DebugDisableScriptTimeout) {
+          if (!StopAssistantSecurityHangingStudio || ret_0xc700_4->field_0x0 != 10) {
+            return;
+          }
+        }
+        if (LuauPerScriptExecutionTimeout) {
+          void* v_rbx_2 = 0;
+          if (local_0xb8 != 0) {
+            v_rbx_2 = local_0xb8->field_0x48;
+          }
+          if (this->field_0x40 != 0) {
+            if (local_0xc8 <= this->field_0x38) {
+              if ((!isnan(v_rbx_2->field_0xa8) ? &this->field_0x28 : &local_0x38)->field_0x0 > 0.0) {
+                L_0x41d0cb4:
+                if ((LuauPerScriptExecutionTimeout ? local_0xb8 : this->field_0x40) <= 0 || DebugDisableScriptTimeout) {
+                  L_0x41d0cc6:
+                  if (isnan(this->field_0x20) || this->field_0x20 != 0.0) {
+                    if (local_0xc8 >= this->field_0x20) {
                     L_0x41d0ce6:
                     void* v_r15_7 = sel_r15_1;
                     if (this->field_0x68 != this->field_0x70) {
@@ -211,7 +215,7 @@ Operação  : 0x41d0325: cmp byte [flag], imm8 ; fn=0x41d0280..0x41d0347
                     if ((i_ebx->field_0x18 >> 1 & 0x1) == 0) {
                     v_r10_4 = i_ebx->field_0x0;
                     }
-                    auto vret_7 = ((i_ebx->field_0x18 & 0xfffffff8))->vfunc_0x0(v_r10_4, local_0xb8, local_0x30, local_0xc0) // -> RBX::Path2D::fn_0x3ee33d0;
+                    auto vret_7 = ((i_ebx->field_0x18 & 0xfffffff8))->vfunc_0x0(v_r10_4, local_0xb8, local_0x30, local_0xc0);
                     if (vret_7 != 0) {
                     v_al_6 = 1;
                     } else {
@@ -223,100 +227,64 @@ Operação  : 0x41d0325: cmp byte [flag], imm8 ; fn=0x41d0280..0x41d0347
                     i_ebx += 0x20;
                     i_r14d = i_r14d | v_al_6;
                     } while (i_ebx != this->field_0x70); // loop -> L_0x41d0d03
-                    if ((i_r14d | v_al_6) == 0) {
+                    if ((i_r14d | v_al_6) != 0) {
+                    return;
+                    }
                     v_r15_7 = local_0x40;
-                    L_0x41d0d52:
-                    if (this->field_0x60 != 0) {
-                    call_0x42b09e0(this->field_0x60, local_0xb8, v_r15_7);
-                    }
-                    call_0x254bd80(local_0xb8, 2);
-                    }
-                    return;
                     }
                     if (this->field_0x60 != 0) {
                     call_0x42b09e0(this->field_0x60, local_0xb8, v_r15_7);
                     }
                     call_0x254bd80(local_0xb8, 2);
-                    } else {
-                    L_0x41d0cc6:
-                    if (isnan(this->field_0x20) || this->field_0x20 != 0.0) {
-                    if (local_0xc8 >= this->field_0x20) {
-                    void* v_r15_7 = sel_r15_1;
-                    if (this->field_0x68 != this->field_0x70) {
-                    void* i_ebx = this->field_0x68;
-                    int32_t i_r14d = 0;
-                    goto L_0x41d0d03;
-                    } else {
-                    goto L_0x41d0d52;
-                    }
-                    }
-                    return;
-                    }
-                    return;
-                    }
-                  } else {
-                    if (isnan(this->field_0x20) || this->field_0x20 != 0.0) {
-                    if (local_0xc8 >= this->field_0x20) {
-                    goto L_0x41d0ce6;
-                    }
-                    return;
                     }
                     return;
                   }
-                } else {
+                  return;
+                }
+                void* v_r15_7 = sel_r15_1;
+                if (this->field_0x68 != this->field_0x70) {
+                  void* i_ebx = this->field_0x68;
+                  int32_t i_r14d = 0;
+                  goto L_0x41d0d03;
+                }
+                if (this->field_0x60 != 0) {
+                  call_0x42b09e0(this->field_0x60, local_0xb8, v_r15_7);
+                }
+                call_0x254bd80(local_0xb8, 2);
+              }
+              if (isnan(this->field_0x20) || this->field_0x20 != 0.0) {
+                if (local_0xc8 >= this->field_0x20) {
                   goto L_0x41d0ce6;
                 }
-              } else if ((!isnan(v_rbx_2->field_0xa8) ? &this->field_0x28 : &local_0x38)->field_0x0 > 0.0) {
-                if ((LuauPerScriptExecutionTimeout ? local_0xb8 : this->field_0x40) > 0 && !DebugDisableScriptTimeout) {
-                  goto L_0x41d0ce6;
-                } else {
-                  goto L_0x41d0cc6;
-                }
-              } else {
-                goto L_0x41d0cc6;
+                return;
               }
-            } else if (this->field_0x40 != 0) {
-              if (local_0xc8 <= this->field_0x38) {
-                L_0x41d0c9e:
-                if (this->field_0x28 > 0.0) {
-                  goto L_0x41d0cb4;
-                } else {
-                  goto L_0x41d0cc6;
-                }
-              } else {
-                goto L_0x41d0ce6;
-              }
-            } else if (this->field_0x28 > 0.0) {
-              goto L_0x41d0cb4;
-            } else {
-              goto L_0x41d0cc6;
+              return;
             }
-          }
-          return;
-        }
-        if (LuauPerScriptExecutionTimeout) {
-          void* v_rbx_2 = 0;
-          if (local_0xb8 != 0) {
-            v_rbx_2 = local_0xb8->field_0x48;
-          }
-          if (this->field_0x40 != 0) {
-            if (local_0xc8 <= this->field_0x38) {
-              goto L_0x41d0c76;
-            } else {
-              goto L_0x41d0ce6;
-            }
-          } else {
-            goto L_0x41d0c76;
-          }
-        } else if (this->field_0x40 != 0) {
-          if (local_0xc8 <= this->field_0x38) {
-            goto L_0x41d0c9e;
-          } else {
             goto L_0x41d0ce6;
           }
+          if ((!isnan(v_rbx_2->field_0xa8) ? &this->field_0x28 : &local_0x38)->field_0x0 > 0.0) {
+            if ((LuauPerScriptExecutionTimeout ? local_0xb8 : this->field_0x40) <= 0 || DebugDisableScriptTimeout) {
+              goto L_0x41d0cc6;
+            }
+            goto L_0x41d0ce6;
+          }
+          goto L_0x41d0cc6;
         } else {
-          goto L_0x41d0c9e;
+          if (this->field_0x40 != 0) {
+            if (local_0xc8 <= this->field_0x38) {
+              if (this->field_0x28 > 0.0) {
+                goto L_0x41d0cb4;
+              }
+              goto L_0x41d0cc6;
+            }
+            goto L_0x41d0ce6;
+          }
+          if (this->field_0x28 > 0.0) {
+            goto L_0x41d0cb4;
+          }
+          goto L_0x41d0cc6;
         }
+        goto L_0x41d0cb4;
       }
     }
   
@@ -580,93 +548,6 @@ Operação  : 0x41d0325: cmp byte [flag], imm8 ; fn=0x41d0280..0x41d0347
     0x41d0dd0 | 48 81 ea ed 29 7b 00     | sub rdx, 0x7b29ed
     0x41d0dd7 | 48 8b 4d 48              | mov rcx, qword ptr [rbp + 0x48]
     0x41d0ddb | e8 10 ab 38 fe           | call 0x255b8f0
-
-[Bytecode Hex]
-  0x41d0280: 40 53 | 48 83 ec 40 | 48 8b 05 53 84 f0 03 | 48 33 c4
-  0x41d0290: 48 89 44 24 30 | 48 8b d9 | 48 8d 51 08 | 45 33 c0
-  0x41d029f: 48 8d 4c 24 28 | e8 77 37 c4 fe | 0f 57 c0 | f2 0f 11 43 20
-  0x41d02b1: 48 8b 4c 24 28 | 0f b6 c1 | 24 01 | 74 20
-  0x41d02bd: 48 83 e1 fe | 48 8b 01 | 90 | 48 83 f8 03
-  0x41d02c9: 75 0c | ba 01 00 00 00 | f0 48 0f b1 11 | 74 06
-  0x41d02d7: e8 e4 d7 e3 fb | 90 | 48 8b 4c 24 30 | 48 33 cc
-  0x41d02e5: e8 b6 45 c1 01 | 48 83 c4 40 | 5b | c3
-  0x41d02f0: 0f b6 41 40 | 66 49 0f 6e e0 | 66 48 0f 6e ca | 90
-  0x41d02ff: 84 c0 | 74 07 | 66 0f 2f 49 38 | 77 37
-  0x41d030a: f2 0f 10 51 28 | 0f 57 db | 66 0f 2f d3 | 76 16
-  0x41d0318: 0f 28 c1 | f2 0f 5c c4 | 66 0f 2f c2 | 76 09
-  0x41d0325: 80 3d 4c 8a f5 03 00 | 74 13 | f2 0f 10 41 20 | 66 0f 2e c3
-  0x41d0337: 7a 02 | 74 09 | 66 0f 2f c8 | 72 03
-  0x41d0341: b0 01 | c3 | 32 c0 | c3
-
-  [XREF #2 Bytecode Hex 0x41d0350..0x41d03a7]
-  0x41d0350: 0f b6 41 40 | 66 49 0f 6e d9 | 66 49 0f 6e e0 | 66 48 0f 6e ca
-  0x41d0363: 90 | 84 c0 | 74 07 | 66 0f 2f 49 38
-  0x41d036d: 77 32 | 0f 57 d2 | 66 0f 2f da | 76 16
-  0x41d0378: 0f 28 c1 | f2 0f 5c c4 | 66 0f 2f c3 | 76 09
-  0x41d0385: 80 3d ec 89 f5 03 00 | 74 13 | f2 0f 10 41 20 | 66 0f 2e c2
-  0x41d0397: 7a 02 | 74 09 | 66 0f 2f c8 | 72 03
-  0x41d03a1: b0 01 | c3 | 32 c0 | c3
-
-  [XREF #3 Bytecode Hex 0x41d0a90..0x41d0de0]
-  0x41d0a90: 48 89 5c 24 08 | 48 89 54 24 10 | 55 | 56
-  0x41d0a9c: 57 | 41 54 | 41 55 | 41 56
-  0x41d0aa3: 41 57 | 48 8b ec | 48 83 ec 70 | 0f 29 74 24 60
-  0x41d0ab1: 0f 29 7c 24 50 | 48 8b f1 | 80 3d 70 82 f5 03 00 | 74 24
-  0x41d0ac2: 48 85 d2 | 74 1f | 48 8b 42 48 | 48 85 c0
-  0x41d0ace: 74 16 | 48 8b 48 28 | 48 85 c9 | 74 0d
-  0x41d0ad9: 0f b6 41 05 | 90 | 84 c0 | 0f 85 fb 02 00 00
-  0x41d0ae6: 4c 8d be 00 f0 ff ff | 48 c7 c0 88 fe ff ff | 48 85 f6 | 4c 0f 44 f8
-  0x41d0afb: 4c 89 7d d0 | 41 8b 87 e8 15 00 00 | 90 | 83 f8 03
-  0x41d0b0a: 0f 8d 0e 03 00 00 | 48 8d 55 c0 | 49 8b cf | e8 c4 f7 f5 ff
-  0x41d0b1c: 48 8d 4d 58 | e8 fb 96 78 00 | 33 db | 48 8b 45 48
-  0x41d0b2b: 48 85 c0 | 74 06 | 48 8b 40 48 | eb 03
-  0x41d0b36: 48 8b c3 | 48 8b 40 18 | 48 8b 48 30 | f2 0f 10 b9 90 00 00 00
-  0x41d0b49: 41 8b 87 e8 15 00 00 | 90 | 83 f8 03 | 0f 8d e2 02 00 00
-  0x41d0b5a: 49 8b cf | e8 2e 19 e9 ff | 0f b6 80 68 07 00 00 | 90
-  0x41d0b6a: 84 c0 | 0f 85 2d 02 00 00 | bf 01 00 00 00 | 8b d7
-  0x41d0b79: 48 8b 0d f8 e1 2d 04 | e8 7b bb e3 fb | 44 8b 30 | 44 89 75 50
-  0x41d0b8c: 4c 8b 4e 60 | 0f 57 f6 | 4d 85 c9 | 74 49
-  0x41d0b98: f2 0f 10 46 28 | 66 0f 2e c6 | 7a 06 | 75 04
-  0x41d0ba5: 32 c9 | eb 04 | 40 0f b6 cf | f2 0f 10 5d 58
-  0x41d0bb2: f2 0f 5c 5d c0 | 41 8b 87 e8 15 00 00 | 90 | 83 f8 03
-  0x41d0bc2: 0f 8d 92 02 00 00 | 88 4c 24 28 | 44 89 74 24 20 | 4d 8b c7
-  0x41d0bd4: 48 8b 55 48 | 49 8b c9 | e8 00 04 0e 00 | 90
-  0x41d0be1: 8b 86 e8 05 00 00 | 90 | 83 f8 03 | 0f 8d 87 02 00 00
-  0x41d0bf1: 48 8d 8e d0 f0 ff ff | 48 8d 55 48 | e8 1f 50 58 fc | 41 8d 46 fe
-  0x41d0c05: 83 f8 04 | 76 20 | 41 8d 46 f5 | 83 f8 01
-  0x41d0c11: 76 17 | 80 3d 76 81 f5 03 00 | 0f 84 7f 01 00 00 | 41 83 fe 0a
-  0x41d0c24: 0f 85 75 01 00 00 | 80 3d 17 81 f5 03 00 | 74 56 | 48 8b 45 48
-  0x41d0c37: 48 85 c0 | 74 04 | 48 8b 58 48 | f2 0f 10 83 a8 00 00 00
-  0x41d0c48: f2 0f 11 45 c8 | 66 0f 2e c6 | 7a 06 | 48 8d 46 28
-  0x41d0c57: 74 04 | 48 8d 45 c8 | f2 0f 10 10 | 0f b6 46 40
-  0x41d0c65: 90 | f2 0f 10 4d 58 | 84 c0 | 74 07
-  0x41d0c6f: 66 0f 2f 4e 38 | 77 70 | 66 0f 2f d6 | 76 4a
-  0x41d0c7c: 0f 28 c1 | f2 0f 5c c7 | 66 0f 2f c2 | eb 2b
-  0x41d0c89: 0f b6 46 40 | 90 | f2 0f 10 4d 58 | 84 c0
-  0x41d0c95: 74 07 | 66 0f 2f 4e 38 | 77 48 | f2 0f 10 56 28
-  0x41d0ca3: 66 0f 2f d6 | 76 1d | 0f 28 c1 | f2 0f 5c c7
-  0x41d0cb0: 66 0f 2f c2 | 76 10 | 80 3d bb 80 f5 03 00 | 75 07
-  0x41d0cbf: bf 02 00 00 00 | eb 20 | f2 0f 10 46 20 | 66 0f 2e c6
-  0x41d0ccf: 7a 06 | 0f 84 c8 00 00 00 | 66 0f 2f c8 | 0f 82 be 00 00 00
-  0x41d0ce1: bf 03 00 00 00 | 45 32 f6 | 4c 8b 6e 70 | 48 8b 5e 68
-  0x41d0cf1: 4c 8b 65 48 | 49 3b dd | 74 58 | f2 0f 10 75 c0
-  0x41d0cff: 44 8b 7d 50 | 48 8b 43 18 | 48 8b c8 | 48 83 e1 f8
-  0x41d0d0e: 74 2b | d0 f8 | a8 01 | 4c 8b d3
-  0x41d0d17: 75 03 | 4c 8b 13 | 48 8b 01 | 45 8b cf
-  0x41d0d22: 66 49 0f 7e f0 | 49 8b d4 | 49 8b ca | ff 15 0d 90 26 02
-  0x41d0d33: 84 c0 | 74 04 | b0 01 | eb 02
-  0x41d0d3b: 32 c0 | 44 0a f0 | 48 83 c3 20 | 49 3b dd
-  0x41d0d47: 75 ba | 45 84 f6 | 4c 8b 7d d0 | 75 4d
-  0x41d0d52: 48 8b 4e 60 | 48 85 c9 | 74 20 | 41 8b 87 e8 15 00 00
-  0x41d0d62: 90 | 83 f8 03 | 0f 8d 2a 01 00 00 | 4d 8b c7
-  0x41d0d6f: 4c 8b 65 48 | 49 8b d4 | e8 65 fc 0d 00 | ba 02 00 00 00
-  0x41d0d80: 49 8b cc | e8 f8 af 37 fe | 83 ef 01 | 74 34
-  0x41d0d8d: 83 ef 01 | 0f 84 3e 01 00 00 | 83 ff 01 | 0f 84 15 01 00 00
-  0x41d0d9f: 48 8b 9c 24 b0 00 00 00 | 0f 28 74 24 60 | 0f 28 7c 24 50 | 48 83 c4 70
-  0x41d0db5: 41 5f | 41 5e | 41 5d | 41 5c
-  0x41d0dbd: 5f | 5e | 5d | c3
-  0x41d0dc1: 48 8d 05 5d 07 98 03 | 48 89 45 50 | 48 8b 55 50 | 48 81 ea ed 29 7b 00
-  0x41d0dd7: 48 8b 4d 48 | e8 10 ab 38 fe
 
 [Strings .rdata na função]
   * Script timeout: shutdown deadline reached

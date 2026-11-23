@@ -6,16 +6,16 @@ Operação  : 0x1250bb5: mov/math reg, [flag] ; fn=0x1250a40..0x1250d8b
 
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::PendingReceipts)] ===
-    Classe  : RBX::PendingReceipts (RTTI Resolvido)
+    Classe  : RBX::PendingReceipts (Inferido)
     Padrão  : DFIntPendingReceiptsBatchSize = 50 (default) [int, mode=2]
     Papel   : Divisor / Taxa de frequência (Hz) usado em cálculos de intervalo e orçamento
     Fórmula : PendingReceiptsBatchSize <= 75
     Fórmula : (((this->field_0xbd8 - this->field_0xbd0) >> 3) - 1 + PendingReceiptsBatchSize > 75 ? 75 : max(PendingReceiptsBatchSize, 1)) / PendingReceiptsBatchSize > 75 ? 75 : max(PendingReceiptsBatchSize, 1)
     Fórmula : (((this->field_0xbd8 - this->field_0xbd0) >> 3) - 1 + PendingReceiptsBatchSize > 75 ? 75 : max(PendingReceiptsBatchSize, 1)) % PendingReceiptsBatchSize > 75 ? 75 : max(PendingReceiptsBatchSize, 1)
     Altera  : this->field_0xbd8, this->field_0xbe8, this->field_0xbf0, this->field_0xbf8, this->field_0xbd8->field_0x0
-    [XREF #2 @0x1250df1] Classe  : RBX::PendingReceipts (RTTI Resolvido)
+    [XREF #2 @0x1250df1] Classe  : RBX::PendingReceipts (Inferido)
     [XREF #2 @0x1250df1] Fórmula : PendingReceiptsBatchSize <= 75
-    [XREF #2 @0x1250df1] Fórmula : min(PendingReceiptsBatchSize > 75 ? 75 : max(PendingReceiptsBatchSize, 1) + this->field_0xbe8, (this->field_0xbd8 - this->field_0xbd0) >> 3)
+    [XREF #2 @0x1250df1] Fórmula : std::min<uint64_t>(PendingReceiptsBatchSize > 75 ? 75 : max(PendingReceiptsBatchSize, 1) + this->field_0xbe8, (this->field_0xbd8 - this->field_0xbd0) >> 3)
     [XREF #2 @0x1250df1] Altera  : this->field_0xbe8
   
   === [Decompilacao C++ da Funcao 0x1250a40..0x1250d8b] ===
@@ -29,7 +29,7 @@ Operação  : 0x1250bb5: mov/math reg, [flag] ; fn=0x1250a40..0x1250d8b
     };
     
     // Flag defaults: PendingReceiptsBatchSize = 50, RobuxTransfers = 0, MigrateUserIdAccessors = false, PlayerUserIdReturnsEffectiveId3 = false
-    void RBX::PendingReceipts::func_0x1250a40(RBX::PendingReceipts* this, int64_t param_2, void* param_3, void* param_4) {
+    void RBX::PendingReceipts::func_0x1250a40(RBX::PendingReceipts* this, int64_t param_2, double param_3, double param_4) {
       if (param_2->field_0x240 != 0) {
         param_2->field_0x240->field_0x8++;
       }
@@ -68,9 +68,10 @@ Operação  : 0x1250bb5: mov/math reg, [flag] ; fn=0x1250a40..0x1250d8b
         }
       }
       int32_t tmp_1 = (((this->field_0xbd8 - this->field_0xbd0) >> 3) - 1 + PendingReceiptsBatchSize > 75 ? 75 : max(PendingReceiptsBatchSize, 1)) / PendingReceiptsBatchSize > 75 ? 75 : max(PendingReceiptsBatchSize, 1);
-      this->field_0xbf0 = max(1, ((int32_t)(param_4 * 1000.0) / max(1, local_0x1a0) - 1 + tmp_1) / max(1, (int32_t)(param_4 * 1000.0) / max(1, local_0x1a0)));
+      int32_t tmp_3 = ((int32_t)(param_4 * 1000.0) / max(1, local_0x1a0) - 1 + tmp_1) / max(1, (int32_t)(param_4 * 1000.0) / max(1, local_0x1a0));
+      this->field_0xbf0 = max(1, tmp_3);
       this->field_0xbf8 = param_3 + param_4;
-      if (RobuxTransfers >= 6 && RobuxTransfers >> 8 >= 5) {
+      if (RobuxTransfers >= 6 && (uint64_t)RobuxTransfers >> 8 >= 5) {
         uint64_t i_eax = -1;
         do { // L_0x1250c80
           i_eax++;
@@ -78,9 +79,9 @@ Operação  : 0x1250bb5: mov/math reg, [flag] ; fn=0x1250a40..0x1250d8b
         FLog::Log("[DFLog::RobuxTransfers] MarketplaceService: receipt poll period rebuild ({} ids queued, {} batch");
       }
       if (param_2->field_0x240 != 0 && atomic_fetch_sub(&param_2->field_0x240->field_0x8, 1) == 1) {
-        param_2->field_0x240->vfunc_0x0(param_2->field_0x240) // -> RBX::PoseBase::VCFramePose::fn_0x1625fe0;
+        param_2->field_0x240->vfunc_0x0(param_2->field_0x240);
         if (atomic_fetch_sub(&param_2->field_0x240->field_0xc, 1) == 1) {
-          param_2->field_0x240->vfunc_0x8() // -> RBX::VehicleSeat::fn_0x147a960;
+          param_2->field_0x240->vfunc_0x8();
         }
       }
     }
@@ -321,21 +322,19 @@ Operação  : 0x1250bb5: mov/math reg, [flag] ; fn=0x1250a40..0x1250d8b
     // Flag defaults: PendingReceiptsBatchSize = 50, SplitHashNoRehashOnExistingKey = true
     void RBX::PendingReceipts::func_0x1250d90(RBX::PendingReceipts* this) {
       call_0x495a220(&local_0x60);
-      auto expr_1 = (this->field_0xbd8 - this->field_0xbd0) >> 3;
-      int64_t idx_1 = min(PendingReceiptsBatchSize > 75 ? 75 : max(PendingReceiptsBatchSize, 1) + this->field_0xbe8, expr_1);
-      if (this->field_0xbd0 + idx_1 * 8 - (this->field_0xbd0 + this->field_0xbe8 * 8) >= 8) {
-        int64_t idx_2 = (this->field_0xbd0 + idx_1 * 8 - (this->field_0xbd0 + this->field_0xbe8 * 8)) >> 3;
-        auto ret_0x6fd950_2 = call_0x6fd950(idx_2 * 8);
-        call_0x5e05370(ret_0x6fd950_2, this->field_0xbd0 + this->field_0xbe8 * 8, this->field_0xbd0 + idx_1 * 8 - (this->field_0xbd0 + this->field_0xbe8 * 8));
+      int64_t tmp_1 = std::min<uint64_t>(PendingReceiptsBatchSize > 75 ? 75 : max(PendingReceiptsBatchSize, 1) + this->field_0xbe8, (this->field_0xbd8 - this->field_0xbd0) >> 3);
+      if (this->field_0xbd0 + tmp_1 * 8 - (this->field_0xbd0 + this->field_0xbe8 * 8) >= 8) {
+        int64_t idx_1 = (this->field_0xbd0 + tmp_1 * 8 - (this->field_0xbd0 + this->field_0xbe8 * 8)) >> 3;
+        auto ret_0x6fd950_2 = call_0x6fd950(idx_1 * 8);
+        call_0x5e05370(ret_0x6fd950_2, this->field_0xbd0 + this->field_0xbe8 * 8, this->field_0xbd0 + tmp_1 * 8 - (this->field_0xbd0 + this->field_0xbe8 * 8));
       }
-      this->field_0xbe8 = min(PendingReceiptsBatchSize > 75 ? 75 : max(PendingReceiptsBatchSize, 1) + this->field_0xbe8, expr_1);
-      auto* f_ba0 = this->field_0xba0;
+      this->field_0xbe8 = tmp_1;
       if (global_0x84a44d6 != 0 && SplitHashNoRehashOnExistingKey) {
         if (this->field_0xb9c == 0) {
           call_0x1248ce0(&this->field_0xb98, 16);
         } else {
-          int64_t idx_3 = f_ba0->field_0x8[(1 << this->field_0xbb4) * 4];
-          if (this->field_0xb98 + idx_3 * 4 >= 1 << this->field_0xbb4) {
+          int64_t idx_2 = this->field_0xba0->field_0x8[(1 << this->field_0xbb4) * 4];
+          if (this->field_0xb98 + idx_2 * 4 >= 1 << this->field_0xbb4) {
             call_0x12444b0(&this->field_0xb98);
           }
         }
@@ -344,11 +343,11 @@ Operação  : 0x1250bb5: mov/math reg, [flag] ; fn=0x1250a40..0x1250d8b
           if (this->field_0xb9c > 0x4000) {
             call_0x1248ce0(&this->field_0xb98, this->field_0xb9c + 16384);
           } else {
-            call_0x1248ce0(&this->field_0xb98, this->field_0xb9c + max(this->field_0xb9c, 16));
+            call_0x1248ce0(&this->field_0xb98, this->field_0xb9c + std::max<uint32_t>(this->field_0xb9c, 16));
           }
         } else if (this->field_0xb9c != 0) {
-          int64_t idx_3 = f_ba0->field_0x8[(1 << this->field_0xbb4) * 4];
-          if (this->field_0xb98 + idx_3 * 4 >= 1 << this->field_0xbb4) {
+          int64_t idx_2 = this->field_0xba0->field_0x8[(1 << this->field_0xbb4) * 4];
+          if (this->field_0xb98 + idx_2 * 4 >= 1 << this->field_0xbb4) {
             call_0x12444b0(&this->field_0xb98);
           }
         }
@@ -533,101 +532,6 @@ Operação  : 0x1250bb5: mov/math reg, [flag] ; fn=0x1250a40..0x1250d8b
     0x1250ff0 | f2 0f 11 71 08           | movsd qword ptr [rcx + 0x8], xmm6
     0x1250ff5 | 48 83 c7 08              | add rdi, 0x8
     0x1250ff9 | 49 3b fc                 | cmp rdi, r12
-
-[Bytecode Hex]
-  0x1250a40: 48 8b c4 | 48 89 58 18 | 48 89 70 20 | 55
-  0x1250a4c: 57 | 41 54 | 41 56 | 41 57
-  0x1250a53: 48 8d 68 88 | 48 81 ec 50 01 00 00 | 0f 29 70 c8 | 0f 29 78 b8
-  0x1250a66: 48 8b 05 73 7c e8 06 | 48 33 c4 | 48 89 45 20 | 48 8b f1
-  0x1250a77: 66 49 0f 6e f9 | 66 49 0f 6e f0 | 48 8b 82 40 02 00 00 | 48 85 c0
-  0x1250a8b: 74 04 | f0 ff 40 08 | 4c 8b b2 38 02 00 00 | 4c 89 74 24 30
-  0x1250a9d: 4c 8b ba 40 02 00 00 | 4c 89 7c 24 38 | 48 8d b9 d0 0b 00 00 | 48 8b 0f
-  0x1250ab3: 48 89 4f 08 | 45 33 e4 | 4c 89 a6 e8 0b 00 00 | 49 8b 56 08
-  0x1250ac5: 49 2b 16 | 48 c1 fa 04 | 48 8b 47 10 | 48 2b c1
-  0x1250ad3: 48 c1 f8 03 | 48 3b d0 | 76 1b | 48 b8 ff ff ff ff ff ff ff 1f
-  0x1250ae6: 48 3b d0 | 0f 87 97 02 00 00 | 48 8b cf | e8 c9 4b d3 ff
-  0x1250af7: 49 8b 1e | 49 3b 5e 08 | 0f 84 ab 00 00 00 | 48 8b 0b
-  0x1250b07: 48 85 c9 | 0f 84 96 00 00 00 | 48 8d 81 98 00 00 00 | 44 38 25 e2 2d ed 06
-  0x1250b1e: 74 1c | 0f 10 40 08 | 0f 11 45 c0 | 0f 10 48 18
-  0x1250b2c: 0f 11 4d d0 | 66 0f 73 d9 08 | 66 48 0f 7e c8 | eb 37
-  0x1250b3c: 48 85 c0 | 49 0f 44 cc | 48 8b 91 18 03 00 00 | 48 8b 81 58 04 00 00
-  0x1250b51: 48 2d 8d c1 98 0e | 48 3b d0 | 0f 85 12 02 00 00 | 44 38 25 c9 2d ed 06
-  0x1250b67: 74 07 | 48 8b 91 a0 00 00 00 | 48 8b c2 | 48 89 44 24 40
-  0x1250b78: 48 8b 96 d8 0b 00 00 | 48 3b 96 e0 0b 00 00 | 74 11 | 48 89 02
-  0x1250b8b: 48 83 47 08 08 | 48 83 c3 10 | e9 61 ff ff ff | 4c 8d 44 24 40
-  0x1250b9e: 48 8b cf | e8 2a 01 4b ff | 48 83 c3 10 | e9 4b ff ff ff
-  0x1250baf: 41 ba 01 00 00 00 | 8b 0d 05 93 e9 06 | 83 f9 4b | 7e 06
-  0x1250bc0: 41 8d 4a 4a | eb 07 | 41 3b ca | 41 0f 4c ca
-  0x1250bcd: 48 8b 47 08 | 48 2b 07 | 48 c1 f8 03 | ff c8
-  0x1250bda: 03 c1 | 99 | f7 f9 | 44 8b c8
-  0x1250be2: 45 8b c2 | 44 39 95 a0 00 00 00 | 44 0f 4f 85 a0 00 00 00 | 0f 28 c7
-  0x1250bf7: f2 0f 59 05 b1 f9 34 06 | f2 0f 2c c0 | 99 | 41 f7 f8
-  0x1250c07: 41 8b ca | 41 3b c2 | 0f 4f c8 | ff c8
-  0x1250c12: 41 03 c1 | 99 | f7 f9 | 41 3b c2
-  0x1250c1b: 44 0f 4f d0 | 44 89 96 f0 0b 00 00 | f2 0f 58 f7 | f2 0f 11 b6 f8 0b 00 00
-  0x1250c32: 49 c7 c6 ff ff ff ff | 48 8b 05 40 93 e9 06 | 3c 06 | 0f 82 b3 00 00 00
-  0x1250c48: 48 c1 e8 08 | 3c 05 | 0f 82 a7 00 00 00 | 48 8d 05 68 ed a3 06
-  0x1250c5b: 48 89 44 24 50 | 48 8b 4c 24 50 | 48 81 c1 3d 48 58 ff | 48 8b 57 08
-  0x1250c70: 48 2b 17 | 48 c1 fa 03 | 48 89 4c 24 70 | 49 8b c6
-  0x1250c7f: 90 | 48 ff c0 | 44 38 24 01 | 75 f7
-  0x1250c89: 48 89 44 24 78 | 48 89 55 80 | 8b 86 f0 0b 00 00 | 89 45 90
-  0x1250c9b: 0f 10 45 80 | 0f 11 45 00 | 0f 10 4d 90 | 0f 11 4d 10
-  0x1250cab: 48 c7 44 24 60 14 00 00 00 | 48 8d 45 00 | 48 89 44 24 68 | 0f 28 44 24 60
-  0x1250cc2: 66 0f 7f 44 24 50 | 0f 28 4c 24 70 | 66 0f 7f 4d a0 | 0f 10 05 a7 92 e9 06
-  0x1250cd9: 0f 29 45 b0 | c6 44 24 20 01 | 4c 8d 4c 24 50 | 4c 8d 45 a0
-  0x1250ceb: b2 05 | 48 8d 4d b0 | e8 da 0f 72 03 | 4c 8b 7c 24 38
-  0x1250cfb: 4d 85 ff | 74 40 | 41 8b c6 | f0 41 0f c1 47 08
-  0x1250d09: 83 f8 01 | 75 32 | 48 8b 5c 24 38 | 48 8b 03
-  0x1250d16: 48 8b cb | 48 8b 00 | ff 15 1e 90 1e 05 | f0 44 0f c1 73 0c
-  0x1250d28: 41 83 fe 01 | 75 12 | 48 8b 4c 24 38 | 48 8b 01
-  0x1250d36: 48 8b 40 08 | ff 15 00 90 1e 05 | 48 8b 4d 20 | 48 33 cc
-  0x1250d47: e8 54 3b b9 04 | 4c 8d 9c 24 50 01 00 00 | 49 8b 5b 40 | 49 8b 73 48
-  0x1250d5c: 41 0f 28 73 f0 | 41 0f 28 7b e0 | 49 8b e3 | 41 5f
-  0x1250d6b: 41 5e | 41 5c | 5f | 5d
-  0x1250d71: c3 | 48 8d 15 cc 63 3f 05 | 48 8d 0d c8 a9 1b 06 | e8 4b 03 72 03
-  0x1250d85: cc | e8 35 d5 4a ff
-
-  [XREF #2 Bytecode Hex 0x1250d90..0x1250ffc]
-  0x1250d90: 48 8b c4 | 48 89 58 10 | 48 89 70 18 | 48 89 78 20
-  0x1250d9f: 55 | 41 54 | 41 55 | 41 56
-  0x1250da6: 41 57 | 48 8d 68 b8 | 48 81 ec 20 01 00 00 | 0f 29 70 c8
-  0x1250db7: 48 8b 05 22 79 e8 06 | 48 33 c4 | 48 89 45 00 | 4c 8b f9
-  0x1250dc8: 48 89 4c 24 68 | 48 8b 81 d8 0b 00 00 | 48 2b 81 d0 0b 00 00 | 48 c1 f8 03
-  0x1250ddf: 48 39 81 e8 0b 00 00 | 0f 83 5c 03 00 00 | b8 01 00 00 00 | 8b 1d c9 90 e9 06
-  0x1250df7: 83 fb 4b | 7e 05 | 8d 58 4a | eb 05
-  0x1250e01: 3b d8 | 0f 4c d8 | 89 5c 24 30 | 48 8d 4c 24 60
-  0x1250e0f: e8 0c 94 70 03 | 45 33 c9 | 45 8b e9 | 45 39 8f f0 0b 00 00
-  0x1250e21: 0f 8e 21 03 00 00 | f2 0f 10 74 24 60 | 49 ba ff ff ff ff ff ff ff 1f | 49 8b 97 d0 0b 00 00
-  0x1250e3e: 49 8b 8f d8 0b 00 00 | 48 2b ca | 48 c1 f9 03 | 4d 8b 87 e8 0b 00 00
-  0x1250e53: 4c 3b c1 | 0f 83 ec 02 00 00 | 48 63 fb | 49 03 f8
-  0x1250e62: 48 3b cf | 48 0f 42 f9 | 48 8d 34 fa | 4e 8d 34 c2
-  0x1250e71: 0f 57 c0 | f3 0f 7f 44 24 38 | 4c 89 4c 24 48 | 48 8b c6
-  0x1250e82: 49 2b c6 | 48 8b d8 | 48 c1 fb 03 | 48 83 f8 08
-  0x1250e90: 72 44 | 49 3b da | 0f 87 e5 02 00 00 | 48 8d 1c dd 00 00 00 00
-  0x1250ea3: 48 8b cb | e8 a5 ca 4a ff | 48 89 44 24 38 | 48 89 44 24 40
-  0x1250eb5: 4c 8d 24 03 | 4c 89 64 24 48 | 49 2b f6 | 4c 8b c6
-  0x1250ec4: 49 8b d6 | 48 8b c8 | e8 a1 44 bb 04 | 4c 89 64 24 40
-  0x1250ed4: eb 05 | 4c 8b 64 24 40 | 49 89 bf e8 0b 00 00 | 48 8b 7c 24 38
-  0x1250ee7: 49 3b fc | 0f 84 17 01 00 00 | 49 8d 9f 98 0b 00 00 | 41 bf 10 00 00 00
-  0x1250efd: 0f 1f 00 | 48 8b 07 | 48 89 44 24 58 | 80 3d c7 35 25 07 00
-  0x1250f0f: 74 1c | 80 3d 70 ba ee 06 00 | 74 13 | 83 7b 04 00
-  0x1250f1e: 75 47 | 41 8b d7 | 48 8b cb | e8 b5 7d ff ff
-  0x1250f2b: eb 67 | 8b 43 04 | 39 03 | 75 2f
-  0x1250f34: 3d 00 40 00 00 | 76 12 | b9 00 40 00 00 | 8d 14 08
-  0x1250f43: 48 8b cb | e8 95 7d ff ff | eb 47 | 8b c8
-  0x1250f4f: 41 3b c7 | 41 0f 42 cf | 8d 14 08 | 48 8b cb
-  0x1250f5c: e8 7f 7d ff ff | eb 31 | 85 c0 | 74 2d
-  0x1250f67: 8b 4b 1c | ba 01 00 00 00 | 48 d3 e2 | 48 8b 43 08
-  0x1250f76: 8b 54 90 08 | 8b 03 | 44 8d 04 90 | b8 01 00 00 00
-  0x1250f85: d3 e0 | 44 3b c0 | 72 08 | 48 8b cb
-  0x1250f8f: e8 1c 35 ff ff | 41 b9 01 00 00 00 | 4c 8d 44 24 58 | 48 8d 54 24 50
-  0x1250fa4: 48 8b cb | e8 14 75 ff ff | 8b 4c 24 50 | 48 8b 43 08
-  0x1250fb4: 8b 14 88 | 23 53 18 | 44 0f b6 44 24 54 | 45 84 c0
-  0x1250fc3: 74 14 | 8b c2 | 48 c1 e0 04 | 48 03 43 10
-  0x1250fcf: 45 33 c9 | 4c 89 08 | 4c 89 48 08 | 8b ca
-  0x1250fdb: 48 c1 e1 04 | 48 03 4b 10 | 45 84 c0 | 74 08
-  0x1250fe8: 48 8b 44 24 58 | 48 89 01 | f2 0f 11 71 08 | 48 83 c7 08
-  0x1250ff9: 49 3b fc
 
 [Strings .rdata na função]
   * [DFLog::RobuxTransfers] MarketplaceService: receipt poll period rebuild ({} ids queued, {} batch

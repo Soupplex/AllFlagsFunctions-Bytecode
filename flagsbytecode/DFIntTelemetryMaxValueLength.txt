@@ -6,64 +6,68 @@ Operação  : 0x2dc4d21: mov/math reg, [flag] ; fn=0x2dc4af0..0x2dc4e29
 
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::TelemetryPrevent)] ===
-    Classe  : RBX::TelemetryPrevent (RTTI Resolvido)
+    Classe  : RBX::TelemetryPrevent (Inferido)
     Padrão  : DFIntTelemetryMaxValueLength = 256 (default) [int, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : TelemetryPreventLongValues && param_3->field_0x8 > TelemetryMaxValueLength
   
   === [Decompilacao C++ da Funcao 0x2dc4af0..0x2dc4e29] ===
     // Flag defaults: TelemetryPreventEmptyFields = true, TelemetryPreventInvalidValueStrings = true, TelemetryPreventLongValues = false, TelemetryMaxValueLength = 256, RobloxTelemetry = 6
-    void RBX::TelemetryPrevent::func_0x2dc4af0(RBX::TelemetryPrevent* this, int64_t param_2, void* param_3) {
+    bool RBX::TelemetryPrevent::func_0x2dc4af0(RBX::TelemetryPrevent* this, int64_t param_2, void* param_3) {
       if (global_0x84a44d6 != 0) {
         if (TelemetryPreventEmptyFields && param_3->field_0x8 == 0) {
-          if (RobloxTelemetry < 6) {
-            return;
-          }
-          if (RobloxTelemetry >> 8 < 6) {
-            return;
-          }
-          FLog::Log("[FLog::RobloxTelemetry] Invalid telemetry field: empty value for key '{}'");
-          return;
-        }
-        if (TelemetryPreventInvalidValueStrings && param_3->field_0x8 != 0) {
-          void* i_r8d = param_3->field_0x8;
-          void* i_r9d = param_3->field_0x0;
-          int32_t i_r10d = 0;
-          do { // L_0x2dc4c20
-            i_r8d--;
-            i_r9d = i_r9d + 1;
-            i_r10d = (i_r9d->field_0x0[&sym_0x67ff1f0] + ((i_r10d + 0x10) << 4))[&sym_0x67ff1f0];
-          } while (i_r8d != 0); // loop -> L_0x2dc4c20
-          if ((i_r9d->field_0x0[&sym_0x67ff1f0] + ((i_r10d + 0x10) << 4))[&sym_0x67ff1f0] != 0) {
-            if (RobloxTelemetry < 6) {
-              return;
+          if (RobloxTelemetry >= 6) {
+            if ((uint64_t)RobloxTelemetry >> 8 < 6) {
+              return false;
             }
-            if (RobloxTelemetry >> 8 < 6) {
-              return;
+            FLog::Log("[FLog::RobloxTelemetry] Invalid telemetry field: empty value for key '{}'");
+            return false;
+          }
+        } else {
+          if (TelemetryPreventInvalidValueStrings && param_3->field_0x8 != 0) {
+            void* i_r8d = param_3->field_0x8;
+            void* i_r9d = param_3->field_0x0;
+            int32_t i_r10d = 0;
+            do { // L_0x2dc4c20
+              i_r8d--;
+              i_r9d = i_r9d + 1;
+              i_r10d = (i_r9d->field_0x0[&sym_0x67ff1f0] + ((i_r10d + 0x10) << 4))[&sym_0x67ff1f0];
+            } while (i_r8d != 0); // loop -> L_0x2dc4c20
+            if ((i_r9d->field_0x0[&sym_0x67ff1f0] + ((i_r10d + 0x10) << 4))[&sym_0x67ff1f0] != 0) {
+              if (RobloxTelemetry >= 6) {
+                if ((uint64_t)RobloxTelemetry >> 8 < 6) {
+                  return false;
+                }
+                FLog::Log("[FLog::RobloxTelemetry] Invalid telemetry field: value '{}' contains invalid UTF-8 for key '{}'");
+                return false;
+              }
+            } else {
+              if (TelemetryPreventLongValues && param_3->field_0x8 > TelemetryMaxValueLength) {
+                if (RobloxTelemetry >= 6) {
+                  if ((uint64_t)RobloxTelemetry >> 8 >= 6) {
+                    FLog::Log("[FLog::RobloxTelemetry] Invalid telemetry field: value exceeding max length of {} for key '{}' a");
+                  }
+                }
+                L_0x2dc4e06:
+                return false;
+              }
+              L_0x2dc4e0a:
+              return true;
             }
-            FLog::Log("[FLog::RobloxTelemetry] Invalid telemetry field: value '{}' contains invalid UTF-8 for key '{}'");
-            return;
+            return false;
           }
           if (TelemetryPreventLongValues && param_3->field_0x8 > TelemetryMaxValueLength) {
             if (RobloxTelemetry >= 6) {
-              if (RobloxTelemetry >> 8 >= 6) {
+              if ((uint64_t)RobloxTelemetry >> 8 >= 6) {
                 FLog::Log("[FLog::RobloxTelemetry] Invalid telemetry field: value exceeding max length of {} for key '{}' a");
               }
             }
-            return;
+            goto L_0x2dc4e06;
+          } else {
+            return true;
           }
-          L_0x2dc4e0a:
-          return;
         }
-        if (TelemetryPreventLongValues && param_3->field_0x8 > TelemetryMaxValueLength) {
-          if (RobloxTelemetry >= 6) {
-            if (RobloxTelemetry >> 8 >= 6) {
-              FLog::Log("[FLog::RobloxTelemetry] Invalid telemetry field: value exceeding max length of {} for key '{}' a");
-            }
-          }
-          return;
-        }
-        return;
+        goto L_0x2dc4e06;
       }
       goto L_0x2dc4e0a;
     }
@@ -260,54 +264,6 @@ Operação  : 0x2dc4d21: mov/math reg, [flag] ; fn=0x2dc4af0..0x2dc4e29
     0x2dc4e20 | 48 81 c4 00 01 00 00     | add rsp, 0x100
     0x2dc4e27 | 5d                       | pop rbp
     0x2dc4e28 | c3                       | ret
-
-[Bytecode Hex]
-  0x2dc4af0: 48 89 5c 24 10 | 55 | 48 8d 6c 24 a9 | 48 81 ec 00 01 00 00
-  0x2dc4b02: 48 8b 05 d7 3b 31 05 | 48 33 c4 | 48 89 45 47 | 80 3d bf f9 6d 05 00
-  0x2dc4b17: 4d 8b d8 | 48 8b da | 0f 84 e7 02 00 00 | 80 3d c6 5f 34 05 00
-  0x2dc4b2a: 0f 84 b8 00 00 00 | 49 83 78 08 00 | 0f 85 ad 00 00 00 | 48 8b 05 76 61 34 05
-  0x2dc4b42: 3c 06 | 0f 82 bc 02 00 00 | 48 c1 e8 08 | 3c 06
-  0x2dc4b50: 0f 82 b0 02 00 00 | 48 8d 05 64 7a 50 05 | 48 89 45 a7 | 48 c7 c0 ff ff ff ff
-  0x2dc4b68: 48 8b 4d a7 | 48 81 c1 7f e7 08 ff | 48 89 4d 97 | 48 ff c0
-  0x2dc4b7a: 80 3c 01 00 | 75 f7 | 48 89 45 9f | 4c 8d 4d 87
-  0x2dc4b88: 0f 28 4d 97 | 48 8d 05 bd 00 94 fd | 48 89 45 bf | 4c 8d 45 97
-  0x2dc4b9b: 48 89 5d b7 | 48 8d 45 d7 | 0f 28 45 b7 | 48 8d 4d b7
-  0x2dc4bab: 66 0f 7f 45 d7 | b2 06 | 48 89 45 8f | 48 c7 45 87 0f 00 00 00
-  0x2dc4bbe: 0f 28 45 87 | 66 0f 7f 45 87 | 0f 10 05 ea 60 34 05 | c6 44 24 20 01
-  0x2dc4bd3: 66 0f 7f 4d 97 | 0f 29 45 b7 | e8 ef d0 ba 01 | 32 c0
-  0x2dc4be3: e9 24 02 00 00 | 80 3d 19 5f 34 05 00 | 0f 84 1b 01 00 00 | 4d 8b 08
-  0x2dc4bf8: 45 33 d2 | 4d 8b 40 08 | 4d 85 c0 | 0f 84 08 01 00 00
-  0x2dc4c08: 48 89 bc 24 10 01 00 00 | 48 8d 3d d9 a5 a3 03 | 66 0f 1f 84 00 00 00 00 00 | 41 0f b6 01
-  0x2dc4c24: 4d 8d 49 01 | 0f b6 14 38 | 41 8d 42 10 | c1 e0 04
-  0x2dc4c33: 03 d0 | 44 0f b6 14 3a | 49 83 e8 01 | 75 e0
-  0x2dc4c40: 48 8b bc 24 10 01 00 00 | 45 85 d2 | 0f 84 bf 00 00 00 | 48 8b 05 60 60 34 05
-  0x2dc4c58: 3c 06 | 0f 82 a6 01 00 00 | 48 c1 e8 08 | 3c 06
-  0x2dc4c66: 0f 82 9a 01 00 00 | 48 8d 05 a0 09 53 05 | 48 89 45 a7 | 48 c7 c0 ff ff ff ff
-  0x2dc4c7e: 48 8b 4d a7 | 48 81 c1 fd 57 06 ff | 48 89 4d d7 | 0f 1f 00
-  0x2dc4c90: 48 ff c0 | 80 3c 01 00 | 75 f7 | 48 89 45 df
-  0x2dc4c9d: 4c 8d 4d 97 | 48 8d 05 a8 ff 93 fd | 4c 89 5d 97 | 48 89 45 9f
-  0x2dc4cb0: 4c 8d 45 d7 | 0f 10 45 97 | 48 89 45 8f | 48 8d 4d 87
-  0x2dc4cc0: 48 89 5d 87 | 48 8d 45 e7 | 0f 10 4d 87 | 48 c7 45 b7 ff 00 00 00
-  0x2dc4cd4: b2 06 | 0f 11 45 e7 | 48 89 45 bf | 0f 28 45 b7
-  0x2dc4ce2: 66 0f 7f 45 97 | 0f 10 05 ca 5f 34 05 | c6 44 24 20 01 | 0f 11 4d f7
-  0x2dc4cf7: 0f 28 4d d7 | 0f 29 45 87 | 66 0f 7f 4d d7 | e8 c7 cf ba 01
-  0x2dc4d09: 32 c0 | e9 fc 00 00 00 | 80 3d 09 5e 34 05 00 | 0f 84 ed 00 00 00
-  0x2dc4d1d: 49 8b 53 08 | 48 63 05 10 5e 34 05 | 48 3b d0 | 0f 86 d9 00 00 00
-  0x2dc4d31: 48 8b 05 80 5f 34 05 | 3c 06 | 0f 82 c6 00 00 00 | 48 c1 e8 08
-  0x2dc4d44: 3c 06 | 0f 82 ba 00 00 00 | 48 8d 05 f0 21 57 05 | 48 89 45 a7
-  0x2dc4d57: 48 c7 c0 ff ff ff ff | 48 8b 4d a7 | 48 81 c1 2d 3f 02 ff | 48 89 4d b7
-  0x2dc4d6d: 0f 1f 00 | 48 ff c0 | 80 3c 01 00 | 75 f7
-  0x2dc4d79: 48 89 45 bf | 4c 8d 4d e7 | 8b 05 b1 5d 34 05 | 4c 8d 45 c7
-  0x2dc4d8b: 89 45 c7 | 48 8d 4d d7 | 0f 10 45 c7 | 48 89 55 e7
-  0x2dc4d9a: 48 8d 05 af fe 93 fd | 48 89 45 df | b2 06 | 0f 29 45 07
-  0x2dc4dab: 48 89 5d d7 | 0f 10 4d d7 | 48 89 45 9f | 48 8d 45 07
-  0x2dc4dbb: 4c 89 5d 97 | 0f 10 45 97 | 48 c7 45 87 f1 4f 00 00 | 0f 29 4d 17
-  0x2dc4dcf: 0f 10 4d e7 | 48 89 45 8f | 0f 29 45 27 | 0f 28 45 87
-  0x2dc4ddf: 66 0f 7f 45 e7 | 0f 10 05 cd 5e 34 05 | c6 44 24 20 01 | 0f 29 4d 37
-  0x2dc4df4: 0f 28 4d b7 | 0f 29 45 d7 | 66 0f 7f 4d c7 | e8 ca ce ba 01
-  0x2dc4e06: 32 c0 | eb 02 | b0 01 | 48 8b 4d 47
-  0x2dc4e10: 48 33 cc | e8 88 fa 01 03 | 48 8b 9c 24 18 01 00 00 | 48 81 c4 00 01 00 00
-  0x2dc4e27: 5d | c3
 
 [Strings .rdata na função]
   * [FLog::RobloxTelemetry] Invalid telemetry field: empty value for key '{}'

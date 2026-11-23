@@ -6,15 +6,12 @@ Operação  : 0x4672e4e: mov/math reg, [flag] ; fn=0x4672db0..0x4672fe0
 
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::DPJThreadStack)] ===
-    Classe  : RBX::DPJThreadStack (RTTI Resolvido)
+    Classe  : RBX::DPJThreadStack (Inferido)
     Padrão  : FIntDPJThreadStackSizeKiB = 1024 (default) [int, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : DPJThreadStackSizeKiB > 64
     Fórmula : call_0xf010(&local_0x70, "DeserializePacketsThread", &local_0x80, DPJThreadStackSizeKiB <= 64 ? 65536 : (DPJThreadStackSizeKiB <= 0x100 ? 262144 : 1048576))
     Altera  : this->field_0x0
-    [Child @0x4615380] Papel   : Parâmetro de configuração lido diretamente pela rotina
-    [Child @0x46873d0] Papel   : Parâmetro de configuração lido diretamente pela rotina
-    [Child @0x46172f0] Papel   : Parâmetro de configuração lido diretamente pela rotina
   
   === [Decompilacao C++ da Funcao 0x4672db0..0x4672fe0] ===
     struct RBX::DPJThreadStack {
@@ -208,7 +205,7 @@ Operação  : 0x4672e4e: mov/math reg, [flag] ; fn=0x4672db0..0x4672fe0
     0x4672fd6 | 48 8d 4c 24 58           | lea rcx, [rsp + 0x58]
     0x4672fdb | e8 10 37 79 01           | call 0x5e066f0
   
-  === [Sub-Rotina Chamada: 0x4615380..0x4615aed via call @0x4672e42 (rcx = this (Direct Engine Sub-Call))] ===
+  === [Sub-Rotina Chamada: 0x4615380..0x4615aed via call @0x4672e42 (Direct Engine Sub-Call)] ===
     struct RBX::Network::DeserializePacketsJob {
       /* +0x0 */ void*   field_0x0;
       /* +0x170 */ void*   field_0x170;
@@ -261,7 +258,7 @@ Operação  : 0x4672e4e: mov/math reg, [flag] ; fn=0x4672db0..0x4672fe0
       /* +0x408 */ int32_t field_0x408;
     };
     
-    // Flag defaults: DPJThreadStackSizeKiB = 1024, DeprecateVectorInNS1 = true, NetworkClusterItemReuseZstdContext = false, NetworkJoinItemReuseZstdContext = false, NetworkStopProducingPacketsToProcessThresholdMs = 0, JdiDeserializerConfigPerDC = "", JdiDeserializerConfigUserIdPer100 = "", NetworkInDeserializeLimitGameplayMsRcc = 0
+    // Flag defaults: DeprecateVectorInNS1 = true, NetworkClusterItemReuseZstdContext = false, NetworkJoinItemReuseZstdContext = false, NetworkStopProducingPacketsToProcessThresholdMs = 0, JdiDeserializerConfigPerDC = "", JdiDeserializerConfigUserIdPer100 = "", NetworkInDeserializeLimitGameplayMsRcc = 0, NetworkInDeserializeLimitGameplayMsClient = 0
     void RBX::Network::DeserializePacketsJob::func_0x4615380(RBX::Network::DeserializePacketsJob* this, int64_t param_2) {
       auto ret_0x4956040_1 = call_0x4956040(520);
       int64_t local_0x30;
@@ -362,10 +359,11 @@ Operação  : 0x4672e4e: mov/math reg, [flag] ; fn=0x4672db0..0x4672fe0
               }
             }
           }
-          auto expr_1 = ((param_2->field_0x5768 / 100 + param_2->field_0x5768) >> 6) + (((param_2->field_0x5768 / 100 + param_2->field_0x5768) >> 6) >> 63);
+          auto expr_2 = (param_2->field_0x5768 / 100 + param_2->field_0x5768) >> 6;
+          auto expr_1 = (uint64_t)expr_2 >> 63;
           if (JdiDeserializerConfigUserIdPer100.size() != 0) {
-            int64_t tmp_2 = param_2->field_0x5768 - expr_1 * 100;
-            auto ret_0x4973b00_24 = call_0x4973b00(&local_0x50, &sym_0x71e7e30, tmp_2, param_4);
+            int64_t tmp_2 = expr_2 + expr_1;
+            auto ret_0x4973b00_24 = call_0x4973b00(&local_0x50, &sym_0x71e7e30, param_2->field_0x5768 - tmp_2 * 100, param_4);
             local_0x30 = 44;
             auto ret_0x47e64c0_25 = call_0x47e64c0(ret_0x4973b00_24, JdiDeserializerConfigUserIdPer100, &local_0x30);
             std::string::_Tidy_deallocate(local_0x50);
@@ -399,10 +397,10 @@ Operação  : 0x4672e4e: mov/math reg, [flag] ; fn=0x4672db0..0x4672fe0
             v_rcx_7 = NetworkInDeserializeLimitGameplayMsClientPer100->field_0x0;
           }
           if (NetworkInDeserializeLimitGameplayMsClientPer100->field_0x10 != 0) {
-            int64_t tmp_3 = param_2->field_0x5768 - expr_1 * 100;
+            int64_t tmp_3 = expr_2 + expr_1;
             local_0x50 = v_rcx_7;
             local_0x30 = 44;
-            auto ret_0x47e6730_32 = call_0x47e6730(tmp_3, &local_0x50, &local_0x30);
+            auto ret_0x47e6730_32 = call_0x47e6730(param_2->field_0x5768 - tmp_3 * 100, &local_0x50, &local_0x30);
             std::string::_Tidy_deallocate(local_0x30);
             if (ret_0x47e6730_32 != -1) {
               this->networkInDeserializeLimitGameplayMsClient_0x364 = ret_0x47e6730_32;
@@ -857,13 +855,12 @@ Operação  : 0x4672e4e: mov/math reg, [flag] ; fn=0x4672db0..0x4672fe0
     L_0x4615ae8:
     0x4615ae8 | e8 93 ea 7f 01           | call 0x5e14580
   
-  === [Sub-Rotina Chamada: 0x46873d0..0x46874a6 via call @0x4672e9c (rcx = this (Direct Engine Sub-Call))] ===
-    struct RBX::DPJThreadStack {
+  === [Sub-Rotina Chamada: 0x46873d0..0x46874a6 via call @0x4672e9c (Direct Engine Sub-Call)] ===
+    struct SubObj_0x46873d0 {
       /* +0x0 */ void*   field_0x0;
     };
     
-    // Flag defaults: DPJThreadStackSizeKiB = 1024
-    auto RBX::DPJThreadStack::func_0x46873d0(RBX::DPJThreadStack* this, int64_t param_2) {
+    auto SubObj_0x46873d0::func_0x46873d0(SubObj_0x46873d0* this, int64_t param_2) {
       if (this != param_2) {
         if (param_2 != 0) {
           if (this == 0) {
@@ -948,8 +945,8 @@ Operação  : 0x4672e4e: mov/math reg, [flag] ; fn=0x4672db0..0x4672fe0
     0x46874a4 | 5f                       | pop rdi
     0x46874a5 | c3                       | ret
   
-  === [Sub-Rotina Chamada: 0x46172f0..0x46173f3 via call @0x4672f50 (rcx = this (Direct Engine Sub-Call))] ===
-    struct RBX::DPJThreadStack {
+  === [Sub-Rotina Chamada: 0x46172f0..0x46173f3 via call @0x4672f50 (Direct Engine Sub-Call)] ===
+    struct SubObj_0x46172f0 {
       /* +0x190 */ void*   field_0x190;
       /* +0x280 */ uint8_t field_0x280;
       /* +0x2d0 */ void*   field_0x2d0;
@@ -959,8 +956,7 @@ Operação  : 0x4672e4e: mov/math reg, [flag] ; fn=0x4672db0..0x4672fe0
       /* +0x358 */ uint8_t field_0x358;
     };
     
-    // Flag defaults: DPJThreadStackSizeKiB = 1024
-    auto RBX::DPJThreadStack::func_0x46172f0(RBX::DPJThreadStack* this) {
+    auto SubObj_0x46172f0::func_0x46172f0(SubObj_0x46172f0* this) {
       call_0x6f5b10(&this->field_0x3e8);
       call_0x6f5b10(&this->field_0x3d0);
       call_0x1c2a0f0(&this->field_0x378);
@@ -969,7 +965,7 @@ Operação  : 0x4672e4e: mov/math reg, [flag] ; fn=0x4672db0..0x4672fe0
       }
       auto* f_348 = this->field_0x348;
       if (f_348 != 0) {
-        f_348->vfunc_0x0(f_348, 1) // -> RBX::AppBridge::StandardRequestFactory::fn_0x4c66420;
+        f_348->vfunc_0x0(f_348, 1);
       }
       call_0x6f5be0(&this->field_0x320);
       call_0x467f430(this, this->field_0x310);
@@ -1053,179 +1049,6 @@ Operação  : 0x4672e4e: mov/math reg, [flag] ; fn=0x4672db0..0x4672fe0
     0x46173e9 | 48 83 c4 20              | add rsp, 0x20
     0x46173ed | 5f                       | pop rdi
     0x46173ee | e9 5d 79 35 fe           | jmp 0x296ed50
-
-[Bytecode Hex]
-  0x4672db0: 48 89 5c 24 18 | 48 89 6c 24 20 | 56 | 57
-  0x4672dbc: 41 54 | 41 56 | 41 57 | 48 81 ec 30 01 00 00
-  0x4672dc9: 48 8b 05 10 59 a6 03 | 48 33 c4 | 48 89 84 24 20 01 00 00 | 48 8b da
-  0x4672dde: 48 8b f1 | 48 89 4c 24 50 | 48 c7 01 00 00 00 00 | b9 28 04 00 00
-  0x4672df2: e8 49 32 2e 00 | 48 8b f8 | 48 85 c0 | 0f 84 c2 01 00 00
-  0x4672e03: 48 89 44 24 48 | 66 c7 00 00 00 | 48 8d 68 08 | 48 85 ed
-  0x4672e14: 74 09 | 48 8b cd | e8 e2 c1 99 fb | 90
-  0x4672e1f: 4c 8d 7f 10 | 4d 85 ff | 74 13 | 45 33 c0
-  0x4672e2b: 48 8d 15 76 e7 de 02 | 49 8b cf | e8 f6 9e 99 fb | 90
-  0x4672e3b: 48 8b d3 | 48 8d 4f 18 | e8 39 25 fa ff | 48 8b 1d 2a 9f e4 03
-  0x4672e4e: 8b 05 7c f9 ab 03 | 83 f8 40 | 7f 08 | 41 be 00 00 01 00
-  0x4672e5f: eb 14 | b9 00 00 04 00 | 41 be 00 00 10 00 | 3d 00 01 00 00
-  0x4672e71: 44 0f 4e f1 | 48 89 7c 24 40 | e8 11 03 7a fe | 90
-  0x4672e80: 48 8d 05 49 45 01 00 | 48 89 84 24 80 00 00 00 | 48 8d 54 24 40 | 48 8d 8c 24 90 00 00 00
-  0x4672e9c: e8 2f 45 01 00 | 48 89 84 24 88 00 00 00 | 48 c7 84 24 10 01 00 00 00 00 00 00 | 48 c7 44 24 38 00 00 00 00
-  0x4672ebe: c7 44 24 30 01 00 00 00 | 48 89 5c 24 28 | c6 44 24 20 00 | 4d 8b ce
-  0x4672ed3: 4c 8d 84 24 80 00 00 00 | 48 8d 15 76 e6 de 02 | 48 8d 4c 24 70 | e8 24 c1 99 fb
-  0x4672eec: 90 | 48 8d 54 24 70 | 48 8b cd | e8 a6 c1 99 fb
-  0x4672efa: 48 8d 4c 24 70 | e8 8c be 99 fb | 90 | 48 8b 84 24 80 00 00 00
-  0x4672f0d: 48 85 c0 | 74 25 | 48 8d 0d b7 44 01 00 | 48 3b c1
-  0x4672f1c: 48 8b 8c 24 88 00 00 00 | 48 8b d1 | 75 07 | e8 a2 44 01 00
-  0x4672f2e: eb 07 | ff 15 0a 6e dc 01 | 90 | 48 8d 44 24 48
-  0x4672f3c: 48 3b f0 | 74 32 | 48 8b 1e | 48 89 3e
-  0x4672f47: 48 85 db | 74 4a | 48 8d 4b 18 | e8 9b 43 fa ff
-  0x4672f55: 48 8d 4b 10 | e8 42 9d 99 fb | 48 8d 4b 08 | e8 29 be 99 fb
-  0x4672f67: 90 | 48 8b cb | e8 50 2b 2e 00 | 90
-  0x4672f71: eb 23 | 48 8d 4f 18 | e8 74 43 fa ff | 49 8b cf
-  0x4672f7f: e8 1c 9d 99 fb | 48 8b cd | e8 04 be 99 fb | 90
-  0x4672f8d: 48 8b cf | e8 2b 2b 2e 00 | 90 | 48 8b c6
-  0x4672f99: 48 8b 8c 24 20 01 00 00 | 48 33 cc | e8 f7 18 77 01 | 4c 8d 9c 24 30 01 00 00
-  0x4672fb1: 49 8b 5b 40 | 49 8b 6b 48 | 49 8b e3 | 41 5f
-  0x4672fbe: 41 5e | 41 5c | 5f | 5e
-  0x4672fc4: c3 | 48 8d 4c 24 58 | e8 01 78 05 fc | 48 8d 15 ea 8b a5 03
-  0x4672fd6: 48 8d 4c 24 58 | e8 10 37 79 01
-
-  [Child Bytecode Hex 0x4615380..0x4615aed]
-  0x4615380: 48 89 5c 24 18 | 48 89 74 24 20 | 55 | 57
-  0x461538c: 41 54 | 41 56 | 41 57 | 48 8b ec
-  0x4615395: 48 81 ec 80 00 00 00 | 48 8b 05 3d 33 ac 03 | 48 33 c4 | 48 89 45 f0
-  0x46153aa: 4c 8b f2 | 48 8b f9 | 48 89 4d a8 | b9 08 02 00 00
-  0x46153b9: e8 82 0c 34 00 | 48 8b f0 | 48 85 c0 | 0f 84 f2 06 00 00
-  0x46153ca: 48 89 45 a0 | 33 d2 | 41 b8 08 02 00 00 | 48 8b c8
-  0x46153d9: e8 d2 fd 7e 01 | 48 8b ce | e8 3a f9 35 fe | 90
-  0x46153e7: 48 8d 05 4a 5d b2 02 | 48 89 06 | 45 33 ff | 4c 89 be e8 01 00 00
-  0x46153fb: 48 c7 86 00 02 00 00 0f 00 00 00 | 48 c7 86 f8 01 00 00 05 00 00 00 | 45 8d 47 05 | 48 8d 15 84 c1 e4 02
-  0x461541c: 48 8d 8e e8 01 00 00 | e8 48 ff 7e 01 | 44 88 be ed 01 00 00 | 0f 57 c0
-  0x4615432: f3 0f 7f 45 d0 | 48 89 75 a0 | 41 8d 4f 18 | e8 fc 0b 34 00
-  0x4615444: 48 85 c0 | 0f 84 55 06 00 00 | c7 40 08 01 00 00 00 | c7 40 0c 01 00 00 00
-  0x461545b: 48 8d 0d 0e 59 b2 02 | 48 89 08 | 48 89 70 10 | 48 89 75 d0
-  0x461546d: 48 89 45 d8 | 45 8d 4f 13 | 4c 8d 45 d0 | 48 8d 15 a8 c1 e4 02
-  0x4615480: 48 8b cf | e8 c8 92 35 fe | 90 | 48 8d 05 10 5c b2 02
-  0x4615490: 48 89 07 | 4c 89 bf 70 01 00 00 | 44 89 bf 78 01 00 00 | 48 8d 8f 80 01 00 00
-  0x46154a8: e8 73 4d 34 00 | 4c 89 b7 88 01 00 00 | 48 8d 87 90 01 00 00 | 48 85 c0
-  0x46154be: 74 07 | 48 c7 00 01 00 00 00 | b9 40 04 00 00 | e8 6f 0b 34 00
-  0x46154d1: 48 85 c0 | 0f 84 20 06 00 00 | 48 89 87 98 01 00 00 | 48 c7 87 a0 01 00 00 08 00 00 00
-  0x46154ec: 4c 89 bf a8 01 00 00 | 4c 89 bf b0 01 00 00 | c6 87 c0 01 00 00 00 | 48 8d 1d 00 16 a2 02
-  0x4615508: 48 89 9f b8 01 00 00 | 4c 89 bf c8 01 00 00 | 4c 89 bf d0 01 00 00 | 4c 89 bf d8 01 00 00
-  0x4615524: 4c 89 bf e0 01 00 00 | 4c 89 bf e8 01 00 00 | 44 89 bf f0 01 00 00 | 66 c7 87 f4 01 00 00 00 00
-  0x4615542: c6 87 f6 01 00 00 01 | 48 8b 87 c8 01 00 00 | 80 3d 99 f2 ad 03 00 | 49 0f 45 c7
-  0x461555b: 48 89 87 c8 01 00 00 | 48 8d 8f 00 02 00 00 | e8 a2 7f 01 00 | 90
-  0x461556f: 4c 89 bf f8 02 00 00 | 4c 89 bf 00 03 00 00 | 48 8d 8f 08 03 00 00 | 48 89 4d a0
-  0x4615588: 0f 57 c0 | f3 0f 11 45 a0 | 48 8d 55 a0 | e8 e7 39 05 00
-  0x4615599: 90 | 4c 89 bf 48 03 00 00 | c6 87 58 03 00 00 00 | 4c 89 bf 60 03 00 00
-  0x46155af: 4c 89 b7 68 03 00 00 | c7 87 70 03 00 00 06 00 00 00 | c6 87 80 03 00 00 00 | 48 89 9f 78 03 00 00
-  0x46155ce: 4c 89 bf 88 03 00 00 | 4c 89 bf 90 03 00 00 | 4c 89 bf 98 03 00 00 | 4c 89 bf a0 03 00 00
-  0x46155ea: 4c 89 bf a8 03 00 00 | 44 89 bf b0 03 00 00 | 66 c7 87 b4 03 00 00 00 00 | c6 87 b6 03 00 00 01
-  0x4615608: 80 3d e1 f1 ad 03 00 | 74 07 | 4c 89 bf 88 03 00 00 | 66 c7 87 b8 03 00 00 00 00
-  0x4615621: 4c 89 bf bc 03 00 00 | 4c 89 bf c4 03 00 00 | 4c 89 bf d0 03 00 00 | 4c 89 bf d8 03 00 00
-  0x461563d: 4c 89 bf e0 03 00 00 | 4c 89 bf e8 03 00 00 | 4c 89 bf f0 03 00 00 | 4c 89 bf f8 03 00 00
-  0x4615659: 4c 89 bf 00 04 00 00 | 44 89 bf 08 04 00 00 | 80 3d f2 e1 b1 03 00 | 75 09
-  0x4615670: 80 3d 01 e2 b1 03 00 | 74 4e | 80 bf 58 03 00 00 00 | 74 14
-  0x4615682: 48 8b 8f 50 03 00 00 | e8 a2 4e bf fd | 90 | c6 87 58 03 00 00 00
-  0x4615696: 48 8d 05 e3 64 f1 fd | 48 89 45 d0 | 48 8d 05 a8 bc f5 fc | 48 89 45 d8
-  0x46156ac: 4c 89 7d e0 | 48 8d 4d d0 | e8 47 4d bf fd | 48 89 87 50 03 00 00
-  0x46156c0: c6 87 58 03 00 00 01 | 8b 05 63 dc b1 03 | 85 c0 | 7e 06
-  0x46156d1: 89 87 60 03 00 00 | 48 83 3d a9 93 b7 03 00 | 0f 84 e1 00 00 00 | 49 8b ce
-  0x46156e8: e8 a3 cd a4 ff | 48 85 c0 | 0f 84 d0 00 00 00 | 4c 89 7d b0
-  0x46156fa: 48 c7 45 c8 0f 00 00 00 | 48 c7 45 c0 01 00 00 00 | 66 c7 45 b0 2c 00 | 44 8b 80 38 09 00 00
-  0x4615717: 48 8d 15 12 27 bd 02 | 48 8d 4d d0 | e8 d9 e3 35 00 | 90
-  0x4615728: 4c 8d 45 b0 | 48 8d 15 45 93 b7 03 | 48 8b c8 | e8 85 0d 1d 00
-  0x461573b: 8b d8 | 48 8b 45 e8 | 48 83 f8 10 | 72 2d
-  0x4615747: 48 ff c0 | 48 8b 4d d0 | 48 8b d1 | 48 3d 00 10 00 00
-  0x4615757: 72 15 | 48 8b 49 f8 | 48 2b d1 | 48 8d 42 f8
-  0x4615764: 48 83 f8 1f | 0f 87 68 03 00 00 | e8 4d 03 34 00 | 90
-  0x4615774: 4c 89 7d e0 | 48 c7 45 e8 0f 00 00 00 | c6 45 d0 00 | 48 8b 45 c8
-  0x4615788: 48 83 f8 10 | 72 2d | 48 ff c0 | 48 8b 4d b0
-  0x4615795: 48 8b d1 | 48 3d 00 10 00 00 | 72 15 | 48 8b 49 f8
-  0x46157a4: 48 2b d1 | 48 8d 42 f8 | 48 83 f8 1f | 0f 87 27 03 00 00
-  0x46157b5: e8 06 03 34 00 | 90 | 83 fb ff | 74 06
-  0x46157c0: 89 9f 60 03 00 00 | 49 bc 0b d7 a3 70 3d 0a d7 a3 | 48 83 3d 90 92 b7 03 00 | 0f 84 f1 00 00 00
-  0x46157de: 49 8b 8e 68 57 00 00 | 49 8b c4 | 48 f7 e9 | 48 03 d1
-  0x46157ee: 48 c1 fa 06 | 48 8b c2 | 48 c1 e8 3f | 48 03 d0
-  0x46157fc: 48 6b c2 64 | 48 2b c8 | 4c 89 7d b0 | 48 c7 45 c8 0f 00 00 00
-  0x461580f: 48 c7 45 c0 01 00 00 00 | 66 c7 45 b0 2c 00 | 44 8b c1 | 48 8d 15 09 26 bd 02
-  0x4615827: 48 8d 4d d0 | e8 d0 e2 35 00 | 90 | 4c 8d 45 b0
-  0x4615835: 48 8d 15 1c 92 b7 03 | 48 8b c8 | e8 7c 0c 1d 00 | 8b d8
-  0x4615846: 48 8b 45 e8 | 48 83 f8 10 | 72 2d | 48 ff c0
-  0x4615853: 48 8b 4d d0 | 48 8b d1 | 48 3d 00 10 00 00 | 72 15
-  0x4615862: 48 8b 49 f8 | 48 2b d1 | 48 8d 42 f8 | 48 83 f8 1f
-  0x4615871: 0f 87 6b 02 00 00 | e8 44 02 34 00 | 90 | 4c 89 7d e0
-  0x4615881: 48 c7 45 e8 0f 00 00 00 | c6 45 d0 00 | 48 8b 45 c8 | 48 83 f8 10
-  0x4615895: 72 2d | 48 ff c0 | 48 8b 4d b0 | 48 8b d1
-  0x46158a1: 48 3d 00 10 00 00 | 72 15 | 48 8b 49 f8 | 48 2b d1
-  0x46158b0: 48 8d 42 f8 | 48 83 f8 1f | 0f 87 2a 02 00 00 | e8 fd 01 34 00
-  0x46158c3: 90 | 83 fb ff | 74 06 | 89 9f 60 03 00 00
-  0x46158cf: 8b 87 60 03 00 00 | 41 89 86 88 40 00 00 | 8b 05 96 e0 b1 03 | 41 83 be fc 00 00 00 00
-  0x46158ea: 0f 44 05 6f e0 b1 03 | 89 87 64 03 00 00 | 48 8d 05 6a 90 b7 03 | 48 8d 1d 83 90 b7 03
-  0x4615905: 41 83 be fc 00 00 00 00 | 48 0f 44 d8 | 48 8b 73 10 | 48 83 7b 18 10
-  0x461591a: 72 03 | 48 8b 1b | 48 85 f6 | 0f 84 86 00 00 00
-  0x4615928: 49 8b ce | e8 60 cb a4 ff | 48 85 c0 | 74 79
-  0x4615935: 4c 89 7d b0 | 48 c7 45 c8 0f 00 00 00 | 48 c7 45 c0 01 00 00 00 | 66 c7 45 b0 2c 00
-  0x461594f: 48 89 5d d0 | 48 89 75 d8 | 4c 8d 45 b0 | 48 8d 55 d0
-  0x461595f: 8b 88 38 09 00 00 | e8 c6 0d 1d 00 | 8b d8 | 48 8b 45 c8
-  0x4615970: 48 83 f8 10 | 72 2d | 48 ff c0 | 48 8b 4d b0
-  0x461597d: 48 8b d1 | 48 3d 00 10 00 00 | 72 15 | 48 8b 49 f8
-  0x461598c: 48 2b d1 | 48 8d 42 f8 | 48 83 f8 1f | 0f 87 51 01 00 00
-  0x461599d: e8 1e 01 34 00 | 90 | 83 fb ff | 74 06
-  0x46159a8: 89 9f 64 03 00 00 | 48 8d 05 f3 8f b7 03 | 48 8d 0d 0c 90 b7 03 | 41 83 be fc 00 00 00 00
-  0x46159c4: 48 0f 44 c8 | 48 8b 51 10 | 48 83 79 18 10 | 72 03
-  0x46159d3: 48 8b 09 | 48 85 d2 | 0f 84 98 00 00 00 | 4c 89 7d b0
-  0x46159e3: 48 c7 45 c8 0f 00 00 00 | 48 c7 45 c0 01 00 00 00 | 66 c7 45 b0 2c 00 | 48 89 4d d0
-  0x46159fd: 48 89 55 d8 | 49 8b 8e 68 57 00 00 | 49 8b c4 | 48 f7 e9
-  0x4615a0e: 48 03 d1 | 48 c1 fa 06 | 48 8b c2 | 48 c1 e8 3f
-  0x4615a1c: 48 03 d0 | 48 6b c2 64 | 48 2b c8 | 4c 8d 45 b0
-  0x4615a2a: 48 8d 55 d0 | e8 fd 0c 1d 00 | 8b d8 | 48 8b 45 c8
-  0x4615a39: 48 83 f8 10 | 72 2d | 48 ff c0 | 48 8b 4d b0
-  0x4615a46: 48 8b d1 | 48 3d 00 10 00 00 | 72 15 | 48 8b 49 f8
-  0x4615a55: 48 2b d1 | 48 8d 42 f8 | 48 83 f8 1f | 0f 87 8e 00 00 00
-  0x4615a66: e8 55 00 34 00 | 90 | 83 fb ff | 74 06
-  0x4615a71: 89 9f 64 03 00 00 | 48 8b c7 | 48 8b 4d f0 | 48 33 cc
-  0x4615a81: e8 1a ee 7c 01 | 4c 8d 9c 24 80 00 00 00 | 49 8b 5b 40 | 49 8b 73 48
-  0x4615a96: 49 8b e3 | 41 5f | 41 5e | 41 5c
-  0x4615a9f: 5f | 5d | c3 | 48 8d 4d b0
-  0x4615aa6: e8 25 4d 0b fc | 48 8d 15 0e 61 ab 03 | 48 8d 4d b0 | e8 35 0c 7f 01
-  0x4615abb: 90 | 48 8d 4d b0 | e8 0b 4d 0b fc | 48 8d 15 f4 60 ab 03
-  0x4615acc: 48 8d 4d b0 | e8 1b 0c 7f 01 | 90 | e8 a5 ea 7f 01
-  0x4615adb: 90 | e8 9f ea 7f 01 | 90 | e8 99 ea 7f 01
-  0x4615ae7: 90 | e8 93 ea 7f 01
-
-  [Child Bytecode Hex 0x46873d0..0x46874a6]
-  0x46873d0: 48 89 5c 24 10 | 57 | 48 81 ec e0 00 00 00 | 48 8b 05 fc 12 a5 03
-  0x46873e4: 48 33 c4 | 48 89 84 24 d0 00 00 00 | 48 3b ca | 0f 84 8b 00 00 00
-  0x46873f8: 48 85 d2 | 74 15 | 48 85 c9 | 74 0b
-  0x4687402: 48 8b 02 | 48 89 01 | 48 8b c1 | eb 78
-  0x468740d: 48 8b c1 | eb 73 | 48 8b 01 | 48 8d 58 10
-  0x4687419: 48 89 44 24 20 | e8 6d bd 78 fe | 90 | 48 8d 3d 15 ff ff ff
-  0x468742b: 48 89 7c 24 30 | 48 8d 54 24 20 | 48 8d 4c 24 40 | e8 01 ff ff ff
-  0x468743f: 48 89 44 24 38 | 48 c7 84 24 c0 00 00 00 00 00 00 00 | 48 8d 54 24 30 | 48 8b cb
-  0x4687458: e8 63 59 98 fb | 90 | 48 8b 44 24 30 | 48 85 c0
-  0x4687466: 74 1b | 48 8b 4c 24 38 | 48 8b d1 | 48 3b c7
-  0x4687473: 75 07 | e8 c6 fe ff ff | eb 07 | ff 15 be 28 db 01
-  0x4687482: 90 | 33 c0 | 48 8b 8c 24 d0 00 00 00 | 48 33 cc
-  0x4687490: e8 0b d4 75 01 | 48 8b 9c 24 f8 00 00 00 | 48 81 c4 e0 00 00 00 | 5f
-  0x46874a5: c3
-
-  [Child Bytecode Hex 0x46172f0..0x46173f3]
-  0x46172f0: 48 89 5c 24 08 | 57 | 48 83 ec 20 | 48 8b f9
-  0x46172fd: 48 81 c1 e8 03 00 00 | e8 07 e8 0d fc | 48 8d 8f d0 03 00 00 | e8 fb e7 0d fc
-  0x4617315: 48 8d 8f 78 03 00 00 | e8 cf 2d 61 fd | 80 bf 58 03 00 00 00 | 74 0d
-  0x461732a: 48 8b 8f 50 03 00 00 | e8 fa 31 bf fd | 90 | 48 8b 8f 48 03 00 00
-  0x461733e: 48 85 c9 | 74 11 | 48 8b 01 | ba 01 00 00 00
-  0x461734b: 48 8b 00 | ff 15 ec 29 e2 01 | 48 8d 8f 20 03 00 00 | e8 80 e8 0d fc
-  0x4617360: 48 8b 97 10 03 00 00 | e8 c4 80 06 00 | 90 | 48 8b 8f 10 03 00 00
-  0x4617374: e8 47 e7 33 00 | 90 | 48 8d 8f d0 02 00 00 | e8 3a 16 05 00
-  0x4617386: 48 8b 8f d0 02 00 00 | 48 85 c9 | 74 06 | e8 29 e7 33 00
-  0x4617397: 90 | 48 8d 8f 90 02 00 00 | e8 4c 2d 61 fd | 48 8d 8f 28 02 00 00
-  0x46173ab: 80 79 58 00 | 74 05 | e8 fa 32 a2 fd | 48 8d 8f b8 01 00 00
-  0x46173bd: e8 2e 2d 61 fd | 48 8d 8f 98 01 00 00 | e8 02 05 05 00 | 48 8d 8f 90 01 00 00
-  0x46173d5: 48 8b 01 | a8 01 | 75 05 | e8 bf 58 9f fb
-  0x46173e1: 48 8b cf | 48 8b 5c 24 30 | 48 83 c4 20 | 5f
-  0x46173ee: e9 5d 79 35 fe
 
 [Strings .rdata na função]
   * DeserializePacketsThreadCondition

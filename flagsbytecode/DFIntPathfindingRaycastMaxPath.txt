@@ -7,10 +7,10 @@ Operação  : 0x81d32f: cmp [flag], reg ; fn=0x81d2d0..0x81d3a0 [via FFlagPathfi
 [Disassembly .text]
   === [Aviso: Sem XREF runtime direto — contexto inferido via flag vizinha FFlagPathfindingUseImprovedSearch4] ===
   === [Resumo do Efeito da FFlag no Engine (RBX::PathfindingUse)] ===
-    Classe  : RBX::PathfindingUse (RTTI Resolvido)
+    Classe  : RBX::PathfindingUse (Inferido)
     Padrão  : FFlagPathfindingUseImprovedSearch4 = true (default) [bool, mode=1]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
-    Fórmula : !PathfindingUseImprovedSearch4
+    Fórmula : !PathfindingUseImprovedSearch4 && !PathfindingUseImprovedSearchOneFlag
     Wasm    : .data=0x7a8ff8
     [Wasm]  : PathfindingRaycastMaxPath
     [Wasm]  : (PathfindingRaycastMaxPath & 255)
@@ -23,7 +23,7 @@ Operação  : 0x81d32f: cmp [flag], reg ; fn=0x81d2d0..0x81d3a0 [via FFlagPathfi
     };
     
     // Flag defaults: PathfindingUseImprovedSearchDefaultEnabled = false, PathfindingUseImprovedSearchOneFlag = false, PathfindingUseImprovedSearch4 = true
-    void RBX::PathfindingUse::func_0x81d2d0(RBX::PathfindingUse* this, int64_t param_2) {
+    auto RBX::PathfindingUse::func_0x81d2d0(RBX::PathfindingUse* this, int64_t param_2) {
       void* v_rcx_1 = param_2->field_0x8;
       if (param_2->field_0x8->field_0x18 >= 16) {
         v_rcx_1 = param_2->field_0x8->field_0x0;
@@ -31,45 +31,30 @@ Operação  : 0x81d32f: cmp [flag], reg ; fn=0x81d2d0..0x81d3a0 [via FFlagPathfi
       if (param_2->field_0x8->field_0x10 == 28) {
         auto ret_0x5e06820_1 = memcmp(v_rcx_1, "PathfindingUseImprovedSearch", param_2->field_0x8->field_0x10);
         if (ret_0x5e06820_1 == 0) {
-          void* sel_rcx_1 = this == 0 ? 0 : this->field_0x28->field_0xb0;
-          if (!PathfindingUseImprovedSearch4) {
-            if (PathfindingUseImprovedSearchOneFlag) {
-              if (sel_rcx_1->field_0x358->field_0x52c != 0) {
-                if (sel_rcx_1->field_0x358->field_0x52c == 1) {
-                  return;
-                }
-                if (sel_rcx_1->field_0x358->field_0x52c != 2) {
-                  L_0x81d357:
-                  if (!PathfindingUseImprovedSearchDefaultEnabled && !PathfindingUseImprovedSearchOneFlag) {
-                    return;
-                  }
-                }
-                L_0x81d391:
-                return;
-              }
-              if (!PathfindingUseImprovedSearchDefaultEnabled && !PathfindingUseImprovedSearchOneFlag) {
-                return;
-              }
-              return;
-            }
+          auto* f_28 = this->field_0x28;
+          void* sel_rcx_1 = this == 0 ? 0 : f_28->field_0xb0;
+          if (!PathfindingUseImprovedSearch4 && !PathfindingUseImprovedSearchOneFlag) {
             if (!PathfindingUseImprovedSearchDefaultEnabled && !PathfindingUseImprovedSearchOneFlag) {
-              return;
+              return atomic_exchange(&f_28->field_0x309, 0);
             }
-            goto L_0x81d391;
-          } else if (sel_rcx_1->field_0x358->field_0x52c != 0) {
-            if (sel_rcx_1->field_0x358->field_0x52c == 1) {
-              return;
+            L_0x81d391:
+            return atomic_exchange(&this->field_0x28->field_0x309, 1);
+          }
+          if (sel_rcx_1->field_0x358->field_0x52c != 0) {
+            if (sel_rcx_1->field_0x358->field_0x52c != 1) {
+              if (sel_rcx_1->field_0x358->field_0x52c != 2) {
+                if (!PathfindingUseImprovedSearchDefaultEnabled && !PathfindingUseImprovedSearchOneFlag) {
+                  return atomic_exchange(&this->field_0x28->field_0x309, 0);
+                }
+              }
+              return atomic_exchange(&this->field_0x28->field_0x309, 1);
             }
-            if (sel_rcx_1->field_0x358->field_0x52c != 2) {
-              goto L_0x81d357;
-            }
-            goto L_0x81d391;
-          } else if (!PathfindingUseImprovedSearchDefaultEnabled && !PathfindingUseImprovedSearchOneFlag) {
-            return;
-          } else {
+          } else if (PathfindingUseImprovedSearchDefaultEnabled || PathfindingUseImprovedSearchOneFlag) {
             goto L_0x81d391;
           }
+          return atomic_exchange(&this->field_0x28->field_0x309, 0);
         }
+        return ret_0x5e06820_1;
       }
     }
   
@@ -155,23 +140,6 @@ Operação  : 0x81d32f: cmp [flag], reg ; fn=0x81d2d0..0x81d3a0 [via FFlagPathfi
       *(local_5 + 0x70) = ((this_ptr < 0) ? local_3 : local_1);
       *(local_5 + 0x74) = (local_1 ? local_2 : this_ptr);
     }
-
-[Bytecode Hex]
-  0x81d2d0: 40 53 | 48 83 ec 20 | 48 8b d9 | 48 8b 4a 08
-  0x81d2dd: 48 83 79 18 10 | 48 8b 41 10 | 72 03 | 48 8b 09
-  0x81d2eb: 48 83 f8 1c | 0f 85 a5 00 00 00 | 4c 8b c0 | 48 8d 15 19 cf 97 06
-  0x81d2ff: e8 1c 95 5e 05 | 85 c0 | 0f 85 8e 00 00 00 | 4c 8b 4b 28
-  0x81d310: 33 d2 | 44 0f b6 05 ae 70 8c 07 | 49 8b 89 b0 00 00 00 | 48 8d 81 d0 02 00 00
-  0x81d328: 48 85 c0 | 48 0f 44 ca | 38 15 53 74 8c 07 | 75 05
-  0x81d337: 45 84 c0 | 74 1b | 48 8b 89 58 03 00 00 | 8b 91 2c 05 00 00
-  0x81d349: 85 d2 | 74 27 | 83 ea 01 | 74 30
-  0x81d352: 83 fa 01 | 74 3a | 80 3d 82 86 8f 07 00 | 75 31
-  0x81d360: 45 84 c0 | 75 2c | 33 c0 | 41 86 81 09 03 00 00
-  0x81d36e: 48 83 c4 20 | 5b | c3 | 80 3d 65 86 8f 07 00
-  0x81d37b: 75 14 | 45 84 c0 | 75 0f | 32 c0
-  0x81d384: 41 86 81 09 03 00 00 | 48 83 c4 20 | 5b | c3
-  0x81d391: b0 01 | 41 86 81 09 03 00 00 | 48 83 c4 20 | 5b
-  0x81d39f: c3
 
 [Strings .rdata na função]
   * PathfindingUseImprovedSearch

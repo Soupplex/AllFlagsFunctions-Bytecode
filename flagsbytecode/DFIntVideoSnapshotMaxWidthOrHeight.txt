@@ -6,18 +6,17 @@ Operação  : 0x36793b3: mov/math reg, [flag] ; fn=0x3679330..0x367957e
 
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::VideoSnapshot)] ===
-    Classe  : RBX::VideoSnapshot (RTTI Resolvido)
+    Classe  : RBX::VideoSnapshot (Inferido)
     Padrão  : DFIntVideoSnapshotMaxWidthOrHeight = 2560 (default) [int, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : max(0, VideoSnapshotMaxWidthOrHeight) == 0
+    Fórmula : std::min<uint32_t>(max(0, VideoSnapshotMaxWidthOrHeight), rcx[this->field_0xae0])
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x36798da (in fn_0x3679580): call 0x3679330  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
   
   === [Mapeamento de Campos da Struct (RTTI & Cross-Function Linker)] ===
     this->field_0x310 (offset +0x310) <- DFFlagRM3ScreenshotGPUResize = true (@0x367938f)
-    [Child @0x355b590] Papel   : Parâmetro de configuração lido diretamente pela rotina
-    [Child @0x367ea40] Papel   : Parâmetro de configuração lido diretamente pela rotina
   
   === [Decompilacao C++ da Funcao 0x3679330..0x367957e] ===
     struct RBX::VideoSnapshot {
@@ -49,7 +48,7 @@ Operação  : 0x36793b3: mov/math reg, [flag] ; fn=0x3679330..0x367957e
         } else if ((this->field_0x30c & 0x2) != 0) {
           if (VideoCaptureSnapshotClampToVideoResolution && this->field_0xae0 != 0) {
             if (max(0, VideoSnapshotMaxWidthOrHeight) != 0) {
-              v_rbx_1 = std::clamp(VideoSnapshotMaxWidthOrHeight, 0, rcx[this->field_0xae0]);
+              v_rbx_1 = std::min<uint32_t>(max(0, VideoSnapshotMaxWidthOrHeight), rcx[this->field_0xae0]);
             } else {
               v_rbx_1 = rcx[this->field_0xae0];
             }
@@ -58,11 +57,10 @@ Operação  : 0x36793b3: mov/math reg, [flag] ; fn=0x3679330..0x367957e
           }
         }
       }
-      auto* f_20 = this->field_0x20;
-      auto ret_0x355b590_1 = call_0x355b590(f_20);
+      auto ret_0x355b590_1 = call_0x355b590(this->field_0x20);
       void* v_rsi_2 = param_3;
       if (ret_0x355b590_1 != 0) {
-        auto vret_2 = ret_0x355b590_1->vfunc_0x40(ret_0x355b590_1, 0) // -> RBX::ModelInstance::BackpackItem::fn_0x3342a90;
+        auto vret_2 = ret_0x355b590_1->vfunc_0x40(ret_0x355b590_1, 0);
         v_rsi_2 = vret_2;
       }
       void* v_rbx_5;
@@ -71,20 +69,21 @@ Operação  : 0x36793b3: mov/math reg, [flag] ; fn=0x3679330..0x367957e
       } else if (v_rbx_1 == 0) {
         v_rbx_5 = v_rsi_2->field_0x78;
       } else {
-        int32_t v_rcx_3 = v_rsi_2->field_0x78;
-        if (max(v_rsi_2->field_0x78, v_rsi_2->field_0x78 >> 32) > v_rbx_1) {
-          if (v_rsi_2->field_0x78 > v_rsi_2->field_0x78 >> 32) {
+        uint64_t v_rcx_3 = v_rsi_2->field_0x78;
+        if (std::max<uint32_t>(v_rsi_2->field_0x78, (uint64_t)v_rsi_2->field_0x78 >> 32) > v_rbx_1) {
+          if (v_rsi_2->field_0x78 > (uint64_t)v_rsi_2->field_0x78 >> 32) {
             v_rcx_3 = v_rbx_1;
           } else {
-            v_rcx_3 = (int64_t)((float)v_rsi_2->field_0x78 * (float)v_rbx_1 / (float)(v_rsi_2->field_0x78 >> 32));
+            v_rcx_3 = (int64_t)((float)v_rsi_2->field_0x78 * (float)v_rbx_1 / (float)((uint64_t)v_rsi_2->field_0x78 >> 32));
           }
         }
         v_rbx_5 = v_rcx_3;
       }
       void* stk_6;
-      auto* f_20_d8 = f_20->field_0xd8;
       if (RodeoAndroidRotateShader2) {
-        auto vret_3 = f_20_d8->vfunc_0x78(f_20_d8) // -> RBX::Lua::LuaArguments::fn_0x4089a70;
+        auto* f_20 = this->field_0x20;
+        auto* f_20_d8 = f_20->field_0xd8;
+        auto vret_3 = f_20_d8->vfunc_0x78(f_20_d8);
         if ((vret_3 - 1 & 0xfffffffd) == 0) {
           if (RodeoAndroidRotateShaderTransposeSwap) {
             stk_6 = local_0x24;
@@ -97,7 +96,7 @@ Operação  : 0x36793b3: mov/math reg, [flag] ; fn=0x3679330..0x367957e
       } else {
         stk_6 = v_rbx_5;
       }
-      call_0x367ea40(((this->field_0x610 + this->field_0x610 * 4) << 4) + 0x570 + this, f_20_d8, v_rsi_2, stk_6);
+      call_0x367ea40(((this->field_0x610 + this->field_0x610 * 4) << 4) + 0x570 + this, this->field_0x20->field_0xd8, v_rsi_2, stk_6);
       if (this->field_0x588[(this->field_0x610 + this->field_0x610 * 4) * 2 * 8] != 0) {
         (this->field_0x588[(this->field_0x610 + this->field_0x610 * 4) * 2 * 8])->field_0x8++;
       }
@@ -279,30 +278,29 @@ Operação  : 0x36793b3: mov/math reg, [flag] ; fn=0x3679330..0x367957e
     0x367957c | 5f                       | pop rdi
     0x367957d | c3                       | ret
   
-  === [Sub-Rotina Chamada: 0x355b590..0x355b63f via call @0x36793fc (rcx = this (Direct Engine Sub-Call))] ===
-    struct RBX::VideoSnapshot {
+  === [Sub-Rotina Chamada: 0x355b590..0x355b63f via call @0x36793fc (Direct Engine Sub-Call)] ===
+    struct SubObj_0x355b590 {
       /* +0xd8 */ void*   field_0xd8;
       /* +0x128 */ void*   field_0x128;
     };
     
-    // Flag defaults: VideoSnapshotMaxWidthOrHeight = 2560, DebugEnableVREmulator = false
-    auto RBX::VideoSnapshot::func_0x355b590(RBX::VideoSnapshot* this) {
-      auto* f_d8 = this->field_0xd8;
+    // Flag defaults: DebugEnableVREmulator = false
+    auto SubObj_0x355b590::func_0x355b590(SubObj_0x355b590* this) {
       if (!DebugEnableVREmulator) {
-        auto vret_1 = f_d8->vfunc_0x90() // -> RBX::WedgePoly::fn_0x2dac240;
+        auto vret_1 = this->field_0xd8->vfunc_0x90();
         return vret_1;
       }
       void* v_rax_1;
       auto* f_128 = this->field_0x128;
       if (f_128 != 0) {
-        auto vret_2 = f_128->vfunc_0x20(f_128, &local_0x20) // -> RBX::ModelInstance::BackpackItem::fn_0x3343db0;
+        auto vret_2 = f_128->vfunc_0x20(f_128, &local_0x20);
         if (vret_2->field_0x133 != 0) {
-          v_rax_1 = f_128;
+          v_rax_1 = this->field_0x128;
         } else {
-          f_d8->vfunc_0x90() // -> RBX::WedgePoly::fn_0x2dac240;
+          this->field_0xd8->vfunc_0x90();
         }
       } else {
-        f_d8->vfunc_0x90() // -> RBX::WedgePoly::fn_0x2dac240;
+        this->field_0xd8->vfunc_0x90();
       }
       return v_rax_1;
     }
@@ -350,8 +348,8 @@ Operação  : 0x36793b3: mov/math reg, [flag] ; fn=0x3679330..0x367957e
     0x355b637 | ff 15 03 e7 ed 02        | call qword ptr [rip + 0x2ede703] ; __guard_dispatch_icall_fptr (0x6439d40)
     0x355b63d | eb b5                    | jmp 0x355b5f4
   
-  === [Sub-Rotina Chamada: 0x367ea40..0x367f248 via call @0x367951d (rcx = this (Direct Engine Sub-Call))] ===
-    struct RBX::VideoSnapshot {
+  === [Sub-Rotina Chamada: 0x367ea40..0x367f248 via call @0x367951d (Direct Engine Sub-Call)] ===
+    struct SubObj_0x367ea40 {
       /* +0x0 */ void*   field_0x0;
       /* +0x8 */ void*   field_0x8;
       /* +0x10 */ void*   field_0x10;
@@ -361,29 +359,29 @@ Operação  : 0x36793b3: mov/math reg, [flag] ; fn=0x3679330..0x367957e
       /* +0x30 */ int32_t field_0x30;
     };
     
-    // Flag defaults: VideoSnapshotMaxWidthOrHeight = 2560, GraphicsGLDownloadReadsOwnTexture = false, Graphics = 6
-    void RBX::VideoSnapshot::func_0x367ea40(RBX::VideoSnapshot* this, int64_t param_2, void* param_3, void* param_4) {
+    // Flag defaults: GraphicsGLDownloadReadsOwnTexture = false, Graphics = 6
+    void SubObj_0x367ea40::func_0x367ea40(SubObj_0x367ea40* this, int64_t param_2, void* param_3, void* param_4) {
       if (this->field_0x0 != 0) {
         if (this->field_0x0->field_0x44 == param_3->field_0x90 && this->field_0x0->field_0x48 == param_4) {
-          if (this->field_0x0->field_0x4c == param_4 >> 32) {
+          if (this->field_0x0->field_0x4c == (uint64_t)param_4 >> 32) {
             return;
           }
         }
         call_0x367ff30(this);
       }
-      auto vret_2 = param_2->vfunc_0xe8(param_2) // -> RBX::Graphics::RenderView::fn_0x3662290;
+      auto vret_2 = param_2->vfunc_0xe8(param_2);
       int32_t v_rsi_2;
       if (vret_2->field_0x81 != 0) {
         auto ret_0x6fd950_5 = call_0x6fd950(32);
         memcpy(ret_0x6fd950_5, "TextureDownloadResource", 23);
         ret_0x6fd950_5->field_0x16 = global_0x73c522e;
-        param_2->vfunc_0x1b0(param_2, &local_0x90, 0, param_3->field_0x90) // -> RBX::Graphics::RenderView::fn_0x367d960;
+        param_2->vfunc_0x1b0(param_2, &local_0x90, 0, param_3->field_0x90);
         v_rsi_2 = 19;
       } else {
         auto ret_0x6fd950_3 = call_0x6fd950(32);
         memcpy(ret_0x6fd950_3, "TextureDownloadResource", 23);
         ret_0x6fd950_3->field_0x16 = global_0x73c522e;
-        param_2->vfunc_0x1a8(param_2, &local_0xc0, 0, param_3->field_0x90) // -> RBX::Graphics::RenderView::fn_0x367d920;
+        param_2->vfunc_0x1a8(param_2, &local_0xc0, 0, param_3->field_0x90);
         v_rsi_2 = 44;
       }
       this->field_0x0 = local_0x90;
@@ -419,7 +417,7 @@ Operação  : 0x36793b3: mov/math reg, [flag] ; fn=0x3679330..0x367957e
         std::string::_Tidy_deallocate(local_0x1e0);
       }
       if (this->field_0x0 == 0) {
-        if (Graphics >= 6 && Graphics >> 8 >= 2) {
+        if (Graphics >= 6 && (uint64_t)Graphics >> 8 >= 2) {
           FLog::Log("[FLog::Graphics] Error creating TextureDownloadResource {}x{}");
         }
         this->field_0x20 = 0;
@@ -471,7 +469,7 @@ Operação  : 0x36793b3: mov/math reg, [flag] ; fn=0x3679330..0x367957e
       }
       std::string::_Tidy_deallocate(0);
       if (GraphicsGLDownloadReadsOwnTexture ? param_3->field_0x90->field_0x0[&sym_0x84a3df8] == 0 : global_0x80f3d01 != 0) {
-        auto vret_20 = this->field_0x0->vfunc_0x28(this->field_0x0, &local_0x1d0, 0, 0) // -> RBX::program_option::fn_0x3506640;
+        auto vret_20 = this->field_0x0->vfunc_0x28(this->field_0x0, &local_0x1d0, 0, 0);
         void* prev_0x0_3 = vret_20->field_0x0;
         vret_20->field_0x0 = 0;
         void* prev_0x8_4 = vret_20->field_0x8;
@@ -486,7 +484,7 @@ Operação  : 0x36793b3: mov/math reg, [flag] ; fn=0x3679330..0x367957e
           call_0x6daf40(local_0x1d8);
         }
         if (this->field_0x20 == 0) {
-          if (Graphics >= 6 && Graphics >> 8 >= 3) {
+          if (Graphics >= 6 && (uint64_t)Graphics >> 8 >= 3) {
             FLog::Log("[FLog::Graphics] TextureDownloadResource couldn't create resource for async download, falling ba");
           }
           if (!GraphicsGLDownloadReadsOwnTexture) {
@@ -955,166 +953,6 @@ Operação  : 0x36793b3: mov/math reg, [flag] ; fn=0x3679330..0x367957e
     0x367f23d | e8 3e 53 79 02           | call 0x5e14580
     L_0x367f243:
     0x367f243 | e8 38 53 79 02           | call 0x5e14580
-
-[Bytecode Hex]
-  0x3679330: 48 89 5c 24 10 | 48 89 74 24 18 | 57 | 41 56
-  0x367933d: 41 57 | 48 83 ec 30 | 49 8b f0 | 33 db
-  0x3679348: 38 1d ca 08 aa 04 | 4c 8b f2 | 4c 8b 41 20 | 48 8b f9
-  0x3679358: 4d 8b b8 d8 00 00 00 | 74 20 | f7 81 0c 03 00 00 ed ff ff ff | 74 14
-  0x367936d: 38 99 14 03 00 00 | 0f 84 80 00 00 00 | 8b 99 10 03 00 00 | eb 78
-  0x3679381: 8b 89 0c 03 00 00 | 8b c1 | 24 05 | 3c 04
-  0x367938d: 75 20 | 38 1d fb 09 ab 04 | 74 10 | 38 9f 14 03 00 00
-  0x367939d: 74 08 | 8b 9f 10 03 00 00 | eb 52 | 8b 1d 7b 07 aa 04
-  0x36793ad: eb 4a | f6 c1 02 | 74 45 | 8b 05 d6 08 aa 04
-  0x36793ba: 85 c0 | 0f 4f d8 | 80 3d b2 08 aa 04 00 | 74 31
-  0x36793c8: 48 8b 97 e0 0a 00 00 | 48 85 d2 | 74 25 | 8b 42 14
-  0x36793d7: b9 10 00 00 00 | 39 42 10 | 41 b9 14 00 00 00 | 41 0f 42 c9
-  0x36793e9: 8b 04 11 | 85 db | 74 07 | 3b c3
-  0x36793f2: 0f 42 d8 | eb 02 | 8b d8 | 49 8b c8
-  0x36793fc: e8 8f 21 ee ff | 4c 8b c0 | 48 85 c0 | 74 15
-  0x3679409: 48 8b 08 | 33 d2 | 48 8b 41 40 | 49 8b c8
-  0x3679415: ff 15 25 09 dc 02 | 48 8b f0 | f6 87 0c 03 00 00 10 | 74 09
-  0x3679427: 48 8b 9f 48 0b 00 00 | eb 78 | 8b 4e 78 | 8b 46 7c
-  0x3679436: 89 4c 24 68 | 89 44 24 6c | 85 db | 75 07
-  0x3679442: 48 8b 5c 24 68 | eb 5f | 48 8b 54 24 68 | 8b c1
-  0x3679450: 48 c1 ea 20 | 3b ca | 0f 42 c2 | 3b c3
-  0x367945b: 76 3e | 8b c3 | 0f 57 c0 | 0f 57 d2
-  0x3679465: 0f 57 c9 | f3 48 0f 2a d2 | f3 48 0f 2a c0 | f3 48 0f 2a c9
-  0x3679477: 3b ca | 76 11 | f3 0f 59 c2 | 8b cb
-  0x3679481: f3 0f 5e c1 | f3 48 0f 2c d0 | eb 0f | f3 0f 59 c8
-  0x3679490: 8b d3 | f3 0f 5e ca | f3 48 0f 2c c9 | 89 4c 24 28
-  0x367949f: 89 54 24 2c | 48 8b 5c 24 28 | 80 3d 61 fd a9 04 00 | 48 89 5c 24 20
-  0x36794b4: 48 89 5c 24 50 | 74 3e | 49 8b 07 | 49 8b cf
-  0x36794c1: 48 8b 40 78 | ff 15 75 08 dc 02 | ff c8 | a9 fd ff ff ff
-  0x36794d2: 75 25 | 80 3d ed 08 aa 04 00 | 74 0e | 8b 44 24 24
-  0x36794e1: 89 44 24 50 | 89 5c 24 54 | eb 0e | 8b 46 7c
-  0x36794ee: 89 44 24 50 | 8b 46 78 | 89 44 24 54 | 48 63 87 10 06 00 00
-  0x3679500: 4c 8b c6 | 4c 8b 4c 24 50 | 49 8b d7 | 48 8d 0c 80
-  0x367950f: 48 c1 e1 04 | 48 81 c1 70 05 00 00 | 48 03 cf | e8 1e 55 00 00
-  0x3679522: 48 63 87 10 06 00 00 | 49 c7 06 00 00 00 00 | 49 c7 46 08 00 00 00 00 | 48 8d 0c 80
-  0x367953c: 48 03 c9 | 48 8b 84 cf 88 05 00 00 | 48 85 c0 | 74 04
-  0x367954c: f0 ff 40 08 | 48 8b 84 cf 80 05 00 00 | 48 8b 5c 24 58 | 48 8b 74 24 60
-  0x3679562: 49 89 06 | 48 8b 84 cf 88 05 00 00 | 49 89 46 08 | 49 8b c6
-  0x3679574: 48 83 c4 30 | 41 5f | 41 5e | 5f
-  0x367957d: c3
-
-  [Child Bytecode Hex 0x355b590..0x355b63f]
-  0x355b590: 40 57 | 48 81 ec 70 01 00 00 | 48 8b 05 40 d1 b7 04 | 48 33 c4
-  0x355b5a3: 48 89 84 24 60 01 00 00 | 80 3d de c9 bb 04 00 | 48 8b f9 | 74 6f
-  0x355b5b7: 48 89 9c 24 88 01 00 00 | 48 8b 99 28 01 00 00 | 48 85 db | 74 42
-  0x355b5cb: 48 8b 13 | 48 8b cb | 48 8b 42 20 | 48 8d 54 24 20
-  0x355b5da: ff 15 60 e7 ed 02 | 80 b8 33 01 00 00 00 | 74 24 | 48 8b c3
-  0x355b5ec: 48 8b 9c 24 88 01 00 00 | 48 8b 8c 24 60 01 00 00 | 48 33 cc | e8 9c 92 88 02
-  0x355b604: 48 81 c4 70 01 00 00 | 5f | c3 | 48 8b 8f d8 00 00 00
-  0x355b614: 48 8b 01 | 48 8b 80 90 00 00 00 | ff 15 1c e7 ed 02 | eb c6
-  0x355b626: 48 8b 89 d8 00 00 00 | 48 8b 01 | 48 8b 80 90 00 00 00 | ff 15 03 e7 ed 02
-  0x355b63d: eb b5
-
-  [Child Bytecode Hex 0x367ea40..0x367f248]
-  0x367ea40: 4c 89 4c 24 20 | 53 | 56 | 57
-  0x367ea48: 41 54 | 41 55 | 41 56 | 41 57
-  0x367ea50: 48 81 ec a0 02 00 00 | 48 8b 05 82 9c a5 04 | 48 33 c4 | 48 89 84 24 90 02 00 00
-  0x367ea69: 49 8b d9 | 4c 8b ea | 48 8b f9 | 48 89 8c 24 b0 00 00 00
-  0x367ea7a: 33 f6 | 89 74 24 70 | 4d 8b e1 | 49 c1 ec 20
-  0x367ea87: 44 89 64 24 74 | 4d 63 b8 90 00 00 00 | 44 89 bc 24 a0 00 00 00 | 48 8b 01
-  0x367ea9e: 48 85 c0 | 74 1b | 44 39 78 44 | 75 0f
-  0x367eaa9: 39 58 48 | 75 0a | 44 39 60 4c | 0f 84 5c 07 00 00
-  0x367eab8: e8 73 14 00 00 | 90 | 49 8b 45 00 | 49 8b cd
-  0x367eac5: 48 8b 80 e8 00 00 00 | ff 15 6e b2 db 02 | b9 20 00 00 00 | 80 b8 81 00 00 00 00
-  0x367eade: 0f 84 e8 00 00 00 | 48 89 b4 24 e0 01 00 00 | 48 89 b4 24 f0 01 00 00 | 48 c7 84 24 f8 01 00 00 0f 00 00 00
-  0x367eb00: c6 84 24 e0 01 00 00 00 | e8 43 ee 07 fd | 48 8b d0 | 48 c7 84 24 f0 01 00 00 17 00 00 00
-  0x367eb1c: 48 c7 84 24 f8 01 00 00 1f 00 00 00 | 0f 10 05 e9 66 d4 03 | 0f 11 00 | 8b 0d f0 66 d4 03
-  0x367eb38: 89 48 10 | 0f b7 0d ea 66 d4 03 | 66 89 48 14 | 0f b6 05 e1 66 d4 03
-  0x367eb4d: 88 42 16 | c6 42 17 00 | 48 89 94 24 e0 01 00 00 | 41 be 01 00 00 00
-  0x367eb62: 44 89 74 24 70 | 49 8b 45 00 | 48 8d 8c 24 e0 01 00 00 | 48 89 4c 24 58
-  0x367eb78: c7 44 24 50 03 00 00 00 | 44 89 74 24 48 | 44 89 74 24 40 | 44 89 74 24 38
-  0x367eb8f: 44 89 74 24 30 | 44 89 64 24 28 | 89 5c 24 20 | 45 8b cf
-  0x367eba0: 45 33 c0 | 48 8d 94 24 90 00 00 00 | 49 8b cd | 48 8b 80 b0 01 00 00
-  0x367ebb5: ff 15 85 b1 db 02 | 48 8d 8c 24 90 00 00 00 | 41 8d 76 12 | e9 e7 00 00 00
-  0x367ebcc: 48 89 b4 24 00 02 00 00 | 48 89 b4 24 10 02 00 00 | 48 c7 84 24 18 02 00 00 0f 00 00 00 | c6 84 24 00 02 00 00 00
-  0x367ebf0: e8 5b ed 07 fd | 48 8b d0 | 48 c7 84 24 10 02 00 00 17 00 00 00 | 48 c7 84 24 18 02 00 00 1f 00 00 00
-  0x367ec10: 0f 10 05 01 66 d4 03 | 0f 11 00 | 8b 0d 08 66 d4 03 | 89 48 10
-  0x367ec23: 0f b7 0d 02 66 d4 03 | 66 89 48 14 | 0f b6 05 f9 65 d4 03 | 88 42 16
-  0x367ec38: c6 42 17 00 | 48 89 94 24 00 02 00 00 | c7 44 24 70 04 00 00 00 | 49 8b 45 00
-  0x367ec50: 48 8d 8c 24 00 02 00 00 | 48 89 4c 24 58 | c7 44 24 50 03 00 00 00 | 41 be 01 00 00 00
-  0x367ec6b: 44 89 74 24 48 | 44 89 74 24 40 | 44 89 74 24 38 | 44 89 74 24 30
-  0x367ec7f: 44 89 64 24 28 | 89 5c 24 20 | 45 8b cf | 45 33 c0
-  0x367ec8e: 48 8d 94 24 c0 00 00 00 | 49 8b cd | 48 8b 80 a8 01 00 00 | ff 15 9a b0 db 02
-  0x367eca6: 48 8d 8c 24 c0 00 00 00 | be 2c 00 00 00 | 89 74 24 70 | 48 8b 01
-  0x367ecba: 48 8b 51 08 | 45 33 c0 | 4c 89 01 | 4c 89 41 08
-  0x367ecc8: 48 89 07 | 48 8b 4f 08 | 48 89 57 08 | 48 85 c9
-  0x367ecd6: 74 05 | e8 63 c2 05 fd | 40 f6 c6 08 | 74 1a
-  0x367ece3: 83 e6 f7 | 89 74 24 70 | 48 8b 8c 24 c8 00 00 00 | 48 85 c9
-  0x367ecf5: 74 06 | e8 44 c2 05 fd | 90 | 40 f6 c6 04
-  0x367ed01: 74 66 | 83 e6 fb | 89 74 24 70 | 48 8b 84 24 18 02 00 00
-  0x367ed12: 48 83 f8 10 | 72 31 | 48 ff c0 | 48 8b 8c 24 00 02 00 00
-  0x367ed23: 48 8b d1 | 48 3d 00 10 00 00 | 72 15 | 48 8b 49 f8
-  0x367ed32: 48 2b d1 | 48 8d 42 f8 | 48 83 f8 1f | 0f 87 f4 04 00 00
-  0x367ed43: e8 78 6d 2d 01 | 90 | 48 c7 84 24 10 02 00 00 00 00 00 00 | 48 c7 84 24 18 02 00 00 0f 00 00 00
-  0x367ed61: c6 84 24 00 02 00 00 00 | 40 f6 c6 02 | 74 1a | 83 e6 fd
-  0x367ed72: 89 74 24 70 | 48 8b 8c 24 98 00 00 00 | 48 85 c9 | 74 06
-  0x367ed83: e8 b8 c1 05 fd | 90 | 40 f6 c6 01 | 74 66
-  0x367ed8f: 83 e6 fe | 89 74 24 70 | 48 8b 84 24 f8 01 00 00 | 48 83 f8 10
-  0x367eda2: 72 31 | 48 ff c0 | 48 8b 8c 24 e0 01 00 00 | 48 8b d1
-  0x367edb2: 48 3d 00 10 00 00 | 72 15 | 48 8b 49 f8 | 48 2b d1
-  0x367edc1: 48 8d 42 f8 | 48 83 f8 1f | 0f 87 6e 04 00 00 | e8 ec 6c 2d 01
-  0x367edd4: 90 | 33 f6 | 48 89 b4 24 f0 01 00 00 | 48 c7 84 24 f8 01 00 00 0f 00 00 00
-  0x367edeb: 40 88 b4 24 e0 01 00 00 | eb 02 | 33 f6 | 48 83 3f 00
-  0x367edfb: 0f 85 88 01 00 00 | 48 8b 05 c8 ee a7 04 | 3c 06 | 0f 82 f1 00 00 00
-  0x367ee10: 48 c1 e8 08 | 3c 02 | 0f 82 e5 00 00 00 | 48 8d 05 17 28 21 0c
-  0x367ee23: 48 89 84 24 a0 00 00 00 | 48 8b 8c 24 a0 00 00 00 | 48 81 c1 9e 3b b3 f7 | 48 89 8c 24 10 01 00 00
-  0x367ee42: 48 c7 c0 ff ff ff ff | 0f 1f 80 00 00 00 00 | 48 ff c0 | 80 3c 01 00
-  0x367ee57: 75 f7 | 48 89 84 24 18 01 00 00 | 89 9c 24 50 01 00 00 | 44 89 a4 24 60 01 00 00
-  0x367ee70: 0f 10 84 24 50 01 00 00 | 0f 11 84 24 40 02 00 00 | 0f 10 8c 24 60 01 00 00 | 0f 11 8c 24 50 02 00 00
-  0x367ee90: 48 c7 84 24 00 01 00 00 22 00 00 00 | 48 8d 84 24 40 02 00 00 | 48 89 84 24 08 01 00 00 | 0f 28 84 24 00 01 00 00
-  0x367eeb4: 66 0f 7f 84 24 a0 00 00 00 | 0f 28 8c 24 10 01 00 00 | 66 0f 7f 8c 24 70 01 00 00 | 0f 10 05 fb ed a7 04
-  0x367eed5: 0f 29 84 24 80 01 00 00 | c6 44 24 20 01 | 4c 8d 8c 24 a0 00 00 00 | 4c 8d 84 24 70 01 00 00
-  0x367eef2: b2 02 | 48 8d 8c 24 80 01 00 00 | e8 cf 2d 2f 01 | 48 8b 47 20
-  0x367ef05: 48 89 84 24 90 01 00 00 | 48 89 77 20 | 48 8b 4f 28 | 48 89 8c 24 98 01 00 00
-  0x367ef1d: 48 89 77 28 | 48 85 c9 | 74 05 | e8 15 c0 05 fd
-  0x367ef2b: 48 8b 47 10 | 48 89 84 24 a0 01 00 00 | 48 89 77 10 | 48 8b 4f 18
-  0x367ef3f: 48 89 8c 24 a8 01 00 00 | 48 89 77 18 | 48 85 c9 | 74 05
-  0x367ef50: e8 eb bf 05 fd | 48 8b 07 | 48 89 84 24 b0 01 00 00 | 48 89 37
-  0x367ef63: 48 8b 4f 08 | 48 89 8c 24 b8 01 00 00 | 48 89 77 08 | 48 85 c9
-  0x367ef76: 74 05 | e8 c3 bf 05 fd | c7 47 30 ff ff ff ff | e9 8b 02 00 00
-  0x367ef89: 48 89 b4 24 20 02 00 00 | 48 89 b4 24 30 02 00 00 | 48 c7 84 24 38 02 00 00 0f 00 00 00 | c6 84 24 20 02 00 00 00
-  0x367efad: 0f 57 c0 | f3 0f 7f 84 24 20 01 00 00 | 89 b4 24 30 01 00 00 | 48 c7 84 24 34 01 00 00 01 00 00 00
-  0x367efcc: 48 8b 47 08 | 48 85 c0 | 74 04 | f0 ff 40 08
-  0x367efd9: 48 8b 07 | 48 89 84 24 e0 00 00 00 | 48 8b 47 08 | 48 89 84 24 e8 00 00 00
-  0x367eff0: 89 b4 24 f0 00 00 00 | 48 c7 84 24 f4 00 00 00 01 00 00 00 | e8 68 f4 08 ff | 84 c0
-  0x367f00a: 74 1d | 48 8b 07 | b9 06 00 00 00 | 83 78 40 02
-  0x367f018: 44 0f 44 f1 | 44 0f af 70 58 | 44 89 b4 24 f4 00 00 00 | 48 8d 84 24 20 02 00 00
-  0x367f031: 48 89 44 24 20 | 4c 8d 8c 24 20 01 00 00 | 4c 8d 84 24 e0 00 00 00 | 48 8d 94 24 c0 01 00 00
-  0x367f04e: 49 8b cd | e8 3a dd 08 ff | 48 8b 08 | 48 8b 50 08
-  0x367f05d: 48 89 30 | 48 89 70 08 | 48 89 4f 10 | 48 8b 4f 18
-  0x367f06c: 48 89 57 18 | 48 85 c9 | 74 05 | e8 c6 be 05 fd
-  0x367f07a: 48 8b 8c 24 c8 01 00 00 | 48 85 c9 | 74 06 | e8 b4 be 05 fd
-  0x367f08c: 90 | 48 8b 8c 24 e8 00 00 00 | 48 85 c9 | 74 06
-  0x367f09a: e8 a1 be 05 fd | 90 | 48 8b 8c 24 28 01 00 00 | 48 85 c9
-  0x367f0ab: 74 06 | e8 8e be 05 fd | 90 | 48 8b 84 24 38 02 00 00
-  0x367f0bb: 48 83 f8 10 | 72 31 | 48 ff c0 | 48 8b 8c 24 20 02 00 00
-  0x367f0cc: 48 8b d1 | 48 3d 00 10 00 00 | 72 15 | 48 8b 49 f8
-  0x367f0db: 48 2b d1 | 48 8d 42 f8 | 48 83 f8 1f | 0f 87 57 01 00 00
-  0x367f0ec: e8 cf 69 2d 01 | 90 | 48 89 b4 24 30 02 00 00 | 48 c7 84 24 38 02 00 00 0f 00 00 00
-  0x367f106: c6 84 24 20 02 00 00 00 | 48 8d 1d e3 4c e2 04 | 80 3d 9c ee a7 04 00 | 74 0a
-  0x367f11e: 41 80 3c 1f 00 | 0f 94 c1 | eb 07 | 0f b6 0d d2 4b a7 04
-  0x367f12f: 84 c9 | 0f 84 dd 00 00 00 | 48 8b 0f | 48 8b 01
-  0x367f13d: 45 33 c9 | 45 33 c0 | 48 8d 94 24 d0 01 00 00 | 48 8b 40 28
-  0x367f14f: ff 15 eb ab db 02 | 48 8b 08 | 48 8b 50 08 | 48 89 30
-  0x367f15f: 48 89 70 08 | 48 89 4f 20 | 48 8b 4f 28 | 48 89 57 28
-  0x367f16f: 48 85 c9 | 74 05 | e8 c7 bd 05 fd | 48 8b 8c 24 d8 01 00 00
-  0x367f181: 48 85 c9 | 74 06 | e8 b5 bd 05 fd | 90
-  0x367f18c: eb 17 | 48 8d 1d 63 4c e2 04 | 44 8b bc 24 a0 00 00 00 | 48 8b bc 24 b0 00 00 00
-  0x367f1a5: 48 83 7f 20 00 | 75 68 | 48 8b 05 1d eb a7 04 | 3c 06
-  0x367f1b5: 72 42 | 48 c1 e8 08 | 3c 03 | 72 3a
-  0x367f1bf: 48 8d 05 11 8a 27 0c | 48 89 84 24 80 00 00 00 | 48 8b 94 24 80 00 00 00 | 48 81 ea 27 2b 53 08
-  0x367f1dd: 0f 10 05 ec ea a7 04 | 0f 29 84 24 90 00 00 00 | 48 8d 8c 24 90 00 00 00 | e8 97 28 2f 01
-  0x367f1f9: 80 3d b8 ed a7 04 00 | 74 09 | 49 63 c7 | c6 04 18 01
-  0x367f209: eb 09 | c6 05 ef 4a a7 04 00 | eb 00 | 48 8b 8c 24 90 02 00 00
-  0x367f21c: 48 33 cc | e8 7c 56 76 02 | 48 81 c4 a0 02 00 00 | 41 5f
-  0x367f22d: 41 5e | 41 5d | 41 5c | 5f
-  0x367f234: 5e | 5b | c3 | e8 44 53 79 02
-  0x367f23c: 90 | e8 3e 53 79 02 | cc | e8 38 53 79 02
 
 [Strings .rdata na função]
   * [FLog::Graphics] Error creating TextureDownloadResource {}x{}

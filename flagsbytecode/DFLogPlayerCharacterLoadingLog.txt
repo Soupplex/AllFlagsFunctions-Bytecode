@@ -6,11 +6,11 @@ Operação  : 0x3d6a6a0: mov/math reg, [flag] ; fn=0x3d6a600..0x3d6a793
 
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::PlayerCharacter)] ===
-    Classe  : RBX::PlayerCharacter (RTTI Resolvido)
+    Classe  : RBX::PlayerCharacter (Inferido)
     Padrão  : DFLogPlayerCharacterLoadingLog = 0 (default) [log, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : PlayerCharacterLoadingLog < 6
-    Fórmula : PlayerCharacterLoadingLog >> 8 < 3
+    Fórmula : (uint64_t)PlayerCharacterLoadingLog >> 8 < 3
     Altera  : this->field_0x0->field_0x1130
   
   === [Decompilacao C++ da Funcao 0x3d6a600..0x3d6a793] ===
@@ -26,10 +26,11 @@ Operação  : 0x3d6a6a0: mov/math reg, [flag] ; fn=0x3d6a600..0x3d6a793
         if (f_8 != 0 && f_8->field_0x8 != 0) {
           do { // L_0x3d6a673
             atomic_try_incref(&f_8->field_0x8);
-            if (atomic_cas(&f_8->field_0x8, f_8->field_0x8, f_8->field_0x8 + 1) == 0) break;
-          } while (f_8->field_0x8 != 0); // loop -> L_0x3d6a673
+            auto* f_8_2 = this->field_0x8;
+            if (atomic_cas(&f_8_2->field_0x8, f_8_2->field_0x8, f_8_2->field_0x8 + 1) == 0) break;
+          } while (this->field_0x8->field_0x8 != 0); // loop -> L_0x3d6a673
         }
-        if (PlayerCharacterLoadingLog >= 6 && PlayerCharacterLoadingLog >> 8 >= 3) {
+        if (PlayerCharacterLoadingLog >= 6 && (uint64_t)PlayerCharacterLoadingLog >> 8 >= 3) {
           FLog::Log("[DFLog::PlayerCharacterLoadingLog] R6 character appearance loading failed: {}");
         }
       }
@@ -134,30 +135,6 @@ Operação  : 0x3d6a6a0: mov/math reg, [flag] ; fn=0x3d6a600..0x3d6a793
     0x3d6a78a | 48 81 c4 b0 00 00 00     | add rsp, 0xb0
     0x3d6a791 | 5b                       | pop rbx
     0x3d6a792 | c3                       | ret
-
-[Bytecode Hex]
-  0x3d6a600: 40 53 | 48 81 ec b0 00 00 00 | 48 8b 05 d0 e0 36 04 | 48 33 c4
-  0x3d6a613: 48 89 84 24 a0 00 00 00 | 4c 8b c1 | 0f 10 02 | 0f 11 44 24 60
-  0x3d6a626: 0f 10 4a 10 | 0f 11 4c 24 70 | 48 c7 42 10 00 00 00 00 | 48 c7 42 18 0f 00 00 00
-  0x3d6a63f: c6 02 00 | 48 8d 44 24 60 | 48 89 84 24 80 00 00 00 | 80 3d 3a 9e 3b 04 00
-  0x3d6a656: 0f 84 14 01 00 00 | 48 8b 51 08 | 48 c7 c3 ff ff ff ff | 48 85 d2
-  0x3d6a66a: 74 34 | 8b 42 08 | 85 c0 | 74 2d
-  0x3d6a673: 8d 48 01 | f0 0f b1 4a 08 | 74 06 | 85 c0
-  0x3d6a67f: 75 f2 | eb 1d | 49 8b 00 | 49 8b 48 08
-  0x3d6a68a: 48 85 c0 | 74 07 | 48 89 98 30 11 00 00 | 48 85 c9
-  0x3d6a699: 74 05 | e8 a0 08 97 fc | 48 8b 05 39 a0 3b 04 | 3c 06
-  0x3d6a6a9: 0f 82 c1 00 00 00 | 48 c1 e8 08 | 3c 03 | 0f 82 b5 00 00 00
-  0x3d6a6bb: 48 8d 05 53 20 4e 06 | 48 89 44 24 30 | 48 8b 44 24 30 | 48 05 cb 3f 1c fd
-  0x3d6a6d2: 48 89 44 24 50 | 48 ff c3 | 80 3c 18 00 | 75 f7
-  0x3d6a6e0: 48 89 5c 24 58 | 48 8d 44 24 60 | 48 83 7c 24 78 10 | 48 0f 43 44 24 60
-  0x3d6a6f6: 48 89 84 24 90 00 00 00 | 48 8b 44 24 70 | 48 89 84 24 98 00 00 00 | 0f 28 84 24 90 00 00 00
-  0x3d6a713: 66 0f 7f 84 24 90 00 00 00 | 48 c7 44 24 40 0d 00 00 00 | 48 8d 84 24 90 00 00 00 | 48 89 44 24 48
-  0x3d6a732: 0f 28 44 24 40 | 66 0f 7f 44 24 40 | 0f 28 4c 24 50 | 66 0f 7f 4c 24 50
-  0x3d6a748: 0f 10 05 91 9f 3b 04 | 0f 29 44 24 30 | c6 44 24 20 01 | 4c 8d 4c 24 40
-  0x3d6a75e: 4c 8d 44 24 50 | b2 03 | 48 8d 4c 24 30 | e8 61 75 c0 00
-  0x3d6a76f: 90 | 48 8d 4c 24 60 | e8 36 e8 98 fc | 48 8b 8c 24 a0 00 00 00
-  0x3d6a782: 48 33 cc | e8 16 a1 07 02 | 48 81 c4 b0 00 00 00 | 5b
-  0x3d6a792: c3
 
 [Strings .rdata na função]
   * [DFLog::PlayerCharacterLoadingLog] R6 character appearance loading failed: {}

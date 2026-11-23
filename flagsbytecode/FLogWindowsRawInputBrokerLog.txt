@@ -6,20 +6,20 @@ Operação  : 0x492fe90: mov/math reg, [flag] ; fn=0x492fe10..0x492ff8c
 
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::WindowsRaw)] ===
-    Classe  : RBX::WindowsRaw (RTTI Resolvido)
+    Classe  : RBX::WindowsRaw (Inferido)
     Padrão  : FLogWindowsRawInputBrokerLog = 0 (default) [log, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : WindowsRawInputBrokerLog < 6
-    Fórmula : WindowsRawInputBrokerLog >> 8 < 2
+    Fórmula : (uint64_t)WindowsRawInputBrokerLog >> 8 < 2
     Altera  : this->field_0x50
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x492fa92 (in fn_0x492fa10): call 0x492fe10  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
     Caller @0x492fcf5 (in fn_0x492fce0): call 0x492fe10  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
-    [XREF #2 @0x4930061] Classe  : RBX::WindowsRaw (RTTI Resolvido)
+    [XREF #2 @0x4930061] Classe  : RBX::WindowsRaw (Inferido)
     [XREF #2 @0x4930061] Fórmula : WindowsRawInputBrokerLog < 6
-    [XREF #2 @0x4930061] Fórmula : WindowsRawInputBrokerLog >> 8 < 2
-    [XREF #2 @0x4930061] Fórmula : ((WindowsRawInputBrokerLog >> 8))->vfunc()
+    [XREF #2 @0x4930061] Fórmula : (uint64_t)WindowsRawInputBrokerLog >> 8 < 2
+    [XREF #2 @0x4930061] Fórmula : (((uint64_t)WindowsRawInputBrokerLog >> 8))->vfunc()
   
   === [Decompilacao C++ da Funcao 0x492fe10..0x492ff8c] ===
     struct RBX::WindowsRaw {
@@ -39,10 +39,10 @@ Operação  : 0x492fe90: mov/math reg, [flag] ; fn=0x492fe10..0x492ff8c
         auto local_0x30 = 131073;
         auto local_0x34 = v_rdi_1 == 0;
         auto local_0x38 = v_rdi_1;
-        auto vret_1 = this->vfunc_0x40(&local_0x30, 2, (2 + 14)) // -> RBX::Solver::ConstraintSingleAxisSpring::fn_0x4d4cf90;
+        auto vret_1 = this->vfunc_0x40(&local_0x30, 2, 16);
         if (vret_1 == 0) {
           if (WindowsRawInputBrokerLog >= 6) {
-            if (WindowsRawInputBrokerLog >> 8 >= 2) {
+            if ((uint64_t)WindowsRawInputBrokerLog >> 8 >= 2) {
               this->vfunc();
               FLog::Log("[FLog::WindowsRawInputBrokerLog] RegisterRawInputDevices failed with error {} (hwnd {}, removing");
             }
@@ -159,7 +159,7 @@ Operação  : 0x492fe90: mov/math reg, [flag] ; fn=0x492fe10..0x492ff8c
     };
     
     // Flag defaults: WindowsRawInputBrokerLog = 0
-    void RBX::WindowsRaw::func_0x492ff90(RBX::WindowsRaw* this, int64_t param_2, void* param_3) {
+    bool RBX::WindowsRaw::func_0x492ff90(RBX::WindowsRaw* this, int64_t param_2, void* param_3) {
       this->vfunc(this);
       auto local_0x30 = 0;
       auto vret_2 = param_3->vfunc(param_3, 268435459, 0, &local_0x30);
@@ -170,24 +170,25 @@ Operação  : 0x492fe90: mov/math reg, [flag] ; fn=0x492fe10..0x492ff8c
         auto vret_5 = param_3->vfunc(param_3, 268435459, this->field_0xb0, &local_0x30);
         if (vret_5 == local_0x30) {
           call_0x4930210(this, this->field_0xb0, param_2);
-          return;
+          return true;
         }
-        if (WindowsRawInputBrokerLog >= 6 && WindowsRawInputBrokerLog >> 8 >= 2) {
-          ((WindowsRawInputBrokerLog >> 8))->vfunc();
+        if (WindowsRawInputBrokerLog >= 6 && (uint64_t)WindowsRawInputBrokerLog >> 8 >= 2) {
+          (((uint64_t)WindowsRawInputBrokerLog >> 8))->vfunc();
           "[FLog::WindowsRawInputBrokerLog] GetRawInputData failed with error {} (returned {}, expected {})";
           "[FLog::WindowsRawInputBrokerLog] GetRawInputData failed with error {} (returned {}, expected {})";
           FLog::Log("[FLog::WindowsRawInputBrokerLog] GetRawInputData failed with error {} (returned {}, expected {})");
         }
-        return;
+        return false;
       }
       if (WindowsRawInputBrokerLog >= 6) {
-        if (WindowsRawInputBrokerLog >> 8 >= 2) {
+        if ((uint64_t)WindowsRawInputBrokerLog >> 8 >= 2) {
           this->vfunc();
           "[FLog::WindowsRawInputBrokerLog] GetRawInputData size query failed with error {} (returned {}, s";
           "[FLog::WindowsRawInputBrokerLog] GetRawInputData size query failed with error {} (returned {}, s";
           FLog::Log("[FLog::WindowsRawInputBrokerLog] GetRawInputData failed with error {} (returned {}, expected {})");
         }
       }
+      return false;
     }
   
   === [Instrucoes x86-64 do XREF Runtime #2 (0x492ff90..0x4930200)] ===
@@ -343,69 +344,6 @@ Operação  : 0x492fe90: mov/math reg, [flag] ; fn=0x492fe10..0x492ff8c
     0x49301f2 | 48 8d 15 07 85 b6 02     | lea rdx, [rip + 0x2b68507] ; "WindowsRawInputBroker must be used on the target HWND thread"
     0x49301f9 | 33 c9                    | xor ecx, ecx
     0x49301fb | e8 90 0e 04 00           | call 0x4971090
-
-[Bytecode Hex]
-  0x492fe10: 48 89 5c 24 18 | 48 89 7c 24 20 | 55 | 48 8d 6c 24 a9
-  0x492fe20: 48 81 ec f0 00 00 00 | 48 8b 05 b2 88 7a 03 | 48 33 c4 | 48 89 45 47
-  0x492fe35: 48 8b 41 40 | 48 8b d9 | 33 c9 | 8b f9
-  0x492fe40: 48 39 43 38 | 74 03 | 48 8b 3b | 48 3b 7b 50
-  0x492fe4d: 0f 84 16 01 00 00 | ba 02 00 00 00 | c7 45 97 01 00 02 00 | 48 85 ff
-  0x492fe62: 48 89 7d 9f | c7 45 a7 01 00 06 00 | 0f 94 c1 | 48 89 7d af
-  0x492fe74: 89 4d 9b | 44 8d 42 0e | 89 4d ab | 48 8d 4d 97
-  0x492fe82: ff 15 50 95 b0 01 | 85 c0 | 0f 85 d5 00 00 00 | 48 8b 05 d9 a2 80 03
-  0x492fe97: 3c 06 | 0f 82 c2 00 00 00 | 48 c1 e8 08 | 3c 02
-  0x492fea5: 0f 82 b6 00 00 00 | 48 8d 05 19 62 e5 02 | 48 89 b4 24 08 01 00 00 | 48 89 45 b7
-  0x492febe: 48 8b 75 b7 | 48 8b 1b | 48 81 c6 35 24 d1 ff | 48 85 ff
-  0x492fecf: 40 0f 94 c7 | ff 15 cf 8e b0 01 | 48 c7 c1 ff ff ff ff | 48 89 75 07
-  0x492fee4: 48 ff c1 | 80 3c 0e 00 | 75 f7 | 89 45 c7
-  0x492fef0: 4c 8d 4d e7 | 0f 10 45 c7 | 40 88 7d e7 | 48 8d 45 17
-  0x492ff00: 48 89 5d d7 | 4c 8d 45 d7 | 0f 10 4d d7 | 48 89 4d 0f
-  0x492ff10: b2 02 | 0f 11 45 17 | 48 89 45 ff | 48 8d 4d c7
-  0x492ff1e: 0f 10 45 e7 | 48 c7 45 f7 42 07 00 00 | 0f 11 4d 27 | c6 44 24 20 01
-  0x492ff33: 0f 28 4d 07 | 0f 11 45 37 | 0f 28 45 f7 | 66 0f 7f 45 e7
-  0x492ff44: 0f 10 05 25 a2 80 03 | 66 0f 7f 4d d7 | 0f 29 45 c7 | e8 77 1d 04 00
-  0x492ff59: 48 8b b4 24 08 01 00 00 | 32 c0 | eb 06 | 48 89 7b 50
-  0x492ff69: b0 01 | 48 8b 4d 47 | 48 33 cc | e8 29 49 4b 01
-  0x492ff77: 4c 8d 9c 24 f0 00 00 00 | 49 8b 5b 20 | 49 8b 7b 28 | 49 8b e3
-  0x492ff8a: 5d | c3
-
-  [XREF #2 Bytecode Hex 0x492ff90..0x4930200]
-  0x492ff90: 40 55 | 53 | 56 | 41 56
-  0x492ff96: 48 8d 6c 24 c1 | 48 81 ec d8 00 00 00 | 48 8b 05 37 87 7a 03 | 48 33 c4
-  0x492ffac: 48 89 45 27 | 49 8b f0 | 4c 8b f2 | 48 8b d9
-  0x492ffb9: ff 15 e1 8c b0 01 | 3b 43 08 | 0f 85 2a 02 00 00 | 48 89 bc 24 08 01 00 00
-  0x492ffd0: 4c 8d 4d 97 | 45 33 c0 | 4c 89 bc 24 d0 00 00 00 | ba 03 00 00 10
-  0x492ffe4: c7 45 97 00 00 00 00 | 48 8b ce | c7 44 24 20 18 00 00 00 | ff 15 b4 96 b0 01
-  0x492fffc: 44 8b f8 | 85 c0 | 0f 85 02 01 00 00 | 8b 7d 97
-  0x493000a: 85 ff | 0f 84 f7 00 00 00 | 48 8b 83 b8 00 00 00 | 8b d7
-  0x493001b: 48 2b 83 b0 00 00 00 | 48 3b c7 | 73 0f | 48 8d 8b a8 00 00 00
-  0x493002e: e8 bd ec 15 fd | 8b 7d 97 | 4c 8b 83 b0 00 00 00 | 4c 8d 4d 97
-  0x4930041: ba 03 00 00 10 | c7 44 24 20 18 00 00 00 | 48 8b ce | ff 15 59 96 b0 01
-  0x4930057: 8b f0 | 3b c7 | 0f 84 8f 00 00 00 | 48 8b 0d 08 a1 80 03
-  0x4930068: 80 f9 06 | 0f 82 56 01 00 00 | 48 c1 e9 08 | 80 f9 02
-  0x4930078: 0f 82 49 01 00 00 | 48 8d 05 aa b1 f2 02 | 48 89 45 9f | 48 8b 5d 9f
-  0x493008d: 48 81 c3 91 d3 c3 ff | ff 15 0e 8d b0 01 | 48 c7 c1 ff ff ff ff | 48 89 5d e7
-  0x49300a5: 48 ff c1 | 80 3c 0b 00 | 75 f7 | 89 45 a7
-  0x49300b1: 48 8d 45 f7 | 0f 10 45 a7 | 89 75 b7 | 0f 10 4d b7
-  0x49300c0: 89 7d c7 | 0f 11 45 f7 | 48 89 4d ef | 0f 10 45 c7
-  0x49300cf: 48 c7 45 d7 22 02 00 00 | 48 89 45 df | 0f 11 45 17 | 0f 28 45 d7
-  0x49300e3: 0f 11 4d 07 | 0f 28 4d e7 | e9 aa 00 00 00 | 48 8b 93 b0 00 00 00
-  0x49300f7: 4d 8b c6 | 48 8b cb | e8 0e 01 00 00 | b0 01
-  0x4930104: e9 c0 00 00 00 | 48 8b 05 60 a0 80 03 | 3c 06 | 0f 82 af 00 00 00
-  0x4930118: 48 c1 e8 08 | 3c 02 | 0f 82 a3 00 00 00 | 48 8d 05 a4 98 ee 02
-  0x493012b: 48 89 45 9f | 48 8b 5d 9f | 48 81 c3 61 ec c7 ff | ff 15 68 8c b0 01
-  0x4930140: 48 c7 c1 ff ff ff ff | 48 89 5d d7 | 0f 1f 44 00 00 | 48 ff c1
-  0x4930153: 80 3c 0b 00 | 75 f7 | 89 45 c7 | 0f 10 45 c7
-  0x4930160: 8b 45 97 | 89 45 a7 | 48 8d 45 f7 | 0f 11 45 f7
-  0x493016e: 44 89 7d b7 | 0f 10 45 a7 | 48 89 4d df | 0f 10 4d b7
-  0x493017e: 48 c7 45 e7 22 02 00 00 | 48 89 45 ef | 0f 11 45 17 | 0f 28 45 e7
-  0x4930192: 0f 11 4d 07 | 0f 28 4d d7 | 66 0f 7f 45 c7 | 4c 8d 4d c7
-  0x49301a3: 0f 10 05 c6 9f 80 03 | 4c 8d 45 b7 | c6 44 24 20 01 | b2 02
-  0x49301b5: 66 0f 7f 4d b7 | 48 8d 4d a7 | 0f 29 45 a7 | e8 09 1b 04 00
-  0x49301c7: 32 c0 | 48 8b bc 24 08 01 00 00 | 4c 8b bc 24 d0 00 00 00 | 48 8b 4d 27
-  0x49301dd: 48 33 cc | e8 bb 46 4b 01 | 48 81 c4 d8 00 00 00 | 41 5e
-  0x49301ee: 5e | 5b | 5d | c3
-  0x49301f2: 48 8d 15 07 85 b6 02 | 33 c9 | e8 90 0e 04 00
 
 [Strings .rdata na função]
   * [FLog::WindowsRawInputBrokerLog] RegisterRawInputDevices failed with error {} (hwnd {}, removing
