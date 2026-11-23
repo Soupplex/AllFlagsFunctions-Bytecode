@@ -9,7 +9,7 @@ Operação  : 0x48b3c8d: cmp [flag], reg ; fn=0x48b3c40..0x48b3f55
     Classe  : RBX::NetworkFilter (Inferido)
     Padrão  : DFIntNetworkFilterReportRate = 1 (default) [int, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : ret_0x4975550_1 - ((uint32_t)rdx >> 13) * 10000 < NetworkFilterReportRate
+    Fórmula : ret_0x4975550_1 - ((uint32_t)rdx >> 13) * 10000 >= NetworkFilterReportRate
     Altera  : this->field_0x8, this->field_0x10, this->field_0x18, this->field_0x20, this->field_0x28, this->field_0x30
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
@@ -50,9 +50,9 @@ Operação  : 0x48b3c8d: cmp [flag], reg ; fn=0x48b3c40..0x48b3f55
           this->field_0x38 = 0;
         }
       } else {
-        call_0x48b3990(&local_0x20, &this->field_0x8);
-        call_0x48b3990(&local_0x20, &this->field_0x18);
-        call_0x48b3990(&local_0x20, &this->field_0x28);
+        call_0x48b3990(std::string_view("InList", 6), &this->field_0x8);
+        call_0x48b3990(std::string_view("NotInList", 9), &this->field_0x18);
+        call_0x48b3990(std::string_view("Others", 6), &this->field_0x28);
         if (NetworkFilterCountersForEverythingElse) {
           if (this->field_0x38 != 0) {
             call_0x6e43b0(&local_0x30, &sym_0x8190808);
@@ -289,13 +289,13 @@ Operação  : 0x48b3c8d: cmp [flag], reg ; fn=0x48b3c40..0x48b3f55
     bool SubObj_0x48b3990::func_0x48b3990(SubObj_0x48b3990* this, int64_t param_2) {
       if (param_2->field_0x4 != 0) {
         call_0x6e43b0(&local_0x40, &sym_0x81907a8);
-        call_0x2dbdab0(&local_0x320, &local_0x20, &local_0x30, 1);
+        call_0x2dbdab0(&local_0x320, std::string_view("group", 5), &local_0x30, 1);
         call_0x2daef40(&local_0x328);
         call_0x6e41c0(&local_0x320);
         call_0x6f8fb0(&local_0x68);
         if (param_2->field_0x0 != 0) {
           call_0x6e43b0(&local_0x40, &sym_0x81907c0);
-          call_0x2dbdab0(&local_0x320, &local_0x20, &local_0x30, 1);
+          call_0x2dbdab0(&local_0x320, std::string_view("group", 5), &local_0x30, 1);
           call_0x2daef40(&local_0x328);
           call_0x6e41c0(&local_0x320);
           call_0x6f8fb0(&local_0x68);
@@ -303,14 +303,14 @@ Operação  : 0x48b3c8d: cmp [flag], reg ; fn=0x48b3c40..0x48b3f55
       }
       if (param_2->field_0xc != 0) {
         call_0x6e43b0(&local_0x40, &sym_0x81907d8);
-        call_0x2dbdab0(&local_0x320, &local_0x20, &local_0x30, 1);
+        call_0x2dbdab0(&local_0x320, std::string_view("group", 5), &local_0x30, 1);
         call_0x2daef40(&local_0x328);
         call_0x6e41c0(&local_0x320);
         call_0x6f8fb0(&local_0x68);
       }
       if (param_2->field_0x8 != 0) {
         call_0x6e43b0(&local_0x40, &sym_0x81907f0);
-        call_0x2dbdab0(&local_0x320, &local_0x20, &local_0x30, 1);
+        call_0x2dbdab0(&local_0x320, std::string_view("group", 5), &local_0x30, 1);
         call_0x2daef40(&local_0x328);
         call_0x6e41c0(&local_0x320);
         call_0x6f8fb0(&local_0x68);
@@ -461,20 +461,44 @@ Operação  : 0x48b3c8d: cmp [flag], reg ; fn=0x48b3c40..0x48b3f55
     0x48b3c2f | 5f                       | pop rdi
     0x48b3c30 | 5d                       | pop rbp
     0x48b3c31 | c3                       | ret
+  
+  === [Decompilacao da Rotina Chamadora (Caller): 0x48b3f60..0x48b3fbd em RBX::NetworkFilter] ===
+    struct RBX::NetworkFilter {
+      /* +0x0 */ double  field_0x0;
+    };
+    
+    // Flag defaults: NetworkFilterReportFilterGroupsCooldownSeconds = 30
+    void RBX::NetworkFilter::func_0x48b3f60(RBX::NetworkFilter* this) {
+      call_0x2937a50(&local_0x40);
+      if (!isnan(this->field_0x0)) {
+        if (this->field_0x0 != 0.0) {
+          if (local_0x40 - this->field_0x0 < (double)NetworkFilterReportFilterGroupsCooldownSeconds) {
+            return;
+          }
+        }
+        call_0x48b3c40(this);
+        this->field_0x0 = local_0x40;
+        return;
+      }
+      if (local_0x40 - this->field_0x0 >= (double)NetworkFilterReportFilterGroupsCooldownSeconds) {
+        call_0x48b3c40(this);
+        this->field_0x0 = local_0x40;
+      }
+    }
 
 [Strings .rdata na função]
-  * InList
-  * NotInList
-  * Others
-  * group
+  * "InList"  [@rdata 0x748daec, ref @0x48b3cc1, string_view len=6]
+  * "NotInList"  [@rdata 0x748dae0, ref @0x48b3cef, string_view len=9]
+  * "Others"  [@rdata 0x748da10, ref @0x48b3d1d, string_view len=6]
+  * "group"  [@rdata 0x71ad188, ref @0x48b39c7, string_view len=5]
 
 [Co-Flags na mesma função]
   * DFFlagNetworkFilterCountersForEverythingElse = false (default)
+  * DFIntNetworkFilterReportFilterGroupsCooldownSeconds = 30 (default)
   * FFlagLatencyLogging1 = false (default) [vizinha em .data]
   * FFlagNLSMAddLatencyMetrics = false (default) [vizinha em .data]
   * DFLogRCCNetLatency = 0 (default) [vizinha em .data]
   * DFFlagLatencyLoggingRemoteName = false (default) [vizinha em .data]
-  * DFIntNetworkFilterReportFilterGroupsCooldownSeconds = 30 (default) [vizinha em .data]
   * FLogVoxelGridStreaming = 0 (default) [vizinha em .data]
   * DFIntTerrainFragmentStreamingTelemetryPerMyriad = 100 (default) [vizinha em .data]
   * DFIntTerrainFragmentStreamingFailureTelemetryPerMyriad = 10000 (default) [vizinha em .data]

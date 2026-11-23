@@ -9,7 +9,7 @@ Operação  : 0x3b173a2: mov/math reg, [flag] ; fn=0x3b17370..0x3b176f0
     Classe  : RBX::ReportInteractivity (Inferido)
     Padrão  : DFIntReportInteractivitySelectionModeSummaryEventThrottleHundrethsPercent = 10000 (default) [int, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : v_r8_1 >= ReportInteractivitySelectionModeSummaryEventThrottleHundrethsPercent
+    Fórmula : v_r8_1 < ReportInteractivitySelectionModeSummaryEventThrottleHundrethsPercent
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x3b17356 (in fn_0x3b17300): jmp 0x3b17370  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
@@ -41,10 +41,10 @@ Operação  : 0x3b173a2: mov/math reg, [flag] ; fn=0x3b17370..0x3b176f0
         std::string::_Tidy_deallocate(local_0x50);
         call_0x2dc1e30(&local_0x350);
         call_0x2dc1b60(&local_0x350);
-        call_0x2dbdec0(&local_0x350, &local_0x50, this->field_0x119, 1);
-        call_0x2dbd340(&local_0x350, &local_0x50, this->field_0x108, 1);
-        call_0x2dbdec0(&local_0x350, &local_0x50, this->field_0x11a, 1);
-        call_0x2dbd340(&local_0x350, &local_0x50, this->field_0x110, 1);
+        call_0x2dbdec0(&local_0x350, std::string_view("gamepad_user", 12), this->field_0x119, 1);
+        call_0x2dbd340(&local_0x350, std::string_view("uimode_timespent_sec", 20), this->field_0x108, 1);
+        call_0x2dbdec0(&local_0x350, std::string_view("keyboard_user", 13), this->field_0x11a, 1);
+        call_0x2dbd340(&local_0x350, std::string_view("vcmode_timespent_sec", 20), this->field_0x110, 1);
         call_0x2db2c00(&local_0x398);
         call_0x6f5b70(&local_0x370);
         call_0x6f5b70(&local_0x350);
@@ -58,7 +58,7 @@ Operação  : 0x3b173a2: mov/math reg, [flag] ; fn=0x3b17370..0x3b176f0
           L_0x3b175e0:
           call_0x6e45a0(&local_0x3d0, &sym_0x8188cd0);
           auto ret_0x4954e70_17 = call_0x4954e70(global_0x84bc6dc);
-          (((local_0x440->field_0x4 + &local_0x440)->field_0x0))->vfunc_0x10(local_0x440->field_0x4 + &local_0x440, &local_0x30, &local_0x50, 1);
+          (*(void***)((uint8_t*)&local_0x440 + local_0x440->field_0x4))->vfunc_0x10((uint8_t*)&local_0x440 + local_0x440->field_0x4, std::string_view("SelectionModeType", 17), &local_0x50, 1);
           call_0x4954e70(ret_0x4954e70_17);
           call_0x2db1560(&local_0x6f0, fxmm6_3);
           call_0x2db1900(&local_0x6d0);
@@ -262,16 +262,41 @@ Operação  : 0x3b173a2: mov/math reg, [flag] ; fn=0x3b17370..0x3b176f0
     L_0x3b176ea:
     0x3b176ea | e8 91 ce 2f 02           | call 0x5e14580
     0x3b176ef | 90                       | nop
+  
+  === [Decompilacao da Rotina Chamadora (Caller): 0x3b17300..0x3b17361 em RBX::ReportInteractivity] ===
+    struct RBX::ReportInteractivity {
+      /* +0x103 */ int32_t field_0x103;
+      /* +0x118 */ uint8_t field_0x118;
+      /* +0x11a */ uint8_t field_0x11a;
+    };
+    
+    // Flag defaults: EnableGamepadKeycodeUsageTelemetry = false
+    auto RBX::ReportInteractivity::func_0x3b17300(RBX::ReportInteractivity* this) {
+      if ((uint8_t)(atomic_exchange(&this->field_0x103, 1)) == 0) {
+        if (EnableGamepadKeycodeUsageTelemetry != (uint8_t)(atomic_exchange(&this->field_0x103, 1))) {
+          call_0x3b176f0(this);
+        }
+        auto ret_0x4062570_2 = call_0x4062570(this);
+        if (ret_0x4062570_2 != 0 && ret_0x4062570_2->field_0x390 != 0) {
+          if (this->field_0x118 != 0 || this->field_0x11a != 0) {
+            return tailcall_0x3b17370(this);
+          }
+          return;
+        }
+        return;
+      }
+    }
 
 [Strings .rdata na função]
-  * gamepad_user
-  * uimode_timespent_sec
-  * keyboard_user
-  * vcmode_timespent_sec
-  * SelectionModeType
-  * PointAndClick
+  * "gamepad_user"  [@rdata 0x73ef7f8, ref @0x3b17475, string_view len=12]
+  * "uimode_timespent_sec"  [@rdata 0x73ef838, ref @0x3b174b4, string_view len=20]
+  * "keyboard_user"  [@rdata 0x73ef828, ref @0x3b174f2, string_view len=13]
+  * "vcmode_timespent_sec"  [@rdata 0x73ef860, ref @0x3b17531, string_view len=20]
+  * "SelectionModeType"  [@rdata 0x73ef880, ref @0x3b175f4, string_view len=17]
+  * "PointAndClick"  [@rdata 0x73ef850, ref @0x3b17632, string_view len=13]
 
 [Co-Flags na mesma função]
+  * FFlagEnableGamepadKeycodeUsageTelemetry = false (default)
   * FFlagPTFScrollingFrameAncestorMatchingDirection = false (default) [vizinha em .data]
   * FIntGamepadMaxSelectionUSec = 3000 (default) [vizinha em .data]
   * FIntGamepadMinAnalogChangeHundredths = 10 (default) [vizinha em .data]

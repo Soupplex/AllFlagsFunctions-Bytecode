@@ -9,8 +9,7 @@ Operação  : 0x2baa5de: mov/math reg, [flag] ; fn=0x2baa5b0..0x2baa780
     Classe  : RBX::DebugHttp (Inferido)
     Padrão  : DFLogDebugHttpTrace = 0 (default) [log, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : DebugHttpTrace < 6
-    Fórmula : (uint64_t)DebugHttpTrace >> 8 < 4
+    Fórmula : (uint8_t)DebugHttpTrace >= 6 && (uint8_t)((uint64_t)DebugHttpTrace >> 8) >= 4
     Altera  : this->field_0x1fe, this->field_0x1ff
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
@@ -29,13 +28,13 @@ Operação  : 0x2baa5de: mov/math reg, [flag] ; fn=0x2baa5b0..0x2baa780
     
     // Flag defaults: DebugHttpTrace = 0
     void RBX::DebugHttp::func_0x2baa5b0(RBX::DebugHttp* this, int64_t param_2, void* param_3) {
-      if (param_3 != 0) {
-        if (DebugHttpTrace >= 6 && (uint64_t)DebugHttpTrace >> 8 >= 4) {
-          FLog::Log("[DFLog::DebugHttpTrace] HttpRequestCurl({}): Uncompressed post data: {}");
+      if ((uint8_t)param_3 != 0) {
+        if ((uint8_t)DebugHttpTrace >= 6 && (uint8_t)((uint64_t)DebugHttpTrace >> 8) >= 4) {
+          FLog::Log("[DFLog::DebugHttpTrace] HttpRequestCurl({}): Uncompressed post data: {}", this, param_2);
         }
         auto ret_0x2baa140_1 = call_0x2baa140(&local_0x30, &this->field_0x178);
         if (ret_0x2baa140_1 == 0 && this->field_0x188 <= param_2->field_0x8) {
-          call_0x2ba9aa0(this, &local_0x60, &local_0x30);
+          call_0x2ba9aa0(this, std::string_view("Content-Encoding", 16), std::string_view("gzip", 4));
           this->field_0x1fe = 1;
           this->field_0x1ff = 1;
           return;
@@ -366,11 +365,45 @@ Operação  : 0x2baa5de: mov/math reg, [flag] ; fn=0x2baa5b0..0x2baa780
     0x2baa370 | 49 8b e3                 | mov rsp, r11
     0x2baa373 | 5e                       | pop rsi
     0x2baa374 | c3                       | ret
+  
+  === [Decompilacao da Rotina Chamadora (Caller): 0x2baa380..0x2baa50f em RBX::DebugHttp] ===
+    struct RBX::DebugHttp {
+      /* +0x178 */ int32_t field_0x178;
+      /* +0x188 */ int32_t field_0x188;
+      /* +0x1fe */ uint8_t field_0x1fe;
+    };
+    
+    void RBX::DebugHttp::func_0x2baa380(RBX::DebugHttp* this, int64_t param_2, void* param_3) {
+      call_0xe38290(param_2, 0, 2);
+      auto ret_0x110c480_2 = call_0x110c480(param_2, &local_0x30);
+      call_0xe38290(param_2, 0, 0);
+      int64_t local_0x50;
+      if (ret_0x110c480_2->field_0x8 + ret_0x110c480_2->field_0x0 == 0) {
+        (ret_0x110c480_2->field_0x8 + ret_0x110c480_2->field_0x0)->field_m0x30[rsp] = (uint8_t)(ret_0x110c480_2->field_0x8 + ret_0x110c480_2->field_0x0);
+      } else {
+        local_0x50 = 0;
+        call_0x6f9a40(&local_0x50, ret_0x110c480_2->field_0x8 + ret_0x110c480_2->field_0x0, 0);
+      }
+      call_0x108c7a0(param_2, local_0x50.c_str(), ret_0x110c480_2->field_0x8 + ret_0x110c480_2->field_0x0);
+      int64_t local_0x30;
+      if (param_3 != 0) {
+        local_0x30 = local_0x50;
+        call_0x2baa5b0(this, &local_0x30, param_3);
+      } else {
+        if (&this->field_0x178 != &local_0x50) {
+          call_0x6f8fb0(&this->field_0x178);
+          this->field_0x178 = local_0x50;
+          this->field_0x188 = local_0x60;
+        }
+        this->field_0x1fe = 1;
+      }
+      std::string::_Tidy_deallocate(local_0x50);
+    }
 
 [Strings .rdata na função]
-  * [DFLog::DebugHttpTrace] HttpRequestCurl({}): Uncompressed post data: {}
-  * gzip
-  * Content-Encoding
+  * "[DFLog::DebugHttpTrace] HttpRequestCurl({}): Uncompressed post data: {}"  [@rdata 0x7344550, ref @0x2baa611, FLog format]
+  * "gzip"  [@rdata 0x7288ea8, ref @0x2baa6e8, string_view len=4]
+  * "Content-Encoding"  [@rdata 0x7342308, ref @0x2baa6fc, key/identifier]
 
 [Co-Flags na mesma função]
   * FFlagHttpGzipSizeWindowToBody = false (default)

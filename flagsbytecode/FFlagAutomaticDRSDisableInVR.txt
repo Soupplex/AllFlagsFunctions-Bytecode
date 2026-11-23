@@ -10,7 +10,16 @@ Operação  : 0x48f6659: cmp byte [flag], imm8 ; fn=0x48f6620..0x48f6a46
     Padrão  : FFlagAutomaticDRSDisableInVR = false (default) [bool, mode=1]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
     Fórmula : AutomaticDRSDisableInVR && this->field_0x11 != 0
-    Altera  : this->field_0xb08, this->field_0xb11, this->field_0xaf8, this->field_0xaf4, this->field_0xb00, this->field_0xb10
+    Altera  : this->automaticDRSScaleUpCooldownMs2_0xb08, this->field_0xb11, this->field_0xaf8, this->debugAutomaticDRSAreaScaleOverrideTenths_0xaf4, this->field_0xb00, this->field_0xb10
+  
+  === [Mapeamento de Campos da Struct (RTTI & Cross-Function Linker)] ===
+    this->field_0x54 (offset +0x54) <- DFIntDebugAutomaticDRSAreaScaleOverrideTenths = -1 (@0x48f675b)
+    this->field_0x178 (offset +0x178) <- FIntAutomaticDRSGpuTimeValidityWindowFrames = 100 (@0x48f6829)
+    this->field_0x298 (offset +0x298) <- FIntAutomaticDRSGpuTimeValidityWindowFrames = 100 (@0x48f6829)
+    this->debugAutomaticDRSAreaScaleOverrideTenths_0xaf4 (offset +0xaf4) <- DFIntDebugAutomaticDRSAreaScaleOverrideTenths = -1 (@0x48f675b)
+    this->debugAutomaticDRSAreaScaleOverrideTenths_0xafc (offset +0xafc) <- DFIntDebugAutomaticDRSAreaScaleOverrideTenths = -1 (@0x48f675b), FIntAutomaticDRSScaleUpCooldownMs2 = 1000 (@0x48f680b)
+    this->field_0xb00 (offset +0xb00) <- FFlagApplicationFrameRatePolicy3 = true (@0x48f6738)
+    this->automaticDRSScaleUpCooldownMs2_0xb08 (offset +0xb08) <- FIntAutomaticDRSScaleUpCooldownMs2 = 1000 (@0x48f680b), FIntAutomaticDRSScaleUpCooldownMs2 = 1000 (@0x48f68e3)
   
   === [Decompilacao C++ da Funcao 0x48f6620..0x48f6a46] ===
     struct RBX::AutomaticDRSScale {
@@ -25,11 +34,11 @@ Operação  : 0x48f6659: cmp byte [flag], imm8 ; fn=0x48f6620..0x48f6a46
       /* +0x290 */ double  field_0x290;
       /* +0x298 */ int32_t field_0x298;
       /* +0xaf0 */ float   field_0xaf0;
-      /* +0xaf4 */ float   field_0xaf4;
+      /* +0xaf4 */ float   debugAutomaticDRSAreaScaleOverrideTenths_0xaf4;
       /* +0xaf8 */ float   field_0xaf8;
-      /* +0xafc */ int32_t field_0xafc;
+      /* +0xafc */ int32_t debugAutomaticDRSAreaScaleOverrideTenths_0xafc;
       /* +0xb00 */ int32_t field_0xb00;
-      /* +0xb08 */ double  field_0xb08;
+      /* +0xb08 */ double  automaticDRSScaleUpCooldownMs2_0xb08;
       /* +0xb10 */ uint8_t field_0xb10;
       /* +0xb11 */ uint8_t field_0xb11;
       /* +0xb12 */ uint8_t field_0xb12;
@@ -37,143 +46,148 @@ Operação  : 0x48f6659: cmp byte [flag], imm8 ; fn=0x48f6620..0x48f6a46
     
     // Flag defaults: AutomaticDRSScaleUpCooldownMs2 = 1000, DebugDisableDRS = false, AutomaticDRSDisableInVR = false, AutomaticDRSUseStricterTickTargetForUserCap = true, ApplicationFrameRatePolicy3 = true, DebugAutomaticDRSAreaScaleOverrideTenths = -1, AutomaticDRSGpuTimeValidityWindowFrames = 100
     void RBX::AutomaticDRSScale::func_0x48f6620(RBX::AutomaticDRSScale* this, int64_t param_2, float param_3) {
-      float fxmm0_3;
-      float fxmm10_4;
-      float fxmm6_1;
-      if (DebugDisableDRS) {
+      if (!DebugDisableDRS) {
         if (AutomaticDRSDisableInVR && this->field_0x11 != 0) {
           call_0x48f6c10(this);
           return;
         }
         this->field_0xb11 = 1;
-        if (param_2->field_0x4 > 1.0) {
-          fxmm6_1 = 1.0;
+        float fxmm6_1;
+        if (param_2->field_0x4 > 1.0f) {
+          fxmm6_1 = 1.0f;
         } else if (0.0 > param_2->field_0x4) {
           fxmm6_1 = 0.0;
         } else {
           fxmm6_1 = param_2->field_0x4;
         }
-        if (max(0.25, param_2->field_0x0) > fxmm6_1) {
-          fxmm0_3 = param_2->field_0x0;
-          fxmm10_4 = fxmm6_1;
+        float fxmm10_2;
+        if (max(0.25f, param_2->field_0x0) > fxmm6_1) {
+          fxmm10_2 = fxmm6_1;
         } else {
-          fxmm0_3 = param_2->field_0x0;
-          fxmm10_4 = max(0.25, param_2->field_0x0);
+          fxmm10_2 = max(0.25f, param_2->field_0x0);
         }
-      }
-      fxmm0_3 = xmm0;
-      this->field_0xaf8 = fxmm6_1;
-      this->field_0xaf4 = min(fxmm0_3, fxmm6_1);
-      this->field_0xb00 = param_2->field_0x8;
-      if (AutomaticDRSUseStricterTickTargetForUserCap && param_2->field_0x10 >= 0) {
-        call_0x29aab60();
-        if (global_0x84a44d6 != 0 && ApplicationFrameRatePolicy3) {
-          auto ret_0x29aab60_3 = call_0x29aab60();
-          auto ret_0x29aafa0_4 = call_0x29aafa0(ret_0x29aab60_3);
-          if (ret_0x29aafa0_4 != 0) {
-            this->field_0xb00 = param_2->field_0x10;
-          }
-        }
-      }
-      float prev_0xaf0_5;
-      float fxmm7_14;
-      if (DebugAutomaticDRSAreaScaleOverrideTenths >= 0) {
-        this->field_0xb10 = 1;
-        this->field_0xaf4 = 0;
-        this->field_0xafc = this->field_0x54;
-        if ((float)DebugAutomaticDRSAreaScaleOverrideTenths * 0.1 <= 1.0) {
-          if (0.0 > (float)DebugAutomaticDRSAreaScaleOverrideTenths * 0.1) {
-            fxmm7_14 = 0.0;
-          } else {
-            float ftmp_2 = (float)DebugAutomaticDRSAreaScaleOverrideTenths * 0.1;
-            fxmm7_14 = ftmp_2;
-          }
-        } else {
-          fxmm7_14 = 1.0;
-        }
-        prev_0xaf0_5 = this->field_0xaf0;
-        this->field_0xaf0 = fxmm7_14;
-        this->field_0xb08 = 0;
-      } else {
-        this->field_0xb10 = this->field_0x54 < this->field_0xb00;
-        float fxmm6_12;
-        if (this->field_0x54 >= this->field_0xb00) {
-          call_0x48f6c10(this);
-          this->field_0xaf8 = fxmm6_1;
-          this->field_0xaf4 = fxmm6_1;
-          fxmm6_12 = fxmm6_1;
-        } else {
-          if (this->field_0x54 < this->field_0xafc && this->field_0x68 == 1) {
-            this->field_0xaf0 = fxmm10_4;
-            this->field_0xb08 = (double)AutomaticDRSScaleUpCooldownMs2;
-          }
-          this->field_0xafc = this->field_0x54;
-          double fxmm9_6;
-          if (this->field_0x298 <= AutomaticDRSGpuTimeValidityWindowFrames && this->field_0x290 >= 0.0) {
-            fxmm9_6 = this->field_0x290;
-          } else {
-            if (this->field_0x174 == this->field_0x178) {
-              fxmm9_6 = 0.0;
+        this->field_0xaf8 = fxmm6_1;
+        this->debugAutomaticDRSAreaScaleOverrideTenths_0xaf4 = min(param_2->field_0x0, fxmm6_1);
+        this->field_0xb00 = param_2->field_0x8;
+        float fxmm13_3;
+        if (AutomaticDRSUseStricterTickTargetForUserCap && param_2->field_0x10 >= 0) {
+          float prev_0xaf0_1 = this->field_0xaf0;
+          call_0x29aab60();
+          if (global_0x84a44d6 != 0 && ApplicationFrameRatePolicy3) {
+            auto ret_0x29aab60_3 = call_0x29aab60();
+            auto ret_0x29aafa0_4 = call_0x29aafa0(ret_0x29aab60_3);
+            if ((uint8_t)ret_0x29aafa0_4 != 0) {
+              this->field_0xb00 = param_2->field_0x10;
+              fxmm13_3 = prev_0xaf0_1;
             } else {
-              fxmm9_6 = this->field_0x180->field_0x0[(this->field_0x170 - 1 & this->field_0x178 - 1) * 8];
+              fxmm13_3 = prev_0xaf0_1;
             }
+          } else {
+            fxmm13_3 = prev_0xaf0_1;
           }
-          call_0x48f6a50(this, &local_0x20, 1);
-          float fxmm2_8;
-          if (param_2->field_0xc > 0.0 && fxmm6_1 >= 1.0) {
-            if (param_2->field_0xc <= fxmm10_4) {
-              fxmm2_8 = 0.0;
+        } else {
+          fxmm13_3 = this->field_0xaf0;
+        }
+        float fxmm7_13;
+        if (DebugAutomaticDRSAreaScaleOverrideTenths >= 0) {
+          this->field_0xb10 = 1;
+          this->debugAutomaticDRSAreaScaleOverrideTenths_0xaf4 = 0;
+          this->debugAutomaticDRSAreaScaleOverrideTenths_0xafc = this->field_0x54;
+          if ((float)DebugAutomaticDRSAreaScaleOverrideTenths * 0.1f <= 1.0f) {
+            if (0.0 > (float)DebugAutomaticDRSAreaScaleOverrideTenths * 0.1f) {
+              fxmm7_13 = 0.0;
             } else {
-              fxmm2_8 = param_2->field_0xc;
+              float ftmp_2 = (float)DebugAutomaticDRSAreaScaleOverrideTenths * 0.1f;
+              fxmm7_13 = ftmp_2;
             }
           } else {
-            fxmm2_8 = 0.0;
+            fxmm7_13 = 1.0f;
           }
-          if (fxmm9_6 > local_0x20) {
-            this->field_0xaf0 = this->field_0xaf0 - param_3;
-            if (fxmm2_8 > 0.0 && this->field_0xaf0 - param_3 > fxmm2_8 + 0.0001) {
-              this->field_0xaf0 = fxmm2_8;
-            }
-            this->field_0xb08 = (double)AutomaticDRSScaleUpCooldownMs2;
+          this->field_0xaf0 = fxmm7_13;
+          this->automaticDRSScaleUpCooldownMs2_0xb08 = 0;
+        } else {
+          this->field_0xb10 = this->field_0x54 < this->field_0xb00;
+          float fxmm6_11;
+          if (this->field_0x54 >= this->field_0xb00) {
+            call_0x48f6c10(this);
+            this->field_0xaf8 = fxmm6_1;
+            this->debugAutomaticDRSAreaScaleOverrideTenths_0xaf4 = fxmm6_1;
+            fxmm6_11 = fxmm6_1;
           } else {
-            double prev_0xb08_2 = this->field_0xb08;
-            this->field_0xb08 = max(this->field_0xb08 - this->field_0x128, 0.0);
-            if (0.0 >= max(prev_0xb08_2 - this->field_0x128, 0.0) && local_0x20 - local_0x28 > fxmm9_6) {
-              float prev_0xaf0_3 = this->field_0xaf0;
-              this->field_0xaf0 = this->field_0xaf0 + param_3;
-              if (fxmm2_8 > 0.0 && this->field_0xaf0 + param_3 > fxmm2_8 + 0.0001) {
-                double ftmp_1 = (double)(fxmm6_1 / max(0.25, prev_0xaf0_3)) * fxmm9_6;
-                float fxmm2_9;
-                if (local_0x20 - local_0x28 > ftmp_1) {
-                  fxmm2_9 = fxmm6_1;
-                } else if (fxmm2_8 <= prev_0xaf0_3) {
-                  fxmm2_9 = prev_0xaf0_3;
-                } else {
-                  fxmm2_9 = fxmm2_8;
-                }
-                this->field_0xaf0 = fxmm2_9;
+            if (this->field_0x54 < this->debugAutomaticDRSAreaScaleOverrideTenths_0xafc && this->field_0x68 == 1) {
+              this->field_0xaf0 = fxmm10_2;
+              this->automaticDRSScaleUpCooldownMs2_0xb08 = (double)AutomaticDRSScaleUpCooldownMs2;
+            }
+            this->debugAutomaticDRSAreaScaleOverrideTenths_0xafc = this->field_0x54;
+            double fxmm9_4;
+            if (this->field_0x298 <= AutomaticDRSGpuTimeValidityWindowFrames && this->field_0x290 >= 0.0) {
+              fxmm9_4 = this->field_0x290;
+            } else {
+              if (this->field_0x174 == this->field_0x178) {
+                fxmm9_4 = 0.0;
+              } else {
+                fxmm9_4 = this->field_0x180->field_0x0[(this->field_0x170 - 1 & this->field_0x178 - 1) * 8];
               }
             }
-          }
-          if (this->field_0xaf0 <= fxmm6_1) {
-            if (fxmm10_4 > this->field_0xaf0) {
-              fxmm6_12 = fxmm10_4;
+            call_0x48f6a50(this, &local_0x20, 1);
+            float fxmm2_6;
+            if (param_2->field_0xc > 0.0 && fxmm6_1 >= 1.0f) {
+              if (param_2->field_0xc <= fxmm10_2) {
+                fxmm2_6 = 0.0;
+              } else {
+                fxmm2_6 = param_2->field_0xc;
+              }
             } else {
-              fxmm6_12 = this->field_0xaf0;
+              fxmm2_6 = 0.0;
             }
-          } else {
-            fxmm6_12 = fxmm6_1;
+            if (fxmm9_4 > local_0x20) {
+              this->field_0xaf0 = this->field_0xaf0 - param_3;
+              if (fxmm2_6 > 0.0 && this->field_0xaf0 - param_3 > fxmm2_6 + 0.0001f) {
+                this->field_0xaf0 = fxmm2_6;
+              }
+              this->automaticDRSScaleUpCooldownMs2_0xb08 = (double)AutomaticDRSScaleUpCooldownMs2;
+            } else {
+              double mem_2_2 = this->automaticDRSScaleUpCooldownMs2_0xb08;
+              this->automaticDRSScaleUpCooldownMs2_0xb08 = max(this->automaticDRSScaleUpCooldownMs2_0xb08 - this->field_0x128, 0.0);
+              if (0.0 >= max(mem_2_2 - this->field_0x128, 0.0) && local_0x20 - local_0x28 > fxmm9_4) {
+                float prev_0xaf0_3 = this->field_0xaf0;
+                this->field_0xaf0 = this->field_0xaf0 + param_3;
+                if (fxmm2_6 > 0.0 && this->field_0xaf0 + param_3 > fxmm2_6 + 0.0001f) {
+                  double ftmp_1 = (double)(fxmm6_1 / max(0.25f, prev_0xaf0_3)) * fxmm9_4;
+                  float fxmm2_7;
+                  if (local_0x20 - local_0x28 > ftmp_1) {
+                    fxmm2_7 = fxmm6_1;
+                  } else if (fxmm2_6 <= prev_0xaf0_3) {
+                    fxmm2_7 = prev_0xaf0_3;
+                  } else {
+                    fxmm2_7 = fxmm2_6;
+                  }
+                  this->field_0xaf0 = fxmm2_7;
+                }
+              }
+            }
+            if (this->field_0xaf0 <= fxmm6_1) {
+              if (fxmm10_2 > this->field_0xaf0) {
+                fxmm6_11 = fxmm10_2;
+              } else {
+                fxmm6_11 = this->field_0xaf0;
+              }
+            } else {
+              fxmm6_11 = fxmm6_1;
+            }
           }
+          this->field_0xaf0 = fxmm6_11;
         }
-        this->field_0xaf0 = fxmm6_12;
+        uint8_t v_al_16;
+        if (!isnan(fxmm7_13) && !isnan(fxmm13_3) && fxmm7_13 == fxmm13_3) {
+          v_al_16 = 0;
+        } else {
+          v_al_16 = 1;
+        }
+        this->field_0xb12 = v_al_16;
+        return;
       }
-      uint8_t v_al_16;
-      if (!isnan(fxmm7_14) && !isnan(prev_0xaf0_5) && fxmm7_14 == prev_0xaf0_5) {
-        v_al_16 = 0;
-      } else {
-        v_al_16 = 1;
-      }
-      this->field_0xb12 = v_al_16;
+      call_0x48f6c10(this);
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -187,7 +201,7 @@ Operação  : 0x48f6659: cmp byte [flag], imm8 ; fn=0x48f6620..0x48f6a46
     0x48f6640 | f3 44 0f 10 a9 f0 0a 00.. | movss xmm13, dword ptr [rcx + 0xaf0]
     0x48f6649 | 44 0f 29 74 24 30        | movaps xmmword ptr [rsp + 0x30], xmm14
     0x48f664f | 44 0f 28 f2              | movaps xmm14, xmm2
-    0x48f6653 | 0f 84 9a 00 00 00        | je 0x48f66f3 ; [Nanomite Reconstructed: je +0x9a via cfg_join_label_resolver]
+    0x48f6653 | 0f 85 e6 03 00 00        | jne 0x48f6a3f
     0x48f6659 | 80 3d 18 30 84 03 00     | cmp byte ptr [rip + 0x3843018], 0x0 ; FFlagAutomaticDRSDisableInVR
     0x48f6660 | 74 0a                    | je 0x48f666c
     0x48f6662 | 80 79 11 00              | cmp byte ptr [rcx + 0x11], 0x0
@@ -446,7 +460,7 @@ Operação  : 0x48f6659: cmp byte [flag], imm8 ; fn=0x48f6620..0x48f6a46
       this->field_0xaf4 = 1.0f;
       this->field_0xaf8 = 1.0f;
       this->field_0xb08 = 0;
-      if (!isnan(1.0) && !isnan(prev_0xaf0_1) && 1.0 == prev_0xaf0_1) {
+      if (!isnan(1.0f) && !isnan(prev_0xaf0_1) && 1.0f == prev_0xaf0_1) {
         this->field_0xb12 = 0;
         return;
       }
@@ -477,12 +491,15 @@ Operação  : 0x48f6659: cmp byte [flag], imm8 ; fn=0x48f6620..0x48f6a46
     // Flag defaults: AutomaticDRSUseStricterTickTarget = true, AutomaticDRSUseStricterTickTargetForUserCap = true, ApplicationFrameRatePolicy3 = true
     auto SubObj_0x48f6a50::func_0x48f6a50(SubObj_0x48f6a50* this, int64_t param_2, void* param_3) {
       auto ret_0x48fae90_1 = call_0x48fae90(this, this->field_0x54);
+      double fxmm8_4;
       if (!AutomaticDRSUseStricterTickTarget) {
         if (AutomaticDRSUseStricterTickTargetForUserCap) {
           call_0x29aab60();
           if (global_0x84a44d6 != 0 && ApplicationFrameRatePolicy3 && param_3 != 0) {
             auto ret_0x29aab60_3 = call_0x29aab60();
             call_0x2e13a20(&local_0x30, ret_0x29aab60_3, 0);
+            auto prev_0x8_2 = ret_0x29aab60_3->field_0x8;
+            auto prev_0xc_3 = ret_0x29aab60_3->field_0xc;
             auto ret_0x29aabf0_5 = call_0x29aabf0(ret_0x29aab60_3);
             if ((local_0x30 & 0x1) != 0) {
               if ((local_0x30 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x30 & 0xfffffffe)->field_0x0, (local_0x30 & 0xfffffffe)->field_0x0, 1) != 0) {
@@ -490,12 +507,11 @@ Operação  : 0x48f6659: cmp byte [flag], imm8 ; fn=0x48f6620..0x48f6a46
               }
             }
             if (!AutomaticDRSUseStricterTickTarget) {
-              if (ret_0x29aab60_3->field_0x8 != 0) {
-                L_0x48f6b4b:
+              if (prev_0x8_2 != 0) {
                 double fxmm1_1;
                 double fxmm6_2;
-                if (ret_0x29aab60_3->field_0xc != 0) {
-                  double ftmp_1 = max(1000.0 / (double)ret_0x29aab60_3->field_0xc, ret_0x29aabf0_5);
+                if (prev_0xc_3 != 0) {
+                  double ftmp_1 = max(1000.0 / (double)prev_0xc_3, ret_0x29aabf0_5);
                   fxmm1_1 = ftmp_1;
                   fxmm6_2 = ftmp_1;
                 } else {
@@ -503,31 +519,32 @@ Operação  : 0x48f6659: cmp byte [flag], imm8 ; fn=0x48f6620..0x48f6a46
                   fxmm6_2 = ret_0x29aabf0_5;
                 }
                 if (fxmm1_1 > 0.0 && fxmm1_1 < (double)ret_0x48fae90_1) {
-                  double fxmm0_4;
+                  double fxmm0_5;
                   if (global_0x75a0e38 > (double)ret_0x48fae90_1) {
-                    fxmm0_4 = fxmm1_1 / (double)ret_0x48fae90_1 * (this->field_0x54 * 56)->field_0x408[this];
+                    fxmm0_5 = fxmm1_1 / (double)ret_0x48fae90_1 * prev_0x408[this]_1;
                   } else {
-                    double ftmp_2 = (this->field_0x54 * 56)->field_0x408[this];
-                    fxmm0_4 = ftmp_2;
+                    fxmm0_5 = prev_0x408[this]_1;
                   }
                   param_2->field_0x0 = fxmm6_2;
-                  param_2->field_0x8 = min(fxmm0_4, fxmm1_1);
+                  param_2->field_0x8 = min(fxmm0_5, fxmm1_1);
                 } else {
+                  fxmm8_4 = prev_0x408[this]_1;
                   L_0x48f6bcd:
                   param_2->field_0x0 = (double)ret_0x48fae90_1;
-                  param_2->field_0x8 = (this->field_0x54 * 56)->field_0x408[this];
+                  param_2->field_0x8 = fxmm8_4;
                 }
                 L_0x48f6bd7:
                 return param_2;
               }
+              fxmm8_4 = prev_0x408[this]_1;
               param_2->field_0x0 = (double)ret_0x48fae90_1;
-              param_2->field_0x8 = (this->field_0x54 * 56)->field_0x408[this];
+              param_2->field_0x8 = fxmm8_4;
               return param_2;
             }
             double fxmm1_1;
             double fxmm6_2;
-            if (ret_0x29aab60_3->field_0xc != 0) {
-              double ftmp_1 = max(1000.0 / (double)ret_0x29aab60_3->field_0xc, ret_0x29aabf0_5);
+            if (prev_0xc_3 != 0) {
+              double ftmp_1 = max(1000.0 / (double)prev_0xc_3, ret_0x29aabf0_5);
               fxmm1_1 = ftmp_1;
               fxmm6_2 = ftmp_1;
             } else {
@@ -535,41 +552,30 @@ Operação  : 0x48f6659: cmp byte [flag], imm8 ; fn=0x48f6620..0x48f6a46
               fxmm6_2 = ret_0x29aabf0_5;
             }
             if (fxmm1_1 > 0.0 && fxmm1_1 < (double)ret_0x48fae90_1) {
-              double fxmm0_4;
+              double fxmm0_5;
               if (global_0x75a0e38 > (double)ret_0x48fae90_1) {
-                fxmm0_4 = fxmm1_1 / (double)ret_0x48fae90_1 * (this->field_0x54 * 56)->field_0x408[this];
+                fxmm0_5 = fxmm1_1 / (double)ret_0x48fae90_1 * prev_0x408[this]_1;
               } else {
-                double ftmp_2 = (this->field_0x54 * 56)->field_0x408[this];
-                fxmm0_4 = ftmp_2;
+                fxmm0_5 = prev_0x408[this]_1;
               }
               param_2->field_0x0 = fxmm6_2;
-              param_2->field_0x8 = min(fxmm0_4, fxmm1_1);
+              param_2->field_0x8 = min(fxmm0_5, fxmm1_1);
             } else {
+              fxmm8_4 = prev_0x408[this]_1;
               goto L_0x48f6bcd;
             }
             goto L_0x48f6bd7;
           }
+          fxmm8_4 = prev_0x408[this]_1;
         }
+        fxmm8_4 = (this->field_0x54 * 56)->field_0x408[this];
         goto L_0x48f6bcd;
       }
       call_0x29aab60();
       if (global_0x84a44d6 != 0 && ApplicationFrameRatePolicy3 && param_3 != 0) {
-        auto ret_0x29aab60_3 = call_0x29aab60();
-        call_0x2e13a20(&local_0x30, ret_0x29aab60_3, 0);
-        auto ret_0x29aabf0_5 = call_0x29aabf0(ret_0x29aab60_3);
-        if ((local_0x30 & 0x1) != 0) {
-          if ((local_0x30 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x30 & 0xfffffffe)->field_0x0, (local_0x30 & 0xfffffffe)->field_0x0, 1) != 0) {
-            call_0xdac0(local_0x30 & 0xfffffffe);
-          }
-        }
-        if (!AutomaticDRSUseStricterTickTarget) {
-          if (ret_0x29aab60_3->field_0x8 != 0) {
-            goto L_0x48f6b4b;
-          }
-          goto L_0x48f6bcd;
-        }
-        goto L_0x48f6b4b;
+        goto L_0x48f6ae4;
       }
+      fxmm8_4 = prev_0x408[this]_1;
       goto L_0x48f6bcd;
     }
   

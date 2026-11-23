@@ -9,9 +9,7 @@ Operação  : 0x1213d67: mov/math reg, [flag] ; fn=0x1213d30..0x1213ffa
     Classe  : RBX::SubscriptionMembership (Inferido)
     Padrão  : DFLogSubscriptionMembership = 6 (default) [log, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : SubscriptionMembership < 6
-    Fórmula : (uint64_t)SubscriptionMembership >> 8 < 5
-    Fórmula : "[DFLog::SubscriptionMembership] Clearing product info caches"[0] != 0
+    Fórmula : (uint8_t)SubscriptionMembership >= 6 && (uint8_t)((uint64_t)SubscriptionMembership >> 8) >= 5
     Altera  : this->field_0x5d8, this->field_0xa38->field_0x0, this->field_0xa38->field_0x8, this->field_0xa40, this->field_0xa88
   
   === [Decompilacao C++ da Funcao 0x1213d30..0x1213ffa] ===
@@ -27,12 +25,16 @@ Operação  : 0x1213d67: mov/math reg, [flag] ; fn=0x1213d30..0x1213ffa
     
     // Flag defaults: SubscriptionMembership = 6, EnableMarketplaceServiceProductInfoCacheGenerationGuard = true, EnableRequestOrchestratorCacheGenerationGuard = true
     void RBX::SubscriptionMembership::func_0x1213d30(RBX::SubscriptionMembership* this) {
-      if (SubscriptionMembership >= 6 && (uint64_t)SubscriptionMembership >> 8 >= 5) {
+      if ((uint8_t)SubscriptionMembership >= 6 && (uint8_t)((uint64_t)SubscriptionMembership >> 8) >= 5) {
         FLog::Log("[DFLog::SubscriptionMembership] Clearing product info caches");
       }
+      void* prev_0x5f0_1 = this->field_0x5f0;
       call_0x2e12fd0(&this->field_0xa90);
+      void* v_r14_1 = this->field_0xa40;
       if (this->field_0xa90 != 3 || atomic_cas(&this->field_0xa90, this->field_0xa90, 1) != 0) {
+        void* prev_0xa40_2 = this->field_0xa40;
         call_0xdac0(&this->field_0xa90);
+        v_r14_1 = prev_0xa40_2;
       }
       if (EnableMarketplaceServiceProductInfoCacheGenerationGuard) {
         this->field_0x5d8++;
@@ -42,7 +44,6 @@ Operação  : 0x1213d67: mov/math reg, [flag] ; fn=0x1213d30..0x1213ffa
       auto* f_a38 = this->field_0xa38;
       f_a38->field_0x0 = f_a38;
       f_a38->field_0x8 = f_a38;
-      void* prev_0xa40_1 = this->field_0xa40;
       this->field_0xa40 = 0;
       call_0x11142e0(&this->field_0xa48);
       this->field_0xa88 = 0;
@@ -65,8 +66,8 @@ Operação  : 0x1213d67: mov/math reg, [flag] ; fn=0x1213d30..0x1213ffa
         call_0x6daf40(local_0x88);
       }
       call_0x746610(&local_0xd0, &sym_0x815d538);
-      call_0x2dbd0c0(&local_0x3b0, &local_0x40, this->field_0x5f0, 1);
-      call_0x2dbd0c0(&local_0x3b0, &local_0x50, prev_0xa40_1, 1);
+      call_0x2dbd0c0(&local_0x3b0, std::string_view("urlCacheItemsCleared", 20), prev_0x5f0_1, 1);
+      call_0x2dbd0c0(&local_0x3b0, std::string_view("availableSubscriptionProductCacheItemsCleared", 45), v_r14_1, 1);
       call_0x2db2c00(&local_0x3f8);
       call_0x6f5b70(&local_0x3d0);
     }
@@ -251,11 +252,13 @@ Operação  : 0x1213d67: mov/math reg, [flag] ; fn=0x1213d30..0x1213ffa
         f_8->field_0x8->field_0x0 = 0;
         void* i_edi = f_8->field_0x0;
         if (f_8->field_0x0 != 0) {
+          void* prev_0x0_1;
           do { // L_0x1114310
+            prev_0x0_1 = i_edi->field_0x0;
             call_0x6f8fb0(i_edi + 0x18);
             call_0x4955ac0(i_edi);
-            i_edi = i_edi->field_0x0;
-          } while (i_edi->field_0x0 != 0); // loop -> L_0x1114310
+            i_edi = prev_0x0_1;
+          } while (prev_0x0_1 != 0); // loop -> L_0x1114310
         }
         auto* f_8_2 = this->field_0x8;
         f_8_2->field_0x0 = f_8_2;
@@ -374,9 +377,9 @@ Operação  : 0x1213d67: mov/math reg, [flag] ; fn=0x1213d30..0x1213ffa
     0x123aef2 | c3                       | ret
 
 [Strings .rdata na função]
-  * [DFLog::SubscriptionMembership] Clearing product info caches
-  * urlCacheItemsCleared
-  * availableSubscriptionProductCacheItemsCleared
+  * "[DFLog::SubscriptionMembership] Clearing product info caches"  [@rdata 0x720f868, ref @0x1213d8f, FLog format]
+  * "urlCacheItemsCleared"  [@rdata 0x720f510, ref @0x1213f73, string_view len=20]
+  * "availableSubscriptionProductCacheItemsCleared"  [@rdata 0x720f528, ref @0x1213faa, string_view len=45]
 
 [Co-Flags na mesma função]
   * FFlagEnableMarketplaceServiceProductInfoCacheGenerationGuard = true (default)

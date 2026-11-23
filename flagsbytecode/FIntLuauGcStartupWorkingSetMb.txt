@@ -9,7 +9,7 @@ Operação  : 0x4ca47a7: mov/math reg, [flag] ; fn=0x4ca4720..0x4ca4804
     Classe  : RBX::LuauGc (Inferido)
     Padrão  : FIntLuauGcStartupWorkingSetMb = 120 (default) [int, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : ret_0x412dc70_2 < LuauGcStartupWorkingSetMb << 20
+    Fórmula : ret_0x412dc70_2 >= LuauGcStartupWorkingSetMb << 20
     Wasm    : .data=0x1906e0 [via FFlagEmitFinishInitLuaMilestonesUnconditionally]
     [Wasm]  : EmitFinishInitLuaMilestonesUnconditionally
   
@@ -38,9 +38,10 @@ Operação  : 0x4ca47a7: mov/math reg, [flag] ; fn=0x4ca4720..0x4ca4804
       if (v_rax_1 != 0 && &v_rax_1->field_0x1f0 != 0) {
         auto ret_0xe40290_1 = call_0xe40290(&v_rax_1->field_0x1f0);
         if (ret_0xe40290_1->field_0x0 != 0) {
-          auto ret_0x412dc70_2 = call_0x412dc70(ret_0xe40290_1->field_0x0, 1, 0);
+          void* prev_0x0_1 = ret_0xe40290_1->field_0x0;
+          auto ret_0x412dc70_2 = call_0x412dc70(prev_0x0_1, 1, 0);
           if (ret_0x412dc70_2 >= LuauGcStartupWorkingSetMb << 20) {
-            call_0x4c9c920(ret_0xe40290_1->field_0x0, "workingSetLimit");
+            call_0x4c9c920(prev_0x0_1, "workingSetLimit");
             call_0x4968fd0(this->field_0x40);
           }
         }
@@ -121,12 +122,12 @@ Operação  : 0x4ca47a7: mov/math reg, [flag] ; fn=0x4ca4720..0x4ca4804
   === [Sub-Rotina Chamada: 0x4c9c920..0x4c9ca56 via call @0x4ca47c1 (Direct Engine Sub-Call)] ===
     // Flag defaults: LuauGcGoalNormal = 125, LuaAppExperienceController = 6
     auto SubObj_0x4c9c920::func_0x4c9c920(SubObj_0x4c9c920* this, int64_t param_2) {
-      if (atomic_exchange(&global_0x84bfe3a, 1) == 0) {
+      if ((uint8_t)(atomic_exchange(&global_0x84bfe3a, 1)) == 0) {
         auto local_0x80 = 3;
         call_0x412db60(this, &local_0x80, LuauGcGoalNormal);
-        if (LuaAppExperienceController >= 6 && (uint64_t)LuaAppExperienceController >> 8 >= 4) {
-          FLog::Log("[FLog::LuaAppExperienceController] GC goal restored to {}% (reason: {})");
-          return &local_0x98;
+        if ((uint8_t)LuaAppExperienceController >= 6 && (uint8_t)((uint64_t)LuaAppExperienceController >> 8) >= 4) {
+          FLog::Log("[FLog::LuaAppExperienceController] GC goal restored to {}% (reason: {})", LuauGcGoalNormal, param_2);
+          return;
         }
         return (uint64_t)LuaAppExperienceController >> 8;
       }
@@ -218,8 +219,8 @@ Operação  : 0x4ca47a7: mov/math reg, [flag] ; fn=0x4ca4720..0x4ca4804
     }
 
 [Strings .rdata na função]
-  * workingSetLimit
-  * [FLog::LuaAppExperienceController] GC goal restored to {}% (reason: {})
+  * "workingSetLimit"  [@rdata 0x74c9898, ref @0x4ca47b7, literal, 15B]
+  * "[FLog::LuaAppExperienceController] GC goal restored to {}% (reason: {})"  [@rdata 0x74c9850, ref @0x4c9c9a7, FLog format]
 
 [Co-Flags na mesma função]
   * FIntLuauGcGoalNormal = 125 (default)

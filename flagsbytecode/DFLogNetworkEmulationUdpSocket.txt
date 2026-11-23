@@ -9,14 +9,13 @@ Operação  : 0x20cec31: mov/math reg, [flag] ; fn=0x20ceb50..0x20cee61
     Classe  : RBX::NetworkEmulation (Inferido)
     Padrão  : DFLogNetworkEmulationUdpSocket = 6 (default) [log, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : NetworkEmulationUdpSocket < 6
-    Fórmula : (uint64_t)NetworkEmulationUdpSocket >> 8 < 3
+    Fórmula : (uint8_t)NetworkEmulationUdpSocket >= 6 && (uint8_t)((uint64_t)NetworkEmulationUdpSocket >> 8) >= 3
     Altera  : this->field_0x2602
     [Child @0x20d1240] Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    [Child @0x20d1240] Fórmula : NetworkEmulationUdpSocket != 4
-    [Child @0x20d1240] Fórmula : NetworkEmulationUdpSocket == 0
-    [Child @0x20d1240] Fórmula : NetworkEmulationUdpSocket < 6
-    [Child @0x20d1240] Fórmula : (uint64_t)NetworkEmulationUdpSocket >> 8 < 4
+    [Child @0x20d1240] Fórmula : NetworkEmulationUdpSocket == 4 && (this->field_0x2670 != 0 || this->field_0x2680 != this->field_0x2670)
+    [Child @0x20d1240] Fórmula : (uint8_t)NetworkEmulationUdpSocket != 0 && (uint8_t)NetworkEmulationUdpSocket >= 6
+    [Child @0x20d1240] Fórmula : this->field_0x2690->field_0x10 > 0 && (uint8_t)NetworkEmulationUdpSocket >= 6 && (uint8_t)(uint64_t)NetworkEmulationUdpSocket >> 8 >= 4
+    [Child @0x20d1240] Fórmula : this->field_0x2698->field_0x10 > 0 && (uint8_t)NetworkEmulationUdpSocket >= 6 && (uint8_t)(uint64_t)NetworkEmulationUdpSocket >> 8 >= 4
   
   === [Decompilacao C++ da Funcao 0x20ceb50..0x20cee61] ===
     struct RBX::NetworkEmulation {
@@ -40,7 +39,7 @@ Operação  : 0x20cec31: mov/math reg, [flag] ; fn=0x20ceb50..0x20cee61
         call_0x1a8ecf0(&this->field_0x2638, param_2->field_0x28);
       }
       call_0x20d1240(this);
-      if (NetworkEmulationUdpSocket >= 6 && (uint64_t)NetworkEmulationUdpSocket >> 8 >= 3) {
+      if ((uint8_t)NetworkEmulationUdpSocket >= 6 && (uint8_t)((uint64_t)NetworkEmulationUdpSocket >> 8) >= 3) {
         FLog::Log("[DFLog::NetworkEmulationUdpSocket] NetworkEmulationUdpSocket updated configuration: sendDropRate");
         "[DFLog::NetworkEmulationUdpSocket] NetworkEmulationUdpSocket updated configuration: sendDropRate";
       }
@@ -265,22 +264,23 @@ Operação  : 0x20cec31: mov/math reg, [flag] ; fn=0x20ceb50..0x20cee61
     void SubObj_0x20d1240::func_0x20d1240(SubObj_0x20d1240* this) {
       if (NetworkEmulationUdpSocket == 4 && (this->field_0x2670 != 0 || this->field_0x2680 != this->field_0x2670)) {
         uint64_t i_eax;
-        if (NetworkEmulationUdpSocket != 0 && NetworkEmulationUdpSocket >= 6) {
-          if ((uint64_t)NetworkEmulationUdpSocket >> 8 >= 4) {
+        auto expr_1 = (uint64_t)NetworkEmulationUdpSocket >> 8;
+        if ((uint8_t)NetworkEmulationUdpSocket != 0 && (uint8_t)NetworkEmulationUdpSocket >= 6) {
+          if ((uint8_t)expr_1 >= 4) {
             i_eax = -1;
             do { // L_0x20d13d0
               i_eax++;
             } while (rcx[i_eax] != 0); // loop -> L_0x20d13d0
             FLog::Log("[DFLog::NetworkEmulationUdpSocket] NetworkEmulationUdpSocket closed or config updated. Statistic");
           }
-          if (NetworkEmulationUdpSocket >= 6 && (uint64_t)NetworkEmulationUdpSocket >> 8 >= 4) {
+          if ((uint8_t)NetworkEmulationUdpSocket >= 6 && (uint8_t)expr_1 >= 4) {
             do { // L_0x20d1471
               i_eax++;
             } while (rcx[i_eax] != 0); // loop -> L_0x20d1471
-            FLog::Log("[DFLog::NetworkEmulationUdpSocket] sendsDropped={}, totalSends={}, sendDropPercentage={:.2f}%, r");
+            FLog::Log("[DFLog::NetworkEmulationUdpSocket] sendsDropped={}, totalSends={}, sendDropPercentage={:.2f}%, r", this->field_0x2678, this->field_0x2670);
           }
         }
-        if (this->field_0x2690->field_0x10 > 0 && NetworkEmulationUdpSocket >= 6 && (uint64_t)NetworkEmulationUdpSocket >> 8 >= 4) {
+        if (this->field_0x2690->field_0x10 > 0 && (uint8_t)NetworkEmulationUdpSocket >= 6 && (uint8_t)expr_1 >= 4) {
           FLog::Log("[DFLog::NetworkEmulationUdpSocket] sendLatency(ms) min={:.2f} p05={:.2f}, p50={:.2f}, p95={:.2f}");
           call_0x2d3c0e0(this->field_0x2690, 0.5);
           call_0x2d3c0e0(this->field_0x2690, 0.05);
@@ -289,7 +289,7 @@ Operação  : 0x20cec31: mov/math reg, [flag] ; fn=0x20ceb50..0x20cee61
           } while (r14[i_eax] != 0); // loop -> L_0x20d1630
           call_0x4971cd0(&local_0x230, 4, &local_0x220, &local_0x210);
         }
-        if (this->field_0x2698->field_0x10 > 0 && NetworkEmulationUdpSocket >= 6 && (uint64_t)NetworkEmulationUdpSocket >> 8 >= 4) {
+        if (this->field_0x2698->field_0x10 > 0 && (uint8_t)NetworkEmulationUdpSocket >= 6 && (uint8_t)expr_1 >= 4) {
           FLog::Log("[DFLog::NetworkEmulationUdpSocket] recvLatency(ms) min={:.2f} p05={:.2f}, p50={:.2f}, p95={:.2f}");
           call_0x2d3c0e0(this->field_0x2698, 0.5);
           auto ret_0x2d3c0e0_16 = call_0x2d3c0e0(this->field_0x2698, 0.05);
@@ -865,10 +865,10 @@ Operação  : 0x20cec31: mov/math reg, [flag] ; fn=0x20ceb50..0x20cee61
     0x20d1b19 | e8 d2 4b d3 03           | call 0x5e066f0
 
 [Strings .rdata na função]
-  * [DFLog::NetworkEmulationUdpSocket] NetworkEmulationUdpSocket updated configuration: sendDropRate
-  * [DFLog::NetworkEmulationUdpSocket] NetworkEmulationUdpSocket closed or config updated. Statistic
-  * [DFLog::NetworkEmulationUdpSocket] sendsDropped={}, totalSends={}, sendDropPercentage={:.2f}%, r
-  * operation is undefined for an empty sketch
+  * "[DFLog::NetworkEmulationUdpSocket] NetworkEmulationUdpSocket updated configuration: sendDropRate"  [@rdata 0x72ab730, ref @0x20cec69, FLog format]
+  * "[DFLog::NetworkEmulationUdpSocket] NetworkEmulationUdpSocket closed or config updated. Statistic"  [@rdata 0x72ab6c0, ref @0x20d13c1, FLog format]
+  * "[DFLog::NetworkEmulationUdpSocket] sendsDropped={}, totalSends={}, sendDropPercentage={:.2f}%, r"  [@rdata 0x72ab550, ref @0x20d1463, FLog format]
+  * "operation is undefined for an empty sketch"  [@rdata 0x7353998, ref @0x20d1a5f, literal, 42B]
 
 [Co-Flags na mesma função]
   * FFlagDebugRbxTransportIoUringEnabled = false (default) [vizinha em .data]

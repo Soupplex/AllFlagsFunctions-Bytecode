@@ -9,7 +9,7 @@ Operação  : 0x3c717a8: cmp [flag], reg ; fn=0x3c71750..0x3c719d0
     Classe  : RBX::VideoNo (Inferido)
     Padrão  : FFlagVideoNoDropFrameInMediaCodecDriver = true (default) [bool, mode=1]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
-    Fórmula : VideoNoDropFrameInMediaCodecDriver == ret_0x1da08d0_1
+    Fórmula : VideoNoDropFrameInMediaCodecDriver != (uint8_t)ret_0x1da08d0_1
     Altera  : this->field_0x78
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
@@ -31,7 +31,7 @@ Operação  : 0x3c717a8: cmp [flag], reg ; fn=0x3c71750..0x3c719d0
       if (ret_0x1da08d0_1 != -0x7fffffff) {
         if (ret_0x1da08d0_1 == 0) {
           void* v_rcx_1;
-          if (VideoNoDropFrameInMediaCodecDriver != ret_0x1da08d0_1) {
+          if (VideoNoDropFrameInMediaCodecDriver != (uint8_t)ret_0x1da08d0_1) {
             call_0x7f3280(&this->field_0x78);
             call_0x81b680(&this->field_0x58, &local_0x90, &local_0xa0);
             v_rcx_1 = local_0x98;
@@ -42,7 +42,7 @@ Operação  : 0x3c717a8: cmp [flag], reg ; fn=0x3c71750..0x3c719d0
             L_0x3c718e2:
             v_bl_3 = 1;
           } else if (local_0x50->field_0x0 < this->field_0x98) {
-            if (MediaCodecDriver >= 6 && (uint64_t)MediaCodecDriver >> 8 >= 6) {
+            if ((uint8_t)MediaCodecDriver >= 6 && (uint8_t)((uint64_t)MediaCodecDriver >> 8) >= 6) {
               FLog::Log("[DFLog::MediaCodecDriver] Dropping frame with pts {} due to seek");
               v_bl_3 = 1;
             } else {
@@ -62,8 +62,8 @@ Operação  : 0x3c717a8: cmp [flag], reg ; fn=0x3c71750..0x3c719d0
           v_bl_3 = 0;
         }
       } else {
-        if (MediaCodecDriver >= 6 && (uint64_t)MediaCodecDriver >> 8 >= 6) {
-          FLog::Log("[DFLog::MediaCodecDriver] Stream state changed from {} to {}");
+        if ((uint8_t)MediaCodecDriver >= 6 && (uint8_t)((uint64_t)MediaCodecDriver >> 8) >= 6) {
+          FLog::Log("[DFLog::MediaCodecDriver] Stream state changed from {} to {}", atomic_exchange(&this->field_0x8c, 2), 2);
         }
         v_bl_3 = 0;
       }
@@ -233,13 +233,101 @@ Operação  : 0x3c717a8: cmp [flag], reg ; fn=0x3c71750..0x3c719d0
     0x3c719cb | 49 8b e3                 | mov rsp, r11
     0x3c719ce | 5d                       | pop rbp
     0x3c719cf | c3                       | ret
+  
+  === [Decompilacao da Rotina Chamadora (Caller): 0x3c71c70..0x3c71e80 em RBX::VideoNo] ===
+    struct RBX::VideoNo {
+      /* +0x70 */ void*   field_0x70;
+      /* +0x78 */ int32_t videoDriverMaxOutgoingFrames_0x78;
+      /* +0x88 */ int32_t field_0x88;
+      /* +0x8c */ int32_t field_0x8c;
+    };
+    
+    // Flag defaults: VideoDecodeStepTimeLimitMs = 10, VideoDriverMaxOutgoingFrames = 2, VideoDriverMaxIncomingPackets = 0
+    void RBX::VideoNo::func_0x3c71c70(RBX::VideoNo* this) {
+      auto local_0x40 = this;
+      call_0x746580(&local_0x68, &local_0x40);
+      call_0x6f5b70(&local_0x40);
+      if (this->field_0x88 == 0 && this->field_0x8c != 2) {
+        call_0x2e12fd0(&this->field_0x80);
+        call_0x495a220(&local_0x30);
+        int32_t i_ebx = 0;
+        int32_t i_esi = 0;
+        while (i_ebx != 2) {
+          if (this->field_0x88 != 0) break;
+          if (this->field_0x8c == 2) break;
+          auto ret_0x495a220_5 = call_0x495a220(&local_0x38);
+          if ((double)VideoDecodeStepTimeLimitMs * 0.001 <= ret_0x495a220_5->field_0x0 - local_0x30) break;
+          if (i_ebx != 0) {
+            if (i_ebx != 1) continue;
+            if (VideoDriverMaxOutgoingFrames > 0) {
+              call_0x7f3280(&this->videoDriverMaxOutgoingFrames_0x78);
+              this->videoDriverMaxOutgoingFrames_0x78 = 0;
+              if (this->field_0x70 < VideoDriverMaxOutgoingFrames) {
+                if (VideoDriverMaxIncomingPackets > 0) {
+                  if (i_esi < VideoDriverMaxIncomingPackets) {
+                    L_0x3c71db1:
+                    auto ret_0x3c719d0_11 = call_0x3c719d0(this);
+                    if ((uint8_t)ret_0x3c719d0_11 != 0) {
+                    i_esi++;
+                    i_ebx = 0;
+                    continue;
+                    } else {
+                    L_0x3c71dc7:
+                    i_ebx = 2;
+                    continue;
+                    }
+                  } else {
+                    i_ebx = 2;
+                    continue;
+                  }
+                } else {
+                  auto ret_0x3c719d0_11 = call_0x3c719d0(this);
+                  if ((uint8_t)ret_0x3c719d0_11 != 0) {
+                    i_esi++;
+                    i_ebx = 0;
+                    continue;
+                  } else {
+                    goto L_0x3c71dc7;
+                  }
+                }
+              } else {
+                goto L_0x3c71dc7;
+              }
+            } else if (VideoDriverMaxIncomingPackets > 0) {
+              if (i_esi < VideoDriverMaxIncomingPackets) {
+                goto L_0x3c71db1;
+              } else {
+                goto L_0x3c71dc7;
+              }
+            } else {
+              goto L_0x3c71db1;
+            }
+          } else {
+            auto ret_0x3c71750_9 = call_0x3c71750(this);
+            if ((uint8_t)ret_0x3c71750_9 != 0) continue;
+            i_ebx = 1;
+          }
+        }
+        auto* f_80 = this->field_0x80;
+        if (&f_80->field_0x0 != 3 || atomic_cas(&&f_80->field_0x0, 3, 1) != 0) {
+          call_0xdac0(&this->field_0x80);
+        }
+      }
+      if ((local_0x80 & 0xfffffffc & 0xfffffff8) != 0) {
+        ((local_0x80 & 0xfffffffc) & 0xfffffff8)->vfunc_0x0(local_0x68);
+      }
+      call_0x6f5b70(&local_0x68);
+    }
 
 [Strings .rdata na função]
-  * [DFLog::MediaCodecDriver] Dropping frame with pts {} due to seek
-  * [DFLog::MediaCodecDriver] Stream state changed from {} to {}
+  * "[DFLog::MediaCodecDriver] Dropping frame with pts {} due to seek"  [@rdata 0x7404e70, ref @0x3c71822, FLog format]
+  * "[DFLog::MediaCodecDriver] Stream state changed from {} to {}"  [@rdata 0x7404eb8, ref @0x3c7191e, FLog format]
 
 [Co-Flags na mesma função]
   * DFLogMediaCodecDriver = 0 (default)
+  * FIntVideoDecodeStepTimeLimitMs = 10 (default)
+  * DFIntVideoDriverMaxOutgoingFrames = 2 (default)
+  * DFIntVideoDriverMaxIncomingPackets = 0 (default)
   * FIntVideoDecodedVideoQueueSize = 2 (default) [vizinha em .data]
   * DFFlagDebugVideoDoNotDropFrame = false (default) [vizinha em .data]
   * DFIntVideokFrameSlackForJitter = 32 (default) [vizinha em .data]

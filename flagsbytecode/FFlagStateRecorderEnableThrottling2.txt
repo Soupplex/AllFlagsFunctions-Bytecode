@@ -9,15 +9,15 @@ Operação  : 0xe1802a: cmp [flag], reg ; fn=0xe18000..0xe181dc
     Classe  : RBX::StateRecorder (Inferido)
     Padrão  : FFlagStateRecorderEnableThrottling2 = true (default) [bool, mode=1]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
-    Fórmula : StateRecorderEnableThrottling2 == atomic_exchange(&this->field_0x350, 1)
+    Fórmula : StateRecorderEnableThrottling2 != (uint8_t)(atomic_exchange(&this->field_0x350, 1)) && this->field_0x3b8 != (uint8_t)(atomic_exchange(&this->field_0x350, 1))
     Altera  : this->field_0x350
     [Child @0xe1dbd0] Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
-    [Child @0xe1dbd0] Fórmula : !StateRecorderEnableThrottling2
+    [Child @0xe1dbd0] Fórmula : StateRecorderEnableThrottling2
     [XREF #2 @0xe185e3] Classe  : RBX::StateRecorder (Inferido)
-    [XREF #2 @0xe185e3] Fórmula : !StateRecorderEnableThrottling2
+    [XREF #2 @0xe185e3] Fórmula : StateRecorderEnableThrottling2
     [XREF #2 @0xe185e3] Altera  : this->field_0x8->field_0xc
     [XREF #3 @0xe187e7] Classe  : RBX::StateRecorder (Inferido)
-    [XREF #3 @0xe187e7] Fórmula : !StateRecorderEnableThrottling2
+    [XREF #3 @0xe187e7] Fórmula : StateRecorderEnableThrottling2
     [XREF #3 @0xe187e7] Altera  : this->field_0x8->field_0xc
   
   === [Decompilacao C++ da Funcao 0xe18000..0xe181dc] ===
@@ -33,10 +33,10 @@ Operação  : 0xe1802a: cmp [flag], reg ; fn=0xe18000..0xe181dc
       int32_t v_rax_1 = atomic_exchange(&this->field_0x350, 1);
       void* v_rdx_2 = param_2;
       void* v_rsi_4;
-      if (atomic_exchange(&this->field_0x350, 1) != 0) {
-        if (StateRecorderEnableThrottling2 != atomic_exchange(&this->field_0x350, 1) && this->field_0x3b8 != atomic_exchange(&this->field_0x350, 1)) {
+      if ((uint8_t)(atomic_exchange(&this->field_0x350, 1)) != 0) {
+        if (StateRecorderEnableThrottling2 != (uint8_t)(atomic_exchange(&this->field_0x350, 1)) && this->field_0x3b8 != (uint8_t)(atomic_exchange(&this->field_0x350, 1))) {
           auto ret_0xe15650_1 = call_0xe15650(this, param_2->field_0x0);
-          if (ret_0xe15650_1 != 0) {
+          if ((uint8_t)ret_0xe15650_1 != 0) {
             call_0x2e13a20(&local_0x68, &this->field_0x358, 0);
             this->field_0x350 = 0;
             call_0xd080(&this->field_0x360, param_2);
@@ -241,13 +241,16 @@ Operação  : 0xe1802a: cmp [flag], reg ; fn=0xe18000..0xe181dc
         this->field_0x10 = param_2->field_0x10;
         return this;
       } else {
+        double fxmm6_1;
         if (this->field_0x0->field_0x3b8 == 0) {
+          double prev_0x10_1 = this->field_0x10;
           auto ret_0xe181e0_1 = call_0xe181e0(this->field_0x0);
-          this->field_0x0->field_0x3b8 = ret_0xe181e0_1;
-          if (ret_0xe181e0_1 != 0) {
+          this->field_0x0->field_0x3b8 = (uint8_t)ret_0xe181e0_1;
+          if ((uint8_t)ret_0xe181e0_1 != 0) {
+            fxmm6_1 = prev_0x10_1;
             if (StateRecorderEnableThrottling2) {
-              auto ret_0xe15650_2 = call_0xe15650(this->field_0x0, this->field_0x10);
-              if (ret_0xe15650_2 == 0) {
+              auto ret_0xe15650_2 = call_0xe15650(this->field_0x0, fxmm6_1);
+              if ((uint8_t)ret_0xe15650_2 == 0) {
                 L_0xe1dc9a:
                 L_0xe1dcba:
                 this->field_0x0->field_0x388 = &this->field_0x0->field_0x388->field_0x1;
@@ -259,7 +262,7 @@ Operação  : 0xe1802a: cmp [flag], reg ; fn=0xe18000..0xe181dc
                 if (StateRecorderEnableThrottling2) {
                   this->field_0x0->field_0x3c1 = 0;
                 }
-                this->field_0x0->field_0x3a0 = this->field_0x10;
+                this->field_0x0->field_0x3a0 = fxmm6_1;
                 this->field_0x0->field_0x398 = 0;
                 call_0xe18430(this->field_0x0);
               }
@@ -267,13 +270,16 @@ Operação  : 0xe1802a: cmp [flag], reg ; fn=0xe18000..0xe181dc
               goto L_0xe1dcba;
             }
           }
-        } else if (StateRecorderEnableThrottling2) {
-          auto ret_0xe15650_2 = call_0xe15650(this->field_0x0, this->field_0x10);
-          if (ret_0xe15650_2 == 0) {
+        } else {
+          fxmm6_1 = this->field_0x10;
+          if (StateRecorderEnableThrottling2) {
+            auto ret_0xe15650_2 = call_0xe15650(this->field_0x0, fxmm6_1);
+            if ((uint8_t)ret_0xe15650_2 == 0) {
+              goto L_0xe1dc9a;
+            }
+          } else {
             goto L_0xe1dc9a;
           }
-        } else {
-          goto L_0xe1dc9a;
         }
         call_0x2e13a20(&local_0x58, &this->field_0x0->field_0x358, 0);
         this->field_0x0->field_0x350 = 0;
@@ -433,15 +439,16 @@ Operação  : 0xe1802a: cmp [flag], reg ; fn=0xe18000..0xe181dc
     
     // Flag defaults: StateRecorderEnableThrottling2 = true
     void RBX::StateRecorder::func_0xe184c0(RBX::StateRecorder* this, int64_t param_2) {
-      auto ret_0xe16130_1 = call_0xe16130(param_2->field_0x10);
+      void* prev_0x10_1 = param_2->field_0x10;
+      auto ret_0xe16130_1 = call_0xe16130(prev_0x10_1);
       int64_t local_0xa8;
       if (ret_0xe16130_1 == 0) {
-        ret_0xe16130_1->field_0x1f[rbp] = ret_0xe16130_1;
+        ret_0xe16130_1->field_0x1f[rbp] = (uint8_t)ret_0xe16130_1;
       } else {
         local_0xa8 = 0;
         call_0x6f9a40(&local_0xa8, ret_0xe16130_1, 0);
       }
-      call_0xe1cc60(&local_0xa8, param_2->field_0x10);
+      call_0xe1cc60(&local_0xa8, prev_0x10_1);
       call_0xe11df0(param_2->field_0x10, param_2);
       int32_t i_ecx = 0;
       do { // L_0xe18560
@@ -835,7 +842,7 @@ Operação  : 0xe1802a: cmp [flag], reg ; fn=0xe18000..0xe181dc
     0xe18965 | e8 16 bc ff 04           | call 0x5e14580
 
 [Strings .rdata na função]
-  * StateCaptureStep
+  * "StateCaptureStep"  [@rdata 0x71ce978, ref @0xe1814c, key/identifier]
 
 [Co-Flags na mesma função]
   * FFlagSPMCBufferSupportGetHeadIndexApi = true (default)

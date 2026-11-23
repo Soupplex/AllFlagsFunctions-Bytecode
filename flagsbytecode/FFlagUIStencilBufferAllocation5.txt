@@ -1,6 +1,6 @@
 FFlag     : FFlagUIStencilBufferAllocation5
 RVA .data : 0x80fe000
-XREFs     : 8 total (6 em runtime)
+XREFs     : 9 total (7 em runtime)
 Insn RVA  : 0x2714552
 Operação  : 0x2714552: cmp [flag], reg ; fn=0x2714330..0x2714d64
 
@@ -11,13 +11,15 @@ Operação  : 0x2714552: cmp [flag], reg ; fn=0x2714330..0x2714d64
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
     Fórmula : !UIStencilBufferAllocation5 && !UIStencilWorldBuffer
     [XREF #2 @0x2718b74] Classe  : RBX::Graphics::TextureD3D11 (RTTI Resolvido)
-    [XREF #2 @0x2718b74] Fórmula : !UIStencilBufferAllocation5
+    [XREF #2 @0x2718b74] Fórmula : UIStencilBufferAllocation5
     [XREF #3 @0x356750e] Classe  : RBX::UIStencilBuffer (Inferido)
-    [XREF #3 @0x356750e] Fórmula : UIStencilBufferAllocation5
+    [XREF #3 @0x356750e] Fórmula : UIStencilBufferAllocation5 || UIStencilWorldBuffer
     [XREF #4 @0x35f285b] Classe  : RBX::UIStencilBuffer (Inferido)
     [XREF #4 @0x35f285b] Fórmula : !UIStencilBufferAllocation5
     [XREF #5 @0x35f304b] Classe  : RBX::UIStencilBuffer (Inferido)
     [XREF #5 @0x35f304b] Fórmula : !UIStencilBufferAllocation5
+    [XREF #6 @0x37bf85c] Classe  : RBX::UIStencilBuffer (Inferido)
+    [XREF #6 @0x37bf85c] Fórmula : !UIStencilBufferAllocation5
   
   === [Decompilacao C++ da Funcao 0x2714330..0x2714d64] ===
     struct RBX::RenderDx11CPUMemory {
@@ -110,7 +112,7 @@ Operação  : 0x2714552: cmp [flag], reg ; fn=0x2714330..0x2714d64
       param_2->field_0x54 = 16;
       param_2->field_0x58 = 65536;
       float fxmm0_6 = (float)(uint64_t)((uint64_t)local_0x350->field_0x110 >> 20);
-      param_2->field_0x5c = std::min<uint32_t>(-1, std::max<uint64_t>(128, (uint64_t)(fxmm0_6 * 0.25)) << 20);
+      param_2->field_0x5c = std::min<uint32_t>(-1, std::max<uint64_t>(128, (uint64_t)(fxmm0_6 * 0.25f)) << 20);
       auto vret_16 = param_3->vfunc_0x128(param_3);
       param_2->field_0x3c = vret_16 >= 0x9200;
       param_2->field_0x3d = vret_16 >= 0x9200;
@@ -142,17 +144,19 @@ Operação  : 0x2714552: cmp [flag], reg ; fn=0x2714330..0x2714d64
       }
       int64_t tmp_1 = (uint64_t)v_rsi_11 >> 20 < RenderDx11CPUMemoryUsedByIntegratedGPUMB ? 0 : ((uint64_t)v_rsi_11 >> 20) - RenderDx11CPUMemoryUsedByIntegratedGPUMB;
       auto ret_0x29cd2c0_21 = call_0x29cd2c0();
+      auto prev_0x40_2 = ret_0x29cd2c0_21->field_0x40;
       auto ret_0x270d490_22 = call_0x270d490(&local_0x1a0, DisableHQShadersDx11List);
       uint8_t v_cl_12;
-      if (ret_0x270d490_22 == 0 && ret_0x29cd2c0_21->field_0x40 > RenderDx11LowEndCoreCount && (uint64_t)v_rsi_11 >> 20 > RenderDx11LowEndCPUMemoryMB) {
+      if ((uint8_t)ret_0x270d490_22 == 0 && prev_0x40_2 > RenderDx11LowEndCoreCount && (uint64_t)v_rsi_11 >> 20 > RenderDx11LowEndCPUMemoryMB) {
         v_cl_12 = 0;
       } else {
         v_cl_12 = 1;
       }
+      auto expr_1 = GraphicsDX11TurnOffFutureLighting3;
       if ((uint64_t)local_0x350->field_0x110 >> 20 <= RenderDx11IGPUDedicatedVideoMemoryThresholdMB) {
         if (tmp_1 <= RenderDx11LowEndCPUMemoryMB) {
           call_0x1d48fe0(&local_0x1c0, &local_0x200, &local_0xc0);
-          if (Graphics >= 6 && (uint64_t)Graphics >> 8 >= 3) {
+          if ((uint8_t)Graphics >= 6 && (uint8_t)((uint64_t)Graphics >> 8) >= 3) {
             FLog::Log("[FLog::Graphics] {}");
             "[FLog::Graphics] {}";
           }
@@ -161,9 +165,9 @@ Operação  : 0x2714552: cmp [flag], reg ; fn=0x2714330..0x2714d64
           if (param_2->field_0x50 >= 16 && param_2->field_0x2 != 0 && param_2->field_0x79 != 0) {
             param_2->field_0x66 = 1;
             if (GraphicsDX11TurnOffFutureLightingDriverVersion.size() == 0) {
-              if (GraphicsDX11TurnOffFutureLighting3.size() != 0) {
+              if (expr_1.size() != 0) {
                 call_0x4973b00(&local_0x1e0, "%x:%x", local_0x350->field_0x100, local_0x350->field_0x104);
-                call_0x270d490(&local_0x1e0, GraphicsDX11TurnOffFutureLighting3);
+                call_0x270d490(&local_0x1e0, expr_1);
                 std::string::_Tidy_deallocate(local_0x1e0);
               }
               L_0x2714cf9:
@@ -173,8 +177,8 @@ Operação  : 0x2714552: cmp [flag], reg ; fn=0x2714330..0x2714d64
               return param_2;
             }
             call_0x4973b00(&local_0x210, "%x:%x:%d.%d.%d.%d", local_0x350->field_0x100, local_0x350->field_0x104);
-            auto ret_0x270d490_27 = call_0x270d490(&local_0x210, GraphicsDX11TurnOffFutureLighting3);
-            if (ret_0x270d490_27 != 0 && Graphics >= 6 && (uint64_t)Graphics >> 8 >= 3) {
+            auto ret_0x270d490_27 = call_0x270d490(&local_0x210, expr_1);
+            if ((uint8_t)ret_0x270d490_27 != 0 && (uint8_t)Graphics >= 6 && (uint8_t)((uint64_t)Graphics >> 8) >= 3) {
               FLog::Log("[FLog::Graphics] D3D11 future rendering is disabled for pattern: {}");
               "[FLog::Graphics] D3D11 future rendering is disabled for pattern: {}";
             }
@@ -199,7 +203,7 @@ Operação  : 0x2714552: cmp [flag], reg ; fn=0x2714330..0x2714d64
       }
       if (v_cl_12 != 0) {
         call_0x1d48fe0(&local_0x1c0, &local_0x200, &local_0xc0);
-        if (Graphics >= 6 && (uint64_t)Graphics >> 8 >= 3) {
+        if ((uint8_t)Graphics >= 6 && (uint8_t)((uint64_t)Graphics >> 8) >= 3) {
           FLog::Log("[FLog::Graphics] {}");
           "[FLog::Graphics] {}";
         }
@@ -209,15 +213,15 @@ Operação  : 0x2714552: cmp [flag], reg ; fn=0x2714330..0x2714d64
       if (param_2->field_0x50 >= 16 && param_2->field_0x2 != 0 && param_2->field_0x79 != 0) {
         param_2->field_0x66 = 1;
         if (GraphicsDX11TurnOffFutureLightingDriverVersion.size() == 0) {
-          if (GraphicsDX11TurnOffFutureLighting3.size() != 0) {
+          if (expr_1.size() != 0) {
             call_0x4973b00(&local_0x1e0, "%x:%x", local_0x350->field_0x100, local_0x350->field_0x104);
-            call_0x270d490(&local_0x1e0, GraphicsDX11TurnOffFutureLighting3);
+            call_0x270d490(&local_0x1e0, expr_1);
             std::string::_Tidy_deallocate(local_0x1e0);
           }
         } else {
           call_0x4973b00(&local_0x210, "%x:%x:%d.%d.%d.%d", local_0x350->field_0x100, local_0x350->field_0x104);
-          auto ret_0x270d490_27 = call_0x270d490(&local_0x210, GraphicsDX11TurnOffFutureLighting3);
-          if (ret_0x270d490_27 != 0 && Graphics >= 6 && (uint64_t)Graphics >> 8 >= 3) {
+          auto ret_0x270d490_27 = call_0x270d490(&local_0x210, expr_1);
+          if ((uint8_t)ret_0x270d490_27 != 0 && (uint8_t)Graphics >= 6 && (uint8_t)((uint64_t)Graphics >> 8) >= 3) {
             FLog::Log("[FLog::Graphics] D3D11 future rendering is disabled for pattern: {}");
             "[FLog::Graphics] D3D11 future rendering is disabled for pattern: {}";
           }
@@ -967,7 +971,7 @@ Operação  : 0x2714552: cmp [flag], reg ; fn=0x2714330..0x2714d64
         auto vret_1 = this->vfunc_0xf0(this, 28, i_esi, &local_0x38);
         int32_t v_rdi_4 = i_edi;
         if (vret_1 < 0 && vret_1 != -0x7ff8fff2) {
-          call_0x1d4bef0(&local_0x110, &local_0x170);
+          call_0x1d4bef0(std::string_view("line: {} from {}", 16), std::string_view("line: {} from {}", 16));
           auto local_0x1a8 = 0;
           call_0x6f7000(&local_0x1a8, &local_0x230, 0);
           if (&local_0x230 != &local_0x230) {
@@ -977,7 +981,7 @@ Operação  : 0x2714552: cmp [flag], reg ; fn=0x2714330..0x2714d64
           global_0x81712e4 = vret_1;
           call_0x5e27c50(&sym_0x81712e8, local_0x1a8.c_str(), 127);
           global_0x8171367 = 0;
-          call_0x1d48fe0(&local_0x60, &local_0x140, &local_0x130);
+          call_0x1d48fe0(&local_0x60, std::string_view("{:x} {}", 7), &local_0x130);
           if (global_0x8628d48 != 0) {
             global_0x8628d48->field_0x8++;
           }
@@ -1293,7 +1297,7 @@ Operação  : 0x2714552: cmp [flag], reg ; fn=0x2714330..0x2714d64
           ret_0x6fd950_11->field_0x0 = "Window BackBuffer";
           ret_0x6fd950_11->field_0x10 = global_0x72df120;
           call_0x4973b00(&local_0x160, "%s (%s %dx%d)", "Unnamed Texture", "RGBA8");
-          ret_0x2723580_5->vfunc_0x8(ret_0x2723580_5, &local_0x160);
+          ret_0x2723580_5->vfunc(ret_0x2723580_5, &local_0x160);
           if (local_0x178 >= 16) {
             void* v_rcx_1 = local_0x160;
             if (local_0x178 + 1 >= 0x1000) {
@@ -1329,9 +1333,9 @@ Operação  : 0x2714552: cmp [flag], reg ; fn=0x2714330..0x2714d64
           void* fstk_7;
           if (UIStencilBufferAllocation5) {
             auto vret_21 = this->vfunc_0x1a8(this, &local_0x110, 0, this->field_0xe1 != 0 ? 30 : 32);
-            void* prev_0x0_1 = vret_21->field_0x0;
+            void* prev_0x0_2 = vret_21->field_0x0;
             vret_21->field_0x0 = 0;
-            void* prev_0x8_2 = vret_21->field_0x8;
+            void* prev_0x8_3 = vret_21->field_0x8;
             vret_21->field_0x8 = 0;
             if (local_0x118 != 0) {
               call_0x6daf40(local_0x118);
@@ -1344,11 +1348,11 @@ Operação  : 0x2714552: cmp [flag], reg ; fn=0x2714330..0x2714d64
                 }
               }
               call_0x4955ac0(v_rcx_4);
-              fstk_6 = prev_0x0_1;
-              fstk_7 = prev_0x8_2;
+              fstk_6 = prev_0x0_2;
+              fstk_7 = prev_0x8_3;
             } else {
-              fstk_6 = prev_0x0_1;
-              fstk_7 = prev_0x8_2;
+              fstk_6 = prev_0x0_2;
+              fstk_7 = prev_0x8_3;
             }
           }
           fstk_6 = 0.0;
@@ -1372,9 +1376,10 @@ Operação  : 0x2714552: cmp [flag], reg ; fn=0x2714330..0x2714d64
                 void* i_edi = local_0x78;
                 do { // L_0x2718d20
                   if (i_edi->field_0x8 != 0 && atomic_fetch_sub(&i_edi->field_0x8->field_0x8, 1) == 1) {
-                    i_edi->field_0x8->vfunc_0x0(i_edi->field_0x8);
+                    void* prev_0x8_4 = i_edi->field_0x8;
+                    i_edi->field_0x8->vfunc_0x0(prev_0x8_4);
                     if (atomic_fetch_sub(&i_edi->field_0x8->field_0xc, 1) == 1) {
-                    i_edi->field_0x8->vfunc_0x8(i_edi->field_0x8);
+                    i_edi->field_0x8->vfunc_0x8(prev_0x8_4);
                     }
                   }
                   i_edi += 0x20;
@@ -1800,38 +1805,38 @@ Operação  : 0x2714552: cmp [flag], reg ; fn=0x2714330..0x2714d64
     
     // Flag defaults: UIStencilBufferAllocation5 = false, GraphicsShadingLanguageEnum = true, UIStencilWorldBuffer = false
     void RBX::UIStencilBuffer::func_0x3566a00(RBX::UIStencilBuffer* this, int64_t param_2) {
-      call_0x29adcb0(param_2, &local_0x20, 2);
+      call_0x29adcb0(param_2, std::string_view("platformid", 10), 2);
       auto ret_0x29cd2c0_2 = call_0x29cd2c0();
       call_0x6f7510(&local_0x50, &ret_0x29cd2c0_2->field_0x20);
-      call_0x29aca10(param_2, &local_0x20, &local_0x30);
+      call_0x29aca10(param_2, std::string_view("cpu/make", 8), &local_0x30);
       std::string::_Tidy_deallocate(local_0x50);
       auto local_0x50 = 0;
       call_0x6f7000(&local_0x50, "x86_64", 6);
-      call_0x29aca10(param_2, &local_0x30, &local_0x20);
+      call_0x29aca10(param_2, std::string_view("cpu/binary_arch", 15), &local_0x20);
       std::string::_Tidy_deallocate(local_0x50);
       auto ret_0x29cd2c0_9 = call_0x29cd2c0();
-      call_0x29ae160(param_2, &local_0x20, ret_0x29cd2c0_9->field_0x48);
+      call_0x29ae160(param_2, std::string_view("cpu/core/total", 14), ret_0x29cd2c0_9->field_0x48);
       auto ret_0x29cd2c0_11 = call_0x29cd2c0();
-      call_0x29ae160(param_2, &local_0x20, ret_0x29cd2c0_11->field_0x40);
+      call_0x29ae160(param_2, std::string_view("cpu/core/logical", 16), ret_0x29cd2c0_11->field_0x40);
       auto ret_0x29cd2c0_13 = call_0x29cd2c0();
-      call_0x29ae160(param_2, &local_0x20, ret_0x29cd2c0_13->field_0x44);
-      call_0x29adaf0(param_2, &local_0x20, 1);
+      call_0x29ae160(param_2, std::string_view("cpu/core/physical", 17), ret_0x29cd2c0_13->field_0x44);
+      call_0x29adaf0(param_2, std::string_view("cpu/64bit", 9), 1);
       call_0x2939590(&local_0x50);
-      call_0x29aca10(param_2, &local_0x30, &local_0x20);
+      call_0x29aca10(param_2, std::string_view("cpu/manufacturer", 16), &local_0x20);
       std::string::_Tidy_deallocate(local_0x50);
       auto ret_0x293ae10_19 = call_0x293ae10();
-      call_0x29ae160(param_2, &local_0x20, ret_0x293ae10_19);
+      call_0x29ae160(param_2, std::string_view("cpu/mem/total", 13), ret_0x293ae10_19);
       auto ret_0x293abc0_21 = call_0x293abc0();
-      call_0x29adfd0(param_2, &local_0x20, ret_0x293abc0_21);
+      call_0x29adfd0(param_2, std::string_view("cpu/vector_instructions", 23), ret_0x293abc0_21);
       call_0x29394d0(&local_0x50);
-      call_0x29aca10(param_2, &local_0x30, &local_0x20);
+      call_0x29aca10(param_2, std::string_view("gpu/make", 8), &local_0x20);
       std::string::_Tidy_deallocate(local_0x50);
-      call_0x29adaf0(param_2, &local_0x20, 0);
-      call_0x29adaf0(param_2, &local_0x20, 0);
+      call_0x29adaf0(param_2, std::string_view("cpu/supportsThermalAPI", 22), 0);
+      call_0x29adaf0(param_2, std::string_view("cpu/supportsPowerAPI", 20), 0);
       auto* f_d8 = this->field_0xd8;
       if (f_d8 != 0) {
         f_d8->vfunc_0xb0(f_d8, &local_0x50);
-        call_0x29aca10(param_2, &local_0x30, &local_0x20);
+        call_0x29aca10(param_2, std::string_view("gpu/featureLvl", 14), &local_0x20);
         std::string::_Tidy_deallocate(local_0x50);
         if (GraphicsShadingLanguageEnum) {
           auto vret_34 = this->field_0xd8->vfunc_0xc0();
@@ -1840,142 +1845,142 @@ Operação  : 0x2714552: cmp [flag], reg ; fn=0x2714330..0x2714d64
             local_0x50 = 0;
             call_0x6f7000(&local_0x50, ret_0x3554780_35->field_0x0, ret_0x3554780_35->field_0x8);
           }
-          call_0x29aca10(param_2, &local_0x30, &local_0x20);
+          call_0x29aca10(param_2, std::string_view("gpu/shadingLang", 15), &local_0x20);
           std::string::_Tidy_deallocate(local_0x50);
         } else {
           auto* f_d8_2 = this->field_0xd8;
           f_d8_2->vfunc_0xb8(f_d8_2, &local_0x50);
-          call_0x29aca10(param_2, &local_0x30, &local_0x20);
+          call_0x29aca10(param_2, std::string_view("gpu/shadingLang", 15), &local_0x20);
           std::string::_Tidy_deallocate(local_0x50);
         }
         call_0x6f7510(&local_0x50, &this->field_0xd8->field_0x30);
-        call_0x29aca10(param_2, &local_0x30, &local_0x20);
+        call_0x29aca10(param_2, std::string_view("gpu/adapter", 11), &local_0x20);
         std::string::_Tidy_deallocate(local_0x50);
         auto vret_42 = this->field_0xd8->vfunc_0xe8();
-        call_0x29ae160(param_2, &local_0x20, vret_42->field_0x68);
+        call_0x29ae160(param_2, std::string_view("gpu/vram", 8), vret_42->field_0x68);
         auto* f_d8_3 = this->field_0xd8;
         f_d8_3->vfunc_0x178(f_d8_3, param_2);
-        call_0x29ae160(param_2, &local_0x20, global_0x8171380);
-        call_0x29ae160(param_2, &local_0x20, global_0x8171388);
-        call_0x29aca10(param_2, &local_0x30, &local_0x20);
-        call_0x29aca10(param_2, &local_0x30, &local_0x20);
+        call_0x29ae160(param_2, std::string_view("gpu/vendorId", 12), global_0x8171380);
+        call_0x29ae160(param_2, std::string_view("gpu/deviceId", 12), global_0x8171388);
+        call_0x29aca10(param_2, std::string_view("gpu/vendorName", 14), &local_0x20);
+        call_0x29aca10(param_2, std::string_view("gpu/driverVer", 13), &local_0x20);
         auto vret_49 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_49->field_0x0);
+        call_0x29adaf0(param_2, std::string_view("gpu/threadSafe", 14), vret_49->field_0x0);
         auto vret_51 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_51->field_0x2);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsFramebufferHalfFloat", 32), vret_51->field_0x2);
         auto vret_53 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_53->field_0x3);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsFramebuffer", 23), vret_53->field_0x3);
         auto vret_55 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_55->field_0x4);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsShaders", 19), vret_55->field_0x4);
         auto vret_57 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_57->field_0x5);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsCompute", 19), vret_57->field_0x5);
         auto vret_59 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_59->field_0x6);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsInstancing", 22), vret_59->field_0x6);
         auto vret_61 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_61->field_0xc);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsStencil", 19), vret_61->field_0xc);
         auto vret_63 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_63->field_0xd);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsDepth16", 19), vret_63->field_0xd);
         auto vret_65 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_65->field_0xe);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsDepth24", 19), vret_65->field_0xe);
         auto vret_67 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_67->field_0xf);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsDepthFloat", 22), vret_67->field_0xf);
         if (UIStencilBufferAllocation5 || UIStencilWorldBuffer) {
           auto vret_69 = this->field_0xd8->vfunc_0xe8();
-          call_0x29adaf0(param_2, &local_0x20, vret_69->field_0x11);
+          call_0x29adaf0(param_2, std::string_view("gpu/supportsDepth24Stencil8", 27), vret_69->field_0x11);
           auto vret_71 = this->field_0xd8->vfunc_0xe8();
-          call_0x29adaf0(param_2, &local_0x20, vret_71->field_0x10);
+          call_0x29adaf0(param_2, std::string_view("gpu/supportsDepth32FloatStencil8", 32), vret_71->field_0x10);
         }
         auto vret_73 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_73->field_0x12);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsDepthClamp", 22), vret_73->field_0x12);
         auto vret_75 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_75->field_0x13);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsSamplerBorderColor", 30), vret_75->field_0x13);
         auto vret_77 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_77->field_0x14);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsIndex32", 19), vret_77->field_0x14);
         auto vret_79 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_79->field_0x15);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsConstantBuffers", 27), vret_79->field_0x15);
         auto vret_81 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_81->field_0x17);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsMemorylessRenderTargets", 35), vret_81->field_0x17);
         auto vret_83 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_83->field_0x18);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsTextureDXT", 22), vret_83->field_0x18);
         auto vret_85 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_85->field_0x1a);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsTexturePVR", 22), vret_85->field_0x1a);
         auto vret_87 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_87->field_0x20);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsTextureASTC", 23), vret_87->field_0x20);
         auto vret_89 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_89->field_0x21);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsTextureASTC_HDR", 27), vret_89->field_0x21);
         auto vret_91 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_91->field_0x1e);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsTextureBC6H", 23), vret_91->field_0x1e);
         auto vret_93 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_93->field_0x22);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsTextureASTC_Sliced3D", 32), vret_93->field_0x22);
         auto vret_95 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_95->field_0x23);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsTextureASTC_Volumetric3D", 36), vret_95->field_0x23);
         auto vret_97 = this->field_0xd8->vfunc_0xe8();
-        call_0x2dbdec0(&sym_0x84c2168, &local_0x20, vret_97->field_0x21, 1);
+        call_0x2dbdec0(&sym_0x84c2168, std::string_view("supportsTextureASTC_HDR", 23), vret_97->field_0x21, 1);
         auto vret_99 = this->field_0xd8->vfunc_0xe8();
-        call_0x2dbdec0(&sym_0x84c2168, &local_0x20, vret_99->field_0x1e, 1);
+        call_0x2dbdec0(&sym_0x84c2168, std::string_view("supportsTextureBC6H", 19), vret_99->field_0x1e, 1);
         auto vret_101 = this->field_0xd8->vfunc_0xe8();
-        call_0x2dbdec0(&sym_0x84c2168, &local_0x20, vret_101->field_0x28, 1);
+        call_0x2dbdec0(&sym_0x84c2168, std::string_view("supportsTextureRG11B10F", 23), vret_101->field_0x28, 1);
         call_0x2db2c00(&sym_0x84c21b0);
         auto vret_104 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_104->field_0x1b);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsTextureETC1", 23), vret_104->field_0x1b);
         auto vret_106 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_106->field_0x1c);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsTextureETC2", 23), vret_106->field_0x1c);
         auto vret_108 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_108->field_0x27);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsTextureRGB10A2", 26), vret_108->field_0x27);
         auto vret_110 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_110->field_0x28);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsTextureRG11B10F", 27), vret_110->field_0x28);
         auto vret_112 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_112->field_0x2a);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsTextureHalfFloat", 28), vret_112->field_0x2a);
         auto vret_114 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_114->field_0x2b);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsTexture3D", 21), vret_114->field_0x2b);
         auto vret_116 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_116->field_0x2c);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsTextureNPOT", 23), vret_116->field_0x2c);
         auto vret_118 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_118->field_0x2d);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsTexturePartialMipChain", 34), vret_118->field_0x2d);
         auto vret_120 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_120->field_0x2e);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsTextureArray", 24), vret_120->field_0x2e);
         auto vret_122 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_122->field_0x2f);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsTextureDepth", 24), vret_122->field_0x2f);
         auto vret_124 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_124->field_0x30);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsTextureMSAA", 23), vret_124->field_0x30);
         auto vret_126 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_126->field_0x34);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsRenderTargetR8G8", 28), vret_126->field_0x34);
         auto vret_128 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_128->field_0x37);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsTextureCubeGenerateMipmaps", 38), vret_128->field_0x37);
         auto vret_130 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_130->field_0x38);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsTextureCubeFramebuffer", 34), vret_130->field_0x38);
         auto vret_132 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_132->field_0x64);
+        call_0x29adaf0(param_2, std::string_view("gpu/requiresRenderTargetFlipping", 32), vret_132->field_0x64);
         auto vret_134 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_134->field_0x65);
+        call_0x29adaf0(param_2, std::string_view("gpu/hasMinusOneToOneDepth", 25), vret_134->field_0x65);
         auto vret_136 = this->field_0xd8->vfunc_0xe8();
-        call_0x29ade40(param_2, &local_0x20, vret_136->field_0x40);
+        call_0x29ade40(param_2, std::string_view("gpu/maxDrawBuffers", 18), vret_136->field_0x40);
         auto vret_138 = this->field_0xd8->vfunc_0xe8();
-        call_0x29ade40(param_2, &local_0x20, vret_138->field_0x44);
+        call_0x29ade40(param_2, std::string_view("gpu/maxSamples", 14), vret_138->field_0x44);
         auto vret_140 = this->field_0xd8->vfunc_0xe8();
-        call_0x29ade40(param_2, &local_0x20, vret_140->field_0x4c);
+        call_0x29ade40(param_2, std::string_view("gpu/maxTextureSize", 18), vret_140->field_0x4c);
         auto vret_142 = this->field_0xd8->vfunc_0xe8();
-        call_0x29ade40(param_2, &local_0x20, vret_142->field_0x50);
+        call_0x29ade40(param_2, std::string_view("gpu/maxTextureUnits", 19), vret_142->field_0x50);
         auto vret_144 = this->field_0xd8->vfunc_0xe8();
-        call_0x29ade40(param_2, &local_0x20, vret_144->field_0x54);
+        call_0x29ade40(param_2, std::string_view("gpu/maxVertexTextureUnits", 25), vret_144->field_0x54);
         auto vret_146 = this->field_0xd8->vfunc_0xe8();
-        call_0x29ade40(param_2, &local_0x20, vret_146->field_0x58);
+        call_0x29ade40(param_2, std::string_view("gpu/maxConstantBufferSize", 25), vret_146->field_0x58);
         auto vret_148 = this->field_0xd8->vfunc_0xe8();
-        call_0x29ade40(param_2, &local_0x20, vret_148->field_0x60);
+        call_0x29ade40(param_2, std::string_view("gpu/textureSamplesMSAAFP16", 26), vret_148->field_0x60);
         auto vret_150 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_150->field_0x7f);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsShaderProgramBinary", 31), vret_150->field_0x7f);
         auto vret_152 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_152->field_0x79);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsHQShaders", 21), vret_152->field_0x79);
         auto vret_154 = this->field_0xd8->vfunc_0xe8();
-        call_0x29adaf0(param_2, &local_0x20, vret_154->field_0x7a);
+        call_0x29adaf0(param_2, std::string_view("gpu/supportsSuperHQShaders", 26), vret_154->field_0x7a);
       }
       auto ret_0xb767e0_156 = call_0xb767e0();
       call_0x1c32b00(ret_0xb767e0_156, &local_0x50, this->field_0xe10);
-      call_0x29aca10(param_2, &local_0x30, &local_0x20);
+      call_0x29aca10(param_2, std::string_view("gpu/disp/tech", 13), &local_0x20);
       std::string::_Tidy_deallocate(local_0x50);
-      call_0x29ae2f0(param_2, &local_0x20, this->field_0xb10);
-      call_0x29ae2f0(param_2, &local_0x20, this->field_0xb14);
-      call_0x29ae2f0(param_2, &local_0x20, this->field_0xd88);
+      call_0x29ae2f0(param_2, std::string_view("gpu/disp/width", 14), this->field_0xb10);
+      call_0x29ae2f0(param_2, std::string_view("gpu/disp/height", 15), this->field_0xb14);
+      call_0x29ae2f0(param_2, std::string_view("gpu/disp/dpi", 12), this->field_0xd88);
     }
   
   === [Instrucoes x86-64 do XREF Runtime #3 (0x3566a00..0x356821f)] ===
@@ -3656,23 +3661,26 @@ Operação  : 0x2714552: cmp [flag], reg ; fn=0x2714330..0x2714d64
           auto ret_0x29a1bc0_45 = call_0x29a1bc0();
           if (ret_0x29a1bc0_45->field_0x0 != 0) {
             uint64_t tsc_0x35f3673 = rdtsc();
-            void* v_rcx_22;
+            void* v_rcx_23;
             if ((global_0x816d648->field_0xb8 & (uint64_t)local_0x90 >> 14) != 0) {
               if (ret_0x29a1bc0_45->field_0x0->field_0x565 != 0) {
                 void* v_rax_21;
+                void* v_rbx_22 = ret_0x29a1bc0_45->field_0x0;
                 if (global_0x816d648->field_0x26d5a0 == 0) {
                   v_rax_21 = -1;
                 } else {
+                  void* prev_0x0_3 = ret_0x29a1bc0_45->field_0x0;
                   auto vret_46 = global_0x816d648->vfunc_0x26d5a0(ret_0x29a1bc0_45->field_0x0->field_0x30);
                   v_rax_21 = vret_46;
+                  v_rbx_22 = prev_0x0_3;
                 }
                 call_0x29a3900(local_0x90, v_rax_21, 0, global_0x8479b18);
-                v_rcx_22 = ret_0x29a1bc0_45->field_0x0->field_0x44;
-                call_0x29a3900(v_rcx_22, tsc_0x35f3673 - global_0x8cda630, 4, global_0x8479b18);
+                v_rcx_23 = v_rbx_22->field_0x44;
+                call_0x29a3900(v_rcx_23, tsc_0x35f3673 - global_0x8cda630, 4, global_0x8479b18);
               }
             } else {
-              v_rcx_22 = local_0x90;
-              call_0x29a3900(v_rcx_22, tsc_0x35f3673 - global_0x8cda630, 4, global_0x8479b18);
+              v_rcx_23 = local_0x90;
+              call_0x29a3900(v_rcx_23, tsc_0x35f3673 - global_0x8cda630, 4, global_0x8479b18);
             }
           }
         }
@@ -3688,53 +3696,56 @@ Operação  : 0x2714552: cmp [flag], reg ; fn=0x2714330..0x2714d64
         }
         if (global_0x84a44d6 != 0 && MicroProfilerMemoryScope) {
           auto ret_0x497fea0_52 = call_0x497fea0();
-          void* v_rcx_32 = ret_0x497fea0_52->field_0x0;
+          void* v_rcx_33 = ret_0x497fea0_52->field_0x0;
           if (ret_0x497fea0_52->field_0x0 == 0) {
-            v_rcx_32 = &ret_0x497fea0_52->field_0x8;
+            v_rcx_33 = &ret_0x497fea0_52->field_0x8;
           }
-          void* stk_33;
-          uint64_t stk_34;
+          void* stk_34;
           uint64_t stk_35;
+          uint64_t stk_36;
           if (0) {
-            stk_33 = local_0x1b8 + (v_rcx_32->field_0x10);
-            stk_34 = local_0x1b0 + (v_rcx_32->field_0x8);
-            stk_35 = local_0x1c0 + (v_rcx_32->field_0x0);
+            stk_34 = local_0x1b8 + (v_rcx_33->field_0x10);
+            stk_35 = local_0x1b0 + (v_rcx_33->field_0x8);
+            stk_36 = local_0x1c0 + (v_rcx_33->field_0x0);
           } else {
-            stk_33 = 0.0;
             stk_34 = 0.0;
-            stk_35 = 0;
+            stk_35 = 0.0;
+            stk_36 = 0;
           }
-          if (((stk_35 & 0xffffff) << 24 | local_0x1c4 & 0xffffff) == 0) {
-            if ((stk_34 << 32 | stk_33) != 0) {
-              auto local_0x68 = stk_34 << 32 | stk_33;
-              call_0x29a42e0(20, (stk_35 & 0xffffff) << 24 | local_0x1c4 & 0xffffff, &local_0x68, 8);
+          if (((stk_36 & 0xffffff) << 24 | local_0x1c4 & 0xffffff) == 0) {
+            if ((stk_35 << 32 | stk_34) != 0) {
+              auto local_0x68 = stk_35 << 32 | stk_34;
+              call_0x29a42e0(20, (stk_36 & 0xffffff) << 24 | local_0x1c4 & 0xffffff, &local_0x68, 8);
             }
           } else {
-            auto local_0x68 = stk_34 << 32 | stk_33;
-            call_0x29a42e0(20, (stk_35 & 0xffffff) << 24 | local_0x1c4 & 0xffffff, &local_0x68, 8);
+            auto local_0x68 = stk_35 << 32 | stk_34;
+            call_0x29a42e0(20, (stk_36 & 0xffffff) << 24 | local_0x1c4 & 0xffffff, &local_0x68, 8);
           }
         }
         if (global_0x75b2c80 != -1) {
           auto ret_0x29a1bc0_54 = call_0x29a1bc0();
           if (ret_0x29a1bc0_54->field_0x0 != 0) {
             uint64_t tsc_0x35f38ec = rdtsc();
-            void* v_rcx_43;
+            void* v_rcx_45;
             if ((global_0x816d648->field_0xb8 & (uint64_t)local_0x190 >> 14) != 0) {
               if (ret_0x29a1bc0_54->field_0x0->field_0x565 != 0) {
-                void* v_rax_42;
+                void* v_rax_43;
+                void* v_rbx_44 = ret_0x29a1bc0_54->field_0x0;
                 if (global_0x816d648->field_0x26d5a0 == 0) {
-                  v_rax_42 = -1;
+                  v_rax_43 = -1;
                 } else {
+                  void* prev_0x0_4 = ret_0x29a1bc0_54->field_0x0;
                   auto vret_55 = global_0x816d648->vfunc_0x26d5a0(ret_0x29a1bc0_54->field_0x0->field_0x30);
-                  v_rax_42 = vret_55;
+                  v_rax_43 = vret_55;
+                  v_rbx_44 = prev_0x0_4;
                 }
-                call_0x29a3900(local_0x190, v_rax_42, 0, global_0x8479b18);
-                v_rcx_43 = ret_0x29a1bc0_54->field_0x0->field_0x44;
-                call_0x29a3900(v_rcx_43, tsc_0x35f38ec - global_0x8cda630, 4, global_0x8479b18);
+                call_0x29a3900(local_0x190, v_rax_43, 0, global_0x8479b18);
+                v_rcx_45 = v_rbx_44->field_0x44;
+                call_0x29a3900(v_rcx_45, tsc_0x35f38ec - global_0x8cda630, 4, global_0x8479b18);
               }
             } else {
-              v_rcx_43 = local_0x190;
-              call_0x29a3900(v_rcx_43, tsc_0x35f38ec - global_0x8cda630, 4, global_0x8479b18);
+              v_rcx_45 = local_0x190;
+              call_0x29a3900(v_rcx_45, tsc_0x35f38ec - global_0x8cda630, 4, global_0x8479b18);
             }
           }
         }
@@ -3759,53 +3770,56 @@ Operação  : 0x2714552: cmp [flag], reg ; fn=0x2714330..0x2714d64
         }
         if (global_0x84a44d6 != 0 && MicroProfilerMemoryScope) {
           auto ret_0x497fea0_65 = call_0x497fea0();
-          void* v_rcx_59 = ret_0x497fea0_65->field_0x0;
+          void* v_rcx_61 = ret_0x497fea0_65->field_0x0;
           if (ret_0x497fea0_65->field_0x0 == 0) {
-            v_rcx_59 = &ret_0x497fea0_65->field_0x8;
+            v_rcx_61 = &ret_0x497fea0_65->field_0x8;
           }
-          uint64_t stk_60;
-          uint64_t stk_61;
-          void* stk_62;
+          uint64_t stk_62;
+          uint64_t stk_63;
+          void* stk_64;
           if (0) {
-            stk_60 = local_0x140 + (v_rcx_59->field_0x0);
-            stk_61 = local_0x130 + (v_rcx_59->field_0x8);
-            stk_62 = local_0x138 + (v_rcx_59->field_0x10);
+            stk_62 = local_0x140 + (v_rcx_61->field_0x0);
+            stk_63 = local_0x130 + (v_rcx_61->field_0x8);
+            stk_64 = local_0x138 + (v_rcx_61->field_0x10);
           } else {
-            stk_60 = 0;
-            stk_61 = 0.0;
-            stk_62 = 0.0;
+            stk_62 = 0;
+            stk_63 = 0.0;
+            stk_64 = 0.0;
           }
-          if (((stk_60 & 0xffffff) << 24 | local_0x144 & 0xffffff) == 0) {
-            if ((stk_61 << 32 | stk_62) != 0) {
-              auto local_0x78 = stk_61 << 32 | stk_62;
-              call_0x29a42e0(20, (stk_60 & 0xffffff) << 24 | local_0x144 & 0xffffff, &local_0x78, 8);
+          if (((stk_62 & 0xffffff) << 24 | local_0x144 & 0xffffff) == 0) {
+            if ((stk_63 << 32 | stk_64) != 0) {
+              auto local_0x78 = stk_63 << 32 | stk_64;
+              call_0x29a42e0(20, (stk_62 & 0xffffff) << 24 | local_0x144 & 0xffffff, &local_0x78, 8);
             }
           } else {
-            auto local_0x78 = stk_61 << 32 | stk_62;
-            call_0x29a42e0(20, (stk_60 & 0xffffff) << 24 | local_0x144 & 0xffffff, &local_0x78, 8);
+            auto local_0x78 = stk_63 << 32 | stk_64;
+            call_0x29a42e0(20, (stk_62 & 0xffffff) << 24 | local_0x144 & 0xffffff, &local_0x78, 8);
           }
         }
         if (global_0x75b2c80 != -1) {
           auto ret_0x29a1bc0_67 = call_0x29a1bc0();
           if (ret_0x29a1bc0_67->field_0x0 != 0) {
             uint64_t tsc_0x35f3bb7 = rdtsc();
-            void* v_rcx_70;
+            void* v_rcx_73;
             if ((global_0x816d648->field_0xb8 & (uint64_t)local_0x110 >> 14) != 0) {
               if (ret_0x29a1bc0_67->field_0x0->field_0x565 != 0) {
-                void* v_rax_69;
+                void* v_rax_71;
+                void* v_rbx_72 = ret_0x29a1bc0_67->field_0x0;
                 if (global_0x816d648->field_0x26d5a0 == 0) {
-                  v_rax_69 = -1;
+                  v_rax_71 = -1;
                 } else {
+                  void* prev_0x0_7 = ret_0x29a1bc0_67->field_0x0;
                   auto vret_68 = global_0x816d648->vfunc_0x26d5a0(ret_0x29a1bc0_67->field_0x0->field_0x30);
-                  v_rax_69 = vret_68;
+                  v_rax_71 = vret_68;
+                  v_rbx_72 = prev_0x0_7;
                 }
-                call_0x29a3900(local_0x110, v_rax_69, 0, global_0x8479b18);
-                v_rcx_70 = ret_0x29a1bc0_67->field_0x0->field_0x44;
-                call_0x29a3900(v_rcx_70, tsc_0x35f3bb7 - global_0x8cda630, 4, global_0x8479b18);
+                call_0x29a3900(local_0x110, v_rax_71, 0, global_0x8479b18);
+                v_rcx_73 = v_rbx_72->field_0x44;
+                call_0x29a3900(v_rcx_73, tsc_0x35f3bb7 - global_0x8cda630, 4, global_0x8479b18);
               }
             } else {
-              v_rcx_70 = local_0x110;
-              call_0x29a3900(v_rcx_70, tsc_0x35f3bb7 - global_0x8cda630, 4, global_0x8479b18);
+              v_rcx_73 = local_0x110;
+              call_0x29a3900(v_rcx_73, tsc_0x35f3bb7 - global_0x8cda630, 4, global_0x8479b18);
             }
           }
         }
@@ -3821,51 +3835,54 @@ Operação  : 0x2714552: cmp [flag], reg ; fn=0x2714330..0x2714d64
         }
         if (global_0x84a44d6 != 0 && MicroProfilerMemoryScope) {
           auto ret_0x497fea0_74 = call_0x497fea0();
-          void* v_rcx_81 = ret_0x497fea0_74->field_0x0;
+          void* v_rcx_84 = ret_0x497fea0_74->field_0x0;
           if (ret_0x497fea0_74->field_0x0 == 0) {
-            v_rcx_81 = &ret_0x497fea0_74->field_0x8;
+            v_rcx_84 = &ret_0x497fea0_74->field_0x8;
           }
-          uint64_t stk_82;
-          uint64_t stk_83;
-          void* stk_84;
+          uint64_t stk_85;
+          uint64_t stk_86;
+          void* stk_87;
           if (0) {
-            stk_82 = local_0x240 + (v_rcx_81->field_0x0);
-            stk_83 = local_0x230 + (v_rcx_81->field_0x8);
-            stk_84 = local_0x238 + (v_rcx_81->field_0x10);
+            stk_85 = local_0x240 + (v_rcx_84->field_0x0);
+            stk_86 = local_0x230 + (v_rcx_84->field_0x8);
+            stk_87 = local_0x238 + (v_rcx_84->field_0x10);
           } else {
-            stk_82 = 0;
-            stk_83 = 0.0;
-            stk_84 = 0.0;
+            stk_85 = 0;
+            stk_86 = 0.0;
+            stk_87 = 0.0;
           }
-          if (((stk_82 & 0xffffff) << 24 | local_0x244 & 0xffffff) == 0) {
-            if ((stk_83 << 32 | stk_84) != 0) {
-              local_0x78 = stk_83 << 32 | stk_84;
-              call_0x29a42e0(20, (stk_82 & 0xffffff) << 24 | local_0x244 & 0xffffff, &local_0x78, 8);
+          if (((stk_85 & 0xffffff) << 24 | local_0x244 & 0xffffff) == 0) {
+            if ((stk_86 << 32 | stk_87) != 0) {
+              local_0x78 = stk_86 << 32 | stk_87;
+              call_0x29a42e0(20, (stk_85 & 0xffffff) << 24 | local_0x244 & 0xffffff, &local_0x78, 8);
             }
           } else {
-            local_0x78 = stk_83 << 32 | stk_84;
-            call_0x29a42e0(20, (stk_82 & 0xffffff) << 24 | local_0x244 & 0xffffff, &local_0x78, 8);
+            local_0x78 = stk_86 << 32 | stk_87;
+            call_0x29a42e0(20, (stk_85 & 0xffffff) << 24 | local_0x244 & 0xffffff, &local_0x78, 8);
           }
         }
         if (global_0x75b2c80 != -1) {
           auto ret_0x29a1bc0_76 = call_0x29a1bc0();
           if (ret_0x29a1bc0_76->field_0x0 != 0) {
             uint64_t tsc_0x35f3e3f = rdtsc();
-            void* v_rcx_93;
+            void* v_rcx_97;
             if ((global_0x816d648->field_0xb8 & (uint64_t)local_0x210 >> 14) != 0) {
               if (ret_0x29a1bc0_76->field_0x0->field_0x565 != 0) {
-                int32_t v_r13_92 = -1;
+                void* v_rbx_95 = ret_0x29a1bc0_76->field_0x0;
+                int32_t v_r13_96 = -1;
                 if (global_0x816d648->field_0x26d5a0 != 0) {
+                  void* prev_0x0_9 = ret_0x29a1bc0_76->field_0x0;
                   auto vret_77 = global_0x816d648->vfunc_0x26d5a0(ret_0x29a1bc0_76->field_0x0->field_0x30);
-                  v_r13_92 = vret_77;
+                  v_rbx_95 = prev_0x0_9;
+                  v_r13_96 = vret_77;
                 }
-                call_0x29a3900(local_0x210, v_r13_92, 0, global_0x8479b18);
-                v_rcx_93 = ret_0x29a1bc0_76->field_0x0->field_0x44;
-                call_0x29a3900(v_rcx_93, tsc_0x35f3e3f - global_0x8cda630, 4, global_0x8479b18);
+                call_0x29a3900(local_0x210, v_r13_96, 0, global_0x8479b18);
+                v_rcx_97 = v_rbx_95->field_0x44;
+                call_0x29a3900(v_rcx_97, tsc_0x35f3e3f - global_0x8cda630, 4, global_0x8479b18);
               }
             } else {
-              v_rcx_93 = local_0x210;
-              call_0x29a3900(v_rcx_93, tsc_0x35f3e3f - global_0x8cda630, 4, global_0x8479b18);
+              v_rcx_97 = local_0x210;
+              call_0x29a3900(v_rcx_97, tsc_0x35f3e3f - global_0x8cda630, 4, global_0x8479b18);
             }
           }
         }
@@ -5108,20 +5125,674 @@ Operação  : 0x2714552: cmp [flag], reg ; fn=0x2714330..0x2714d64
     0x35f3f2b | 5b                       | pop rbx
     0x35f3f2c | 5d                       | pop rbp
     0x35f3f2d | c3                       | ret
+  
+  === [Decompilacao C++ do XREF Runtime #6: 0x37bed90..0x37bfffc (insn @0x37bf85c: cmp [flag], reg)] ===
+    struct RBX::UIStencilBuffer {
+      /* +0x80 */ void*   field_0x80;
+    };
+    
+    // Flag defaults: UIStencilBufferAllocation5 = false, VideoCaptureSelfTest = false, RodeoAndroidRotateShader2 = false, RenderScreenSpacePassRefactor2 = false, FixVideoCaptureScissorTransform = true, RenderCapturePlayerGuiUnifiedRenderUI = false
+    auto RBX::UIStencilBuffer::func_0x37bf730(RBX::UIStencilBuffer* this, int64_t param_2, void* param_3, void* param_4) {
+      if (VideoCaptureSelfTest && param_4 == 3) {
+        param_3->vfunc_0x30(param_3, param_2, 0, param_4 - 2);
+        return tailcall_0x37c00f4();
+      }
+      param_3->vfunc_0x30(param_3, param_2, 0, 1);
+      auto* f_80 = this->field_0x80;
+      if (RodeoAndroidRotateShader2 && f_80->field_0x0->field_0xd8 != 0) {
+        f_80->field_0x0->field_0xd8->vfunc_0x78();
+      }
+      if (local_0x3e0 != 0) {
+        call_0x35509c0(&local_0x1e0, param_2);
+        auto local_0x44 = 257;
+        param_3->vfunc_0x98(param_3, 0, local_0x3e8->field_0x0->field_0x0, &local_0x44);
+        void* v_rax_10;
+        void* v_rcx_11;
+        void* v_r15_12;
+        int64_t stk_15;
+        void* v_rax_22;
+        void* v_rcx_23;
+        void* v_r15_24;
+        void* v_r15_30;
+        if (RodeoAndroidRotateShader2 && local_0x3d8->field_0xcc != 0) {
+          if ((local_0x3d8->field_0xcc - 1 & 0xfffffffd) == 0) {
+            uint64_t i_eax = call_0x3550a90(&local_0xc0, param_2);
+            int32_t i_edx = 2;
+            do { // L_0x37bf9a5
+              i_edx--;
+              i_eax = i_eax + 0x80;
+            } while (i_edx != 0); // loop -> L_0x37bf9a5
+          }
+          int64_t local_0x70;
+          int64_t local_0x40;
+          int64_t local_0x48;
+          int64_t local_0x60;
+          if (RenderScreenSpacePassRefactor2) {
+            auto* f_80_2 = this->field_0x80;
+            auto* f_80_2_0 = f_80_2->field_0x0;
+            void* v_r10_21 = f_80_2_0->field_0xbd0;
+            if (f_80_2_0->field_0xbd0 == 0) {
+              v_r10_21 = f_80_2_0->field_0xbb8;
+            }
+            void* prev_0x0_5 = f_80_2_0;
+            auto vret_13 = v_r10_21->vfunc_0x28(v_r10_21, &local_0x90, std::string_view("PassThroughRotationVS", 21), 0);
+            v_rax_22 = vret_13;
+            v_rcx_23 = local_0x98;
+            v_r15_24 = prev_0x0_5;
+            if (v_rcx_23 != 0) {
+              call_0x6daf40(v_rcx_23);
+            }
+            if (v_rax_22->field_0x0 != 0) {
+              local_0x60 = 0;
+              local_0x44 = 15;
+              local_0x48 = 16777472;
+              local_0x40 = 0;
+              param_3->vfunc_0xc8(param_3, &local_0x60, &local_0x44, &local_0x40);
+              param_3->vfunc_0x50(param_3, local_0x70);
+              v_r15_30 = v_r15_24;
+              param_3->vfunc_0x90(param_3, 1, &local_0xc0, 288);
+              param_3->vfunc_0xd8(param_3, v_r15_30->field_0xbe8->field_0x6c0, 0, 0);
+              call_0x4924d80(&local_0x80->field_0x29b4, 1, 3, 8);
+            }
+          } else {
+            auto* f_80_3 = this->field_0x80;
+            auto* f_80_3_0 = f_80_3->field_0x0;
+            void* v_r10_9 = f_80_3_0->field_0xbd0;
+            if (f_80_3_0->field_0xbd0 == 0) {
+              v_r10_9 = f_80_3_0->field_0xbb8;
+            }
+            void* prev_0x0_4 = f_80_3_0;
+            auto vret_9 = v_r10_9->vfunc_0x28(v_r10_9, &local_0xa0, std::string_view("PassThroughRotationVS", 21), 0);
+            v_rax_10 = vret_9;
+            v_rcx_11 = local_0xa8;
+            v_r15_12 = prev_0x0_4;
+            stk_15 = 21;
+            if (v_rcx_11 != 0) {
+              call_0x6daf40(v_rcx_11);
+            }
+            if (v_rax_10->field_0x0 != 0) {
+              local_0x60 = 0;
+              auto local_0x68 = stk_15;
+              local_0x70 = v_rax_10->field_0x0;
+              local_0x44 = 15;
+              local_0x48 = 16777472;
+              local_0x40 = 0;
+              param_3->vfunc_0xc8(param_3, &local_0x60, &local_0x44, &local_0x40);
+              param_3->vfunc_0x50(param_3, local_0x70);
+              v_r15_30 = v_r15_12;
+              param_3->vfunc_0x90(param_3, 1, &local_0xc0, 288);
+              param_3->vfunc_0xd8(param_3, v_r15_30->field_0xbe8->field_0x6c0, 0, 0);
+              call_0x4924d80(&local_0x80->field_0x29b4, 1, 3, 8);
+            }
+          }
+        } else {
+          if (RenderScreenSpacePassRefactor2) {
+            call_0x3537e80(&local_0xc0, param_2);
+            auto* f_80_4 = this->field_0x80;
+            auto* f_80_4_0 = f_80_4->field_0x0;
+            void* v_r10_4 = f_80_4_0->field_0xbd0;
+            if (f_80_4_0->field_0xbd0 == 0) {
+              v_r10_4 = f_80_4_0->field_0xbb8;
+            }
+            void* prev_0x0_3 = f_80_4_0;
+            auto vret_7 = v_r10_4->vfunc_0x28(v_r10_4, &local_0xb0, std::string_view("PassThroughVS", 13), 0);
+            v_rax_22 = vret_7;
+            v_rcx_23 = local_0xb8;
+            v_r15_24 = prev_0x0_3;
+            if (v_rcx_23 != 0) {
+              call_0x6daf40(v_rcx_23);
+            }
+            if (v_rax_22->field_0x0 != 0) {
+              goto L_0x37bfbea;
+            }
+          } else {
+            auto* f_80_5 = this->field_0x80;
+            auto* f_80_5_0 = f_80_5->field_0x0;
+            void* v_r10_3 = f_80_5_0->field_0xbd0;
+            if (f_80_5_0->field_0xbd0 == 0) {
+              v_r10_3 = f_80_5_0->field_0xbb8;
+            }
+            void* prev_0x0_2 = f_80_5_0;
+            auto vret_5 = v_r10_3->vfunc_0x28(v_r10_3, &local_0x90, &local_0xa0, 0);
+            v_rax_10 = vret_5;
+            v_rcx_11 = local_0x98;
+            v_r15_12 = prev_0x0_2;
+            stk_15 = 13;
+            if (v_rcx_11 != 0) {
+              call_0x6daf40(v_rcx_11);
+            }
+            if (v_rax_10->field_0x0 != 0) {
+              goto L_0x37bfdb4;
+            }
+          }
+        }
+        auto* f_80_6 = this->field_0x80;
+        auto* f_80_6_0 = f_80_6->field_0x0;
+        if (f_80_6_0->field_0xb00->field_0x8 != 0) {
+          call_0x3a01f40(f_80_6_0->field_0xb00->field_0x8->field_0x38, param_2, f_80_6_0->field_0xb00->field_0x8->field_0xc0->field_0xb10, f_80_6_0->field_0xb00->field_0x8->field_0xc0->field_0xb14);
+        }
+        return tailcall_0x37c006f(this->field_0x80->field_0x0->field_0xb28);
+      }
+    }
+  
+  === [Instrucoes x86-64 do XREF Runtime #6 (0x37bed90..0x37bfffc)] ===
+    0x37bf730 | 4c 8b dc                 | mov r11, rsp
+    0x37bf733 | 55                       | push rbp
+    0x37bf734 | 53                       | push rbx
+    0x37bf735 | 57                       | push rdi
+    0x37bf736 | 41 54                    | push r12
+    0x37bf738 | 41 55                    | push r13
+    0x37bf73a | 41 57                    | push r15
+    0x37bf73c | 49 8d ab 58 fd ff ff     | lea rbp, [r11 - 0x2a8]
+    0x37bf743 | 48 81 ec 78 03 00 00     | sub rsp, 0x378
+    0x37bf74a | 48 8b 05 8f 8f 91 04     | mov rax, qword ptr [rip + 0x4918f8f]
+    0x37bf751 | 48 33 c4                 | xor rax, rsp
+    0x37bf754 | 48 89 85 50 02 00 00     | mov qword ptr [rbp + 0x250], rax
+    0x37bf75b | 48 8b 85 d0 02 00 00     | mov rax, qword ptr [rbp + 0x2d0]
+    0x37bf762 | 45 8b e1                 | mov r12d, r9d
+    0x37bf765 | 4c 8b bd d8 02 00 00     | mov r15, qword ptr [rbp + 0x2d8]
+    0x37bf76c | 49 8b d8                 | mov rbx, r8
+    0x37bf76f | 48 89 45 88              | mov qword ptr [rbp - 0x78], rax
+    0x37bf773 | 48 8b fa                 | mov rdi, rdx
+    0x37bf776 | 48 8b 85 e8 02 00 00     | mov rax, qword ptr [rbp + 0x2e8]
+    0x37bf77d | 4c 8b e9                 | mov r13, rcx
+    0x37bf780 | 48 89 44 24 60           | mov qword ptr [rsp + 0x60], rax
+    0x37bf785 | 48 8b 85 f0 02 00 00     | mov rax, qword ptr [rbp + 0x2f0]
+    0x37bf78c | 48 89 44 24 70           | mov qword ptr [rsp + 0x70], rax
+    0x37bf791 | 48 8b 85 f8 02 00 00     | mov rax, qword ptr [rbp + 0x2f8]
+    0x37bf798 | 48 89 45 80              | mov qword ptr [rbp - 0x80], rax
+    0x37bf79c | 48 85 d2                 | test rdx, rdx
+    0x37bf79f | 0f 84 6f 09 00 00        | je 0x37c0114
+    0x37bf7a5 | 80 3d 04 1b 96 04 00     | cmp byte ptr [rip + 0x4961b04], 0x0 ; FFlagVideoCaptureSelfTest
+    0x37bf7ac | 49 89 73 c8              | mov qword ptr [r11 - 0x38], rsi
+    0x37bf7b0 | 4d 89 73 c0              | mov qword ptr [r11 - 0x40], r14
+    0x37bf7b4 | 4c 8b b1 80 00 00 00     | mov r14, qword ptr [rcx + 0x80]
+    0x37bf7bb | 0f 84 8d 00 00 00        | je 0x37bf84e
+    0x37bf7c1 | 41 83 f9 03              | cmp r9d, 0x3
+    0x37bf7c5 | 0f 85 83 00 00 00        | jne 0x37bf84e
+    0x37bf7cb | 49 8b 00                 | mov rax, qword ptr [r8]
+    0x37bf7ce | 48 8d 8d 00 02 00 00     | lea rcx, [rbp + 0x200]
+    0x37bf7d5 | 0f 57 c0                 | xorps xmm0, xmm0
+    0x37bf7d8 | 48 c7 85 44 02 00 00 00.. | mov qword ptr [rbp + 0x244], 0x0
+    0x37bf7e3 | 33 f6                    | xor esi, esi
+    0x37bf7e5 | c7 85 00 02 00 00 01 00.. | mov dword ptr [rbp + 0x200], 0x1
+    0x37bf7ef | 0f 11 85 04 02 00 00     | movups xmmword ptr [rbp + 0x204], xmm0
+    0x37bf7f6 | 48 8b 40 30              | mov rax, qword ptr [rax + 0x30]
+    0x37bf7fa | 45 8d 4c 24 fe           | lea r9d, [r12 - 0x2]
+    0x37bf7ff | 89 74 24 30              | mov dword ptr [rsp + 0x30], esi
+    0x37bf803 | 45 33 c0                 | xor r8d, r8d
+    0x37bf806 | 48 89 74 24 28           | mov qword ptr [rsp + 0x28], rsi
+    0x37bf80b | 48 89 4c 24 20           | mov qword ptr [rsp + 0x20], rcx
+    0x37bf810 | 48 8b cb                 | mov rcx, rbx
+    0x37bf813 | 0f 11 85 14 02 00 00     | movups xmmword ptr [rbp + 0x214], xmm0
+    0x37bf81a | 48 c7 85 04 02 00 00 00.. | mov qword ptr [rbp + 0x204], 0x3f800000
+    0x37bf825 | 0f 11 85 24 02 00 00     | movups xmmword ptr [rbp + 0x224], xmm0
+    0x37bf82c | 89 b5 0c 02 00 00        | mov dword ptr [rbp + 0x20c], esi
+    0x37bf832 | 0f 11 85 34 02 00 00     | movups xmmword ptr [rbp + 0x234], xmm0
+    0x37bf839 | c7 85 10 02 00 00 00 00.. | mov dword ptr [rbp + 0x210], 0x3f800000
+    0x37bf843 | ff 15 f7 a4 c7 02        | call qword ptr [rip + 0x2c7a4f7] ; __guard_dispatch_icall_fptr (0x6439d40)
+    0x37bf849 | e9 a6 08 00 00           | jmp 0x37c00f4
+    L_0x37bf84e:
+    0x37bf84e | 0f 57 c0                 | xorps xmm0, xmm0
+    0x37bf851 | 33 c0                    | xor eax, eax
+    0x37bf853 | 33 f6                    | xor esi, esi
+    0x37bf855 | 0f 29 85 00 02 00 00     | movaps xmmword ptr [rbp + 0x200], xmm0
+    0x37bf85c | 38 05 9e e7 93 04        | cmp byte ptr [rip + 0x493e79e], al ; FFlagUIStencilBufferAllocation5
+    0x37bf862 | 0f 29 85 10 02 00 00     | movaps xmmword ptr [rbp + 0x210], xmm0
+    0x37bf869 | 0f 29 85 20 02 00 00     | movaps xmmword ptr [rbp + 0x220], xmm0
+    0x37bf870 | 0f 29 85 30 02 00 00     | movaps xmmword ptr [rbp + 0x230], xmm0
+    0x37bf877 | 48 89 85 40 02 00 00     | mov qword ptr [rbp + 0x240], rax
+    0x37bf87e | 89 b5 48 02 00 00        | mov dword ptr [rbp + 0x248], esi
+    0x37bf884 | 74 18                    | je 0x37bf89e
+    0x37bf886 | 8b 82 84 00 00 00        | mov eax, dword ptr [rdx + 0x84]
+    0x37bf88c | c1 e8 05                 | shr eax, 0x5
+    0x37bf88f | a8 01                    | test al, 0x1
+    0x37bf891 | 74 0b                    | je 0x37bf89e
+    0x37bf893 | 83 8d 00 02 00 00 20     | or dword ptr [rbp + 0x200], 0x20
+    0x37bf89a | b2 01                    | mov dl, 0x1
+    0x37bf89c | eb 02                    | jmp 0x37bf8a0
+    L_0x37bf89e:
+    0x37bf89e | 32 d2                    | xor dl, dl
+    L_0x37bf8a0:
+    0x37bf8a0 | 49 8b 00                 | mov rax, qword ptr [r8]
+    0x37bf8a3 | 48 8d 8d 00 02 00 00     | lea rcx, [rbp + 0x200]
+    0x37bf8aa | 84 d2                    | test dl, dl
+    0x37bf8ac | 89 74 24 30              | mov dword ptr [rsp + 0x30], esi
+    0x37bf8b0 | 48 89 74 24 28           | mov qword ptr [rsp + 0x28], rsi
+    0x37bf8b5 | 41 b9 01 00 00 00        | mov r9d, 0x1
+    0x37bf8bb | 48 0f 44 ce              | cmovz rcx, rsi
+    0x37bf8bf | 48 8b d7                 | mov rdx, rdi
+    0x37bf8c2 | 48 8b 40 30              | mov rax, qword ptr [rax + 0x30]
+    0x37bf8c6 | 45 33 c0                 | xor r8d, r8d
+    0x37bf8c9 | 48 89 4c 24 20           | mov qword ptr [rsp + 0x20], rcx
+    0x37bf8ce | 48 8b cb                 | mov rcx, rbx
+    0x37bf8d1 | ff 15 69 a4 c7 02        | call qword ptr [rip + 0x2c7a469] ; __guard_dispatch_icall_fptr (0x6439d40)
+    0x37bf8d7 | 0f b6 15 32 99 95 04     | movzx edx, byte ptr [rip + 0x4959932] ; FFlagRodeoAndroidRotateShader2
+    0x37bf8de | 84 d2                    | test dl, dl
+    0x37bf8e0 | 74 2a                    | je 0x37bf90c
+    0x37bf8e2 | 49 8b 06                 | mov rax, qword ptr [r14]
+    0x37bf8e5 | 48 8b 88 d8 00 00 00     | mov rcx, qword ptr [rax + 0xd8]
+    0x37bf8ec | 48 85 c9                 | test rcx, rcx
+    0x37bf8ef | 74 1b                    | je 0x37bf90c
+    0x37bf8f1 | 48 8b 01                 | mov rax, qword ptr [rcx]
+    0x37bf8f4 | 48 8b 40 78              | mov rax, qword ptr [rax + 0x78]
+    0x37bf8f8 | ff 15 42 a4 c7 02        | call qword ptr [rip + 0x2c7a442] ; __guard_dispatch_icall_fptr (0x6439d40)
+    0x37bf8fe | 41 89 87 cc 00 00 00     | mov dword ptr [r15 + 0xcc], eax
+    0x37bf905 | 0f b6 15 04 99 95 04     | movzx edx, byte ptr [rip + 0x4959904] ; FFlagRodeoAndroidRotateShader2
+    L_0x37bf90c:
+    0x37bf90c | 40 38 b5 e0 02 00 00     | cmp byte ptr [rbp + 0x2e0], sil
+    0x37bf913 | 0f 84 a4 06 00 00        | je 0x37bffbd
+    0x37bf919 | 48 8b d7                 | mov rdx, rdi
+    0x37bf91c | 48 8d 8d e0 00 00 00     | lea rcx, [rbp + 0xe0]
+    0x37bf923 | e8 98 10 d9 ff           | call 0x35509c0
+    0x37bf928 | 48 8b 03                 | mov rax, qword ptr [rbx]
+    0x37bf92b | 4c 8d 4c 24 44           | lea r9, [rsp + 0x44]
+    0x37bf930 | f3 0f 10 05 f4 15 de 03  | movss xmm0, dword ptr [rip + 0x3de15f4]
+    0x37bf938 | 33 d2                    | xor edx, edx
+    0x37bf93a | 4c 8b 44 24 60           | mov r8, qword ptr [rsp + 0x60]
+    0x37bf93f | 48 8b cb                 | mov rcx, rbx
+    0x37bf942 | f3 0f 11 44 24 50        | movss dword ptr [rsp + 0x50], xmm0
+    0x37bf948 | 48 8b 80 98 00 00 00     | mov rax, qword ptr [rax + 0x98]
+    0x37bf94f | c7 44 24 44 01 01 00 00  | mov dword ptr [rsp + 0x44], 0x101
+    0x37bf957 | 4d 8b 00                 | mov r8, qword ptr [r8]
+    0x37bf95a | 48 89 74 24 48           | mov qword ptr [rsp + 0x48], rsi
+    0x37bf95f | 4d 8b 00                 | mov r8, qword ptr [r8]
+    0x37bf962 | ff 15 d8 a3 c7 02        | call qword ptr [rip + 0x2c7a3d8] ; __guard_dispatch_icall_fptr (0x6439d40)
+    0x37bf968 | 40 38 35 a1 98 95 04     | cmp byte ptr [rip + 0x49598a1], sil ; FFlagRodeoAndroidRotateShader2
+    0x37bf96f | 0f 84 87 04 00 00        | je 0x37bfdfc
+    0x37bf975 | 41 8b 87 cc 00 00 00     | mov eax, dword ptr [r15 + 0xcc]
+    0x37bf97c | 85 c0                    | test eax, eax
+    0x37bf97e | 0f 84 78 04 00 00        | je 0x37bfdfc
+    0x37bf984 | ff c8                    | dec eax
+    0x37bf986 | a9 fd ff ff ff           | test eax, 0xfffffffd
+    0x37bf98b | 75 79                    | jne 0x37bfa06
+    0x37bf98d | 48 8b d7                 | mov rdx, rdi
+    0x37bf990 | 48 8d 4d c0              | lea rcx, [rbp - 0x40]
+    0x37bf994 | e8 f7 10 d9 ff           | call 0x3550a90
+    0x37bf999 | 48 8d 8d e0 00 00 00     | lea rcx, [rbp + 0xe0]
+    0x37bf9a0 | ba 02 00 00 00           | mov edx, 0x2
+    L_0x37bf9a5:
+    0x37bf9a5 | 48 8d 89 80 00 00 00     | lea rcx, [rcx + 0x80]
+    0x37bf9ac | 0f 10 00                 | movups xmm0, xmmword ptr [rax]
+    0x37bf9af | 48 8d 80 80 00 00 00     | lea rax, [rax + 0x80]
+    0x37bf9b6 | 0f 11 41 80              | movups xmmword ptr [rcx - 0x80], xmm0
+    0x37bf9ba | 0f 10 48 90              | movups xmm1, xmmword ptr [rax - 0x70]
+    0x37bf9be | 0f 11 49 90              | movups xmmword ptr [rcx - 0x70], xmm1
+    0x37bf9c2 | 0f 10 40 a0              | movups xmm0, xmmword ptr [rax - 0x60]
+    0x37bf9c6 | 0f 11 41 a0              | movups xmmword ptr [rcx - 0x60], xmm0
+    0x37bf9ca | 0f 10 48 b0              | movups xmm1, xmmword ptr [rax - 0x50]
+    0x37bf9ce | 0f 11 49 b0              | movups xmmword ptr [rcx - 0x50], xmm1
+    0x37bf9d2 | 0f 10 40 c0              | movups xmm0, xmmword ptr [rax - 0x40]
+    0x37bf9d6 | 0f 11 41 c0              | movups xmmword ptr [rcx - 0x40], xmm0
+    0x37bf9da | 0f 10 48 d0              | movups xmm1, xmmword ptr [rax - 0x30]
+    0x37bf9de | 0f 11 49 d0              | movups xmmword ptr [rcx - 0x30], xmm1
+    0x37bf9e2 | 0f 10 40 e0              | movups xmm0, xmmword ptr [rax - 0x20]
+    0x37bf9e6 | 0f 11 41 e0              | movups xmmword ptr [rcx - 0x20], xmm0
+    0x37bf9ea | 0f 10 48 f0              | movups xmm1, xmmword ptr [rax - 0x10]
+    0x37bf9ee | 0f 11 49 f0              | movups xmmword ptr [rcx - 0x10], xmm1
+    0x37bf9f2 | 48 83 ea 01              | sub rdx, 0x1
+    0x37bf9f6 | 75 ad                    | jne 0x37bf9a5
+    0x37bf9f8 | 0f 10 00                 | movups xmm0, xmmword ptr [rax]
+    0x37bf9fb | 0f 11 01                 | movups xmmword ptr [rcx], xmm0
+    0x37bf9fe | 0f 10 48 10              | movups xmm1, xmmword ptr [rax + 0x10]
+    0x37bfa02 | 0f 11 49 10              | movups xmmword ptr [rcx + 0x10], xmm1
+    L_0x37bfa06:
+    0x37bfa06 | 41 8b 8f cc 00 00 00     | mov ecx, dword ptr [r15 + 0xcc]
+    0x37bfa0d | 8b d1                    | mov edx, ecx
+    0x37bfa0f | 83 ea 01                 | sub edx, 0x1
+    0x37bfa12 | 74 25                    | je 0x37bfa39
+    0x37bfa14 | 83 ea 01                 | sub edx, 0x1
+    0x37bfa17 | 74 17                    | je 0x37bfa30
+    0x37bfa19 | 83 fa 01                 | cmp edx, 0x1
+    0x37bfa1c | 74 09                    | je 0x37bfa27
+    0x37bfa1e | 0f 28 05 2b 0f df 03     | movaps xmm0, xmmword ptr [rip + 0x3df0f2b] ; {1.0, 0.0, 0.0, 1.0}
+    0x37bfa25 | eb 19                    | jmp 0x37bfa40
+    L_0x37bfa27:
+    0x37bfa27 | 0f 28 05 72 38 c8 03     | movaps xmm0, xmmword ptr [rip + 0x3c83872] ; {0.0, 1.0, -1.0, 0.0}
+    0x37bfa2e | eb 10                    | jmp 0x37bfa40
+    L_0x37bfa30:
+    0x37bfa30 | 0f 28 05 19 29 df 03     | movaps xmm0, xmmword ptr [rip + 0x3df2919] ; {-1.0, 0.0, 0.0, -1.0}
+    0x37bfa37 | eb 07                    | jmp 0x37bfa40
+    L_0x37bfa39:
+    0x37bfa39 | 0f 28 05 30 d3 de 03     | movaps xmm0, xmmword ptr [rip + 0x3ded330] ; {0.0, -1.0, 1.0, 0.0}
+    L_0x37bfa40:
+    0x37bfa40 | 40 38 35 d9 85 95 04     | cmp byte ptr [rip + 0x49585d9], sil ; DFFlagRenderScreenSpacePassRefactor2
+    0x37bfa47 | 66 0f 7f 85 80 01 00 00  | movdqa xmmword ptr [rbp + 0x180], xmm0
+    0x37bfa4f | 0f 84 9e 02 00 00        | je 0x37bfcf3
+    0x37bfa55 | 8b 47 7c                 | mov eax, dword ptr [rdi + 0x7c]
+    0x37bfa58 | 0f 57 c0                 | xorps xmm0, xmm0
+    0x37bfa5b | f3 0f 10 1d 51 fc dd 03  | movss xmm3, dword ptr [rip + 0x3ddfc51] ; 1.0
+    0x37bfa63 | 0f 57 c9                 | xorps xmm1, xmm1
+    0x37bfa66 | 0f 29 45 e0              | movaps xmmword ptr [rbp - 0x20], xmm0
+    0x37bfa6a | 0f 57 d2                 | xorps xmm2, xmm2
+    0x37bfa6d | 0f 29 45 00              | movaps xmmword ptr [rbp], xmm0
+    0x37bfa71 | 0f 29 45 20              | movaps xmmword ptr [rbp + 0x20], xmm0
+    0x37bfa75 | 0f 29 45 40              | movaps xmmword ptr [rbp + 0x40], xmm0
+    0x37bfa79 | 0f 29 45 70              | movaps xmmword ptr [rbp + 0x70], xmm0
+    0x37bfa7d | 0f 29 85 90 00 00 00     | movaps xmmword ptr [rbp + 0x90], xmm0
+    0x37bfa84 | 0f 29 85 b0 00 00 00     | movaps xmmword ptr [rbp + 0xb0], xmm0
+    0x37bfa8b | 0f 29 85 d0 00 00 00     | movaps xmmword ptr [rbp + 0xd0], xmm0
+    0x37bfa92 | 0f 28 c3                 | movaps xmm0, xmm3
+    0x37bfa95 | 0f 29 4d f0              | movaps xmmword ptr [rbp - 0x10], xmm1
+    0x37bfa99 | 0f 29 4d 10              | movaps xmmword ptr [rbp + 0x10], xmm1
+    0x37bfa9d | 0f 29 4d 30              | movaps xmmword ptr [rbp + 0x30], xmm1
+    0x37bfaa1 | 0f 29 4d 50              | movaps xmmword ptr [rbp + 0x50], xmm1
+    0x37bfaa5 | 0f 29 8d 80 00 00 00     | movaps xmmword ptr [rbp + 0x80], xmm1
+    0x37bfaac | 0f 29 8d a0 00 00 00     | movaps xmmword ptr [rbp + 0xa0], xmm1
+    0x37bfab3 | 0f 29 8d c0 00 00 00     | movaps xmmword ptr [rbp + 0xc0], xmm1
+    0x37bfaba | 0f 57 c9                 | xorps xmm1, xmm1
+    0x37bfabd | f3 48 0f 2a d0           | cvtsi2ss xmm2, rax
+    0x37bfac2 | 8b 47 78                 | mov eax, dword ptr [rdi + 0x78]
+    0x37bfac5 | f3 48 0f 2a c8           | cvtsi2ss xmm1, rax
+    0x37bfaca | f3 0f 11 55 c0           | movss dword ptr [rbp - 0x40], xmm2
+    0x37bfacf | f3 0f 5e c2              | divss xmm0, xmm2
+    0x37bfad3 | f3 0f 11 4d c4           | movss dword ptr [rbp - 0x3c], xmm1
+    0x37bfad8 | f3 0f 11 45 c8           | movss dword ptr [rbp - 0x38], xmm0
+    0x37bfadd | 0f 28 05 4c 39 b9 03     | movaps xmm0, xmmword ptr [rip + 0x3b9394c] ; {1.0, 1.0, 1.0, 1.0}
+    0x37bfae4 | 0f 29 45 d0              | movaps xmmword ptr [rbp - 0x30], xmm0
+    0x37bfae8 | f3 0f 5e d9              | divss xmm3, xmm1
+    0x37bfaec | f3 0f 11 5d cc           | movss dword ptr [rbp - 0x34], xmm3
+    0x37bfaf1 | 83 e9 01                 | sub ecx, 0x1
+    0x37bfaf4 | 74 25                    | je 0x37bfb1b
+    0x37bfaf6 | 83 e9 01                 | sub ecx, 0x1
+    0x37bfaf9 | 74 17                    | je 0x37bfb12
+    0x37bfafb | 83 f9 01                 | cmp ecx, 0x1
+    0x37bfafe | 74 09                    | je 0x37bfb09
+    0x37bfb00 | 0f 28 05 49 0e df 03     | movaps xmm0, xmmword ptr [rip + 0x3df0e49] ; {1.0, 0.0, 0.0, 1.0}
+    0x37bfb07 | eb 19                    | jmp 0x37bfb22
+    L_0x37bfb09:
+    0x37bfb09 | 0f 28 05 90 37 c8 03     | movaps xmm0, xmmword ptr [rip + 0x3c83790] ; {0.0, 1.0, -1.0, 0.0}
+    0x37bfb10 | eb 10                    | jmp 0x37bfb22
+    L_0x37bfb12:
+    0x37bfb12 | 0f 28 05 37 28 df 03     | movaps xmm0, xmmword ptr [rip + 0x3df2837] ; {-1.0, 0.0, 0.0, -1.0}
+    0x37bfb19 | eb 07                    | jmp 0x37bfb22
+    L_0x37bfb1b:
+    0x37bfb1b | 0f 28 05 4e d2 de 03     | movaps xmm0, xmmword ptr [rip + 0x3ded24e] ; {0.0, -1.0, 1.0, 0.0}
+    L_0x37bfb22:
+    0x37bfb22 | 4d 8b 3e                 | mov r15, qword ptr [r14]
+    0x37bfb25 | 66 0f 7f 45 60           | movdqa xmmword ptr [rbp + 0x60], xmm0
+    0x37bfb2a | 66 89 74 24 40           | mov word ptr [rsp + 0x40], si
+    0x37bfb2f | 40 88 74 24 42           | mov byte ptr [rsp + 0x42], sil
+    0x37bfb34 | c7 44 24 48 00 01 00 01  | mov dword ptr [rsp + 0x48], 0x1000100
+    0x37bfb3c | c7 44 24 44 0f 00 00 00  | mov dword ptr [rsp + 0x44], 0xf
+    0x37bfb44 | 40 88 74 24 4c           | mov byte ptr [rsp + 0x4c], sil
+    0x37bfb49 | 4d 8b 97 d0 0b 00 00     | mov r10, qword ptr [r15 + 0xbd0]
+    0x37bfb50 | 4d 85 d2                 | test r10, r10
+    0x37bfb53 | 75 07                    | jne 0x37bfb5c
+    0x37bfb55 | 4d 8b 97 b8 0b 00 00     | mov r10, qword ptr [r15 + 0xbb8]
+    L_0x37bfb5c:
+    0x37bfb5c | 49 8b 02                 | mov rax, qword ptr [r10]
+    0x37bfb5f | 48 8d 0d fa 35 bf 03     | lea rcx, [rip + 0x3bf35fa] ; "PassThroughFS"
+    0x37bfb66 | 48 89 4c 24 70           | mov qword ptr [rsp + 0x70], rcx
+    0x37bfb6b | 4c 8d 44 24 60           | lea r8, [rsp + 0x60]
+    0x37bfb70 | 48 c7 44 24 78 0d 00 00.. | mov qword ptr [rsp + 0x78], 0xd
+    0x37bfb79 | 48 8d 0d 60 e7 bf 03     | lea rcx, [rip + 0x3bfe760] ; "PassThroughRotationVS"
+    0x37bfb80 | 0f 28 44 24 70           | movaps xmm0, xmmword ptr [rsp + 0x70]
+    0x37bfb85 | 48 8d 55 90              | lea rdx, [rbp - 0x70]
+    0x37bfb89 | 48 8b 40 28              | mov rax, qword ptr [rax + 0x28]
+    0x37bfb8d | 45 33 c9                 | xor r9d, r9d
+    0x37bfb90 | 48 89 4c 24 60           | mov qword ptr [rsp + 0x60], rcx
+    0x37bfb95 | 48 8d 4c 24 70           | lea rcx, [rsp + 0x70]
+    0x37bfb9a | 48 c7 44 24 68 15 00 00.. | mov qword ptr [rsp + 0x68], 0x15
+    0x37bfba3 | 0f 28 4c 24 60           | movaps xmm1, xmmword ptr [rsp + 0x60]
+    0x37bfba8 | 89 74 24 28              | mov dword ptr [rsp + 0x28], esi
+    0x37bfbac | 48 89 4c 24 20           | mov qword ptr [rsp + 0x20], rcx
+    0x37bfbb1 | 49 8b ca                 | mov rcx, r10
+    0x37bfbb4 | 66 0f 7f 44 24 70        | movdqa xmmword ptr [rsp + 0x70], xmm0
+    0x37bfbba | 66 0f 7f 4c 24 60        | movdqa xmmword ptr [rsp + 0x60], xmm1
+    0x37bfbc0 | ff 15 7a a1 c7 02        | call qword ptr [rip + 0x2c7a17a] ; __guard_dispatch_icall_fptr (0x6439d40)
+    0x37bfbc6 | 48 8b 4d 98              | mov rcx, qword ptr [rbp - 0x68]
+    L_0x37bfbca:
+    0x37bfbca | 48 8b 00                 | mov rax, qword ptr [rax]
+    0x37bfbcd | 48 89 44 24 70           | mov qword ptr [rsp + 0x70], rax
+    0x37bfbd2 | 48 85 c9                 | test rcx, rcx
+    0x37bfbd5 | 74 0a                    | je 0x37bfbe1
+    0x37bfbd7 | e8 64 b3 f1 fc           | call 0x6daf40
+    0x37bfbdc | 48 8b 44 24 70           | mov rax, qword ptr [rsp + 0x70]
+    L_0x37bfbe1:
+    0x37bfbe1 | 48 85 c0                 | test rax, rax
+    0x37bfbe4 | 0f 84 a6 00 00 00        | je 0x37bfc90
+    0x37bfbea | 48 8b 03                 | mov rax, qword ptr [rbx]
+    0x37bfbed | 4c 8d 4c 24 40           | lea r9, [rsp + 0x40]
+    0x37bfbf2 | 4c 8d 44 24 44           | lea r8, [rsp + 0x44]
+    0x37bfbf7 | 48 89 74 24 60           | mov qword ptr [rsp + 0x60], rsi
+    0x37bfbfc | 48 8d 54 24 60           | lea rdx, [rsp + 0x60]
+    0x37bfc01 | 48 8b cb                 | mov rcx, rbx
+    0x37bfc04 | 48 8b 80 c8 00 00 00     | mov rax, qword ptr [rax + 0xc8]
+    0x37bfc0b | ff 15 2f a1 c7 02        | call qword ptr [rip + 0x2c7a12f] ; __guard_dispatch_icall_fptr (0x6439d40)
+    0x37bfc11 | 48 8b 03                 | mov rax, qword ptr [rbx]
+    0x37bfc14 | 48 8b cb                 | mov rcx, rbx
+    0x37bfc17 | 48 8b 54 24 70           | mov rdx, qword ptr [rsp + 0x70]
+    0x37bfc1c | 48 8b 40 50              | mov rax, qword ptr [rax + 0x50]
+    0x37bfc20 | ff 15 1a a1 c7 02        | call qword ptr [rip + 0x2c7a11a] ; __guard_dispatch_icall_fptr (0x6439d40)
+    0x37bfc26 | 4c 8d 45 c0              | lea r8, [rbp - 0x40]
+    L_0x37bfc2a:
+    0x37bfc2a | 48 8b 03                 | mov rax, qword ptr [rbx]
+    0x37bfc2d | 41 b9 20 01 00 00        | mov r9d, 0x120
+    0x37bfc33 | ba 01 00 00 00           | mov edx, 0x1
+    0x37bfc38 | 48 8b cb                 | mov rcx, rbx
+    0x37bfc3b | 48 8b 80 90 00 00 00     | mov rax, qword ptr [rax + 0x90]
+    0x37bfc42 | ff 15 f8 a0 c7 02        | call qword ptr [rip + 0x2c7a0f8] ; __guard_dispatch_icall_fptr (0x6439d40)
+    0x37bfc48 | 48 8b 03                 | mov rax, qword ptr [rbx]
+    0x37bfc4b | 45 33 c9                 | xor r9d, r9d
+    0x37bfc4e | 49 8b 97 e8 0b 00 00     | mov rdx, qword ptr [r15 + 0xbe8]
+    0x37bfc55 | 45 33 c0                 | xor r8d, r8d
+    0x37bfc58 | 48 8b cb                 | mov rcx, rbx
+    0x37bfc5b | 48 8b 80 d8 00 00 00     | mov rax, qword ptr [rax + 0xd8]
+    0x37bfc62 | 48 8b 92 c0 06 00 00     | mov rdx, qword ptr [rdx + 0x6c0]
+    0x37bfc69 | ff 15 d1 a0 c7 02        | call qword ptr [rip + 0x2c7a0d1] ; __guard_dispatch_icall_fptr (0x6439d40)
+    0x37bfc6f | 48 8b 4d 80              | mov rcx, qword ptr [rbp - 0x80]
+    0x37bfc73 | ba 01 00 00 00           | mov edx, 0x1
+    0x37bfc78 | 48 81 c1 b4 29 00 00     | add rcx, 0x29b4
+    0x37bfc7f | 89 74 24 20              | mov dword ptr [rsp + 0x20], esi
+    0x37bfc83 | 44 8d 4a 07              | lea r9d, [rdx + 0x7]
+    0x37bfc87 | 44 8d 42 02              | lea r8d, [rdx + 0x2]
+    0x37bfc8b | e8 f0 50 16 01           | call 0x4924d80
+    L_0x37bfc90:
+    0x37bfc90 | 48 8b 75 80              | mov rsi, qword ptr [rbp - 0x80]
+    0x37bfc94 | 80 3d 85 97 95 04 00     | cmp byte ptr [rip + 0x4959785], 0x0 ; FFlagFixVideoCaptureScissorTransform
+    0x37bfc9b | 0f 84 db 03 00 00        | je 0x37c007c
+    0x37bfca1 | 49 8b 06                 | mov rax, qword ptr [r14]
+    0x37bfca4 | 48 8b 88 00 0b 00 00     | mov rcx, qword ptr [rax + 0xb00]
+    0x37bfcab | 48 8b 49 08              | mov rcx, qword ptr [rcx + 0x8]
+    0x37bfcaf | 48 85 c9                 | test rcx, rcx
+    0x37bfcb2 | 74 23                    | je 0x37bfcd7
+    0x37bfcb4 | 48 8b 81 c0 00 00 00     | mov rax, qword ptr [rcx + 0xc0]
+    0x37bfcbb | 48 8b d7                 | mov rdx, rdi
+    0x37bfcbe | 48 8b 49 38              | mov rcx, qword ptr [rcx + 0x38]
+    0x37bfcc2 | f3 0f 10 98 14 0b 00 00  | movss xmm3, dword ptr [rax + 0xb14]
+    0x37bfcca | f3 0f 10 90 10 0b 00 00  | movss xmm2, dword ptr [rax + 0xb10]
+    0x37bfcd2 | e8 69 22 24 00           | call 0x3a01f40
+    L_0x37bfcd7:
+    0x37bfcd7 | 80 3d 92 95 95 04 00     | cmp byte ptr [rip + 0x4959592], 0x0 ; FFlagRenderCapturePlayerGuiUnifiedRenderUI
+    0x37bfcde | 0f 84 7d 03 00 00        | je 0x37c0061
+    0x37bfce4 | 49 8b 06                 | mov rax, qword ptr [r14]
+    0x37bfce7 | 48 8b 88 28 0b 00 00     | mov rcx, qword ptr [rax + 0xb28]
+    0x37bfcee | e9 7c 03 00 00           | jmp 0x37c006f
+    L_0x37bfcf3:
+    0x37bfcf3 | 4d 8b 3e                 | mov r15, qword ptr [r14]
+    0x37bfcf6 | 66 89 74 24 40           | mov word ptr [rsp + 0x40], si
+    0x37bfcfb | 40 88 74 24 42           | mov byte ptr [rsp + 0x42], sil
+    0x37bfd00 | c7 44 24 48 00 01 00 01  | mov dword ptr [rsp + 0x48], 0x1000100
+    0x37bfd08 | c7 44 24 44 0f 00 00 00  | mov dword ptr [rsp + 0x44], 0xf
+    0x37bfd10 | 40 88 74 24 4c           | mov byte ptr [rsp + 0x4c], sil
+    0x37bfd15 | 4d 8b 97 d0 0b 00 00     | mov r10, qword ptr [r15 + 0xbd0]
+    0x37bfd1c | 4d 85 d2                 | test r10, r10
+    0x37bfd1f | 75 07                    | jne 0x37bfd28
+    0x37bfd21 | 4d 8b 97 b8 0b 00 00     | mov r10, qword ptr [r15 + 0xbb8]
+    L_0x37bfd28:
+    0x37bfd28 | 49 8b 02                 | mov rax, qword ptr [r10]
+    0x37bfd2b | 48 8d 0d 2e 34 bf 03     | lea rcx, [rip + 0x3bf342e] ; "PassThroughFS"
+    0x37bfd32 | 48 89 4c 24 70           | mov qword ptr [rsp + 0x70], rcx
+    0x37bfd37 | 4c 8d 44 24 70           | lea r8, [rsp + 0x70]
+    0x37bfd3c | 48 c7 44 24 78 0d 00 00.. | mov qword ptr [rsp + 0x78], 0xd
+    0x37bfd45 | 48 8d 0d 94 e5 bf 03     | lea rcx, [rip + 0x3bfe594] ; "PassThroughRotationVS"
+    0x37bfd4c | 0f 28 44 24 70           | movaps xmm0, xmmword ptr [rsp + 0x70]
+    0x37bfd51 | 48 8d 55 a0              | lea rdx, [rbp - 0x60]
+    0x37bfd55 | 48 8b 40 28              | mov rax, qword ptr [rax + 0x28]
+    0x37bfd59 | 45 33 c9                 | xor r9d, r9d
+    0x37bfd5c | 48 89 4c 24 60           | mov qword ptr [rsp + 0x60], rcx
+    0x37bfd61 | 48 8d 4d 90              | lea rcx, [rbp - 0x70]
+    0x37bfd65 | 48 c7 44 24 68 15 00 00.. | mov qword ptr [rsp + 0x68], 0x15
+    0x37bfd6e | 0f 28 4c 24 60           | movaps xmm1, xmmword ptr [rsp + 0x60]
+    0x37bfd73 | 89 74 24 28              | mov dword ptr [rsp + 0x28], esi
+    0x37bfd77 | 48 89 4c 24 20           | mov qword ptr [rsp + 0x20], rcx
+    0x37bfd7c | 49 8b ca                 | mov rcx, r10
+    0x37bfd7f | 66 0f 7f 45 90           | movdqa xmmword ptr [rbp - 0x70], xmm0
+    0x37bfd84 | 66 0f 7f 4c 24 70        | movdqa xmmword ptr [rsp + 0x70], xmm1
+    0x37bfd8a | ff 15 b0 9f c7 02        | call qword ptr [rip + 0x2c79fb0] ; __guard_dispatch_icall_fptr (0x6439d40)
+    0x37bfd90 | 48 8b 4d a8              | mov rcx, qword ptr [rbp - 0x58]
+    L_0x37bfd94:
+    0x37bfd94 | 48 8b 00                 | mov rax, qword ptr [rax]
+    0x37bfd97 | 48 89 44 24 70           | mov qword ptr [rsp + 0x70], rax
+    0x37bfd9c | 48 85 c9                 | test rcx, rcx
+    0x37bfd9f | 74 0a                    | je 0x37bfdab
+    0x37bfda1 | e8 9a b1 f1 fc           | call 0x6daf40
+    0x37bfda6 | 48 8b 44 24 70           | mov rax, qword ptr [rsp + 0x70]
+    L_0x37bfdab:
+    0x37bfdab | 48 85 c0                 | test rax, rax
+    0x37bfdae | 0f 84 dc fe ff ff        | je 0x37bfc90
+    0x37bfdb4 | 48 8b 03                 | mov rax, qword ptr [rbx]
+    0x37bfdb7 | 4c 8d 4c 24 40           | lea r9, [rsp + 0x40]
+    0x37bfdbc | 4c 8d 44 24 44           | lea r8, [rsp + 0x44]
+    0x37bfdc1 | 48 89 74 24 60           | mov qword ptr [rsp + 0x60], rsi
+    0x37bfdc6 | 48 8d 54 24 60           | lea rdx, [rsp + 0x60]
+    0x37bfdcb | 48 8b cb                 | mov rcx, rbx
+    0x37bfdce | 48 8b 80 c8 00 00 00     | mov rax, qword ptr [rax + 0xc8]
+    0x37bfdd5 | ff 15 65 9f c7 02        | call qword ptr [rip + 0x2c79f65] ; __guard_dispatch_icall_fptr (0x6439d40)
+    0x37bfddb | 48 8b 03                 | mov rax, qword ptr [rbx]
+    0x37bfdde | 48 8b cb                 | mov rcx, rbx
+    0x37bfde1 | 48 8b 54 24 70           | mov rdx, qword ptr [rsp + 0x70]
+    0x37bfde6 | 48 8b 40 50              | mov rax, qword ptr [rax + 0x50]
+    0x37bfdea | ff 15 50 9f c7 02        | call qword ptr [rip + 0x2c79f50] ; __guard_dispatch_icall_fptr (0x6439d40)
+    0x37bfdf0 | 4c 8d 85 e0 00 00 00     | lea r8, [rbp + 0xe0]
+    0x37bfdf7 | e9 2e fe ff ff           | jmp 0x37bfc2a
+    L_0x37bfdfc:
+    0x37bfdfc | 40 38 35 1d 82 95 04     | cmp byte ptr [rip + 0x495821d], sil ; DFFlagRenderScreenSpacePassRefactor2
+    0x37bfe03 | 0f 84 10 01 00 00        | je 0x37bff19
+    0x37bfe09 | 0f 57 c0                 | xorps xmm0, xmm0
+    0x37bfe0c | 48 8d 4d c0              | lea rcx, [rbp - 0x40]
+    0x37bfe10 | 0f 57 c9                 | xorps xmm1, xmm1
+    0x37bfe13 | 0f 29 45 c0              | movaps xmmword ptr [rbp - 0x40], xmm0
+    0x37bfe17 | 48 8b d7                 | mov rdx, rdi
+    0x37bfe1a | 0f 29 4d d0              | movaps xmmword ptr [rbp - 0x30], xmm1
+    0x37bfe1e | 0f 29 45 e0              | movaps xmmword ptr [rbp - 0x20], xmm0
+    0x37bfe22 | 0f 29 4d f0              | movaps xmmword ptr [rbp - 0x10], xmm1
+    0x37bfe26 | 0f 29 45 00              | movaps xmmword ptr [rbp], xmm0
+    0x37bfe2a | 0f 29 4d 10              | movaps xmmword ptr [rbp + 0x10], xmm1
+    0x37bfe2e | 0f 29 45 20              | movaps xmmword ptr [rbp + 0x20], xmm0
+    0x37bfe32 | 0f 29 4d 30              | movaps xmmword ptr [rbp + 0x30], xmm1
+    0x37bfe36 | 0f 29 45 40              | movaps xmmword ptr [rbp + 0x40], xmm0
+    0x37bfe3a | 0f 29 4d 50              | movaps xmmword ptr [rbp + 0x50], xmm1
+    0x37bfe3e | 0f 29 45 60              | movaps xmmword ptr [rbp + 0x60], xmm0
+    0x37bfe42 | 0f 29 4d 70              | movaps xmmword ptr [rbp + 0x70], xmm1
+    0x37bfe46 | 0f 29 85 80 00 00 00     | movaps xmmword ptr [rbp + 0x80], xmm0
+    0x37bfe4d | 0f 29 8d 90 00 00 00     | movaps xmmword ptr [rbp + 0x90], xmm1
+    0x37bfe54 | 0f 29 85 a0 00 00 00     | movaps xmmword ptr [rbp + 0xa0], xmm0
+    0x37bfe5b | 0f 29 8d b0 00 00 00     | movaps xmmword ptr [rbp + 0xb0], xmm1
+    0x37bfe62 | 0f 29 85 c0 00 00 00     | movaps xmmword ptr [rbp + 0xc0], xmm0
+    0x37bfe69 | 0f 29 8d d0 00 00 00     | movaps xmmword ptr [rbp + 0xd0], xmm1
+    0x37bfe70 | e8 0b 80 d7 ff           | call 0x3537e80
+    0x37bfe75 | 4d 8b 3e                 | mov r15, qword ptr [r14]
+    0x37bfe78 | 66 89 74 24 40           | mov word ptr [rsp + 0x40], si
+    0x37bfe7d | 40 88 74 24 42           | mov byte ptr [rsp + 0x42], sil
+    0x37bfe82 | c7 44 24 48 00 01 00 01  | mov dword ptr [rsp + 0x48], 0x1000100
+    0x37bfe8a | c7 44 24 44 0f 00 00 00  | mov dword ptr [rsp + 0x44], 0xf
+    0x37bfe92 | 40 88 74 24 4c           | mov byte ptr [rsp + 0x4c], sil
+    0x37bfe97 | 4d 8b 97 d0 0b 00 00     | mov r10, qword ptr [r15 + 0xbd0]
+    0x37bfe9e | 4d 85 d2                 | test r10, r10
+    0x37bfea1 | 75 07                    | jne 0x37bfeaa
+    0x37bfea3 | 4d 8b 97 b8 0b 00 00     | mov r10, qword ptr [r15 + 0xbb8]
+    L_0x37bfeaa:
+    0x37bfeaa | 49 8b 02                 | mov rax, qword ptr [r10]
+    0x37bfead | 48 8d 0d ac 32 bf 03     | lea rcx, [rip + 0x3bf32ac] ; "PassThroughFS"
+    0x37bfeb4 | 48 89 4c 24 70           | mov qword ptr [rsp + 0x70], rcx
+    0x37bfeb9 | 4c 8d 45 90              | lea r8, [rbp - 0x70]
+    0x37bfebd | 48 8d 0d 1c 33 bf 03     | lea rcx, [rip + 0x3bf331c] ; "PassThroughVS"
+    0x37bfec4 | 48 c7 44 24 78 0d 00 00.. | mov qword ptr [rsp + 0x78], 0xd
+    0x37bfecd | 0f 28 44 24 70           | movaps xmm0, xmmword ptr [rsp + 0x70]
+    0x37bfed2 | 48 8d 55 b0              | lea rdx, [rbp - 0x50]
+    0x37bfed6 | 48 8b 40 28              | mov rax, qword ptr [rax + 0x28]
+    0x37bfeda | 45 33 c9                 | xor r9d, r9d
+    0x37bfedd | 48 89 4c 24 60           | mov qword ptr [rsp + 0x60], rcx
+    0x37bfee2 | 48 8d 4d a0              | lea rcx, [rbp - 0x60]
+    0x37bfee6 | 48 c7 44 24 68 0d 00 00.. | mov qword ptr [rsp + 0x68], 0xd
+    0x37bfeef | 0f 28 4c 24 60           | movaps xmm1, xmmword ptr [rsp + 0x60]
+    0x37bfef4 | 89 74 24 28              | mov dword ptr [rsp + 0x28], esi
+    0x37bfef8 | 48 89 4c 24 20           | mov qword ptr [rsp + 0x20], rcx
+    0x37bfefd | 49 8b ca                 | mov rcx, r10
+    0x37bff00 | 66 0f 7f 45 a0           | movdqa xmmword ptr [rbp - 0x60], xmm0
+    0x37bff05 | 66 0f 7f 4d 90           | movdqa xmmword ptr [rbp - 0x70], xmm1
+    0x37bff0a | ff 15 30 9e c7 02        | call qword ptr [rip + 0x2c79e30] ; __guard_dispatch_icall_fptr (0x6439d40)
+    0x37bff10 | 48 8b 4d b8              | mov rcx, qword ptr [rbp - 0x48]
+    0x37bff14 | e9 b1 fc ff ff           | jmp 0x37bfbca
+    L_0x37bff19:
+    0x37bff19 | 4d 8b 3e                 | mov r15, qword ptr [r14]
+    0x37bff1c | 66 89 74 24 40           | mov word ptr [rsp + 0x40], si
+    0x37bff21 | 40 88 74 24 42           | mov byte ptr [rsp + 0x42], sil
+    0x37bff26 | c7 44 24 48 00 01 00 01  | mov dword ptr [rsp + 0x48], 0x1000100
+    0x37bff2e | c7 44 24 44 0f 00 00 00  | mov dword ptr [rsp + 0x44], 0xf
+    0x37bff36 | 40 88 74 24 4c           | mov byte ptr [rsp + 0x4c], sil
+    0x37bff3b | 4d 8b 97 d0 0b 00 00     | mov r10, qword ptr [r15 + 0xbd0]
+    0x37bff42 | 4d 85 d2                 | test r10, r10
+    0x37bff45 | 75 07                    | jne 0x37bff4e
+    0x37bff47 | 4d 8b 97 b8 0b 00 00     | mov r10, qword ptr [r15 + 0xbb8]
+    L_0x37bff4e:
+    0x37bff4e | 49 8b 02                 | mov rax, qword ptr [r10]
+    0x37bff51 | 48 8d 0d 08 32 bf 03     | lea rcx, [rip + 0x3bf3208] ; "PassThroughFS"
+    0x37bff58 | 48 89 4c 24 70           | mov qword ptr [rsp + 0x70], rcx
+    0x37bff5d | 4c 8d 45 a0              | lea r8, [rbp - 0x60]
+    0x37bff61 | 48 8d 0d 78 32 bf 03     | lea rcx, [rip + 0x3bf3278] ; "PassThroughVS"
+    0x37bff68 | 48 c7 44 24 78 0d 00 00.. | mov qword ptr [rsp + 0x78], 0xd
+    0x37bff71 | 0f 28 44 24 70           | movaps xmm0, xmmword ptr [rsp + 0x70]
+    0x37bff76 | 48 8d 55 90              | lea rdx, [rbp - 0x70]
+    0x37bff7a | 48 8b 40 28              | mov rax, qword ptr [rax + 0x28]
+    0x37bff7e | 45 33 c9                 | xor r9d, r9d
+    0x37bff81 | 48 89 4c 24 60           | mov qword ptr [rsp + 0x60], rcx
+    0x37bff86 | 48 8d 4d b0              | lea rcx, [rbp - 0x50]
+    0x37bff8a | 48 c7 44 24 68 0d 00 00.. | mov qword ptr [rsp + 0x68], 0xd
+    0x37bff93 | 0f 28 4c 24 60           | movaps xmm1, xmmword ptr [rsp + 0x60]
+    0x37bff98 | 89 74 24 28              | mov dword ptr [rsp + 0x28], esi
+    0x37bff9c | 48 89 4c 24 20           | mov qword ptr [rsp + 0x20], rcx
+    0x37bffa1 | 49 8b ca                 | mov rcx, r10
+    0x37bffa4 | 66 0f 7f 45 b0           | movdqa xmmword ptr [rbp - 0x50], xmm0
+    0x37bffa9 | 66 0f 7f 4d a0           | movdqa xmmword ptr [rbp - 0x60], xmm1
+    0x37bffae | ff 15 8c 9d c7 02        | call qword ptr [rip + 0x2c79d8c] ; __guard_dispatch_icall_fptr (0x6439d40)
+    0x37bffb4 | 48 8b 4d 98              | mov rcx, qword ptr [rbp - 0x68]
+    0x37bffb8 | e9 d7 fd ff ff           | jmp 0x37bfd94
+    L_0x37bffbd:
+    0x37bffbd | 84 d2                    | test dl, dl
+    0x37bffbf | 74 46                    | je 0x37c0007
+    0x37bffc1 | 41 39 b7 cc 00 00 00     | cmp dword ptr [r15 + 0xcc], esi
+    0x37bffc8 | 74 3d                    | je 0x37c0007
+    0x37bffca | 48 8b 03                 | mov rax, qword ptr [rbx]
+    0x37bffcd | 4c 8d 4c 24 44           | lea r9, [rsp + 0x44]
+    0x37bffd2 | f3 0f 10 05 52 0f de 03  | movss xmm0, dword ptr [rip + 0x3de0f52]
+    0x37bffda | 33 d2                    | xor edx, edx
+    0x37bffdc | 4c 8b 44 24 70           | mov r8, qword ptr [rsp + 0x70]
+    0x37bffe1 | 48 8b cb                 | mov rcx, rbx
+    0x37bffe4 | f3 0f 11 44 24 50        | movss dword ptr [rsp + 0x50], xmm0
+    0x37bffea | 48 8b 80 98 00 00 00     | mov rax, qword ptr [rax + 0x98]
+    0x37bfff1 | c7 44 24 44 01 01 00 00  | mov dword ptr [rsp + 0x44], 0x101
+    0x37bfff9 | 4d 8b 00                 | mov r8, qword ptr [r8]
 
 [Strings .rdata na função]
-  * Device
-  * %x:%x:%s
-  * Disabling HQ shaders for DX pattern: {} due to hardware constraints. CPU count: {}, Memory: {} M
-  * [FLog::Graphics] {}
-  * %x:%x
-  * %x:%x:%d.%d.%d.%d
-  * [FLog::Graphics] D3D11 future rendering is disabled for pattern: {}
-  * Unnamed Texture
-  * RGBA8
-  * %s (%s %dx%d)
-  * Unsupported framebuffer configuration: too many buffers (%d)
-  * platformid
+  * "Device"  [@rdata 0x72a376c, ref @0x2714444, key/identifier]
+  * "%x:%x:%s"  [@rdata 0x72de660, ref @0x271474f, literal, 8B]
+  * "Disabling HQ shaders for DX pattern: {} due to hardware constraints. CPU count: {}, Memory: {} M"  [@rdata 0x72de670, ref @0x271487a, literal, 96B]
+  * "[FLog::Graphics] {}"  [@rdata 0x72de980, ref @0x2714978, FLog format]
+  * "%x:%x"  [@rdata 0x72de974, ref @0x2714b13, literal, 5B]
+  * "%x:%x:%d.%d.%d.%d"  [@rdata 0x72de998, ref @0x2714bc3, literal, 17B]
+  * "[FLog::Graphics] D3D11 future rendering is disabled for pattern: {}"  [@rdata 0x72de930, ref @0x2714c22, FLog format]
+  * "Unnamed Texture"  [@rdata 0x72dd668, ref @0x2718a33, literal, 15B]
+  * "RGBA8"  [@rdata 0x71bbed8, ref @0x2718a52, key/identifier]
+  * "%s (%s %dx%d)"  [@rdata 0x72dd678, ref @0x2718a59, literal, 13B]
+  * "Unsupported framebuffer configuration: too many buffers (%d)"  [@rdata 0x72df830, ref @0x2718e35, literal, 60B]
+  * "platformid"  [@rdata 0x73b6f40, ref @0x3566a26, string_view len=10]
+  * "cpu/make"  [@rdata 0x73b6f50, ref @0x3566a81, string_view len=8]
+  * "x86_64"  [@rdata 0x72acb34, ref @0x3566b08, literal, 6B]
+  * "cpu/binary_arch"  [@rdata 0x73b6eb0, ref @0x3566b33, string_view len=15]
+  * "cpu/core/total"  [@rdata 0x73b6ec0, ref @0x3566ba9, string_view len=14]
 
 [Co-Flags na mesma função]
   * FFlagGraphicsD3D11FlipDiscard2 = false (default)
@@ -5139,4 +5810,12 @@ Operação  : 0x2714552: cmp [flag], reg ; fn=0x2714330..0x2714d64
   * FFlagGraphicsShadingLanguageEnum = true (default)
   * FFlagUIGpuGradient12 = true (default)
   * DFFlagMicroProfilerMemoryScope = true (default)
-  * FFlagGraphicsGLDownloadReadsOwnTexture = false (default) [vizinha em .data]
+  * DFFlagSupportOrthoCamera4 = false (default)
+  * FFlagSupportOrthoCameraApi2 = false (default)
+  * FIntQuadradicErrorPercentPerPixel2 = 120 (default)
+  * DFIntRenderNewDispatchRenderOps = 1 (default)
+  * FFlagVideoCaptureSelfTest = false (default)
+  * FFlagRodeoAndroidRotateShader2 = false (default)
+  * DFFlagRenderScreenSpacePassRefactor2 = false (default)
+  * FFlagFixVideoCaptureScissorTransform = true (default)
+  * FFlagRenderCapturePlayerGuiUnifiedRenderUI = false (default)

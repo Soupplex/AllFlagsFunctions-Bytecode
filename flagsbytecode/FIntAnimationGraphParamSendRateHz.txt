@@ -5,16 +5,15 @@ Insn RVA  : 0x16d8d0d
 Operação  : 0x16d8d0d: mov/math reg, [flag] ; fn=0x16d7e10..0x16d9536
 
 [Disassembly .text]
-  === [Resumo do Efeito da FFlag no Engine (RBX::AnimationGraph)] ===
-    Classe  : RBX::AnimationGraph (Inferido)
+  === [Resumo do Efeito da FFlag no Engine (RBX::AnimationTrack)] ===
+    Classe  : RBX::AnimationTrack (RTTI Resolvido)
     Padrão  : FIntAnimationGraphParamSendRateHz = 15 (default) [int, mode=1]
     Papel   : Divisor / Taxa de frequência (Hz) usado em cálculos de intervalo e orçamento
-    Fórmula : AnimationGraphParamSendRateHz <= 0
-    Fórmula : min(param_2 + this->field_0x15c, 1.0 / (float)AnimationGraphParamSendRateHz) < 1.0 / (float)AnimationGraphParamSendRateHz
+    Fórmula : min(param_2 + this->field_0x15c, 1.0f / (float)AnimationGraphParamSendRateHz) >= 1.0f / (float)AnimationGraphParamSendRateHz
     Altera  : this->field_0x15c, this->field_0x158, this->field_0xa3c, this->field_0xc4
   
   === [Decompilacao C++ da Funcao 0x16d7e10..0x16d9536] ===
-    struct RBX::AnimationGraph {
+    struct RBX::AnimationTrack {
       /* +0xbc */ float   field_0xbc;
       /* +0xc0 */ float   field_0xc0;
       /* +0xc4 */ float   field_0xc4;
@@ -35,10 +34,11 @@ Operação  : 0x16d8d0d: mov/math reg, [flag] ; fn=0x16d7e10..0x16d9536
     };
     
     // Flag defaults: AnimationGraphParamSendRateHz = 15, AnimGraphFixReferenceCycles2 = false, FixAnimationTrackInfiniteSpeedStuck = true
-    void RBX::AnimationGraph::func_0x16d8b30(RBX::AnimationGraph* this, float param_2) {
+    void RBX::AnimationTrack::func_0x16d8b30(RBX::AnimationTrack* this, float param_2) {
       if (this->field_0x160 != 0) {
         int32_t v_rsi_14 = 0;
         int32_t stk_15;
+        auto expr_1 = this->field_0x100->field_0x8 != 0;
         if (this->field_0x170 != 0) {
           void* v_rax_3;
           int32_t v_rsi_5;
@@ -50,7 +50,7 @@ Operação  : 0x16d8d0d: mov/math reg, [flag] ; fn=0x16d7e10..0x16d9536
                 atomic_try_incref(&f_100->field_0x8);
                 auto* f_100_2 = this->field_0x100;
                 if (atomic_cas(&f_100_2->field_0x8, f_100_2->field_0x8, f_100_2->field_0x8 + 1) == 0) break;
-              } while (this->field_0x100->field_0x8 != 0); // loop -> L_0x16d8be5
+              } while expr_1; // loop -> L_0x16d8be5
               stk_1 = 0.0;
             } else {
               stk_1 = 0.0;
@@ -68,7 +68,7 @@ Operação  : 0x16d8d0d: mov/math reg, [flag] ; fn=0x16d7e10..0x16d9536
           }
           int32_t v_rsi_8 = v_rsi_5;
           int32_t stk_9;
-          if ((v_rsi_5 & 0x2) != 0) {
+          if (((uint8_t)v_rsi_5 & 0x2) != 0) {
             if (local_0xd0 != 0) {
               call_0x6daf40(local_0xd0);
               v_rsi_8 = v_rsi_5 & 0xfffffffd;
@@ -82,7 +82,7 @@ Operação  : 0x16d8d0d: mov/math reg, [flag] ; fn=0x16d7e10..0x16d9536
           }
           int32_t v_rsi_11 = v_rsi_8;
           int32_t stk_12;
-          if ((v_rsi_8 & 0x1) != 0) {
+          if (((uint8_t)v_rsi_8 & 0x1) != 0) {
             if (0) {
               call_0x6daf40(0);
               v_rsi_11 = v_rsi_8 & 0xfffffffe;
@@ -115,9 +115,9 @@ Operação  : 0x16d8d0d: mov/math reg, [flag] ; fn=0x16d7e10..0x16d9536
               v_rsi_14 = v_rsi_11;
               stk_15 = stk_12;
             } else if (AnimationGraphParamSendRateHz > 0) {
-              this->field_0x15c = min(param_2 + this->field_0x15c, 1.0 / (float)AnimationGraphParamSendRateHz);
-              float ftmp_1 = min(param_2 + this->field_0x15c, 1.0 / (float)AnimationGraphParamSendRateHz);
-              if (ftmp_1 >= 1.0 / (float)AnimationGraphParamSendRateHz) {
+              this->field_0x15c = min(param_2 + this->field_0x15c, 1.0f / (float)AnimationGraphParamSendRateHz);
+              float ftmp_1 = min(param_2 + this->field_0x15c, 1.0f / (float)AnimationGraphParamSendRateHz);
+              if (ftmp_1 >= 1.0f / (float)AnimationGraphParamSendRateHz) {
                 this->field_0x15c = 0;
                 call_0x16dbfa0(this);
                 v_rsi_14 = v_rsi_11;
@@ -136,167 +136,172 @@ Operação  : 0x16d8d0d: mov/math reg, [flag] ; fn=0x16d7e10..0x16d9536
         } else {
           stk_15 = 0;
         }
+        float fxmm7_17;
         if (FixAnimationTrackInfiniteSpeedStuck) {
-          auto ret_0x5e2964c_14 = call_0x5e2964c(this->field_0xc4);
+          float prev_0xc4_5 = this->field_0xc4;
+          auto ret_0x5e2964c_14 = call_0x5e2964c(prev_0xc4_5);
           if (ret_0x5e2964c_14 <= 0) {
-            auto ret_0x5e2964c_15 = call_0x5e2964c(this->field_0xc8);
+            float prev_0xc8_6 = this->field_0xc8;
+            auto ret_0x5e2964c_15 = call_0x5e2964c(prev_0xc8_6);
             if (ret_0x5e2964c_15 <= 0) {
-              auto ret_0x5e2964c_16 = call_0x5e2964c(this->field_0xa3c);
+              float prev_0xa3c_7 = this->field_0xa3c;
+              auto ret_0x5e2964c_16 = call_0x5e2964c(prev_0xa3c_7);
               if (ret_0x5e2964c_16 <= 0) {
-                float prev_0xa3c_4 = this->field_0xa3c;
-                this->field_0xa3c = min(this->field_0xa3c - param_2, 0.0);
+                this->field_0xa3c = min(prev_0xa3c_7 - param_2, 0.0);
                 float fxmm6_16;
-                if (0.0 < min(this->field_0xa3c - param_2, 0.0)) {
-                  float ftmp_3 = (this->field_0xc4 - this->field_0xc8) * (min(this->field_0xa3c - param_2, 0.0) / prev_0xa3c_4);
-                  fxmm6_16 = ftmp_3 + this->field_0xc8;
+                if (0.0 < min(prev_0xa3c_7 - param_2, 0.0)) {
+                  float ftmp_3 = (prev_0xc4_5 - prev_0xc8_6) * (min(prev_0xa3c_7 - param_2, 0.0) / prev_0xa3c_7);
+                  fxmm6_16 = ftmp_3 + prev_0xc8_6;
                 } else {
-                  fxmm6_16 = this->field_0xc8;
+                  fxmm6_16 = prev_0xc8_6;
                 }
                 this->field_0xc4 = fxmm6_16;
-                auto ret_0x5e2964c_17 = call_0x5e2964c(this->field_0xc0);
+                float prev_0xc0_8 = this->field_0xc0;
+                auto ret_0x5e2964c_17 = call_0x5e2964c(prev_0xc0_8);
                 if (ret_0x5e2964c_17 <= 0) {
                   auto ret_0x5e2964c_18 = call_0x5e2964c(this->field_0xbc);
                   if (ret_0x5e2964c_18 <= 0) {
-                    int64_t stk_17;
-                    int32_t v_rsi_24 = v_rsi_14;
-                    float fxmm6_25;
-                    int64_t stk_26;
+                    fxmm7_17 = prev_0xc0_8;
+                    int64_t stk_18;
+                    int32_t v_rsi_25 = v_rsi_14;
+                    float fxmm6_26;
+                    int64_t stk_27;
                     if (this->field_0x115 != 0 && this->field_0x110 >= 0) {
                     auto ret_0x16d8540_19 = call_0x16d8540(this);
                     if (ret_0x16d8540_19 != 0) {
-                    int32_t v_rsi_20 = v_rsi_14;
-                    void* fstk_21;
+                    int32_t v_rsi_21 = v_rsi_14;
                     void* fstk_22;
+                    void* fstk_23;
                     auto* f_100_3 = this->field_0x100;
                     if (f_100_3 != 0) {
-                    void* stk_18;
                     void* stk_19;
+                    void* stk_20;
                     if (f_100_3->field_0x8 != 0) {
                     L_0x16d8f20:
                     do { // L_0x16d8f20
                     atomic_try_incref(&f_100_3->field_0x8);
                     auto* f_100_4 = this->field_0x100;
                     if (atomic_cas(&f_100_4->field_0x8, f_100_4->field_0x8, f_100_4->field_0x8 + 1) == 0) break;
-                    } while (this->field_0x100->field_0x8 != 0); // loop -> L_0x16d8f20
-                    stk_18 = 0.0;
+                    } while expr_1; // loop -> L_0x16d8f20
                     stk_19 = 0.0;
+                    stk_20 = 0.0;
                     } else {
-                    stk_18 = 0.0;
                     stk_19 = 0.0;
+                    stk_20 = 0.0;
                     }
-                    v_rsi_20 = stk_15;
-                    fstk_21 = stk_19;
-                    fstk_22 = stk_18;
+                    v_rsi_21 = stk_15;
+                    fstk_22 = stk_20;
+                    fstk_23 = stk_19;
                     } else {
-                    fstk_21 = 0.0;
                     fstk_22 = 0.0;
+                    fstk_23 = 0.0;
                     }
-                    float fxmm6_23;
-                    if (fstk_21 != 0) {
+                    float fxmm6_24;
+                    if (fstk_22 != 0) {
                     auto ret_0x32dd1a0_20 = call_0x32dd1a0(ret_0x16d8540_19);
                     if (this->field_0x110 < 16) {
-                    auto ret_0x16c8360_21 = call_0x16c8360(fstk_21, &local_0xf8);
+                    auto ret_0x16c8360_21 = call_0x16c8360(fstk_22, &local_0xf8);
                     }
                     auto ret_0x16c6650_22 = call_0x16c6650(ret_0x32dd1a0_20, ret_0x16c8360_21->field_0x0, this->field_0xbc);
-                    fxmm6_23 = ret_0x16c6650_22;
+                    fxmm6_24 = ret_0x16c6650_22;
                     } else {
-                    fxmm6_23 = param_2 * this->field_0xbc + this->field_0xc0;
+                    fxmm6_24 = param_2 * this->field_0xbc + this->field_0xc0;
                     }
-                    if (fstk_22 != 0) {
-                    call_0x6daf40(fstk_22);
-                    v_rsi_24 = v_rsi_20;
-                    fxmm6_25 = fxmm6_23;
-                    stk_26 = ret_0x16d8540_19;
+                    if (fstk_23 != 0) {
+                    call_0x6daf40(fstk_23);
+                    v_rsi_25 = v_rsi_21;
+                    fxmm6_26 = fxmm6_24;
+                    stk_27 = ret_0x16d8540_19;
                     } else {
-                    v_rsi_24 = v_rsi_20;
-                    fxmm6_25 = fxmm6_23;
-                    stk_26 = ret_0x16d8540_19;
+                    v_rsi_25 = v_rsi_21;
+                    fxmm6_26 = fxmm6_24;
+                    stk_27 = ret_0x16d8540_19;
                     }
                     } else {
-                    stk_17 = ret_0x16d8540_19;
+                    stk_18 = ret_0x16d8540_19;
                     L_0x16d8fc4:
-                    fxmm6_25 = param_2 * this->field_0xbc + this->field_0xc0;
-                    stk_26 = stk_17;
+                    fxmm6_26 = param_2 * this->field_0xbc + this->field_0xc0;
+                    stk_27 = stk_18;
                     }
                     } else {
-                    stk_17 = 0;
-                    fxmm6_25 = param_2 * this->field_0xbc + this->field_0xc0;
-                    stk_26 = stk_17;
+                    stk_18 = 0;
+                    fxmm6_26 = param_2 * this->field_0xbc + this->field_0xc0;
+                    stk_27 = stk_18;
                     }
-                    auto ret_0x16dc3b0_24 = call_0x16dc3b0(this, fxmm6_25);
+                    auto ret_0x16dc3b0_24 = call_0x16dc3b0(this, fxmm6_26);
                     call_0x7e0950(&this->field_0x98, ret_0x16dc3b0_24);
                     if (!FixAnimationTrackInfiniteSpeedStuck) {
-                    float prev_0xa3c_6 = this->field_0xa3c;
+                    float prev_0xa3c_9 = this->field_0xa3c;
                     this->field_0xa3c = min(this->field_0xa3c - param_2, 0.0);
-                    float fxmm1_28;
+                    float fxmm1_29;
                     if (0.0 < min(this->field_0xa3c - param_2, 0.0)) {
-                    float ftmp_4 = min(this->field_0xa3c - param_2, 0.0) / prev_0xa3c_6;
+                    float ftmp_4 = min(this->field_0xa3c - param_2, 0.0) / prev_0xa3c_9;
                     float ftmp_5 = (this->field_0xc4 - this->field_0xc8) * ftmp_4;
-                    fxmm1_28 = ftmp_5 + this->field_0xc8;
+                    fxmm1_29 = ftmp_5 + this->field_0xc8;
                     } else {
-                    fxmm1_28 = this->field_0xc8;
+                    fxmm1_29 = this->field_0xc8;
                     }
-                    this->field_0xc4 = fxmm1_28;
+                    this->field_0xc4 = fxmm1_29;
                     }
                     if (this->field_0x115 != 0 && this->field_0x110 >= 0) {
                     auto ret_0x16d8540_26 = call_0x16d8540(this);
-                    void* v_rbx_36;
-                    int32_t v_rsi_37;
+                    void* v_rbx_37;
+                    int32_t v_rsi_38;
                     if (ret_0x16d8540_26 != 0) {
-                    int32_t v_rsi_32 = v_rsi_24;
-                    void* fstk_33;
+                    int32_t v_rsi_33 = v_rsi_25;
+                    void* fstk_34;
                     auto* f_100_5 = this->field_0x100;
                     if (f_100_5 != 0) {
-                    void* stk_30;
+                    void* stk_31;
                     if (f_100_5->field_0x8 != 0) {
                     L_0x16d90b0:
                     do { // L_0x16d90b0
                     atomic_try_incref(&f_100_5->field_0x8);
                     auto* f_100_6 = this->field_0x100;
                     if (atomic_cas(&f_100_6->field_0x8, f_100_6->field_0x8, f_100_6->field_0x8 + 1) == 0) break;
-                    } while (this->field_0x100->field_0x8 != 0); // loop -> L_0x16d90b0
-                    v_rbx_36 = 0.0;
-                    v_rsi_37 = stk_15 | 0x4;
+                    } while expr_1; // loop -> L_0x16d90b0
+                    v_rbx_37 = 0.0;
+                    v_rsi_38 = stk_15 | 0x4;
                     } else {
-                    stk_30 = 0.0;
-                    v_rsi_32 = stk_15;
-                    fstk_33 = stk_30;
+                    stk_31 = 0.0;
+                    v_rsi_33 = stk_15;
+                    fstk_34 = stk_31;
                     L_0x16d90e9:
-                    v_rbx_36 = fstk_33;
-                    v_rsi_37 = v_rsi_32 | 0x4;
+                    v_rbx_37 = fstk_34;
+                    v_rsi_38 = v_rsi_33 | 0x4;
                     }
                     } else {
-                    fstk_33 = 0.0;
-                    v_rbx_36 = fstk_33;
-                    v_rsi_37 = v_rsi_32 | 0x4;
+                    fstk_34 = 0.0;
+                    v_rbx_37 = fstk_34;
+                    v_rsi_38 = v_rsi_33 | 0x4;
                     }
                     } else {
-                    v_rbx_36 = 0;
-                    v_rsi_37 = v_rsi_24 | 0x8;
+                    v_rbx_37 = 0;
+                    v_rsi_38 = v_rsi_25 | 0x8;
                     }
-                    int32_t v_rsi_39 = v_rsi_37;
-                    if ((v_rsi_37 & 0x8) != 0) {
+                    int32_t v_rsi_40 = v_rsi_38;
+                    if (((uint8_t)v_rsi_38 & 0x8) != 0) {
                     if (local_0xe0 != 0) {
                     call_0x6daf40(local_0xe0);
-                    v_rsi_39 = v_rsi_37 & 0xfffffff7;
+                    v_rsi_40 = v_rsi_38 & 0xfffffff7;
                     } else {
-                    v_rsi_39 = v_rsi_37 & 0xfffffff7;
+                    v_rsi_40 = v_rsi_38 & 0xfffffff7;
                     }
                     }
                     if (0) {
                     call_0x6daf40(0);
                     }
-                    if (ret_0x16d8540_26 != 0 && v_rbx_36 != 0) {
+                    if (ret_0x16d8540_26 != 0 && v_rbx_37 != 0) {
                     auto ret_0x32dd1a0_29 = call_0x32dd1a0(ret_0x16d8540_26);
-                    double fxmm8_43;
+                    double fxmm8_44;
                     if (this->field_0x110 < 16) {
-                    call_0x16c9f10(v_rbx_36, &local_0x108);
+                    call_0x16c9f10(v_rbx_37, &local_0x108);
                     auto ret_0x16c9f10_31 = call_0x16c9f10(this, &local_0x118);
-                    fxmm8_43 = r10->field_0x0;
+                    fxmm8_44 = r10->field_0x0;
                     } else {
-                    fxmm8_43 = 0.0;
+                    fxmm8_44 = 0.0;
                     }
-                    auto ret_0x16c66f0_32 = call_0x16c66f0(this->field_0xc8, ret_0x16c9f10_31->field_0xc, fxmm8_43, ret_0x32dd1a0_29);
+                    auto ret_0x16c66f0_32 = call_0x16c66f0(this->field_0xc8, ret_0x16c9f10_31->field_0xc, fxmm8_44, ret_0x32dd1a0_29);
                     this->field_0xc4 = ret_0x16c66f0_32;
                     }
                     if (local_0x90 != 0) {
@@ -305,33 +310,33 @@ Operação  : 0x16d8d0d: mov/math reg, [flag] ; fn=0x16d7e10..0x16d9536
                     }
                     if (this->field_0xcc != 0) {
                     auto vret_34 = this->field_0x160->vfunc_0x2a0();
-                    uint8_t v_sil_49;
+                    uint8_t v_sil_50;
                     if (vret_34 > 0.0) {
-                    if (stk_26 != 0 ? param_2 * this->field_0xbc + this->field_0xc0 : fxmm6_25 <= vret_34) {
-                    if (0.0 > stk_26 ? param_2 * this->field_0xbc + this->field_0xc0 : fxmm6_25) {
+                    if (stk_27 != 0 ? param_2 * this->field_0xbc + fxmm7_17 : fxmm6_26 <= vret_34) {
+                    if (0.0 > stk_27 ? param_2 * this->field_0xbc + fxmm7_17 : fxmm6_26) {
                     L_0x16d920f:
-                    v_sil_49 = 1;
+                    v_sil_50 = 1;
                     } else {
                     L_0x16d9214:
-                    v_sil_49 = 0;
+                    v_sil_50 = 0;
                     }
                     } else {
-                    v_sil_49 = 1;
+                    v_sil_50 = 1;
                     }
                     } else {
-                    v_sil_49 = 0;
+                    v_sil_50 = 0;
                     }
                     void* sel_rbx_1 = this == 0 ? 0 : this;
                     auto* f_160 = this->field_0x160;
-                    f_160->vfunc_0x2a8(f_160, this->field_0xc0, this->field_0xc0, this->field_0xbc);
+                    f_160->vfunc_0x2a8(f_160, fxmm7_17, this->field_0xc0, this->field_0xbc);
                     auto local_0xda8 = &local_0xdb8;
                     call_0x16d84b0(this, &local_0xda8);
-                    int32_t v_rax_51;
+                    uint8_t v_al_52;
                     int64_t local_0x188;
                     if (sel_rbx_1->field_0xa41 != 0) {
-                    v_rax_51 = sel_rbx_1->field_0xcd;
+                    v_al_52 = sel_rbx_1->field_0xcd;
                     L_0x16d9337:
-                    if (v_rax_51 == 0 && sel_rbx_1->field_0x160 != 0) {
+                    if (v_al_52 == 0 && sel_rbx_1->field_0x160 != 0) {
                     auto vret_37 = sel_rbx_1->field_0x160->vfunc_0x2a0();
                     if (vret_37 > 0.0) {
                     if (this->field_0xc0 >= vret_37) {
@@ -339,34 +344,34 @@ Operação  : 0x16d8d0d: mov/math reg, [flag] ; fn=0x16d7e10..0x16d9536
                     auto* f_160_2 = this->field_0x160;
                     f_160_2->vfunc_0x2b0(f_160_2, this->field_0xbc >= 0.0, &local_0x188);
                     call_0x16d84b0(this, &local_0x188);
-                    call_0x16da360(this, 0.3);
+                    call_0x16da360(this, 0.3f);
                     if (this->field_0x115 != 0 && this->field_0x110 >= 0) {
-                    void* v_rcx_52;
-                    void* v_rbx_53;
+                    void* v_rcx_53;
+                    void* v_rbx_54;
                     auto* f_100_7 = this->field_0x100;
                     if (f_100_7 != 0 && f_100_7->field_0x8 != 0) {
                     do { // L_0x16d9410
                     if (atomic_cas(&f_100_7->field_0x8, f_100_7->field_0x8, f_100_7->field_0x8 + 1) == 0) break;
-                    } while (this->field_0x100->field_0x8 != 0); // loop -> L_0x16d9410
-                    v_rcx_52 = 0.0;
-                    v_rbx_53 = 0.0;
+                    } while expr_1; // loop -> L_0x16d9410
+                    v_rcx_53 = 0.0;
+                    v_rbx_54 = 0.0;
                     } else {
-                    v_rcx_52 = 0.0;
-                    v_rbx_53 = 0.0;
+                    v_rcx_53 = 0.0;
+                    v_rbx_54 = 0.0;
                     }
-                    if (v_rcx_52 != 0) {
-                    call_0x16c6e40(v_rcx_52, this, 0.3);
+                    if (v_rcx_53 != 0) {
+                    call_0x16c6e40(v_rcx_53, this, 0.3f);
                     }
-                    if (v_rbx_53 != 0) {
-                    call_0x6daf40(v_rbx_53);
+                    if (v_rbx_54 != 0) {
+                    call_0x6daf40(v_rbx_54);
                     }
                     }
                     }
                     }
                     }
                     } else if (sel_rbx_1->field_0x160 != 0) {
-                    v_rax_51 = sel_rbx_1->field_0x160->field_0xb4;
-                    if (v_rax_51 == 0 && sel_rbx_1->field_0x160 != 0) {
+                    v_al_52 = sel_rbx_1->field_0x160->field_0xb4;
+                    if (v_al_52 == 0 && sel_rbx_1->field_0x160 != 0) {
                     auto vret_37 = sel_rbx_1->field_0x160->vfunc_0x2a0();
                     if (vret_37 > 0.0) {
                     if (this->field_0xc0 >= vret_37) {
@@ -375,7 +380,7 @@ Operação  : 0x16d8d0d: mov/math reg, [flag] ; fn=0x16d7e10..0x16d9536
                     }
                     }
                     }
-                    if (v_sil_49 != 0) {
+                    if (v_sil_50 != 0) {
                     call_0x16d8410(this, &this->field_0xe8);
                     }
                     L_0x16d945f:
@@ -393,7 +398,7 @@ Operação  : 0x16d8d0d: mov/math reg, [flag] ; fn=0x16d7e10..0x16d9536
                     atomic_try_incref(&f_100_8->field_0x8);
                     auto* f_100_9 = this->field_0x100;
                     if (atomic_cas(&f_100_9->field_0x8, f_100_9->field_0x8, f_100_9->field_0x8 + 1) == 0) break;
-                    } while (this->field_0x100->field_0x8 != 0); // loop -> L_0x16d94b5
+                    } while expr_1; // loop -> L_0x16d94b5
                     }
                   }
                 }
@@ -401,7 +406,8 @@ Operação  : 0x16d8d0d: mov/math reg, [flag] ; fn=0x16d7e10..0x16d9536
             }
           }
         } else {
-          auto ret_0x5e2964c_9 = call_0x5e2964c(this->field_0xc0);
+          float prev_0xc0_4 = this->field_0xc0;
+          auto ret_0x5e2964c_9 = call_0x5e2964c(prev_0xc0_4);
           if (ret_0x5e2964c_9 <= 0) {
             auto ret_0x5e2964c_10 = call_0x5e2964c(this->field_0xbc);
             if (ret_0x5e2964c_10 <= 0) {
@@ -411,126 +417,127 @@ Operação  : 0x16d8d0d: mov/math reg, [flag] ; fn=0x16d7e10..0x16d9536
                 if (ret_0x5e2964c_12 <= 0) {
                   auto ret_0x5e2964c_13 = call_0x5e2964c(this->field_0xa3c);
                   if (ret_0x5e2964c_13 <= 0) {
-                    int64_t stk_17;
-                    int32_t v_rsi_24 = v_rsi_14;
-                    float fxmm6_25;
-                    int64_t stk_26;
+                    fxmm7_17 = prev_0xc0_4;
+                    int64_t stk_18;
+                    int32_t v_rsi_25 = v_rsi_14;
+                    float fxmm6_26;
+                    int64_t stk_27;
                     if (this->field_0x115 != 0 && this->field_0x110 >= 0) {
                     auto ret_0x16d8540_19 = call_0x16d8540(this);
                     if (ret_0x16d8540_19 != 0) {
-                    int32_t v_rsi_20 = v_rsi_14;
-                    void* fstk_21;
+                    int32_t v_rsi_21 = v_rsi_14;
                     void* fstk_22;
+                    void* fstk_23;
                     auto* f_100_10 = this->field_0x100;
                     if (f_100_10 != 0) {
-                    void* stk_18;
                     void* stk_19;
+                    void* stk_20;
                     if (f_100_10->field_0x8 != 0) {
                     goto L_0x16d8f20;
                     } else {
-                    stk_18 = 0.0;
                     stk_19 = 0.0;
+                    stk_20 = 0.0;
                     }
-                    v_rsi_20 = stk_15;
-                    fstk_21 = stk_19;
-                    fstk_22 = stk_18;
+                    v_rsi_21 = stk_15;
+                    fstk_22 = stk_20;
+                    fstk_23 = stk_19;
                     } else {
-                    fstk_21 = 0.0;
                     fstk_22 = 0.0;
+                    fstk_23 = 0.0;
                     }
-                    float fxmm6_23;
-                    if (fstk_21 != 0) {
+                    float fxmm6_24;
+                    if (fstk_22 != 0) {
                     auto ret_0x32dd1a0_20 = call_0x32dd1a0(ret_0x16d8540_19);
                     if (this->field_0x110 < 16) {
-                    auto ret_0x16c8360_21 = call_0x16c8360(fstk_21, &local_0xf8);
+                    auto ret_0x16c8360_21 = call_0x16c8360(fstk_22, &local_0xf8);
                     }
                     auto ret_0x16c6650_22 = call_0x16c6650(ret_0x32dd1a0_20, ret_0x16c8360_21->field_0x0, this->field_0xbc);
-                    fxmm6_23 = ret_0x16c6650_22;
+                    fxmm6_24 = ret_0x16c6650_22;
                     } else {
-                    fxmm6_23 = param_2 * this->field_0xbc + this->field_0xc0;
+                    fxmm6_24 = param_2 * this->field_0xbc + this->field_0xc0;
                     }
-                    if (fstk_22 != 0) {
-                    call_0x6daf40(fstk_22);
-                    v_rsi_24 = v_rsi_20;
-                    fxmm6_25 = fxmm6_23;
-                    stk_26 = ret_0x16d8540_19;
+                    if (fstk_23 != 0) {
+                    call_0x6daf40(fstk_23);
+                    v_rsi_25 = v_rsi_21;
+                    fxmm6_26 = fxmm6_24;
+                    stk_27 = ret_0x16d8540_19;
                     } else {
-                    v_rsi_24 = v_rsi_20;
-                    fxmm6_25 = fxmm6_23;
-                    stk_26 = ret_0x16d8540_19;
+                    v_rsi_25 = v_rsi_21;
+                    fxmm6_26 = fxmm6_24;
+                    stk_27 = ret_0x16d8540_19;
                     }
                     } else {
-                    stk_17 = ret_0x16d8540_19;
+                    stk_18 = ret_0x16d8540_19;
                     goto L_0x16d8fc4;
                     }
                     } else {
-                    stk_17 = 0;
+                    stk_18 = 0;
                     goto L_0x16d8fc4;
                     }
-                    auto ret_0x16dc3b0_24 = call_0x16dc3b0(this, fxmm6_25);
+                    auto ret_0x16dc3b0_24 = call_0x16dc3b0(this, fxmm6_26);
                     call_0x7e0950(&this->field_0x98, ret_0x16dc3b0_24);
                     if (!FixAnimationTrackInfiniteSpeedStuck) {
-                    float prev_0xa3c_6 = this->field_0xa3c;
+                    float prev_0xa3c_9 = this->field_0xa3c;
                     this->field_0xa3c = min(this->field_0xa3c - param_2, 0.0);
-                    float fxmm1_28;
+                    float fxmm1_29;
                     if (0.0 < min(this->field_0xa3c - param_2, 0.0)) {
-                    float ftmp_4 = min(this->field_0xa3c - param_2, 0.0) / prev_0xa3c_6;
+                    float ftmp_4 = min(this->field_0xa3c - param_2, 0.0) / prev_0xa3c_9;
                     float ftmp_5 = (this->field_0xc4 - this->field_0xc8) * ftmp_4;
-                    fxmm1_28 = ftmp_5 + this->field_0xc8;
+                    fxmm1_29 = ftmp_5 + this->field_0xc8;
                     } else {
-                    fxmm1_28 = this->field_0xc8;
+                    fxmm1_29 = this->field_0xc8;
                     }
-                    this->field_0xc4 = fxmm1_28;
+                    this->field_0xc4 = fxmm1_29;
                     }
                     if (this->field_0x115 != 0 && this->field_0x110 >= 0) {
                     auto ret_0x16d8540_26 = call_0x16d8540(this);
-                    void* v_rbx_36;
-                    int32_t v_rsi_37;
+                    void* v_rbx_37;
+                    int32_t v_rsi_38;
                     if (ret_0x16d8540_26 != 0) {
-                    int32_t v_rsi_32 = v_rsi_24;
-                    void* fstk_33;
+                    int32_t v_rsi_33 = v_rsi_25;
+                    void* fstk_34;
                     auto* f_100_11 = this->field_0x100;
                     if (f_100_11 != 0) {
-                    void* stk_30;
+                    void* stk_31;
                     if (f_100_11->field_0x8 != 0) {
                     goto L_0x16d90b0;
                     } else {
-                    stk_30 = 0.0;
-                    v_rsi_32 = stk_15;
-                    fstk_33 = stk_30;
+                    stk_31 = 0.0;
+                    v_rsi_33 = stk_15;
+                    fstk_34 = stk_31;
                     goto L_0x16d90e9;
                     }
                     } else {
-                    fstk_33 = 0.0;
+                    fstk_34 = 0.0;
                     goto L_0x16d90e9;
                     }
                     } else {
-                    v_rbx_36 = 0;
-                    v_rsi_37 = v_rsi_24 | 0x8;
+                    v_rbx_37 = 0;
+                    v_rsi_38 = v_rsi_25 | 0x8;
                     }
-                    int32_t v_rsi_39 = v_rsi_37;
-                    if ((v_rsi_37 & 0x8) != 0) {
+                    int32_t v_rsi_40 = v_rsi_38;
+                    if (((uint8_t)v_rsi_38 & 0x8) != 0) {
                     if (local_0xe0 != 0) {
                     call_0x6daf40(local_0xe0);
-                    v_rsi_39 = v_rsi_37 & 0xfffffff7;
+                    v_rsi_40 = v_rsi_38 & 0xfffffff7;
                     } else {
-                    v_rsi_39 = v_rsi_37 & 0xfffffff7;
+                    v_rsi_40 = v_rsi_38 & 0xfffffff7;
                     }
                     }
                     if (0) {
                     call_0x6daf40(0);
                     }
-                    if (ret_0x16d8540_26 != 0 && v_rbx_36 != 0) {
+                    if (ret_0x16d8540_26 != 0 && v_rbx_37 != 0) {
                     auto ret_0x32dd1a0_29 = call_0x32dd1a0(ret_0x16d8540_26);
-                    double fxmm8_43;
+                    double fxmm8_44;
                     if (this->field_0x110 < 16) {
-                    call_0x16c9f10(v_rbx_36, &local_0x108);
+                    call_0x16c9f10(v_rbx_37, &local_0x108);
                     auto ret_0x16c9f10_31 = call_0x16c9f10(this, &local_0x118);
-                    fxmm8_43 = r10->field_0x0;
+                    fxmm8_44 = r10->field_0x0;
                     } else {
-                    fxmm8_43 = 0.0;
+                    fxmm8_44 = 0.0;
                     }
-                    auto ret_0x16c66f0_32 = call_0x16c66f0(this->field_0xc8, ret_0x16c9f10_31->field_0xc, fxmm8_43, ret_0x32dd1a0_29);
+                    auto ret_0x16c66f0_32 = call_0x16c66f0(this->field_0xc8, ret_0x16c9f10_31->field_0xc, fxmm8_44, ret_0x32dd1a0_29);
                     this->field_0xc4 = ret_0x16c66f0_32;
                     }
                     if (local_0x90 != 0) {
@@ -539,10 +546,10 @@ Operação  : 0x16d8d0d: mov/math reg, [flag] ; fn=0x16d7e10..0x16d9536
                     }
                     if (this->field_0xcc != 0) {
                     auto vret_34 = this->field_0x160->vfunc_0x2a0();
-                    uint8_t v_sil_49;
+                    uint8_t v_sil_50;
                     if (vret_34 > 0.0) {
-                    if (stk_26 != 0 ? param_2 * this->field_0xbc + this->field_0xc0 : fxmm6_25 <= vret_34) {
-                    if (0.0 > stk_26 ? param_2 * this->field_0xbc + this->field_0xc0 : fxmm6_25) {
+                    if (stk_27 != 0 ? param_2 * this->field_0xbc + fxmm7_17 : fxmm6_26 <= vret_34) {
+                    if (0.0 > stk_27 ? param_2 * this->field_0xbc + fxmm7_17 : fxmm6_26) {
                     goto L_0x16d920f;
                     } else {
                     goto L_0x16d9214;
@@ -555,20 +562,20 @@ Operação  : 0x16d8d0d: mov/math reg, [flag] ; fn=0x16d7e10..0x16d9536
                     }
                     void* sel_rbx_1 = this == 0 ? 0 : this;
                     auto* f_160_3 = this->field_0x160;
-                    f_160_3->vfunc_0x2a8(f_160_3, this->field_0xc0, this->field_0xc0, this->field_0xbc);
+                    f_160_3->vfunc_0x2a8(f_160_3, fxmm7_17, this->field_0xc0, this->field_0xbc);
                     auto local_0xda8 = &local_0xdb8;
                     call_0x16d84b0(this, &local_0xda8);
-                    int32_t v_rax_51;
+                    uint8_t v_al_52;
                     if (sel_rbx_1->field_0xa41 != 0) {
-                    v_rax_51 = sel_rbx_1->field_0xcd;
+                    v_al_52 = sel_rbx_1->field_0xcd;
                     goto L_0x16d9337;
                     } else {
                     if (sel_rbx_1->field_0x160 != 0) {
-                    v_rax_51 = sel_rbx_1->field_0x160->field_0xb4;
+                    v_al_52 = sel_rbx_1->field_0x160->field_0xb4;
                     goto L_0x16d9337;
                     }
                     }
-                    if (v_sil_49 != 0) {
+                    if (v_sil_50 != 0) {
                     call_0x16d8410(this, &this->field_0xe8);
                     }
                     goto L_0x16d945f;
@@ -1482,7 +1489,7 @@ Operação  : 0x16d8d0d: mov/math reg, [flag] ; fn=0x16d7e10..0x16d9536
             if ((param_2->field_0x18 >> 1 & 0x1) == 0) {
               v_rdx_1 = param_2->field_0x0;
             }
-            ((param_2->field_0x18 & 0xfffffff8))->vfunc_0x0(v_rdx_1);
+            (param_2->field_0x18 & 0xfffffff8)->vfunc_0x0(v_rdx_1);
           }
           L_0x16ae72d:
           call_0x6f5b70(param_2);
@@ -1492,7 +1499,7 @@ Operação  : 0x16d8d0d: mov/math reg, [flag] ; fn=0x16d7e10..0x16d9536
         if ((param_2->field_0x18 >> 1 & 0x1) == 0) {
           v_rdx_1 = param_2->field_0x0;
         }
-        ((param_2->field_0x18 & 0xfffffff8))->vfunc_0x0(v_rdx_1);
+        (param_2->field_0x18 & 0xfffffff8)->vfunc_0x0(v_rdx_1);
         call_0x6f5b70(param_2);
         return;
       }
@@ -1595,7 +1602,7 @@ Operação  : 0x16d8d0d: mov/math reg, [flag] ; fn=0x16d7e10..0x16d9536
           if ((param_2->field_0x18 >> 1 & 0x1) == 0) {
             v_rdx_5 = param_2->field_0x0;
           }
-          ((param_2->field_0x18 & 0xfffffff8))->vfunc_0x0(v_rdx_5);
+          (param_2->field_0x18 & 0xfffffff8)->vfunc_0x0(v_rdx_5);
         }
       }
       if (v_rdi_2 != 0) {
@@ -1707,6 +1714,7 @@ Operação  : 0x16d8d0d: mov/math reg, [flag] ; fn=0x16d7e10..0x16d9536
         if (v_rdx_1->field_0x38 != 0) {
           v_rdx_1->field_0x38->field_0x8++;
         }
+        void* prev_0x38_1 = v_rdx_1->field_0x38;
         call_0x6f7510(&local_0x70, param_3);
         auto ret_0x4956380_4 = call_0x4956380(48, 8);
         ret_0x4956380_4->field_0x0 = v_rdx_1->field_0x30;
@@ -1718,8 +1726,8 @@ Operação  : 0x16d8d0d: mov/math reg, [flag] ; fn=0x16d7e10..0x16d9536
         }
         auto local_0x40 = ret_0x4956380_4;
         call_0x16d80c0(this, &local_0x40);
-        if (v_rdx_1->field_0x38 != 0) {
-          call_0x6daf40(v_rdx_1->field_0x38);
+        if (prev_0x38_1 != 0) {
+          call_0x6daf40(prev_0x38_1);
         }
       }
     }
@@ -1826,14 +1834,84 @@ Operação  : 0x16d8d0d: mov/math reg, [flag] ; fn=0x16d7e10..0x16d9536
     0x16dc5ec | 5f                       | pop rdi
     0x16dc5ed | 5d                       | pop rbp
     0x16dc5ee | c3                       | ret
+  
+  === [Estrutura RTTI & VTable da Classe (RBX::AnimationTrack)] ===
+    VTable  : 0x6eea350 (offset +0x0, 48 slots virtuais)
+    Herança : RBX::PropertyDescriptor, RBX::MemberDescriptor, RBX::Descriptor
+    +0x0 -> fn_0x16d7600
+    +0x8 -> fn_0x1c1f1a0
+    +0x10 -> fn_0x1c396e0
+    +0x18 -> fn_0x1c44010
+    +0x38 -> fn_0x16deff0
+    +0x40 -> fn_0x1c3dbf0
+    +0x50 -> fn_0x1c432c0
+    +0x78 -> fn_0x1c3cdf0
+    +0x88 -> fn_0x1c49aa0
+    +0x90 -> fn_0x1c3d010
+    +0xb0 -> fn_0x1c43930
+    +0xc0 -> fn_0x1c43cb0
+    +0xd0 -> fn_0x1c3da30
+    +0xd8 -> fn_0x1c439b0
+    +0xe0 -> fn_0x1c451b0
+    +0xf8 -> fn_0x1c3d9d0
+  
+  === [Decompilacao de Metodo da Classe RBX::AnimationTrack: 0x16d7600..0x16d7630 (vfunc_0x0)] ===
+    auto RBX::AnimationTrack::func_0x16d7600(RBX::AnimationTrack* this, int64_t param_2) {
+      call_0x16d7950(this);
+      if (((uint8_t)param_2 & 0x1) != 0) {
+        call_0x4955ac0(this);
+      }
+      return this;
+    }
+  
+  === [Decompilacao de Metodo da Classe RBX::AnimationTrack: 0x1c44010..0x1c44138 (vfunc_0x18)] ===
+    struct RBX::Instance {
+      /* +0x48 */ void*   field_0x48;
+      /* +0x60 */ void*   field_0x60;
+    };
+    
+    // Flag defaults: CheckEngineContextOnInstanceAccess2 = false
+    void RBX::Instance::func_0x1c44010(RBX::Instance* this, int64_t param_2, void* param_3, void* param_4) {
+      if (this->field_0x60 != 0) {
+        (*global_0x80f4c48)(this);
+      }
+      auto ret_0x4956040_2 = call_0x4956040(24);
+      auto ret_0xffc540_3 = call_0xffc540(ret_0x4956040_2, param_3);
+      call_0xd29440(&local_0x40, ret_0xffc540_3);
+      auto* f_48 = this->field_0x48;
+      if (f_48 != 0 && f_48->field_0x8 != 0) {
+        auto ret_0xc700_5 = call_0xc700(global_0x84cf408, 1);
+        if (ret_0xc700_5->field_0x0 == 0) {
+          auto local_0x20 = 3;
+          call_0x7d7f00(this->field_0x48, &local_0x20, &local_0x28);
+        } else {
+          call_0x49710d0("Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel ", &sym_0x6647145);
+        }
+      }
+      if (local_0x48 != 0) {
+        call_0x6daf40(local_0x48);
+      }
+    }
+  
+  === [Decompilacao de Metodo da Classe RBX::AnimationTrack: 0x1c3dbf0..0x1c3dc23 (vfunc_0x40)] ===
+    struct RBX::Instance {
+      /* +0x0 */ void*   field_0x0;
+    };
+    
+    void RBX::Instance::func_0x1c3dbf0(RBX::Instance* this) {
+      call_0x1c4d900(this);
+      switch (this->field_0x0->field_0x1a0) {
+      }
+    }
 
 [Strings .rdata na função]
-  * Calling LoadAnimation() on AnimationTrack {} but no valid animation object set, doing nothing.
-  * AnimationTrack::accumulate
-  * Animation
-  * GPU
-  * Cannot load the AnimationClipProvider Service.
-  * Cannot load an animation with an empty assetId.
+  * "Calling LoadAnimation() on AnimationTrack {} but no valid animation object set, doing nothing."  [@rdata 0x724a200, ref @0x16d7e54, string_view len=94]
+  * "AnimationTrack::accumulate"  [@rdata 0x724a260, ref @0x16d8ac7, symbol/class]
+  * "Animation"  [@rdata 0x7198218, ref @0x16d8adf, key/identifier]
+  * "GPU"  [@rdata 0x72f68c4, ref @0x16d8ae9, literal, 3B]
+  * "Cannot load the AnimationClipProvider Service."  [@rdata 0x724a8c8, ref @0x16eb79a, literal, 46B]
+  * "Cannot load an animation with an empty assetId."  [@rdata 0x724a898, ref @0x16eb7bd, literal, 47B]
+  * "Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel "  [@rdata 0x7280e40, ref @0x1c44110, literal, 96B]
 
 [Co-Flags na mesma função]
   * FFlagAnimGraphFixReferenceCycles2 = false (default)
@@ -1841,6 +1919,7 @@ Operação  : 0x16d8d0d: mov/math reg, [flag] ; fn=0x16d7e10..0x16d9536
   * FFlagAnimatingEverything_dev = false (default)
   * DFFlagMicroProfilerMemoryScope = true (default)
   * DFFlagFixAnimationTrackInfiniteSpeedStuck = true (default)
+  * DFFlagCheckEngineContextOnInstanceAccess2 = false (default)
   * DFFlagFixAnimationMemoryOverhead = false (default) [vizinha em .data]
   * DFFlagEnableControlRigIkTargets = false (default) [vizinha em .data]
   * FFlagLiveAnimationUpdateSupport = false (default) [vizinha em .data]

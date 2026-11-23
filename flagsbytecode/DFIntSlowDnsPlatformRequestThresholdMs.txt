@@ -9,7 +9,7 @@ Operação  : 0x2b8e0ec: mov/math reg, [flag] ; fn=0x2b8da70..0x2b8e32d
     Classe  : RBX::SlowDns (Inferido)
     Padrão  : DFIntSlowDnsPlatformRequestThresholdMs = 50 (default) [int, mode=2]
     Papel   : Parâmetro de configuração lido diretamente pela rotina
-    Fórmula : min(SlowDnsCdnRequestThresholdMs, SlowDnsPlatformRequestThresholdMs)
+    Fórmula : (double)min(SlowDnsExternalRequestThresholdMs, min(SlowDnsCdnRequestThresholdMs, SlowDnsPlatformRequestThresholdMs))
     Altera  : this->field_0xc38, this->field_0xac0->field_m0x20, this->field_0xac0->field_m0x18, this->field_0xac0->field_m0x8, this->field_0xab8->field_0x0[(i_edx << 5)], this->field_0xab8->field_0x8[(i_edx << 5)]
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
@@ -34,17 +34,20 @@ Operação  : 0x2b8e0ec: mov/math reg, [flag] ; fn=0x2b8da70..0x2b8e32d
     bool RBX::SlowDns::func_0x2b8da70(RBX::SlowDns* this, int64_t param_2) {
       auto ret_0x4954e70_1 = call_0x4954e70(global_0x84bbc1c);
       auto ret_0x4954e70_2 = call_0x4954e70(global_0x84bbcec);
+      auto expr_1 = &param_2->field_0x0->field_0x0;
       if (this->field_0xa12 == 0) {
-        if (param_2->field_0x0->field_0x0 != 3 || atomic_cas(&param_2->field_0x0->field_0x0, param_2->field_0x0->field_0x0, 1) != 0) {
+        void* v_rsi_1 = this->field_0x28;
+        if (param_2->field_0x0->field_0x0 != 3 || atomic_cas(expr_1, param_2->field_0x0->field_0x0, 1) != 0) {
+          void* prev_0x28_1 = this->field_0x28;
           call_0xdac0(param_2->field_0x0);
+          v_rsi_1 = prev_0x28_1;
         }
-        call_0x2e12fd0(&this->field_0x28->field_0x20);
-        call_0x2bd0160(this, this, this->field_0x28->field_0x38);
+        call_0x2e12fd0(&v_rsi_1->field_0x20);
+        call_0x2bd0160(this, this, v_rsi_1->field_0x38);
         call_0x2e12fd0(param_2->field_0x0);
         param_2->field_0x8 = 1;
-        auto* f_28 = this->field_0x28;
-        if (f_28->field_0x20 != 3 || atomic_cas(&f_28->field_0x20, f_28->field_0x20, 1) != 0) {
-          call_0xdac0(&this->field_0x28->field_0x20);
+        if (v_rsi_1->field_0x20 != 3 || atomic_cas(&v_rsi_1->field_0x20, v_rsi_1->field_0x20, 1) != 0) {
+          call_0xdac0(&v_rsi_1->field_0x20);
         }
       }
       call_0x4954e70(ret_0x4954e70_2);
@@ -54,96 +57,98 @@ Operação  : 0x2b8e0ec: mov/math reg, [flag] ; fn=0x2b8da70..0x2b8e32d
             auto ret_0x495a220_9 = call_0x495a220(&local_0xf0);
             this->field_0xc38 = ret_0x495a220_9->field_0x0;
           }
-          void* stk_4;
           void* stk_5;
-          void* stk_7;
-          auto expr_1 = min(SlowDnsCdnRequestThresholdMs, SlowDnsPlatformRequestThresholdMs);
+          void* stk_6;
+          void* stk_8;
           if (this->field_0xab0 != 0) {
             this->field_0xab0 = &this->field_0xab0->field_m0x1;
             if (this->field_0xab0 == 0) {
               this->field_0xaa8 = 0;
-              stk_4 = rcx->field_0x8;
-              stk_5 = rcx->field_0x10;
-              stk_7 = rcx->field_0x0;
+              stk_5 = rcx->field_0x8;
+              stk_6 = rcx->field_0x10;
+              stk_8 = rcx->field_0x0;
             } else {
               this->field_0xaa8++;
-              stk_4 = rcx->field_0x8;
-              stk_5 = rcx->field_0x10;
-              stk_7 = rcx->field_0x0;
+              stk_5 = rcx->field_0x8;
+              stk_6 = rcx->field_0x10;
+              stk_8 = rcx->field_0x0;
             }
             auto* f_40 = this->field_0x40;
-            void* v_rdx_10 = f_40;
+            void* v_rdx_11 = f_40;
             auto* f_40_8 = f_40->field_0x8;
             if (f_40_8->field_0x19 == 0) {
               L_0x2b8de81:
-              void* v_rax_9;
-              if (f_40_8->field_0x20 < stk_4) {
-                v_rax_9 = f_40_8->field_0x10;
+              void* v_rax_10;
+              if (f_40_8->field_0x20 < stk_5) {
+                v_rax_10 = f_40_8->field_0x10;
               } else {
-                v_rax_9 = f_40_8->field_0x0;
+                v_rax_10 = f_40_8->field_0x0;
               }
-              if (v_rax_9->field_0x19 == 0) {
-                void* v_rax_9;
-                if (f_40_8->field_0x20 < stk_4) {
-                  v_rax_9 = f_40_8->field_0x10;
+              if (v_rax_10->field_0x19 == 0) {
+                void* v_rax_10;
+                if (f_40_8->field_0x20 < stk_5) {
+                  v_rax_10 = f_40_8->field_0x10;
                 } else {
-                  v_rax_9 = f_40_8->field_0x0;
+                  v_rax_10 = f_40_8->field_0x0;
                 }
               }
             }
-            if (v_rdx_10->field_0x19 != 0) continue;
-            if (stk_4 < v_rdx_10->field_0x20) continue;
-            if (v_rdx_10 == f_40) continue;
-            if (v_rdx_10->field_0x28->field_0xd0->field_0x398 != stk_5) continue;
-            if (v_rdx_10->field_0x30 != 0) {
-              v_rdx_10->field_0x30->field_0x8++;
+            if (v_rdx_11->field_0x19 != 0) continue;
+            if (stk_5 < v_rdx_11->field_0x20) continue;
+            if (v_rdx_11 == f_40) continue;
+            if (v_rdx_11->field_0x28->field_0xd0->field_0x398 != stk_6) continue;
+            if (v_rdx_11->field_0x30 != 0) {
+              v_rdx_11->field_0x30->field_0x8++;
             }
-            v_rdx_10->field_0x28->field_0xa0 = stk_7;
-            if (param_2->field_0x0->field_0x0 != 3 || atomic_cas(&param_2->field_0x0->field_0x0, param_2->field_0x0->field_0x0, 1) != 0) {
+            v_rdx_11->field_0x28->field_0xa0 = stk_8;
+            if (param_2->field_0x0->field_0x0 != 3 || atomic_cas(expr_1, param_2->field_0x0->field_0x0, 1) != 0) {
               call_0xdac0(param_2->field_0x0);
             }
-            v_rdx_10->field_0x28->field_0xd0->vfunc_0x50();
-            if (v_rdx_10->field_0x28->field_0xd0->field_0x368 < 0) {
-              void* v_rax_11;
-              if (v_rdx_10->field_0x28->field_0x50 != 0) {
-                auto vret_13 = v_rdx_10->field_0x28->field_0x50->vfunc_0x8();
-                v_rax_11 = vret_13;
+            v_rdx_11->field_0x28->field_0xd0->vfunc_0x50();
+            if (v_rdx_11->field_0x28->field_0xd0->field_0x368 < 0) {
+              void* v_rax_12;
+              void* v_rsi_13 = v_rdx_11->field_0x28->field_0xd0;
+              if (v_rdx_11->field_0x28->field_0x50 != 0) {
+                void* prev_0xd0_5 = v_rdx_11->field_0x28->field_0xd0;
+                auto vret_13 = v_rdx_11->field_0x28->field_0x50->vfunc_0x8();
+                v_rax_12 = vret_13;
+                v_rsi_13 = prev_0xd0_5;
               } else {
-                v_rax_11 = 0;
+                v_rax_12 = 0;
               }
-              v_rdx_10->field_0x28->field_0xd0->field_0x368 = v_rax_11;
+              v_rsi_13->field_0x368 = v_rax_12;
             }
             call_0x2e12fd0(param_2->field_0x0);
             param_2->field_0x8 = 1;
-            if (v_rdx_10->field_0x28->field_0xd0->field_0x39f == 0) {
+            if (v_rdx_11->field_0x28->field_0xd0->field_0x39f == 0) {
               if (global_0x84a44d6 != 0) {
-                if (v_rdx_10->field_0x28->field_0x40 != 0) {
-                  auto vret_15 = v_rdx_10->field_0x28->field_0x40->vfunc_0x8();
+                if (v_rdx_11->field_0x28->field_0x40 != 0) {
+                  auto vret_15 = v_rdx_11->field_0x28->field_0x40->vfunc_0x8();
                   if (vret_15 != 0) {
-                    if (v_rdx_10->field_0x28->field_0x40 != 0) {
-                    v_rdx_10->field_0x28->field_0x40->vfunc_0x8();
+                    if (v_rdx_11->field_0x28->field_0x40 != 0) {
+                    v_rdx_11->field_0x28->field_0x40->vfunc_0x8();
                     }
-                    if (v_rdx_10->field_0x28->field_0x40 != 0) {
-                    v_rdx_10->field_0x28->field_0x40->vfunc_0x10();
+                    if (v_rdx_11->field_0x28->field_0x40 != 0) {
+                    v_rdx_11->field_0x28->field_0x40->vfunc_0x10();
                     }
                   } else {
                     L_0x2b8e049:
                   }
                 }
-                void* sel_rcx_1 = v_rdx_10->field_0x28->field_0xd0->field_0x368 >= 0 ? v_rdx_10->field_0x28->field_0xd0->field_0x368 : local_0x90;
-                call_0x2b967a0(this, v_rdx_10->field_0x28->field_0xd0, sel_rcx_1->field_0x0 + local_0xa0 + 2, v_rdx_10->field_0x28->field_0xd0->field_0x2f0);
+                void* sel_rcx_1 = v_rdx_11->field_0x28->field_0xd0->field_0x368 >= 0 ? v_rdx_11->field_0x28->field_0xd0->field_0x368 : local_0x90;
+                call_0x2b967a0(this, v_rdx_11->field_0x28->field_0xd0, sel_rcx_1->field_0x0 + local_0xa0 + 2, v_rdx_11->field_0x28->field_0xd0->field_0x2f0);
               }
-              call_0x6f7510(&local_0x1b0, &v_rdx_10->field_0x28->field_0xd0->field_0xf8);
-              double ftmp_1 = (double)min(SlowDnsExternalRequestThresholdMs, expr_1);
-              if (ftmp_1 <= v_rdx_10->field_0x28->field_0xd0->field_0x2d0) {
+              L_0x2b8e0ae:
+              double prev_0x2d0_7 = v_rdx_11->field_0x28->field_0xd0->field_0x2d0;
+              call_0x6f7510(&local_0x1b0, &v_rdx_11->field_0x28->field_0xd0->field_0xf8);
+              double ftmp_1 = (double)min(SlowDnsExternalRequestThresholdMs, min(SlowDnsCdnRequestThresholdMs, SlowDnsPlatformRequestThresholdMs));
+              if (ftmp_1 <= prev_0x2d0_7) {
                 call_0x2904cb0(&local_0x1d0, &local_0x110);
                 auto ret_0x2906b60_21 = call_0x2906b60(&local_0x1d0);
-                if (ret_0x2906b60_21 == 0) {
+                if ((uint8_t)ret_0x2906b60_21 == 0) {
                   call_0x2ba0b60(&local_0x1d0);
                 }
-                L_0x2b8e1e3:
-                double ftmp_2 = v_rdx_10->field_0x28->field_0xd0->field_0x2d0 * 1000.0;
-                call_0x2bbc1a0(&local_0x1b0, SlowDnsPlatformRequestThresholdMs, "Platform", ftmp_2);
+                call_0x2bbc1a0(&local_0x1b0, SlowDnsPlatformRequestThresholdMs, "Platform", prev_0x2d0_7 * 1000.0);
                 call_0x6f8fb0(&local_0x250);
                 call_0x6f8fb0(&local_0x230);
                 call_0x6f8fb0(&local_0x210);
@@ -151,13 +156,13 @@ Operação  : 0x2b8e0ec: mov/math reg, [flag] ; fn=0x2b8da70..0x2b8e32d
                 call_0x6f8fb0(&local_0x1d0);
               }
               std::string::_Tidy_deallocate(local_0x1b0);
-              call_0x2b8f200(this, param_2, v_rdx_10->field_0x28);
+              call_0x2b8f200(this, param_2, v_rdx_11->field_0x28);
             }
-            if (v_rdx_10->field_0x30 == 0) continue;
-            if (atomic_fetch_sub(&v_rdx_10->field_0x30->field_0x8, 1) != 1) continue;
-            v_rdx_10->field_0x30->vfunc_0x0(v_rdx_10->field_0x30);
-            if (atomic_fetch_sub(&v_rdx_10->field_0x30->field_0xc, 1) != 1) continue;
-            v_rdx_10->field_0x30->vfunc_0x8();
+            if (v_rdx_11->field_0x30 == 0) continue;
+            if (atomic_fetch_sub(&v_rdx_11->field_0x30->field_0x8, 1) != 1) continue;
+            v_rdx_11->field_0x30->vfunc_0x0(v_rdx_11->field_0x30);
+            if (atomic_fetch_sub(&v_rdx_11->field_0x30->field_0xc, 1) != 1) continue;
+            v_rdx_11->field_0x30->vfunc_0x8();
           }
           auto* f_ab8 = this->field_0xab8;
           if (this->field_0xc38 < f_ab8->field_0x0) break;
@@ -167,7 +172,7 @@ Operação  : 0x2b8e0ec: mov/math reg, [flag] ; fn=0x2b8da70..0x2b8e32d
             this->field_0xac0->field_m0x8 = f_ab8->field_0x18;
             int32_t i_r10d = 0;
             int32_t i_edx = 0;
-            uint64_t v_rdx_1 = 0;
+            uint64_t v_rdx_2 = 0;
             if ((((this->field_0xac0 - 0x20 - f_ab8) >> 5) - 1) >> 1 > 0) {
               do { // L_0x2b8dd03
                 f_ab8->field_0x0[(i_edx << 5)] = rax[f_ab8];
@@ -177,14 +182,14 @@ Operação  : 0x2b8e0ec: mov/math reg, [flag] ; fn=0x2b8da70..0x2b8e32d
                 i_edx = (f_ab8->field_0x40[i_r10d * 2 << 5] <= f_ab8->field_0x20[i_r10d * 2 << 5]) + 1 + i_r10d * 2;
               } while ((f_ab8->field_0x40[i_r10d * 2 << 5] <= f_ab8->field_0x20[i_r10d * 2 << 5]) + 1 + i_r10d * 2 < (((this->field_0xac0 - 0x20 - f_ab8) >> 5) - 1) >> 1); // loop -> L_0x2b8dd03
             }
-            uint64_t v_rdx_2 = v_rdx_1;
-            if (v_rdx_1 == (((this->field_0xac0 - 0x20 - f_ab8) >> 5) - 1) >> 1 && ((this->field_0xac0 - 0x20 - f_ab8) >> 5 & 0x1) == 0) {
-              f_ab8->field_0x0[(v_rdx_1 << 5)] = ((((this->field_0xac0 - 0x20) - f_ab8) >> 5) << 5)->field_m0x20[f_ab8];
-              f_ab8->field_0x8[(v_rdx_1 << 5)] = ((((this->field_0xac0 - 0x20) - f_ab8) >> 5) << 5)->field_m0x18[f_ab8];
-              f_ab8->field_0x18[(v_rdx_1 << 5)] = ((((this->field_0xac0 - 0x20) - f_ab8) >> 5) << 5)->field_m0x8[f_ab8];
-              v_rdx_2 = ((this->field_0xac0 - 0x20 - f_ab8) >> 5) - 1;
+            uint64_t v_rdx_3 = v_rdx_2;
+            if (v_rdx_2 == (((this->field_0xac0 - 0x20 - f_ab8) >> 5) - 1) >> 1 && ((uint8_t)(((this->field_0xac0 - 0x20) - f_ab8) >> 5) & 0x1) == 0) {
+              f_ab8->field_0x0[(v_rdx_2 << 5)] = ((((this->field_0xac0 - 0x20) - f_ab8) >> 5) << 5)->field_m0x20[f_ab8];
+              f_ab8->field_0x8[(v_rdx_2 << 5)] = ((((this->field_0xac0 - 0x20) - f_ab8) >> 5) << 5)->field_m0x18[f_ab8];
+              f_ab8->field_0x18[(v_rdx_2 << 5)] = ((((this->field_0xac0 - 0x20) - f_ab8) >> 5) << 5)->field_m0x8[f_ab8];
+              v_rdx_3 = ((this->field_0xac0 - 0x20 - f_ab8) >> 5) - 1;
             }
-            if (v_rdx_2 > 0) {
+            if (v_rdx_3 > 0) {
               do { // L_0x2b8dde0
                 if (f_ab8->field_0x0[((i_edx - 1) >> 1) << 5] <= this->field_0xac0->field_m0x20) break;
                 f_ab8->field_0x0[(i_edx << 5)] = f_ab8->field_0x0[((i_edx - 1) >> 1) << 5];
@@ -193,54 +198,57 @@ Operação  : 0x2b8e0ec: mov/math reg, [flag] ; fn=0x2b8da70..0x2b8e32d
                 i_edx = (i_edx - 1) >> 1;
               } while ((i_edx - 1) >> 1 > 0); // loop -> L_0x2b8dde0
             }
-            f_ab8->field_0x0[(v_rdx_3 << 5)] = this->field_0xac0->field_m0x20;
+            f_ab8->field_0x0[(v_rdx_4 << 5)] = this->field_0xac0->field_m0x20;
             auto* f_ac8 = this->field_0xac8;
-            f_ab8->field_0x8[(v_rdx_3 << 5)] = f_ac8->field_m0x20;
-            f_ab8->field_0x18[(v_rdx_3 << 5)] = f_ac8->field_m0x10;
+            f_ab8->field_0x8[(v_rdx_4 << 5)] = f_ac8->field_m0x20;
+            f_ab8->field_0x18[(v_rdx_4 << 5)] = f_ac8->field_m0x10;
           }
           this->field_0xac0 = this->field_0xac0 - 0x20;
-          stk_4 = f_ab8->field_0x10;
-          stk_5 = f_ab8->field_0x18;
-          stk_7 = f_ab8->field_0x8;
+          stk_5 = f_ab8->field_0x10;
+          stk_6 = f_ab8->field_0x18;
+          stk_8 = f_ab8->field_0x8;
           auto* f_40_2 = this->field_0x40;
-          void* v_rdx_10 = f_40_2;
+          void* v_rdx_11 = f_40_2;
           if (f_40_2->field_0x8->field_0x19 == 0) {
             goto L_0x2b8de81;
           }
-          if (v_rdx_10->field_0x19 != 0) continue;
-          if (stk_4 < v_rdx_10->field_0x20) continue;
-          if (v_rdx_10 == f_40_2) continue;
-          if (v_rdx_10->field_0x28->field_0xd0->field_0x398 != stk_5) continue;
-          if (v_rdx_10->field_0x30 != 0) {
-            v_rdx_10->field_0x30->field_0x8++;
+          if (v_rdx_11->field_0x19 != 0) continue;
+          if (stk_5 < v_rdx_11->field_0x20) continue;
+          if (v_rdx_11 == f_40_2) continue;
+          if (v_rdx_11->field_0x28->field_0xd0->field_0x398 != stk_6) continue;
+          if (v_rdx_11->field_0x30 != 0) {
+            v_rdx_11->field_0x30->field_0x8++;
           }
-          v_rdx_10->field_0x28->field_0xa0 = stk_7;
-          if (param_2->field_0x0->field_0x0 != 3 || atomic_cas(&param_2->field_0x0->field_0x0, param_2->field_0x0->field_0x0, 1) != 0) {
+          v_rdx_11->field_0x28->field_0xa0 = stk_8;
+          if (param_2->field_0x0->field_0x0 != 3 || atomic_cas(expr_1, param_2->field_0x0->field_0x0, 1) != 0) {
             call_0xdac0(param_2->field_0x0);
           }
-          v_rdx_10->field_0x28->field_0xd0->vfunc_0x50();
-          if (v_rdx_10->field_0x28->field_0xd0->field_0x368 < 0) {
-            void* v_rax_11;
-            if (v_rdx_10->field_0x28->field_0x50 != 0) {
-              auto vret_13 = v_rdx_10->field_0x28->field_0x50->vfunc_0x8();
-              v_rax_11 = vret_13;
+          v_rdx_11->field_0x28->field_0xd0->vfunc_0x50();
+          if (v_rdx_11->field_0x28->field_0xd0->field_0x368 < 0) {
+            void* v_rax_12;
+            void* v_rsi_13 = v_rdx_11->field_0x28->field_0xd0;
+            if (v_rdx_11->field_0x28->field_0x50 != 0) {
+              void* prev_0xd0_5 = v_rdx_11->field_0x28->field_0xd0;
+              auto vret_13 = v_rdx_11->field_0x28->field_0x50->vfunc_0x8();
+              v_rax_12 = vret_13;
+              v_rsi_13 = prev_0xd0_5;
             } else {
-              v_rax_11 = 0;
+              v_rax_12 = 0;
             }
-            v_rdx_10->field_0x28->field_0xd0->field_0x368 = v_rax_11;
+            v_rsi_13->field_0x368 = v_rax_12;
           }
           call_0x2e12fd0(param_2->field_0x0);
           param_2->field_0x8 = 1;
-          if (v_rdx_10->field_0x28->field_0xd0->field_0x39f == 0) {
+          if (v_rdx_11->field_0x28->field_0xd0->field_0x39f == 0) {
             if (global_0x84a44d6 != 0) {
-              if (v_rdx_10->field_0x28->field_0x40 != 0) {
-                auto vret_15 = v_rdx_10->field_0x28->field_0x40->vfunc_0x8();
+              if (v_rdx_11->field_0x28->field_0x40 != 0) {
+                auto vret_15 = v_rdx_11->field_0x28->field_0x40->vfunc_0x8();
                 if (vret_15 != 0) {
-                  if (v_rdx_10->field_0x28->field_0x40 != 0) {
-                    v_rdx_10->field_0x28->field_0x40->vfunc_0x8();
+                  if (v_rdx_11->field_0x28->field_0x40 != 0) {
+                    v_rdx_11->field_0x28->field_0x40->vfunc_0x8();
                   }
-                  if (v_rdx_10->field_0x28->field_0x40 != 0) {
-                    v_rdx_10->field_0x28->field_0x40->vfunc_0x10();
+                  if (v_rdx_11->field_0x28->field_0x40 != 0) {
+                    v_rdx_11->field_0x28->field_0x40->vfunc_0x10();
                   }
                 } else {
                   goto L_0x2b8e049;
@@ -248,27 +256,16 @@ Operação  : 0x2b8e0ec: mov/math reg, [flag] ; fn=0x2b8da70..0x2b8e32d
               } else {
                 goto L_0x2b8e049;
               }
-              void* sel_rcx_1 = v_rdx_10->field_0x28->field_0xd0->field_0x368 >= 0 ? v_rdx_10->field_0x28->field_0xd0->field_0x368 : local_0x90;
-              call_0x2b967a0(this, v_rdx_10->field_0x28->field_0xd0, sel_rcx_1->field_0x0 + local_0xa0 + 2, v_rdx_10->field_0x28->field_0xd0->field_0x2f0);
+              void* sel_rcx_1 = v_rdx_11->field_0x28->field_0xd0->field_0x368 >= 0 ? v_rdx_11->field_0x28->field_0xd0->field_0x368 : local_0x90;
+              call_0x2b967a0(this, v_rdx_11->field_0x28->field_0xd0, sel_rcx_1->field_0x0 + local_0xa0 + 2, v_rdx_11->field_0x28->field_0xd0->field_0x2f0);
             }
-            call_0x6f7510(&local_0x1b0, &v_rdx_10->field_0x28->field_0xd0->field_0xf8);
-            double ftmp_1 = (double)min(SlowDnsExternalRequestThresholdMs, expr_1);
-            if (ftmp_1 <= v_rdx_10->field_0x28->field_0xd0->field_0x2d0) {
-              call_0x2904cb0(&local_0x1d0, &local_0x110);
-              auto ret_0x2906b60_21 = call_0x2906b60(&local_0x1d0);
-              if (ret_0x2906b60_21 == 0) {
-                call_0x2ba0b60(&local_0x1d0);
-              }
-              goto L_0x2b8e1e3;
-            }
-            std::string::_Tidy_deallocate(local_0x1b0);
-            call_0x2b8f200(this, param_2, v_rdx_10->field_0x28);
+            goto L_0x2b8e0ae;
           }
-          if (v_rdx_10->field_0x30 == 0) continue;
-          if (atomic_fetch_sub(&v_rdx_10->field_0x30->field_0x8, 1) != 1) continue;
-          v_rdx_10->field_0x30->vfunc_0x0(v_rdx_10->field_0x30);
-          if (atomic_fetch_sub(&v_rdx_10->field_0x30->field_0xc, 1) != 1) continue;
-          v_rdx_10->field_0x30->vfunc_0x8();
+          if (v_rdx_11->field_0x30 == 0) continue;
+          if (atomic_fetch_sub(&v_rdx_11->field_0x30->field_0x8, 1) != 1) continue;
+          v_rdx_11->field_0x30->vfunc_0x0(v_rdx_11->field_0x30);
+          if (atomic_fetch_sub(&v_rdx_11->field_0x30->field_0xc, 1) != 1) continue;
+          v_rdx_11->field_0x30->vfunc_0x8();
         }
       } while (true); // loop -> L_0x2b8db90
       call_0x4954e70(ret_0x4954e70_1);
@@ -812,6 +809,7 @@ Operação  : 0x2b8e0ec: mov/math reg, [flag] ; fn=0x2b8da70..0x2b8e32d
         call_0x2bd6e00("perform", v_rax_1, 0);
       }
       do { // L_0x2bd01ec
+        void* v_rbx_2;
         do { // L_0x2bd01f3
           if (param_3 == 0) {
             return;
@@ -825,104 +823,116 @@ Operação  : 0x2b8e0ec: mov/math reg, [flag] ; fn=0x2b8da70..0x2b8e32d
           if (param_3->field_0x88 == 0) {
             return;
           }
+          v_rbx_2 = param_3->field_0x70->field_0x8;
           if (param_3->field_0x70->field_0x0 != 0) {
+            void* prev_0x8_1 = param_3->field_0x70->field_0x8;
             auto ret_0x2c19080_3 = call_0x2c19080(param_3->field_0x70);
             if (r10->field_0x10 != 0) {
               r10->vfunc_0x10(0, ret_0x2c19080_3);
+              v_rbx_2 = prev_0x8_1;
+            } else {
+              v_rbx_2 = prev_0x8_1;
             }
           }
-          if (&param_3->field_0x70->field_0x8->field_0x20 == 0) {
+          if (&v_rbx_2->field_0x20 == 0) {
             return;
           }
-        } while (param_3->field_0x70->field_0x8->field_0x20 != 1); // loop -> L_0x2bd01f3
-        auto ret_0x2bfe9d0_5 = call_0x2bfe9d0(param_3->field_0x70->field_0x8->field_0x28, 1048597, &local_0x40);
+        } while (v_rbx_2->field_0x20 != 1); // loop -> L_0x2bd01f3
+        auto prev_0x30_2 = v_rbx_2->field_0x30;
+        void* prev_0x28_3 = v_rbx_2->field_0x28;
+        auto ret_0x2bfe9d0_5 = call_0x2bfe9d0(prev_0x28_3, 1048597, &local_0x40);
         call_0x2bd74d0("CURLINFO_PRIVATE", ret_0x2bfe9d0_5);
         auto vret_7 = local_0x40->vfunc_0x38(local_0x40);
-        if (vret_7 == 0) {
-          auto ret_0x2bf93c0_8 = call_0x2bf93c0(param_3, param_3->field_0x70->field_0x8->field_0x28);
+        if ((uint8_t)vret_7 == 0) {
+          auto ret_0x2bf93c0_8 = call_0x2bf93c0(param_3, prev_0x28_3);
           if (ret_0x2bf93c0_8 == 0) {
-            if (HttpTraceNew >= 6 && (uint64_t)HttpTraceNew >> 8 >= 6) {
+            if ((uint8_t)HttpTraceNew >= 6 && (uint8_t)((uint64_t)HttpTraceNew >> 8) >= 6) {
               "[DFLog::HttpTraceNew] HttpRequestCurl curl op:{}";
-              FLog::Log("[DFLog::HttpTraceNew] HttpRequestCurl curl op:{}");
+              FLog::Log("[DFLog::HttpTraceNew] HttpRequestCurl curl op:{}", "remove_handle");
             }
-          } else if (HttpTraceNew >= 6 && (uint64_t)HttpTraceNew >> 8 >= 1) {
+          } else if ((uint8_t)HttpTraceNew >= 6 && (uint8_t)((uint64_t)HttpTraceNew >> 8) >= 1) {
             "[DFLog::HttpTraceNew] HttpRequestCurl op:{} curl error:{} msg:{}";
-            FLog::Log("[DFLog::HttpTraceNew] HttpRequestCurl curl op:{}");
+            FLog::Log("[DFLog::HttpTraceNew] HttpRequestCurl curl op:{}", "remove_handle");
           }
         }
-        int32_t v_rsi_4;
-        if (param_3->field_0x70->field_0x8->field_0x30 != 23 && local_0x40->field_0x4e0 == 0) {
-          if (param_3->field_0x70->field_0x8->field_0x30 <= 92) {
-            switch (param_3->field_0x70->field_0x8->field_0x30) {
+        int32_t v_rsi_5;
+        if (prev_0x30_2 != 23 && local_0x40->field_0x4e0 == 0) {
+          if (prev_0x30_2 <= 92) {
+            switch (prev_0x30_2) {
               case 0:
-                v_rsi_4 = 0;
+                v_rsi_5 = 0;
                 break;
               case 1:
-                v_rsi_4 = 1;
+                v_rsi_5 = 1;
                 break;
               case 2:
-                v_rsi_4 = 2;
+                v_rsi_5 = 2;
                 break;
               case 3:
-                v_rsi_4 = 3;
+                v_rsi_5 = 3;
                 break;
               case 7:
-                v_rsi_4 = 5;
+                v_rsi_5 = 5;
                 break;
               case 8:
-                v_rsi_4 = 10;
+                v_rsi_5 = 10;
                 break;
               case 9:
-                v_rsi_4 = 6;
+                v_rsi_5 = 6;
                 break;
               case 10:
-                v_rsi_4 = 8;
+                v_rsi_5 = 8;
                 break;
               case 11:
-                v_rsi_4 = 11;
+                v_rsi_5 = 11;
                 break;
               case 5:
-                v_rsi_4 = 13;
+                v_rsi_5 = 13;
                 break;
               case 4:
-                v_rsi_4 = 14;
+                v_rsi_5 = 14;
                 break;
               case 12:
-                v_rsi_4 = 12;
+                v_rsi_5 = 12;
                 break;
               case 6:
-                v_rsi_4 = 4;
+                v_rsi_5 = 4;
                 break;
             }
           } else {
-            v_rsi_4 = 12;
+            v_rsi_5 = 12;
           }
         } else {
-          v_rsi_4 = 4;
+          v_rsi_5 = 4;
         }
         call_0x6f7000(local_0x40 + 0x4e8, &sym_0x6647145, 0);
-        if (param_3->field_0x70->field_0x8->field_0x30 != 0) {
+        auto expr_1 = (uint64_t)HttpTraceError >> 8;
+        if (prev_0x30_2 != 0) {
           auto local_0x38 = 0;
-          call_0x2bfe9d0(param_3->field_0x70->field_0x8->field_0x28, 2097177, &local_0x38);
+          call_0x2bfe9d0(prev_0x28_3, 2097177, &local_0x38);
           if (local_0x38 != 0) {
             auto ret_0x5e2981c_11 = call_0x5e2981c(local_0x38);
             call_0x6f7000(local_0x40 + 0x4e8, ret_0x5e2981c_11, 0);
-            if (HttpTraceError >= 6 && (uint64_t)HttpTraceError >> 8 >= 3) {
-              FLog::Log("[DFLog::HttpTraceError] CURLINFO_OS_ERRNO: {} {}");
+            if ((uint8_t)HttpTraceError >= 6 && (uint8_t)expr_1 >= 3) {
+              void* v_rcx_6 = local_0x40 + 0x4e8;
+              if ((local_0x40 + 0x4e8)->field_0x18 >= 16) {
+                v_rcx_6 = (local_0x40 + 0x4e8)->field_0x0;
+              }
+              FLog::Log("[DFLog::HttpTraceError] CURLINFO_OS_ERRNO: {} {}", v_rcx_6);
             }
           }
           auto ret_0x5e28c5c_13 = call_0x5e28c5c(local_0x40 + 0x508, 256);
-          if (ret_0x5e28c5c_13 - 1 <= 254 && HttpTraceError >= 6 && (uint64_t)HttpTraceError >> 8 >= 3) {
+          if (ret_0x5e28c5c_13 - 1 <= 254 && (uint8_t)HttpTraceError >= 6 && (uint8_t)expr_1 >= 3) {
             FLog::Log("[DFLog::HttpTraceError] CURLOPT_ERRORBUFFER: %s");
             L_0x2bd0681:
           }
         } else {
           goto L_0x2bd0681;
         }
-        if (v_rsi_4 == 3 && HttpTraceError >= 6 && (uint64_t)HttpTraceError >> 8 >= v_rsi_4) {
-          FLog::Log("[DFLog::HttpTraceError] Curl connect failed. Current file descriptor count is {}, limit {}");
+        if (v_rsi_5 == 3 && (uint8_t)HttpTraceError >= 6 && (uint8_t)expr_1 >= (uint8_t)v_rsi_5) {
+          FLog::Log("[DFLog::HttpTraceError] Curl connect failed. Current file descriptor count is {}, limit {}", -1, -1);
         }
-        call_0x2b93e70(param_2, v_rsi_4, local_0x40);
+        call_0x2b93e70(param_2, v_rsi_5, local_0x40);
       } while (true); // loop -> L_0x2bd01ec
     }
   
@@ -1318,10 +1328,10 @@ Operação  : 0x2b8e0ec: mov/math reg, [flag] ; fn=0x2b8da70..0x2b8e32d
         }
         uint64_t stk_3;
         if (((&sym_0x7056a38 & 0xfffffffb | 0x2) & 0xfffffffc & 0xfffffff8) != 0) {
-          if (((&sym_0x7056a38 & 0xfffffffb | 0x2) >> 1 & 0x1) == 0) {
+          if (((uint8_t)((&sym_0x7056a38 & 0xfffffffb) | 0x2) >> 1 & 0x1) == 0) {
           } else if ((~(((&sym_0x7056a38 & 0xfffffffb | 0x2) & 0xfffffffc) >> 2) & 0x1) == 0) {
-            (((((&sym_0x7056a38 & 0xfffffffb) | 0x2) & 0xfffffffc) & 0xfffffff8))->vfunc_0x8(&local_0x48, &local_0x100);
-            ((local_0x60 & 0xfffffff8))->vfunc_0x10(&local_0x100);
+            ((((&sym_0x7056a38 & 0xfffffffb) | 0x2) & 0xfffffffc) & 0xfffffff8)->vfunc_0x8(&local_0x48, &local_0x100);
+            (local_0x60 & 0xfffffff8)->vfunc_0x10(&local_0x100);
           }
           stk_3 = 0;
         } else {
@@ -1362,17 +1372,17 @@ Operação  : 0x2b8e0ec: mov/math reg, [flag] ; fn=0x2b8da70..0x2b8e32d
         }
         if ((stk_1 & 0xfffffffc & 0xfffffff8) != 0) {
           if ((~((stk_1 & 0xfffffffc) >> 2) & 0x1) == 0) {
-            (((stk_1 & 0xfffffffc) & 0xfffffff8))->vfunc_0x10(local_0x140);
+            ((stk_1 & 0xfffffffc) & 0xfffffff8)->vfunc_0x10(local_0x140);
           }
-          if ((stk_1 >> 1 & 0x1) == 0) {
+          if (((uint8_t)stk_1 >> 1 & 0x1) == 0) {
             call_0x4955ac0(local_0x140);
           }
         }
         if ((stk_3 & 0xfffffffc & 0xfffffff8) != 0) {
           if ((~((stk_3 & 0xfffffffc) >> 2) & 0x1) == 0) {
-            (((stk_3 & 0xfffffffc) & 0xfffffff8))->vfunc_0x10(local_0x100);
+            ((stk_3 & 0xfffffffc) & 0xfffffff8)->vfunc_0x10(local_0x100);
           }
-          if ((stk_3 >> 1 & 0x1) == 0) {
+          if (((uint8_t)stk_3 >> 1 & 0x1) == 0) {
             call_0x4955ac0(local_0x100);
           }
         }
@@ -1709,21 +1719,21 @@ Operação  : 0x2b8e0ec: mov/math reg, [flag] ; fn=0x2b8da70..0x2b8e32d
     // Flag defaults: EnableRobloxCNDomains = false
     auto SubObj_0x2ba0b60::func_0x2ba0b60(SubObj_0x2ba0b60* this) {
       auto ret_0x2906b60_1 = call_0x2906b60(this, "rbxcdn.com");
-      if (ret_0x2906b60_1 == 0) {
+      if ((uint8_t)ret_0x2906b60_1 == 0) {
         auto ret_0x2906b60_2 = call_0x2906b60(this, "rbxcdn.qq.com");
-        if (ret_0x2906b60_2 == 0) {
-          if (global_0x84a44d6 != ret_0x2906b60_2 && EnableRobloxCNDomains != ret_0x2906b60_2) {
+        if ((uint8_t)ret_0x2906b60_2 == 0) {
+          if (global_0x84a44d6 != (uint8_t)ret_0x2906b60_2 && EnableRobloxCNDomains != (uint8_t)ret_0x2906b60_2) {
             auto ret_0x2906b60_3 = call_0x2906b60(this, "roblox.cn");
-            if (ret_0x2906b60_3 != 0) {
+            if ((uint8_t)ret_0x2906b60_3 != 0) {
               return 1;
             }
           }
           auto ret_0x2906b60_4 = call_0x2906b60(this, "rbxcdn.cn");
-          if (ret_0x2906b60_4 == 0) {
+          if ((uint8_t)ret_0x2906b60_4 == 0) {
             auto ret_0x2906b60_5 = call_0x2906b60(this, "c.robloxdev.cn");
-            if (ret_0x2906b60_5 == 0) {
+            if ((uint8_t)ret_0x2906b60_5 == 0) {
               auto ret_0x2b9deb0_6 = call_0x2b9deb0(this);
-              if (ret_0x2b9deb0_6 == 0) {
+              if ((uint8_t)ret_0x2b9deb0_6 == 0) {
                 return ret_0x2b9deb0_6;
               }
             }
@@ -1787,6 +1797,7 @@ Operação  : 0x2b8e0ec: mov/math reg, [flag] ; fn=0x2b8da70..0x2b8e32d
         if (ret_0x6f5f60_1->field_0x0 != 0) {
           v_rbx_1 = ret_0x6f5f60_1->field_0x0->field_0x18;
         }
+        void* prev_0x0_1 = ret_0x6f5f60_1->field_0x0;
         call_0x2e12fd0(&v_rbx_1->field_0xb8);
         if (v_rbx_1->field_0xc8 != 0) {
           v_rbx_1->field_0xc8->field_0x8++;
@@ -1794,8 +1805,8 @@ Operação  : 0x2b8e0ec: mov/math reg, [flag] ; fn=0x2b8da70..0x2b8e32d
         if (v_rbx_1->field_0xb8 != 3 || atomic_cas(&v_rbx_1->field_0xb8, v_rbx_1->field_0xb8, 1) != 0) {
           call_0xdac0(&v_rbx_1->field_0xb8);
         }
-        if (ret_0x6f5f60_1->field_0x0 != 0) {
-          ret_0x6f5f60_1->field_0x0->vfunc_0x10(ret_0x6f5f60_1->field_0x0);
+        if (prev_0x0_1 != 0) {
+          ret_0x6f5f60_1->field_0x0->vfunc_0x10(prev_0x0_1);
         }
       }
       if (local_0x38 != 0) {
@@ -1893,20 +1904,545 @@ Operação  : 0x2b8e0ec: mov/math reg, [flag] ; fn=0x2b8da70..0x2b8e32d
     0x2bbc2af | 5e                       | pop rsi
     0x2bbc2b0 | 5d                       | pop rbp
     0x2bbc2b1 | c3                       | ret
+  
+  === [Decompilacao da Rotina Chamadora (Caller): 0x2b8c6f0..0x2b8d680 em RBX::SlowDns] ===
+    struct RBX::SlowDns {
+      /* +0x28 */ void*   field_0x28;
+      /* +0x30 */ void*   field_0x30;
+      /* +0x38 */ void*   field_0x38;
+      /* +0x48 */ void*   field_0x48;
+      /* +0x50 */ void*   field_0x50;
+      /* +0x60 */ void*   field_0x60;
+      /* +0x68 */ void*   field_0x68;
+      /* +0x80 */ void*   field_0x80;
+      /* +0x1e0 */ void*   field_0x1e0;
+      /* +0x210 */ void*   field_0x210;
+      /* +0x220 */ void*   field_0x220;
+      /* +0x228 */ void*   field_0x228;
+      /* +0x280 */ void*   field_0x280;
+      /* +0x288 */ int32_t field_0x288;
+      /* +0xa10 */ uint8_t field_0xa10;
+      /* +0xa14 */ int32_t field_0xa14;
+      /* +0xa18 */ uint8_t field_0xa18;
+      /* +0xa88 */ int32_t field_0xa88;
+      /* +0xa8c */ uint8_t field_0xa8c;
+      /* +0xc38 */ double  field_0xc38;
+    };
+    
+    // Flag defaults: HttpClientWorkerMaxSleepMs = 69000, DeferHttpNetworkChange = true, NetworkGovernor = false, DebugHttpRequestSecondaryImpl = false, DebugDisableOnScreenProfiler = false, MicroProfilerMemoryScope = true, UseConnectivityV2HttpRecoveryBridge = false
+    void RBX::SlowDns::func_0x2b8c6f0(RBX::SlowDns* this) {
+      call_0x4968af0(this);
+      auto ret_0x4968920_2 = call_0x4968920();
+      call_0x4968d10(ret_0x4968920_2->field_0x0);
+      call_0x4954e70(global_0x84bbc1c);
+      call_0x4976630("HttpClient");
+      this->field_0xa88 = call_0x5de5974();
+      call_0x2e12fd0(&this->field_0x20);
+      int32_t v_rsi_70 = 0;
+      int64_t local_0x30;
+      if (this->field_0xa8c == 0) {
+        uint64_t i_ecx = 0;
+        int32_t i_ebx = 0;
+        int32_t i_esi = 0;
+        void* i_r12d = "GPU";
+        int32_t i_r15d = 40;
+        do { // L_0x2b8c7c0
+          int32_t v_rsi_62 = i_esi;
+          uint8_t v_r12b_63;
+          uint8_t v_r13b_64;
+          uint8_t v_r15b_65;
+          uint8_t stk_66;
+          if (global_0x86295f8 != 0) {
+            int32_t v_rsi_11 = i_esi;
+            void* v_r12_12 = i_r12d;
+            int32_t v_r15_13 = i_r15d;
+            uint8_t stk_14;
+            if (i_ebx == 0) {
+              auto ret_0xc880_21 = call_0xc880(&local_0x1b0, 0, 0);
+              int32_t v_rsi_8 = i_esi;
+              void* v_r12_9 = i_r12d;
+              int32_t v_r15_10 = i_r15d;
+              if ((uint8_t)ret_0xc880_21 == 0) {
+                if (global_0x84a44d6 == (uint8_t)ret_0xc880_21 || DebugDisableOnScreenProfiler == (uint8_t)ret_0xc880_21) {
+                  auto ret_0x4954e70_22 = call_0x4954e70(global_0x84b96e8);
+                  call_0x29a1f00();
+                  auto ret_0x29a1d60_24 = call_0x29a1d60();
+                  auto ret_0xc8a0_25 = call_0xc8a0();
+                  if (ret_0xc8a0_25 != ret_0x29a1d60_24->field_0x8) {
+                    call_0x2e12fd0(ret_0x29a1d60_24);
+                    ret_0x29a1d60_24->field_0x8 = ret_0xc8a0_25;
+                  }
+                  ret_0x29a1d60_24->field_0x10++;
+                  int32_t v_rsi_6 = i_esi;
+                  int32_t v_r12_7 = 2;
+                  if (global_0x84a44d6 != 0) {
+                    if (global_0x84bddce == 0) {
+                    call_0x29a2460();
+                    }
+                    int32_t v_r12_4;
+                    do { // L_0x2b8c892
+                    v_r12_4 = 2;
+                    if (i_ebx == global_0x84bac30) break;
+                    if (i_ebx->field_0x14 != 0) {
+                    if (i_ebx->field_0x8 <= 10) {
+                    if (i_ebx->field_0x8 == 0) {
+                    v_r12_4 = i_ebx->field_0x10;
+                    break;
+                    } else {
+                    auto ret_0x5e06820_28 = memcmp("HttpClient", i_ebx->field_0x0, i_ebx->field_0x8);
+                    if (ret_0x5e06820_28 == 0) break;
+                    L_0x2b8cd24:
+                    i_ebx += 0x18;
+                    }
+                    } else {
+                    i_ebx += 0x18;
+                    }
+                    } else if (i_ebx->field_0x8 == 10) {
+                    auto ret_0x5e06820_28 = memcmp("HttpClient", i_ebx->field_0x0, i_ebx->field_0x8);
+                    if (ret_0x5e06820_28 == 0) break;
+                    goto L_0x2b8cd24;
+                    } else {
+                    goto L_0x2b8cd24;
+                    }
+                    } while (true); // loop -> L_0x2b8c892
+                    v_rsi_6 = 0;
+                    v_r12_7 = v_r12_4;
+                  }
+                  auto ret_0x29a1bc0_29 = call_0x29a1bc0();
+                  if (ret_0x29a1bc0_29->field_0x0 == 0) {
+                    auto ret_0x29a2290_30 = call_0x29a2290("HttpClient", v_r12_7);
+                    auto ret_0x29a1bc0_31 = call_0x29a1bc0();
+                    ret_0x29a1bc0_31->field_0x0 = ret_0x29a2290_30;
+                  }
+                  ret_0x29a1d60_24->field_0x10--;
+                  if (ret_0x29a1d60_24->field_0x10 == 1) {
+                    ret_0x29a1d60_24->field_0x8 = v_rsi_6;
+                    if (ret_0x29a1d60_24->field_0x0 != 3 || atomic_cas(&ret_0x29a1d60_24->field_0x0, ret_0x29a1d60_24->field_0x0, 1) != 0) {
+                    call_0xdac0(ret_0x29a1d60_24);
+                    }
+                  }
+                  call_0x4954e70(ret_0x4954e70_22);
+                  v_rsi_8 = v_rsi_6;
+                  v_r12_9 = "GPU";
+                  v_r15_10 = 40;
+                }
+              }
+              v_rsi_11 = v_rsi_8;
+              v_r12_12 = v_r12_9;
+              v_r15_13 = v_r15_10;
+              stk_14 = 1;
+            } else {
+              stk_14 = 0;
+            }
+            if (global_0x84a44d6 != 0) {
+              if (DeferHttpNetworkChange) {
+                local_0x30 = &this->field_0x20;
+                call_0x2b8e570(this, &local_0x30);
+              }
+              if (global_0x84a44d6 != 0 && NetworkGovernor && (uint8_t)(atomic_exchange(&this->field_0x288, v_rsi_11)) != 0) {
+                void* v_rdi_15 = this->field_0x280;
+                if (global_0x84a44d6 != 0 && DebugHttpRequestSecondaryImpl) {
+                  void* prev_0x280_4 = this->field_0x280;
+                  auto ret_0x2bebc20_35 = call_0x2bebc20();
+                  if ((uint8_t)ret_0x2bebc20_35 == 0) {
+                    v_rdi_15 = prev_0x280_4;
+                    auto* f_30 = this->field_0x30;
+                    if (f_30 != 0) {
+                    f_30->field_0x8++;
+                    }
+                    void* v_rbx_16 = f_30;
+                    auto* f_28 = this->field_0x28;
+                    if (f_28 != 0) {
+                    f_28->field_0xe0 = v_rdi_15;
+                    if (f_28->field_0xd0 != 0) {
+                    void* prev_0x30_5 = f_30;
+                    call_0x2152300(f_28->field_0xd0, v_rdi_15);
+                    v_rbx_16 = prev_0x30_5;
+                    }
+                    }
+                    if (v_rbx_16 != 0) {
+                    call_0x6daf40(v_rbx_16);
+                    }
+                  }
+                } else {
+                  auto* f_30_2 = this->field_0x30;
+                  if (f_30_2 != 0) {
+                    f_30_2->field_0x8++;
+                  }
+                  void* v_rbx_16 = f_30_2;
+                  auto* f_28_2 = this->field_0x28;
+                  if (f_28_2 != 0) {
+                    f_28_2->field_0xe0 = v_rdi_15;
+                    if (f_28_2->field_0xd0 != 0) {
+                    void* prev_0x30_5 = f_30_2;
+                    call_0x2152300(f_28_2->field_0xd0, v_rdi_15);
+                    v_rbx_16 = prev_0x30_5;
+                    }
+                  }
+                  if (v_rbx_16 != 0) {
+                    call_0x6daf40(v_rbx_16);
+                  }
+                }
+              }
+            }
+            int32_t i_eax;
+            if (global_0x8db74bc > rbp->field_0x58->field_0x0->field_0x0[v_r15_13]) {
+              call_0x12e0(&sym_0x8db74bc);
+              if (global_0x8db74bc == -1) {
+                i_eax = v_rsi_11;
+                do { // L_0x2b8ca70
+                  i_eax++;
+                  if ("Network"[i_eax] != v_r12_12->field_m0x1[i_eax]) break;
+                } while (i_eax != 4); // loop -> L_0x2b8ca70
+                global_0x8db74c0 = call_0x29a3390("Network", "HttpClientTC", -1, "Network"[i_eax] == v_r12_12->field_m0x1[i_eax]);
+                call_0x14f0(&sym_0x8db74bc);
+              }
+            }
+            call_0x2924c40(&local_0x70, global_0x8db74c0, -1, 0);
+            call_0x2b95690(this, &local_0x30, &local_0x50);
+            int32_t v_rsi_32 = v_rsi_11;
+            if (0) {
+              if (v_rsi_11 != 0) {
+                call_0x29a42e0(33, ((v_rsi_11 == 1) + 2) << 48 | v_rsi_11 & 0xffffffffffff, 0, 0);
+              }
+              if (global_0x84a44d6 != 0 && MicroProfilerMemoryScope) {
+                auto ret_0x497fea0_44 = call_0x497fea0();
+                void* v_rcx_18 = ret_0x497fea0_44->field_0x0;
+                if (ret_0x497fea0_44->field_0x0 == 0) {
+                  v_rcx_18 = &ret_0x497fea0_44->field_0x8;
+                }
+                uint64_t stk_19;
+                uint64_t stk_20;
+                uint64_t stk_21;
+                uint64_t stk_22;
+                if (0) {
+                  stk_19 = local_0xb0 + (v_rcx_18->field_0x0);
+                  stk_20 = local_0xa0 + (v_rcx_18->field_0x8 - v_rsi_11);
+                  stk_21 = local_0xa8 + (v_rcx_18->field_0x10 - v_rsi_11);
+                  stk_22 = local_0xb4 + (v_rcx_18->field_0x4);
+                } else {
+                  stk_19 = 0;
+                  stk_20 = v_rsi_11;
+                  stk_21 = v_rsi_11;
+                  stk_22 = 0;
+                }
+                if (((stk_19 & 0xffffff) << 24 | stk_22 & 0xffffff) == 0) {
+                  if ((stk_21 | stk_20 << 32) != 0) {
+                    auto local_0x190 = stk_21 | stk_20 << 32;
+                    call_0x29a42e0(20, (stk_19 & 0xffffff) << 24 | stk_22 & 0xffffff, &local_0x190, 8);
+                  }
+                } else {
+                  auto local_0x190 = stk_21 | stk_20 << 32;
+                  call_0x29a42e0(20, (stk_19 & 0xffffff) << 24 | stk_22 & 0xffffff, &local_0x190, 8);
+                }
+              }
+              if (0) {
+                auto ret_0x29a1bc0_46 = call_0x29a1bc0();
+                if (ret_0x29a1bc0_46->field_0x0 != 0) {
+                  uint64_t tsc_0x2b8ccb6 = rdtsc();
+                  void* v_rcx_30;
+                  if ((global_0x816d648->field_0xb8 & (uint64_t)local_0x80 >> 14) != 0) {
+                    if (ret_0x29a1bc0_46->field_0x0->field_0x565 != 0) {
+                    void* v_rax_28;
+                    void* v_rbx_29 = ret_0x29a1bc0_46->field_0x0;
+                    if (global_0x816d648->field_0x26d5a0 == 0) {
+                    v_rax_28 = -1;
+                    } else {
+                    void* prev_0x0_6 = ret_0x29a1bc0_46->field_0x0;
+                    auto vret_47 = global_0x816d648->vfunc_0x26d5a0(ret_0x29a1bc0_46->field_0x0->field_0x30);
+                    v_rax_28 = vret_47;
+                    v_rbx_29 = prev_0x0_6;
+                    }
+                    call_0x29a3900(local_0x80, v_rax_28, 0, global_0x8479b18);
+                    v_rcx_30 = v_rbx_29->field_0x44;
+                    call_0x29a3900(v_rcx_30, tsc_0x2b8ccb6 - global_0x8cda630, 4, global_0x8479b18);
+                    }
+                  } else {
+                    v_rcx_30 = local_0x80;
+                    call_0x29a3900(v_rcx_30, tsc_0x2b8ccb6 - global_0x8cda630, 4, global_0x8479b18);
+                  }
+                }
+              }
+              if ((global_0x8629678 & (uint64_t)local_0x80 >> 14 & global_0x86295f8) != 0 && global_0x84dcf68 != 0) {
+                (*global_0x84dcf68)();
+              }
+              v_rsi_32 = 0;
+            }
+            auto ret_0x29243d0_51 = call_0x29243d0();
+            ret_0x29243d0_51->field_0x0 = local_0x78;
+            call_0x2b8e790(this);
+            call_0x2b8e330(this, &local_0x30);
+            call_0x2b8ea00(this, &local_0x30);
+            uint8_t v_r12b_38;
+            if (this->field_0x38 == 0) {
+              v_r12b_38 = 0;
+            } else {
+              if (local_0x30->field_0x0 != 3 || atomic_cas(&local_0x30->field_0x0, local_0x30->field_0x0, 1) != 0) {
+                call_0xdac0(local_0x30);
+              }
+              auto ret_0x2bd9590_56 = call_0x2bd9590(this->field_0x38, &local_0x50);
+              call_0x2e12fd0(local_0x30);
+              v_r12b_38 = ret_0x2bd9590_56;
+            }
+            auto ret_0x2b8da70_58 = call_0x2b8da70(this, &local_0x30);
+            if (global_0x8db74c8 > rbp->field_0x58->field_0x0->field_0x0[v_r15_13]) {
+              call_0x12e0(&sym_0x8db74c8);
+              if (global_0x8db74c8 == -1) {
+                do { // L_0x2b8ceb0
+                  i_eax++;
+                  if ("Network"[i_eax] != "GPU"->field_m0x1[i_eax]) break;
+                } while (i_eax != 4); // loop -> L_0x2b8ceb0
+                global_0x8db74d0 = call_0x29a3390("Network", "HttpClientReq", -1, "Network"[i_eax] == "GPU"->field_m0x1[i_eax]);
+                call_0x14f0(&sym_0x8db74c8);
+              }
+            }
+            call_0x2924c40(&local_0xf0, global_0x8db74d0, -1, 0);
+            auto ret_0x2b8d680_63 = call_0x2b8d680(this, &local_0x30);
+            int32_t v_rsi_56 = v_rsi_32;
+            if (0) {
+              if (v_rsi_32 != 0) {
+                call_0x29a42e0(33, ((v_rsi_32 == 1) + 2) << 48 | v_rsi_32 & 0xffffffffffff, 0, 0);
+              }
+              if (global_0x84a44d6 != 0 && MicroProfilerMemoryScope) {
+                auto ret_0x497fea0_65 = call_0x497fea0();
+                void* v_rcx_41 = ret_0x497fea0_65->field_0x0;
+                if (ret_0x497fea0_65->field_0x0 == 0) {
+                  v_rcx_41 = &ret_0x497fea0_65->field_0x8;
+                }
+                uint64_t stk_42;
+                uint64_t stk_43;
+                uint64_t stk_44;
+                uint64_t stk_45;
+                if (0) {
+                  stk_42 = local_0x130 + (v_rcx_41->field_0x0);
+                  stk_43 = local_0x120 + (v_rcx_41->field_0x8 - v_rsi_32);
+                  stk_44 = local_0x128 + (v_rcx_41->field_0x10 - v_rsi_32);
+                  stk_45 = local_0x134 + (v_rcx_41->field_0x4);
+                } else {
+                  stk_42 = 0;
+                  stk_43 = v_rsi_32;
+                  stk_44 = v_rsi_32;
+                  stk_45 = 0;
+                }
+                if (((stk_42 & 0xffffff) << 24 | stk_45 & 0xffffff) == 0) {
+                  if ((stk_44 | stk_43 << 32) != 0) {
+                    auto local_0x1a8 = stk_44 | stk_43 << 32;
+                    call_0x29a42e0(20, (stk_42 & 0xffffff) << 24 | stk_45 & 0xffffff, &local_0x1a8, 8);
+                  }
+                } else {
+                  auto local_0x1a8 = stk_44 | stk_43 << 32;
+                  call_0x29a42e0(20, (stk_42 & 0xffffff) << 24 | stk_45 & 0xffffff, &local_0x1a8, 8);
+                }
+              }
+              if (0) {
+                auto ret_0x29a1bc0_67 = call_0x29a1bc0();
+                if (ret_0x29a1bc0_67->field_0x0 != 0) {
+                  uint64_t tsc_0x2b8d0f1 = rdtsc();
+                  void* v_rcx_54;
+                  if ((global_0x816d648->field_0xb8 & (uint64_t)local_0x100 >> 14) != 0) {
+                    if (ret_0x29a1bc0_67->field_0x0->field_0x565 != 0) {
+                    void* v_rax_52;
+                    void* v_rbx_53 = ret_0x29a1bc0_67->field_0x0;
+                    if (global_0x816d648->field_0x26d5a0 == 0) {
+                    v_rax_52 = -1;
+                    } else {
+                    void* prev_0x0_7 = ret_0x29a1bc0_67->field_0x0;
+                    auto vret_68 = global_0x816d648->vfunc_0x26d5a0(ret_0x29a1bc0_67->field_0x0->field_0x30);
+                    v_rax_52 = vret_68;
+                    v_rbx_53 = prev_0x0_7;
+                    }
+                    call_0x29a3900(local_0x100, v_rax_52, 0, global_0x8479b18);
+                    v_rcx_54 = v_rbx_53->field_0x44;
+                    call_0x29a3900(v_rcx_54, tsc_0x2b8d0f1 - global_0x8cda630, 4, global_0x8479b18);
+                    }
+                  } else {
+                    v_rcx_54 = local_0x100;
+                    call_0x29a3900(v_rcx_54, tsc_0x2b8d0f1 - global_0x8cda630, 4, global_0x8479b18);
+                  }
+                }
+              }
+              if ((global_0x8629678 & (uint64_t)local_0x100 >> 14 & global_0x86295f8) != 0 && global_0x84dcf68 != 0) {
+                (*global_0x84dcf68)();
+              }
+              v_rsi_56 = 0;
+            }
+            auto ret_0x29243d0_72 = call_0x29243d0();
+            ret_0x29243d0_72->field_0x0 = local_0xf8;
+            v_rsi_62 = v_rsi_56;
+            v_r12b_63 = v_r12b_38;
+            v_r13b_64 = ret_0x2b8da70_58;
+            v_r15b_65 = ret_0x2b8d680_63;
+            stk_66 = stk_14;
+          } else {
+            if (global_0x84a44d6 != 0) {
+              if (DeferHttpNetworkChange) {
+                local_0x30 = &this->field_0x20;
+                call_0x2b8e570(this, &local_0x30);
+              }
+              if (global_0x84a44d6 != 0 && NetworkGovernor && (uint8_t)(atomic_exchange(&this->field_0x288, i_esi)) != 0) {
+                void* v_rdi_1 = this->field_0x280;
+                if (global_0x84a44d6 != 0 && DebugHttpRequestSecondaryImpl) {
+                  void* prev_0x280_1 = this->field_0x280;
+                  auto ret_0x2bebc20_9 = call_0x2bebc20();
+                  if ((uint8_t)ret_0x2bebc20_9 == 0) {
+                    v_rdi_1 = prev_0x280_1;
+                    auto* f_30_3 = this->field_0x30;
+                    if (f_30_3 != 0) {
+                    f_30_3->field_0x8++;
+                    }
+                    void* v_rbx_2 = f_30_3;
+                    auto* f_28_3 = this->field_0x28;
+                    if (f_28_3 != 0) {
+                    f_28_3->field_0xe0 = v_rdi_1;
+                    if (f_28_3->field_0xd0 != 0) {
+                    void* prev_0x30_2 = f_30_3;
+                    call_0x2152300(f_28_3->field_0xd0, v_rdi_1);
+                    v_rbx_2 = prev_0x30_2;
+                    }
+                    }
+                    if (v_rbx_2 != 0) {
+                    call_0x6daf40(v_rbx_2);
+                    }
+                  }
+                } else {
+                  auto* f_30_4 = this->field_0x30;
+                  if (f_30_4 != 0) {
+                    f_30_4->field_0x8++;
+                  }
+                  void* v_rbx_2 = f_30_4;
+                  auto* f_28_4 = this->field_0x28;
+                  if (f_28_4 != 0) {
+                    f_28_4->field_0xe0 = v_rdi_1;
+                    if (f_28_4->field_0xd0 != 0) {
+                    void* prev_0x30_2 = f_30_4;
+                    call_0x2152300(f_28_4->field_0xd0, v_rdi_1);
+                    v_rbx_2 = prev_0x30_2;
+                    }
+                  }
+                  if (v_rbx_2 != 0) {
+                    call_0x6daf40(v_rbx_2);
+                  }
+                }
+              }
+            }
+            call_0x2b95690(this, &local_0x30, &local_0x50);
+            call_0x2b8e790(this);
+            call_0x2b8e330(this, &local_0x30);
+            call_0x2b8ea00(this, &local_0x30);
+            uint8_t v_r12b_3;
+            if (this->field_0x38 == 0) {
+              v_r12b_3 = 0;
+            } else {
+              if (local_0x30->field_0x0 != 3 || atomic_cas(&local_0x30->field_0x0, local_0x30->field_0x0, 1) != 0) {
+                call_0xdac0(local_0x30);
+              }
+              auto ret_0x2bd9590_17 = call_0x2bd9590(this->field_0x38, &local_0x50);
+              call_0x2e12fd0(local_0x30);
+              v_r12b_3 = ret_0x2bd9590_17;
+            }
+            auto ret_0x2b8da70_19 = call_0x2b8da70(this, &local_0x30);
+            auto ret_0x2b8d680_20 = call_0x2b8d680(this, &local_0x30);
+            v_r12b_63 = v_r12b_3;
+            v_r13b_64 = ret_0x2b8da70_19;
+            v_r15b_65 = ret_0x2b8d680_20;
+            stk_66 = 0;
+          }
+          int32_t i_r10d = v_rsi_62;
+          do { // L_0x2b8d324
+            this->field_0x220[i_ecx] = v_rsi_62;
+            this->field_0x228[i_ecx] = v_rsi_62;
+            i_r10d++;
+            i_ecx += 0x10;
+          } while (i_ecx < 96); // loop -> L_0x2b8d324
+          uint8_t v_cl_67;
+          if (global_0x84a44d6 != 0 && UseConnectivityV2HttpRecoveryBridge) {
+            v_cl_67 = 1;
+          } else {
+            v_cl_67 = 0;
+          }
+          int64_t v_rcx_69 = v_cl_67;
+          if (v_r13b_64 == 0 && v_r15b_65 == 0 && this->field_0x60 == this->field_0x68 && this->field_0x80 == 0 && v_r12b_63 == 0 && this->field_0xa14 == -1) {
+            if (v_cl_67 == 0 || this->field_0xa18 == v_r12b_63) {
+              auto ret_0x2b8c3e0_73 = call_0x2b8c3e0(this);
+              int64_t ret_0x5de6490_79;
+              int64_t ret_0x5de64b0_78;
+              if ((uint8_t)ret_0x2b8c3e0_73 != 0) {
+                void* prev_0x20_9 = this->field_0x50->field_0x0->field_0x20;
+                call_0x2b94570(this, &local_0x30, prev_0x20_9, 1);
+                if (this->field_0xa10 != 0) {
+                  auto local_0x290 = 9;
+                  call_0x2b8abe0(this, &local_0x30, prev_0x20_9, &local_0x290);
+                }
+              } else if (this->field_0xa8c == 0) {
+                auto ret_0x4968920_74 = call_0x4968920();
+                void* prev_0x0_8 = ret_0x4968920_74->field_0x0;
+                call_0x4968d90(prev_0x0_8);
+                call_0x2baad00(&local_0x30, this, 1);
+                auto ret_0xc880_77 = call_0xc880(&local_0x1b8, 0, 0);
+                if ((uint8_t)ret_0xc880_77 == 0 && prev_0x0_8 != 0 && ret_0x4968920_74->field_0x0->field_0x8 == 0) {
+                  ret_0x5de64b0_78 = call_0x5de64b0();
+                  ret_0x5de6490_79 = call_0x5de6490();
+                }
+              }
+              this->field_0xc38 = 0.0;
+              v_rcx_69 = ret_0x5de6490_79 / ret_0x5de64b0_78 * 1000000000;
+            }
+          }
+          i_ecx = v_rcx_69;
+          i_ebx = stk_66;
+          i_esi = v_rsi_62;
+          i_r12d = "GPU";
+          i_r15d = 40;
+        } while (this->field_0xa8c == 0); // loop -> L_0x2b8c7c0
+      }
+      call_0x2b8e330(this, &local_0x30);
+      this->field_0xa88 = v_rsi_70;
+      auto ret_0xc880_83 = call_0xc880(&local_0x1c0, 0, 0);
+      if ((uint8_t)ret_0xc880_83 == 0) {
+        if (global_0x84a44d6 == (uint8_t)ret_0xc880_83 || DebugDisableOnScreenProfiler == (uint8_t)ret_0xc880_83) {
+          call_0x29a28b0();
+        }
+      }
+      if (local_0x38 != 0) {
+        if (local_0x30->field_0x0 != 3 || atomic_cas(&local_0x30->field_0x0, local_0x30->field_0x0, 1) != 0) {
+          call_0xdac0(local_0x30);
+        }
+      }
+      call_0x4954e70(local_0x298);
+      if (1) {
+        call_0x4968d90(ret_0x4968920_2->field_0x0);
+      } else {
+        call_0x4968d10(ret_0x4968920_2->field_0x0);
+      }
+      auto ret_0xc880_89 = call_0xc880(&local_0x1c8, 0, 0);
+      if ((uint8_t)ret_0xc880_89 == 0 && local_0x58 != 0) {
+        auto ret_0x4968a80_90 = call_0x4968a80();
+        call_0x2e12fd0(ret_0x4968a80_90);
+        auto ret_0x4968920_92 = call_0x4968920();
+        ret_0x4968920_92->field_0x0 = v_rsi_70;
+        if (ret_0x4968a80_90->field_0x0 != 3 || atomic_cas(&ret_0x4968a80_90->field_0x0, ret_0x4968a80_90->field_0x0, 1) != 0) {
+          call_0xdac0(ret_0x4968a80_90);
+        }
+      }
+    }
 
 [Strings .rdata na função]
-  * Platform
-  * Cdn
-  * External
-  * perform
-  * CURLINFO_PRIVATE
-  * [DFLog::HttpTraceNew] HttpRequestCurl curl op:{}
-  * remove_handle
-  * [DFLog::HttpTraceNew] HttpRequestCurl op:{} curl error:{} msg:{}
-  * Error
-  * [DFLog::HttpTraceError] CURLINFO_OS_ERRNO: {} {}
-  * [DFLog::HttpTraceError] CURLOPT_ERRORBUFFER: %s
-  * [DFLog::HttpTraceError] Curl connect failed. Current file descriptor count is {}, limit {}
+  * "Platform"  [@rdata 0x71afd08, ref @0x2b8e1a7, key/identifier]
+  * "Cdn"  [@rdata 0x734528c, ref @0x2b8e1c7, literal, 3B]
+  * "External"  [@rdata 0x7282740, ref @0x2b8e1d6, key/identifier]
+  * "perform"  [@rdata 0x7347300, ref @0x2bd01be, literal, 7B]
+  * "CURLINFO_PRIVATE"  [@rdata 0x7346678, ref @0x2bd027c, key/identifier]
+  * "[DFLog::HttpTraceNew] HttpRequestCurl curl op:{}"  [@rdata 0x7346f28, ref @0x2bd02ee, FLog format]
+  * "remove_handle"  [@rdata 0x73472f0, ref @0x2bd0317, literal, 13B]
+  * "[DFLog::HttpTraceNew] HttpRequestCurl op:{} curl error:{} msg:{}"  [@rdata 0x7346ee0, ref @0x2bd0398, FLog format]
+  * "Error"  [@rdata 0x71a93bc, ref @0x2bd03ce, key/identifier]
+  * "[DFLog::HttpTraceError] CURLINFO_OS_ERRNO: {} {}"  [@rdata 0x73475b0, ref @0x2bd055e, FLog format]
+  * "[DFLog::HttpTraceError] CURLOPT_ERRORBUFFER: %s"  [@rdata 0x7347580, ref @0x2bd066e, FLog format]
+  * "[DFLog::HttpTraceError] Curl connect failed. Current file descriptor count is {}, limit {}"  [@rdata 0x7347520, ref @0x2bd06bf, FLog format]
+  * "rbxcdn.com"  [@rdata 0x7200fd8, ref @0x2ba0b66, literal, 10B]
+  * "rbxcdn.qq.com"  [@rdata 0x7344010, ref @0x2ba0b79, literal, 13B]
+  * "roblox.cn"  [@rdata 0x7344048, ref @0x2ba0b9c, literal, 9B]
+  * "rbxcdn.cn"  [@rdata 0x7344178, ref @0x2ba0baf, literal, 9B]
 
 [Co-Flags na mesma função]
   * DFIntSlowDnsExternalRequestThresholdMs = 500 (default)
@@ -1916,10 +2452,12 @@ Operação  : 0x2b8e0ec: mov/math reg, [flag] ; fn=0x2b8da70..0x2b8e32d
   * DFIntHttpDownloadEpisodeInMs = 3000 (default)
   * DFStringDebugMrRouterEnvName = "" (default)
   * DFFlagEnableRobloxCNDomains = false (default)
+  * DFIntHttpClientWorkerMaxSleepMs = 69000 (default)
+  * FFlagDebugDisableOnScreenProfiler = false (default)
+  * FFlagDeferHttpNetworkChange = true (default)
+  * FFlagNetworkGovernor = false (default)
+  * DFFlagDebugHttpRequestSecondaryImpl = false (default)
+  * DFFlagMicroProfilerMemoryScope = true (default)
+  * FFlagUseConnectivityV2HttpRecoveryBridge = false (default)
   * DFIntHttpInfluxHundredthsPercentage = 1 (default) [vizinha em .data]
   * DFIntHttpConnTrackPointsHundredthsPercent = 1 (default) [vizinha em .data]
-  * DFIntHttpConnXferPointsHundredthsPercent = 1 (default) [vizinha em .data]
-  * DFIntHttpSendStatsEveryXSeconds = 300 (default) [vizinha em .data]
-  * DFIntSlowDnsInfluxHundrethsPercentage = 0 (default) [vizinha em .data]
-  * DFIntHttpClientExternalTlsPeerVerificationFailHundrethsPercentage = 10000 (default) [vizinha em .data]
-  * DFFlagDebugHttpSyncCallsForStatsReporting = false (default) [vizinha em .data]

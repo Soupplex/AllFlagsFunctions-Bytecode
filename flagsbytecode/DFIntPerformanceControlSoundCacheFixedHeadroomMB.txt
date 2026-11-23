@@ -8,8 +8,8 @@ Operação  : 0x44a9427: mov/math reg, [flag] ; fn=0x44a9320..0x44a9705
   === [Resumo do Efeito da FFlag no Engine (RBX::PerformanceControl)] ===
     Classe  : RBX::PerformanceControl (Inferido)
     Padrão  : DFIntPerformanceControlSoundCacheFixedHeadroomMB = 10 (default) [int, mode=2]
-    Papel   : Multiplicador / Escala aplicado sobre limites ou métricas da função
-    Fórmula : min(fxmm0_16 + min(fxmm1_15, ftmp_10), ftmp_10) + (double)max(PerformanceControlSoundCacheFixedHeadroomMB, 0) * 1048576.0
+    Papel   : Parâmetro de configuração lido diretamente pela rotina
+    Fórmula : max(PerformanceControlSoundCacheFixedHeadroomMB, 0)
     Altera  : this->field_0x10, this->field_0x18, this->field_0x20, this->field_0x28, this->field_0x8, this->field_0x0
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
@@ -31,7 +31,7 @@ Operação  : 0x44a9427: mov/math reg, [flag] ; fn=0x44a9320..0x44a9705
       int32_t v_rax_1;
       if (SoundJoinMemoryFixes) {
         auto ret_0x44a7590_1 = call_0x44a7590(this);
-        if (ret_0x44a7590_1 != 0) {
+        if ((uint8_t)ret_0x44a7590_1 != 0) {
           if (MinSoundTunableCacheSize >= SoundLowMemoryCacheFloorMB) {
             v_rax_1 = max(SoundLowMemoryCacheFloorMB, 0);
           } else {
@@ -51,6 +51,7 @@ Operação  : 0x44a9427: mov/math reg, [flag] ; fn=0x44a9320..0x44a9705
         v_rax_2 = max(PerformanceControlSoundCacheGrowthThresholdPercent, 1);
       }
       double fxmm6_18;
+      auto expr_1 = max(PerformanceControlSoundCacheFixedHeadroomMB, 0);
       if (this->field_0x0 == 0) {
         this->field_0x0 = 1;
         auto prev_0x18_4 = this->field_0x18;
@@ -67,7 +68,7 @@ Operação  : 0x44a9427: mov/math reg, [flag] ; fn=0x44a9320..0x44a9705
         double ftmp_10 = max(ftmp_1 * 1048576.0, (double)max(v_rax_1, 0) * 1048576.0);
         this->field_0x20 = min(fxmm1_15, ftmp_10);
         double fxmm0_16 = (double)(uint64_t)param_4;
-        double ftmp_11 = min(fxmm0_16 + min(fxmm1_15, ftmp_10), ftmp_10) + (double)max(PerformanceControlSoundCacheFixedHeadroomMB, 0) * 1048576.0;
+        double ftmp_11 = min(fxmm0_16 + min(fxmm1_15, ftmp_10), ftmp_10) + (double)expr_1 * 1048576.0;
         if (ftmp_11 <= ftmp_10) {
           if ((double)max(v_rax_1, 0) * 1048576.0 > ftmp_11) {
             double ftmp_12 = (double)max(v_rax_1, 0) * 1048576.0;
@@ -101,7 +102,7 @@ Operação  : 0x44a9427: mov/math reg, [flag] ; fn=0x44a9320..0x44a9705
         double fxmm8_10;
         if (min(ftmp_4, ftmp_3) <= ftmp_5) {
           if (min(fxmm1_3 + this->field_0x20, ftmp_3) > 0.0) {
-            double ftmp_6 = (double)max(PerformanceControlSoundCacheFixedHeadroomMB, 0) * 1048576.0;
+            double ftmp_6 = (double)expr_1 * 1048576.0;
             double fxmm0_6;
             double fxmm8_7;
             if (ftmp_6 + min(ftmp_4, ftmp_3) > ftmp_3) {
@@ -119,11 +120,11 @@ Operação  : 0x44a9427: mov/math reg, [flag] ; fn=0x44a9320..0x44a9705
             fxmm3_9 = ftmp_6;
             fxmm8_10 = fxmm8_7;
           } else {
-            fxmm3_9 = (double)max(PerformanceControlSoundCacheFixedHeadroomMB, 0) * 1048576.0;
+            fxmm3_9 = (double)expr_1 * 1048576.0;
             fxmm8_10 = (double)max(v_rax_1, 0) * 1048576.0;
           }
         } else {
-          double ftmp_6 = (double)max(PerformanceControlSoundCacheFixedHeadroomMB, 0) * 1048576.0;
+          double ftmp_6 = (double)expr_1 * 1048576.0;
           double fxmm0_6;
           double fxmm8_7;
           if (ftmp_6 + min(ftmp_4, ftmp_3) > ftmp_3) {
@@ -172,10 +173,11 @@ Operação  : 0x44a9427: mov/math reg, [flag] ; fn=0x44a9320..0x44a9705
           this->field_0x28 = fxmm6_18;
         }
       }
+      double prev_0x28_5 = this->field_0x28;
       param_2->field_0x0 = call_0x44a9260();
-      param_2->field_0x10 = this->field_0x28;
+      param_2->field_0x10 = prev_0x28_5;
       param_2->field_0x20 = 0.0;
-      param_2->field_0x30 = 0.0;
+      param_2->field_0x30 = 0.0f;
       return param_2;
     }
   
@@ -474,6 +476,7 @@ Operação  : 0x44a9427: mov/math reg, [flag] ; fn=0x44a9320..0x44a9705
   === [Sub-Rotina Chamada: 0x44a7590..0x44a7628 via call @0x44a9367 (Direct Engine Sub-Call)] ===
     // Flag defaults: DebugFakeTotalMemoryAvailableMB = 0, SoundLowMemoryDeviceMB = 4096
     bool SubObj_0x44a7590::func_0x44a7590(SubObj_0x44a7590* this) {
+      auto expr_1 = max(SoundLowMemoryDeviceMB, 0);
       if (global_0x8dee98c > rbp->field_0x58->field_0x0->field_0x0[40]) {
         call_0x12e0(&sym_0x8dee98c);
         if (global_0x8dee98c == -1) {
@@ -482,19 +485,19 @@ Operação  : 0x44a9427: mov/math reg, [flag] ; fn=0x44a9320..0x44a9705
             v_rcx_1 = DebugFakeTotalMemoryAvailableMB << 20;
             global_0x8dee990 = v_rcx_1;
             call_0x14f0(&sym_0x8dee98c);
-            return global_0x8dee990 < max(SoundLowMemoryDeviceMB, 0) << 20;
+            return global_0x8dee990 < expr_1 << 20;
           }
           auto local_0x20 = 64;
           (&local_0x20)->vfunc(&local_0x20);
           v_rcx_1 = local_0x28;
           global_0x8dee990 = v_rcx_1;
           call_0x14f0(&sym_0x8dee98c);
-          return global_0x8dee990 < max(SoundLowMemoryDeviceMB, 0) << 20;
+          return global_0x8dee990 < expr_1 << 20;
           global_0x8dee990 = v_rcx_1;
           call_0x14f0(&sym_0x8dee98c);
         }
       }
-      return global_0x8dee990 < max(SoundLowMemoryDeviceMB, 0) << 20;
+      return global_0x8dee990 < expr_1 << 20;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x44a7590..0x44a7628)] ===
@@ -547,7 +550,7 @@ Operação  : 0x44a9427: mov/math reg, [flag] ; fn=0x44a9320..0x44a9705
       }
       auto ret_0x44a7590_1 = call_0x44a7590(this);
       int32_t v_rax_1 = MinSoundTunableCacheSize;
-      if (ret_0x44a7590_1 != 0 && MinSoundTunableCacheSize >= SoundLowMemoryCacheFloorMB) {
+      if ((uint8_t)ret_0x44a7590_1 != 0 && MinSoundTunableCacheSize >= SoundLowMemoryCacheFloorMB) {
         v_rax_1 = max(SoundLowMemoryCacheFloorMB, 0);
       }
       int32_t v_rax_2 = std::clamp(SoundCacheMinBudgetMB, 0, max(v_rax_1, 0));
@@ -588,6 +591,417 @@ Operação  : 0x44a9427: mov/math reg, [flag] ; fn=0x44a9320..0x44a9705
     0x44a92b5 | f2 0f 59 05 03 75 0f 03  | mulsd xmm0, qword ptr [rip + 0x30f7503] ; 1048576.0
     0x44a92bd | 48 83 c4 28              | add rsp, 0x28
     0x44a92c1 | c3                       | ret
+  
+  === [Estrutura RTTI & VTable da Classe (RBX::PerformanceControlUtil)] ===
+    VTable  : 0x7006f50 (offset +0x0, 4 slots virtuais)
+    +0x0 -> fn_0x13c5130
+    +0x10 -> fn_0x13c5260
+    +0x0 -> fn_0x4cd2ef0
+    +0x10 -> fn_0x4cd2f00
+  
+  === [Decompilacao de Metodo da Classe RBX::PerformanceControlUtil: 0x13c5260..0x13c5287 (vfunc_0x10)] ===
+    struct RBX::PerformanceControlUtil {
+      /* +0x0 */ void*   field_0x0;
+    };
+    
+    auto RBX::PerformanceControlUtil::func_0x13c5260(RBX::PerformanceControlUtil* this, int64_t param_2) {
+      this->field_0x0 = &sym_0x7006f50;
+      if (((uint8_t)param_2 & 0x1) != 0) {
+        call_0x4955ac0(this);
+      }
+      return this;
+    }
+  
+  === [Decompilacao de Metodo da Classe RBX::PerformanceControlUtil: 0x4cd2f00..0x4cd2f27 (vfunc_0x10)] ===
+    struct RBX::PerformanceControlUtil {
+      /* +0x0 */ void*   field_0x0;
+    };
+    
+    auto RBX::PerformanceControlUtil::func_0x4cd2f00(RBX::PerformanceControlUtil* this, int64_t param_2) {
+      this->field_0x0 = &sym_0x7155928;
+      if (((uint8_t)param_2 & 0x1) != 0) {
+        call_0x4955ac0(this);
+      }
+      return this;
+    }
+  
+  === [Decompilacao da Rotina Chamadora (Caller): 0x44a98e0..0x44a9e42 em RBX::PerformanceControlUtil] ===
+    struct RBX::PerformanceControlUtil {
+      /* +0x60 */ void*   field_0x60;
+      /* +0x508 */ void*   field_0x508;
+      /* +0x510 */ int32_t field_0x510;
+      /* +0x518 */ uint8_t field_0x518;
+      /* +0x548 */ void*   field_0x548;
+      /* +0x550 */ double  field_0x550;
+      /* +0x558 */ void*   field_0x558;
+      /* +0x560 */ void*   field_0x560;
+      /* +0x5bc */ float   field_0x5bc;
+      /* +0x5d4 */ float   field_0x5d4;
+    };
+    
+    // Flag defaults: ValidateDescendantOfDataModel = true, PerformanceControlSoundCacheUpdatePeriodSeconds = 10, SoundCacheFixEstimatorSampling = true, SoundCacheUseBudgetUtilizationEstimator = true, ProjectedMaxBytesUsedForSoundsMB = 10, MaxSoundProjectionForHarmony = 100, SoundJoinMemoryFixes = true, MinSoundTunableCacheSize = 50
+    void RBX::PerformanceControlUtil::func_0x44a98e0(RBX::PerformanceControlUtil* this) {
+      if (global_0x84a44d6 != 0 && ValidateDescendantOfDataModel) {
+        call_0x4062200(this);
+      }
+      if (this != 0) {
+        void* v_rsi_1;
+        if (this->field_0x60 != 0) {
+          auto ret_0x7571b0_2 = call_0x7571b0(this->field_0x60);
+          auto expr_1 = ProjectedMaxBytesUsedForSoundsMB * MaxSoundProjectionForHarmony;
+          if (ret_0x7571b0_2 != 0) {
+            v_rsi_1 = ret_0x7571b0_2;
+            auto ret_0x4068600_3 = call_0x4068600();
+            if (v_rsi_1->field_0x18->field_0x1c0 - ret_0x4068600_3->field_0x1c0 <= ret_0x4068600_3->field_0x1c2 && &v_rsi_1->field_m0x1f0 != 0) {
+              if (v_rsi_1->field_0x780 == 1) {
+                auto ret_0x40625d0_4 = call_0x40625d0(&v_rsi_1->field_m0x1f0 + 0x1f0);
+                if (ret_0x40625d0_4 == 0 || ret_0x40625d0_4->field_0x980 != 1) {
+                  L_0x44a9997:
+                  auto ret_0x44c67e0_5 = call_0x44c67e0(&local_0xc0);
+                  void* prev_0x18_2 = ret_0x44c67e0_5->field_0x0->field_0x18;
+                  void* prev_0x0_3 = ret_0x44c67e0_5->field_0x0;
+                  call_0x495a220(&local_0x150);
+                  if (local_0x150 - this->field_0x550 > (double)PerformanceControlSoundCacheUpdatePeriodSeconds) {
+                    void* v_r12_3 = (ret_0x44c67e0_5->field_0x0 != 0 ? prev_0x18_2 : 0)->field_0x98;
+                    void* v_r15_4 = (ret_0x44c67e0_5->field_0x0 != 0 ? prev_0x18_2 : 0)->field_0x80;
+                    if (SoundCacheFixEstimatorSampling) {
+                    if ((ret_0x44c67e0_5->field_0x0 != 0 ? prev_0x18_2 : 0)->field_0x98 - this->field_0x560 > 0) {
+                    L_0x44a9a1c:
+                    float fxmm1_2 = (float)(uint64_t)((ret_0x44c67e0_5->field_0x0 != 0 ? prev_0x18_2 : 0)->field_0x80 - this->field_0x558);
+                    void* prev_0x98_5 = (ret_0x44c67e0_5->field_0x0 != 0 ? prev_0x18_2 : 0)->field_0x98;
+                    void* prev_0x80_6 = (ret_0x44c67e0_5->field_0x0 != 0 ? prev_0x18_2 : 0)->field_0x80;
+                    call_0x32f51f0(&this->field_0x5b0, fxmm1_2 / (float)((ret_0x44c67e0_5->field_0x0 != 0 ? prev_0x18_2 : 0)->field_0x98 - this->field_0x560));
+                    call_0x5989950(prev_0x0_3 != 0 ? ret_0x44c67e0_5->field_0x0->field_0x18 : 0);
+                    call_0x32f51f0(&this->field_0x5c8);
+                    v_r12_3 = prev_0x98_5;
+                    v_r15_4 = prev_0x80_6;
+                    }
+                    L_0x44a9aa2:
+                    this->field_0x550 = local_0x150;
+                    this->field_0x560 = v_r12_3;
+                    this->field_0x558 = v_r15_4;
+                    } else if ((ret_0x44c67e0_5->field_0x0 != 0 ? prev_0x18_2 : 0)->field_0x98 - this->field_0x560 > 0) {
+                    float fxmm1_2 = (float)(uint64_t)((ret_0x44c67e0_5->field_0x0 != 0 ? prev_0x18_2 : 0)->field_0x80 - this->field_0x558);
+                    void* prev_0x98_5 = (ret_0x44c67e0_5->field_0x0 != 0 ? prev_0x18_2 : 0)->field_0x98;
+                    void* prev_0x80_6 = (ret_0x44c67e0_5->field_0x0 != 0 ? prev_0x18_2 : 0)->field_0x80;
+                    call_0x32f51f0(&this->field_0x5b0, fxmm1_2 / (float)((ret_0x44c67e0_5->field_0x0 != 0 ? prev_0x18_2 : 0)->field_0x98 - this->field_0x560));
+                    call_0x5989950(prev_0x0_3 != 0 ? ret_0x44c67e0_5->field_0x0->field_0x18 : 0);
+                    call_0x32f51f0(&this->field_0x5c8);
+                    v_r12_3 = prev_0x98_5;
+                    v_r15_4 = prev_0x80_6;
+                    goto L_0x44a9aa2;
+                    }
+                  }
+                  void* v_r14_18;
+                  float fstk_19;
+                  float fstk_20;
+                  void* stk_21;
+                  float fstk_23;
+                  float fstk_24;
+                  void* v_rcx_34;
+                  void* stk_35;
+                  void* stk_36;
+                  void* stk_38;
+                  void* stk_39;
+                  void* stk_40;
+                  void* stk_41;
+                  if (SoundCacheUseBudgetUtilizationEstimator) {
+                    if (SoundCacheBudgetOverrideExperiment) {
+                    void* v_rcx_15;
+                    if (prev_0x0_3 != 0) {
+                    call_0x59898e0(ret_0x44c67e0_5->field_0x0->field_0x18);
+                    v_rcx_15 = ret_0x44c67e0_5->field_0x0->field_0x18;
+                    } else {
+                    call_0x59898e0(0);
+                    v_rcx_15 = 0;
+                    }
+                    L_0x44a9afc:
+                    auto ret_0x5989950_21 = call_0x5989950(v_rcx_15);
+                    call_0x495a220(&local_0x150);
+                    call_0x44a9320(&this->field_0x518, &local_0x80, local_0x150, ret_0x5989950_21);
+                    this->field_0x548 = local_0x90;
+                    void* v_r14_17 = 0;
+                    if (this->field_0x508 != 0) {
+                    v_r14_17 = this->field_0x508->field_0x18;
+                    }
+                    v_r14_18 = v_r14_17;
+                    fstk_19 = local_0x80;
+                    fstk_20 = local_0x88;
+                    stk_21 = local_0x90;
+                    fstk_23 = local_0x84;
+                    fstk_24 = local_0x8c;
+                    L_0x44a9df0:
+                    v_rcx_34 = v_r14_18->field_0x18;
+                    stk_35 = fstk_20;
+                    stk_36 = fstk_19;
+                    stk_38 = fstk_23;
+                    stk_39 = fstk_24;
+                    stk_40 = stk_21;
+                    stk_41 = local_0x94;
+                    } else {
+                    void* v_r14_12 = 0;
+                    void* v_r15_13;
+                    if (prev_0x0_3 != 0) {
+                    void* prev_0x18_9 = this->field_0x508->field_0x18;
+                    call_0x59898e0(ret_0x44c67e0_5->field_0x0->field_0x18);
+                    v_r14_12 = ret_0x44c67e0_5->field_0x0->field_0x18;
+                    v_r15_13 = this->field_0x508 != 0 ? prev_0x18_9 : 0;
+                    } else {
+                    void* prev_0x18_8 = this->field_0x508->field_0x18;
+                    call_0x59898e0(0);
+                    v_r15_13 = this->field_0x508 != 0 ? prev_0x18_8 : 0;
+                    }
+                    auto ret_0x5989950_16 = call_0x5989950(v_r14_12);
+                    call_0x495a220(&local_0x150);
+                    auto ret_0x44a9320_18 = call_0x44a9320(&this->field_0x518, &local_0x80, local_0x150, ret_0x5989950_16);
+                    v_rcx_34 = v_r15_13->field_0x18;
+                    stk_35 = ret_0x44a9320_18->field_0x8;
+                    stk_36 = ret_0x44a9320_18->field_0x0;
+                    stk_38 = ret_0x44a9320_18->field_0x4;
+                    stk_39 = ret_0x44a9320_18->field_0xc;
+                    stk_40 = ret_0x44a9320_18->field_0x10;
+                    stk_41 = ret_0x44a9320_18->field_0x14;
+                    }
+                  } else {
+                    if (this->field_0x518 != 0) {
+                    call_0x44a92d0(&this->field_0x518, (ret_0x44c67e0_5->field_0x0 != 0 ? prev_0x18_2 : 0)->field_0xa0);
+                    }
+                    int32_t v_rax_5;
+                    if (SoundJoinMemoryFixes) {
+                    auto ret_0x44a7590_11 = call_0x44a7590();
+                    if ((uint8_t)ret_0x44a7590_11 != 0) {
+                    if (MinSoundTunableCacheSize >= SoundLowMemoryCacheFloorMB) {
+                    v_rax_5 = max(SoundLowMemoryCacheFloorMB, 0);
+                    } else {
+                    v_rax_5 = MinSoundTunableCacheSize;
+                    }
+                    } else {
+                    L_0x44a9c76:
+                    v_rax_5 = MinSoundTunableCacheSize;
+                    }
+                    } else {
+                    v_rax_5 = MinSoundTunableCacheSize;
+                    }
+                    float fxmm0_6;
+                    if (this->field_0x5bc > 1.0f) {
+                    fxmm0_6 = 1.0f;
+                    } else {
+                    if (0.0 > this->field_0x5bc) {
+                    fxmm0_6 = 0.0;
+                    } else {
+                    fxmm0_6 = this->field_0x5bc;
+                    }
+                    }
+                    double ftmp_1 = (double)this->field_0x5d4 / (double)min(1e-09f, 1.0f - fxmm0_6);
+                    double ftmp_2 = (double)expr_1 * 1048576.0;
+                    double fxmm6_7;
+                    if (ftmp_1 <= ftmp_2) {
+                    if ((double)v_rax_5 * 1048576.0 > ftmp_1) {
+                    fxmm6_7 = (double)v_rax_5 * 1048576.0;
+                    } else {
+                    fxmm6_7 = ftmp_1;
+                    }
+                    } else {
+                    fxmm6_7 = ftmp_2;
+                    }
+                    double fxmm6_8;
+                    if (!isnan(min(1e-09f, 1.0f - fxmm0_6)) && min(1e-09f, 1.0f - fxmm0_6) == 0.0) {
+                    fxmm6_8 = (double)v_rax_5 * 1048576.0;
+                    } else {
+                    fxmm6_8 = fxmm6_7;
+                    }
+                    auto ret_0x44a9260_12 = call_0x44a9260();
+                    auto ret_0x5989950_13 = call_0x5989950(prev_0x0_3 != 0 ? ret_0x44c67e0_5->field_0x0->field_0x18 : 0);
+                    if (SoundCacheBudgetOverrideExperiment) {
+                    this->field_0x548 = max(fxmm6_8, (double)this->field_0x5d4);
+                    }
+                    void* v_r14_10 = 0;
+                    auto* f_508 = this->field_0x508;
+                    if (f_508 != 0) {
+                    v_r14_10 = f_508->field_0x18;
+                    }
+                    v_r14_18 = v_r14_10;
+                    fstk_19 = ret_0x44a9260_12;
+                    fstk_20 = 0.0;
+                    stk_21 = max(fxmm6_8, (double)this->field_0x5d4);
+                    fstk_23 = (double)ret_0x5989950_13;
+                    fstk_24 = 0.0;
+                    v_rcx_34 = v_r14_18->field_0x18;
+                    stk_35 = fstk_20;
+                    stk_36 = fstk_19;
+                    stk_38 = fstk_23;
+                    stk_39 = fstk_24;
+                    stk_40 = stk_21;
+                    stk_41 = local_0x94;
+                  }
+                  L_0x44a9df4:
+                  auto local_0x40 = stk_36;
+                  auto local_0x44 = stk_38;
+                  auto local_0x48 = stk_35;
+                  auto local_0x4c = stk_39;
+                  auto local_0x50 = stk_40;
+                  auto local_0x54 = stk_41;
+                  call_0x2008390(v_rcx_34, this->field_0x510, 1, &local_0x40);
+                  if (prev_0x0_3 != 0) {
+                    ret_0x44c67e0_5->field_0x0->vfunc_0x10(prev_0x0_3);
+                    return;
+                  }
+                  return;
+                }
+                return;
+              }
+              return;
+            }
+          }
+          auto ret_0x44c67e0_5 = call_0x44c67e0(&local_0xc0);
+          void* prev_0x18_2 = ret_0x44c67e0_5->field_0x0->field_0x18;
+          void* prev_0x0_3 = ret_0x44c67e0_5->field_0x0;
+          call_0x495a220(&local_0x150);
+          if (local_0x150 - this->field_0x550 > (double)PerformanceControlSoundCacheUpdatePeriodSeconds) {
+            void* v_r12_3 = (ret_0x44c67e0_5->field_0x0 != 0 ? prev_0x18_2 : 0)->field_0x98;
+            void* v_r15_4 = (ret_0x44c67e0_5->field_0x0 != 0 ? prev_0x18_2 : 0)->field_0x80;
+            if (SoundCacheFixEstimatorSampling) {
+              if ((ret_0x44c67e0_5->field_0x0 != 0 ? prev_0x18_2 : 0)->field_0x98 - this->field_0x560 > 0) {
+                goto L_0x44a9a1c;
+              }
+              goto L_0x44a9aa2;
+            } else {
+              if ((ret_0x44c67e0_5->field_0x0 != 0 ? prev_0x18_2 : 0)->field_0x98 - this->field_0x560 > 0) {
+                goto L_0x44a9a1c;
+              }
+            }
+          }
+          void* v_r14_18;
+          float fstk_19;
+          float fstk_20;
+          void* stk_21;
+          float fstk_23;
+          float fstk_24;
+          void* v_rcx_34;
+          void* stk_35;
+          void* stk_36;
+          void* stk_38;
+          void* stk_39;
+          void* stk_40;
+          void* stk_41;
+          if (SoundCacheUseBudgetUtilizationEstimator) {
+            if (SoundCacheBudgetOverrideExperiment) {
+              void* v_rcx_15;
+              if (prev_0x0_3 != 0) {
+                call_0x59898e0(ret_0x44c67e0_5->field_0x0->field_0x18);
+                v_rcx_15 = ret_0x44c67e0_5->field_0x0->field_0x18;
+              } else {
+                call_0x59898e0(0);
+                v_rcx_15 = 0;
+              }
+              goto L_0x44a9afc;
+            } else {
+              void* v_r14_12 = 0;
+              void* v_r15_13;
+              if (prev_0x0_3 != 0) {
+                void* prev_0x18_9 = this->field_0x508->field_0x18;
+                call_0x59898e0(ret_0x44c67e0_5->field_0x0->field_0x18);
+                v_r14_12 = ret_0x44c67e0_5->field_0x0->field_0x18;
+                v_r15_13 = this->field_0x508 != 0 ? prev_0x18_9 : 0;
+              } else {
+                void* prev_0x18_8 = this->field_0x508->field_0x18;
+                call_0x59898e0(0);
+                v_r15_13 = this->field_0x508 != 0 ? prev_0x18_8 : 0;
+              }
+              auto ret_0x5989950_16 = call_0x5989950(v_r14_12);
+              call_0x495a220(&local_0x150);
+              auto ret_0x44a9320_18 = call_0x44a9320(&this->field_0x518, &local_0x80, local_0x150, ret_0x5989950_16);
+              v_rcx_34 = v_r15_13->field_0x18;
+              stk_35 = ret_0x44a9320_18->field_0x8;
+              stk_36 = ret_0x44a9320_18->field_0x0;
+              stk_38 = ret_0x44a9320_18->field_0x4;
+              stk_39 = ret_0x44a9320_18->field_0xc;
+              stk_40 = ret_0x44a9320_18->field_0x10;
+              stk_41 = ret_0x44a9320_18->field_0x14;
+            }
+          } else {
+            if (this->field_0x518 != 0) {
+              call_0x44a92d0(&this->field_0x518, (ret_0x44c67e0_5->field_0x0 != 0 ? prev_0x18_2 : 0)->field_0xa0);
+            }
+            int32_t v_rax_5;
+            if (SoundJoinMemoryFixes) {
+              auto ret_0x44a7590_11 = call_0x44a7590();
+              if ((uint8_t)ret_0x44a7590_11 != 0) {
+                if (MinSoundTunableCacheSize >= SoundLowMemoryCacheFloorMB) {
+                  v_rax_5 = max(SoundLowMemoryCacheFloorMB, 0);
+                } else {
+                  v_rax_5 = MinSoundTunableCacheSize;
+                }
+              } else {
+                goto L_0x44a9c76;
+              }
+            } else {
+              goto L_0x44a9c76;
+            }
+            float fxmm0_6;
+            if (this->field_0x5bc > 1.0f) {
+              fxmm0_6 = 1.0f;
+            } else {
+              if (0.0 > this->field_0x5bc) {
+                fxmm0_6 = 0.0;
+              } else {
+                fxmm0_6 = this->field_0x5bc;
+              }
+            }
+            double ftmp_1 = (double)this->field_0x5d4 / (double)min(1e-09f, 1.0f - fxmm0_6);
+            double ftmp_2 = (double)expr_1 * 1048576.0;
+            double fxmm6_7;
+            if (ftmp_1 <= ftmp_2) {
+              if ((double)v_rax_5 * 1048576.0 > ftmp_1) {
+                fxmm6_7 = (double)v_rax_5 * 1048576.0;
+              } else {
+                fxmm6_7 = ftmp_1;
+              }
+            } else {
+              fxmm6_7 = ftmp_2;
+            }
+            double fxmm6_8;
+            if (!isnan(min(1e-09f, 1.0f - fxmm0_6)) && min(1e-09f, 1.0f - fxmm0_6) == 0.0) {
+              fxmm6_8 = (double)v_rax_5 * 1048576.0;
+            } else {
+              fxmm6_8 = fxmm6_7;
+            }
+            auto ret_0x44a9260_12 = call_0x44a9260();
+            auto ret_0x5989950_13 = call_0x5989950(prev_0x0_3 != 0 ? ret_0x44c67e0_5->field_0x0->field_0x18 : 0);
+            if (SoundCacheBudgetOverrideExperiment) {
+              this->field_0x548 = max(fxmm6_8, (double)this->field_0x5d4);
+            }
+            void* v_r14_10 = 0;
+            auto* f_508_2 = this->field_0x508;
+            if (f_508_2 != 0) {
+              v_r14_10 = f_508_2->field_0x18;
+            }
+            v_r14_18 = v_r14_10;
+            fstk_19 = ret_0x44a9260_12;
+            fstk_20 = 0.0;
+            stk_21 = max(fxmm6_8, (double)this->field_0x5d4);
+            fstk_23 = (double)ret_0x5989950_13;
+            fstk_24 = 0.0;
+            goto L_0x44a9df0;
+          }
+          goto L_0x44a9df4;
+        } else {
+          v_rsi_1 = this;
+        }
+        auto ret_0x4068600_3 = call_0x4068600();
+        if (v_rsi_1->field_0x18->field_0x1c0 - ret_0x4068600_3->field_0x1c0 <= ret_0x4068600_3->field_0x1c2 && &v_rsi_1->field_m0x1f0 != 0) {
+          if (v_rsi_1->field_0x780 == 1) {
+            auto ret_0x40625d0_4 = call_0x40625d0(&v_rsi_1->field_m0x1f0 + 0x1f0);
+            if (ret_0x40625d0_4 == 0 || ret_0x40625d0_4->field_0x980 != 1) {
+              goto L_0x44a9997;
+            }
+            return;
+          }
+          return;
+        }
+      }
+      goto L_0x44a9997;
+    }
 
 [Strings .rdata na função]
   (Nenhuma string literal direta neste bloco)
@@ -604,8 +1018,8 @@ Operação  : 0x44a9427: mov/math reg, [flag] ; fn=0x44a9320..0x44a9705
   * FIntSoundLowMemoryDeviceMB = 4096 (default)
   * FIntDebugFakeTotalMemoryAvailableMB = 0 (default)
   * FIntSoundCacheMinBudgetMB = 8 (default)
-  * DFIntPerformanceControlSoundCacheUpdatePeriodSeconds = 10 (default) [vizinha em .data]
-  * DFIntAudioMaxDeferredTasksPerFrame = 10 (default) [vizinha em .data]
-  * FFlagSoundCacheBudgetOverrideExperiment = false (default) [vizinha em .data]
-  * DFIntSoundCacheBudgetPercentExperiment = 100 (default) [vizinha em .data]
-  * DFIntSoundTunableTelemetryReportingPeriod = 30 (default) [vizinha em .data]
+  * DFFlagValidateDescendantOfDataModel = true (default)
+  * DFIntPerformanceControlSoundCacheUpdatePeriodSeconds = 10 (default)
+  * DFFlagSoundCacheFixEstimatorSampling = true (default)
+  * DFFlagSoundCacheUseBudgetUtilizationEstimator = true (default)
+  * FFlagSoundCacheBudgetOverrideExperiment = false (default)

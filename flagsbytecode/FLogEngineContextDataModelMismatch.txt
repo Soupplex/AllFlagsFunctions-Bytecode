@@ -9,8 +9,7 @@ Operação  : 0x40608a9: mov/math reg, [flag] ; fn=0x40605d0..0x4060a76
     Classe  : RBX::EngineContext (Inferido)
     Padrão  : FLogEngineContextDataModelMismatch = 6 (default) [log, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : EngineContextDataModelMismatch < 6
-    Fórmula : (uint64_t)EngineContextDataModelMismatch >> 8 < 5
+    Fórmula : (uint8_t)EngineContextDataModelMismatch >= 6 && (uint8_t)((uint64_t)EngineContextDataModelMismatch >> 8) >= 5
     Altera  : this->field_0x808
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
@@ -72,8 +71,9 @@ Operação  : 0x40608a9: mov/math reg, [flag] ; fn=0x40605d0..0x4060a76
         uint64_t v_rdx_17;
         if (this->field_0x808 + 1 > this->field_0x80c) {
           if (&local_0x80 >= f_800 && &local_0x80 < (this->field_0x808 << 5) + f_800) {
+            uint64_t prev_0x800_1 = f_800;
             call_0x4973e90(&f_800, &this->field_0x810, this->field_0x808 + 1, 32);
-            v_rdx_17 = (&local_0x80 - this->field_0x800 & 0xffffffe0) + this->field_0x800;
+            v_rdx_17 = (&local_0x80 - prev_0x800_1 & 0xffffffe0) + this->field_0x800;
           } else {
             call_0x4973e90(&this->field_0x800, &this->field_0x810, this->field_0x808 + 1, 32);
             v_rdx_17 = &local_0x80;
@@ -85,19 +85,27 @@ Operação  : 0x40608a9: mov/math reg, [flag] ; fn=0x40605d0..0x4060a76
         (this->field_0x808 << 5)->field_0x10[this->field_0x800] = v_rdx_17->field_0x10;
         this->field_0x808++;
         call_0x6e43b0(&local_0x150, R15CollisionTypeField);
-        call_0x2dbdab0(&local_0x430, &local_0xc0, &local_0x40, 1);
-        call_0x2dbdab0(&local_0x430, &local_0xe0, &local_0xd0, 1);
+        call_0x2dbdab0(&local_0x430, std::string_view("source_purpose", 14), &local_0x40, 1);
+        call_0x2dbdab0(&local_0x430, std::string_view("destination_purpose", 19), &local_0xd0, 1);
         call_0x2daef40(&local_0x438);
-        if (EngineContextDataModelMismatch >= 6 && (uint64_t)EngineContextDataModelMismatch >> 8 >= 5) {
+        if ((uint8_t)EngineContextDataModelMismatch >= 6 && (uint8_t)((uint64_t)EngineContextDataModelMismatch >> 8) >= 5) {
           void* sel_rcx_1 = &param_2->field_0x38 == 0 ? 0 : param_2;
-          sel_rcx_1->vfunc_0x38();
-          param_2->vfunc_0xb0(param_2, &local_0xf0);
-          FLog::Log("[FLog::EngineContextDataModelMismatch] EngineContext mismatch: {} ({}) from '{}' added to DataMo");
+          auto vret_9 = sel_rcx_1->vfunc_0x38();
+          auto vret_10 = param_2->vfunc_0xb0(param_2, &local_0xf0);
+          void* v_rcx_18 = vret_10;
+          if (vret_10->field_0x18 >= 16) {
+            v_rcx_18 = vret_10->field_0x0;
+          }
+          void* v_rcx_19 = vret_9;
+          if (vret_9->field_0x18 >= 16) {
+            v_rcx_19 = vret_9->field_0x0;
+          }
+          FLog::Log("[FLog::EngineContextDataModelMismatch] EngineContext mismatch: {} ({}) from '{}' added to DataMo", v_rcx_18, v_rcx_19, &local_0x80);
           if (local_0x108 >= 16) {
             void* v_rcx_20 = local_0xf0;
             if (local_0x108 + 1 >= 0x1000) {
               if (local_0xf0 - local_0xf0->field_m0x8 < 8 || local_0xf0 - local_0xf0->field_m0x8 > 39) {
-                call_0x5e14580(local_0xf0->field_m0x8, local_0xf0 - local_0xf0->field_m0x8, &local_0xd0, &local_0xe0);
+                call_0x5e14580();
               }
             }
             call_0x4955ac0(v_rcx_20);
@@ -423,18 +431,267 @@ Operação  : 0x40608a9: mov/math reg, [flag] ; fn=0x40605d0..0x4060a76
     0x4060a68 | 48 8d 15 d6 66 5e 02     | lea rdx, [rip + 0x25e66d6]
     0x4060a6f | 33 c9                    | xor ecx, ecx
     0x4060a71 | e8 1a 06 91 00           | call 0x4971090
+  
+  === [Estrutura RTTI & VTable da Classe (RBX::EngineContext)] ===
+    VTable  : 0x70362e0 (offset +0x0, 2 slots virtuais)
+    +0x0 -> fn_0x1bf5f70
+    +0x8 -> fn_0x1bf7090
+  
+  === [Decompilacao de Metodo da Classe RBX::EngineContext: 0x1bf5f70..0x1bf5fa0 (vfunc_0x0)] ===
+    auto RBX::EngineContext::func_0x1bf5f70(RBX::EngineContext* this, int64_t param_2) {
+      call_0x1bf5e80(this);
+      if (((uint8_t)param_2 & 0x1) != 0) {
+        call_0x4955ac0(this);
+      }
+      return this;
+    }
+  
+  === [Decompilacao de Metodo da Classe RBX::EngineContext: 0x1bf7090..0x1bf73ca (vfunc_0x8)] ===
+    struct RBX::EngineContext {
+      /* +0x18 */ uint8_t field_0x18;
+      /* +0x20 */ void*   field_0x20;
+      /* +0x28 */ void*   field_0x28;
+      /* +0x30 */ void*   field_0x30;
+      /* +0x40 */ int32_t field_0x40;
+      /* +0x48 */ void*   field_0x48;
+      /* +0x50 */ void*   field_0x50;
+      /* +0x5c */ int32_t field_0x5c;
+      /* +0x68 */ void*   field_0x68;
+      /* +0x70 */ void*   field_0x70;
+      /* +0x78 */ void*   field_0x78;
+    };
+    
+    // Flag defaults: UseInstanceTagHooks3 = false
+    void RBX::EngineContext::func_0x1bf7090(RBX::EngineContext* this, int64_t param_2) {
+      if (this->field_0x20 != 0) {
+        this->field_0x20->vfunc_0x10();
+      }
+      if (param_2->field_0x0 != 0) {
+        param_2->vfunc_0x0(param_2->field_0x8);
+      }
+      if (this->field_0x20 != 0) {
+        this->field_0x20->vfunc_0x18();
+      }
+      call_0x2e13a20(&local_0x38, &this->field_0x28->field_0x8, 0);
+      this->field_0x28->field_0x24 = 1;
+      call_0x2e13190();
+      auto ret_0xca10_6 = call_0xca10();
+      call_0x8036b0(&this->field_0x28->field_0x10, &local_0x38, ret_0xca10_6, &local_0x50);
+      if (local_0x50 != 0 && local_0x50 != &sym_0x1bf8270) {
+        local_0x58->vfunc(local_0x58, local_0x58);
+      }
+      if ((local_0x38 & 1) != 0) {
+        if ((local_0x38 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x38 & 0xfffffffe)->field_0x0, (local_0x38 & 0xfffffffe)->field_0x0, 1) != 0) {
+          call_0xdac0(local_0x38 & 0xfffffffe);
+        }
+      }
+      if (this->field_0x20 != 0) {
+        this->field_0x20->vfunc_0x20();
+        void* prev_0x20_2 = this->field_0x20;
+        this->field_0x20 = 0;
+        if (prev_0x20_2 != 0) {
+          this->field_0x20->vfunc_0x0(prev_0x20_2, 1);
+        }
+      }
+      this->field_0x18 = 1;
+      call_0x2e13a20(&local_0x40, &this->field_0x28->field_0x8, 0);
+      call_0x2e13190();
+      auto ret_0xca10_14 = call_0xca10();
+      auto local_0xf0 = &sym_0x1bf82a0;
+      call_0x8036b0(&this->field_0x28->field_0x18, &local_0x40, ret_0xca10_14, &local_0xf0);
+      if (local_0xf0 != 0 && local_0xf0 != &sym_0x1bf82a0) {
+        local_0xf8->vfunc(local_0xf8, local_0xf8);
+      }
+      if ((local_0x40 & 0x1) != 0) {
+        if ((local_0x40 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x40 & 0xfffffffe)->field_0x0, (local_0x40 & 0xfffffffe)->field_0x0, 1) != 0) {
+          call_0xdac0(local_0x40 & 0xfffffffe);
+        }
+      }
+      if (global_0x8cda880 != 0 && global_0x8cda880->field_0x18 != 0) {
+        void* prev_0x78_4 = this->field_0x78;
+        call_0xe1e0(&global_0x8cda880->field_0x18->field_0x18, 65535);
+        if (global_0x8cda880->field_0x18->field_0x10 == prev_0x78_4) {
+          global_0x8cda880->field_0x18->field_0x10 = 0;
+        }
+        call_0xe3f0(&global_0x8cda880->field_0x18->field_0x18, 65535);
+      }
+      void* prev_0x78_7 = this->field_0x78;
+      this->field_0x78 = 0;
+      if (prev_0x78_7 != 0) {
+        call_0xcca0(&this->field_0x78->field_0x20);
+        call_0x1bf77c0(prev_0x78_7);
+        call_0x4955ac0(prev_0x78_7);
+      }
+      if (this->field_0x40 != 0) {
+        int32_t i_ebx = 0;
+        do { // L_0x1bf7310
+          if (((i_ebx << 4) + this->field_0x50)->field_0x8 != 0) {
+            ((((i_ebx << 4) + this->field_0x50)->field_0x8)->field_0x0)->vfunc_0x0(((i_ebx << 4) + this->field_0x50)->field_0x8, 1);
+          }
+          i_ebx++;
+        } while (i_ebx < this->field_0x40); // loop -> L_0x1bf7310
+        this->field_0x40 = 0;
+        if (this->field_0x48 != 0 && 4 << this->field_0x5c != 0) {
+          call_0x5e051b0(this->field_0x48, -1, 4 << this->field_0x5c);
+        }
+      }
+      if (UseInstanceTagHooks3) {
+        this->field_0x70 = 0;
+      }
+      void* prev_0x68_9 = this->field_0x68;
+      this->field_0x68 = 0;
+      if (prev_0x68_9 != 0) {
+        this->field_0x68->vfunc_0x0(prev_0x68_9, 1);
+      }
+      this->field_0x28 = 0;
+      void* prev_0x30_10 = this->field_0x30;
+      this->field_0x30 = 0;
+      if (prev_0x30_10 != 0) {
+        call_0x6daf40(prev_0x30_10);
+      }
+    }
+  
+  === [Decompilacao da Rotina Chamadora (Caller): 0x4060a80..0x4060d00 em RBX::DataModel] ===
+    struct RBX::DataModel {
+      /* +0x388 */ int32_t field_0x388;
+      /* +0x430 */ int32_t field_0x430;
+      /* +0x434 */ int32_t field_0x434;
+      /* +0x438 */ void*   field_0x438;
+      /* +0x448 */ int32_t field_0x448;
+      /* +0x660 */ void*   field_0x660;
+    };
+    
+    // Flag defaults: ReportEngineContextDataModelMismatch = true, InstanceTypeTracking = false, SendDataModelAPIUsageMetrics = false, DescendantOfDataModel3 = true, CreationDBDMCTRequireCloudEditServer = false
+    void RBX::DataModel::func_0x4060a80(RBX::DataModel* this, int64_t param_2) {
+      if (ReportEngineContextDataModelMismatch) {
+        call_0x40605d0(this - 0x1f0, param_2);
+      }
+      this->field_0x434++;
+      if (global_0x8deabf8 != 0) {
+        if (param_2->field_0x18->field_0x1c0 - global_0x8deabf8->field_0x1c0 <= global_0x8deabf8->field_0x1c2) {
+          this->field_0x430++;
+        }
+      }
+      if (InstanceTypeTracking && param_2 != 0) {
+        void* v_rax_3;
+        uint64_t v_rax_4;
+        if (this->field_0x448 == 0) {
+          v_rax_3 = 0;
+          auto prev_0x20_2 = param_2->field_0x18->field_0x20;
+          auto local_0x90 = param_2->field_0x18->field_0x20;
+          auto ret_0x39ae940_2 = call_0x39ae940(&this->field_0x438, global_0x8deabf8, &local_0x90, v_rax_3);
+          ret_0x39ae940_2->field_0x0 = prev_0x20_2;
+          v_rax_4 = ret_0x39ae940_2;
+        } else {
+          int64_t idx_1 = param_2->field_0x18->field_0x20 * 37 & this->field_0x448 - 1;
+          int32_t i_r8d = param_2->field_0x18->field_0x20 * 37 & this->field_0x448 - 1;
+          uint64_t i_eax = this->field_0x438 + idx_1 * 8;
+          int32_t i_r9d = 1;
+          int32_t i_ecx = 0;
+          int32_t i_edx = (this->field_0x438 + idx_1 * 8)->field_0x0;
+          if (param_2->field_0x18->field_0x20 != (this->field_0x438 + idx_1 * 8)->field_0x0) {
+            int32_t prev_i_r9d_1;
+            do { // L_0x4060b67
+              if (i_edx == -1) break;
+              void* v_rcx_2 = i_ecx;
+              if (i_edx == -2) {
+                void* sel_rcx_3 = i_ecx == 0 ? i_eax : i_ecx;
+                v_rcx_2 = sel_rcx_3;
+              }
+              prev_i_r9d_1 = i_r9d;
+              i_r9d++;
+              i_r8d = i_r8d + prev_i_r9d_1 & this->field_0x448 - 1;
+              i_eax = this->field_0x438 + (i_r8d + prev_i_r9d_1 & this->field_0x448 - 1) * 8;
+              i_ecx = v_rcx_2;
+              i_edx = rax->field_0x0;
+            } while (param_2->field_0x18->field_0x20 != rax->field_0x0); // loop -> L_0x4060b67
+            v_rax_4 = this->field_0x438 + (i_r8d + prev_i_r9d_1 & this->field_0x448 - 1) * 8;
+          } else {
+            v_rax_4 = this->field_0x438 + idx_1 * 8;
+          }
+        }
+        v_rax_4->field_0x4++;
+      }
+      if (SendDataModelAPIUsageMetrics && param_2 != 0) {
+        param_2->field_0x18->field_0x198++;
+      }
+      if (DescendantOfDataModel3) {
+        if (global_0x844cf2b == 0) {
+          auto ret_0x1bf6000_3 = call_0x1bf6000();
+          if ((uint8_t)ret_0x1bf6000_3 == 0) {
+            if (CreationDBDMCTRequireCloudEditServer) {
+              if (global_0x844cf41 != 0) {
+                auto ret_0x1bf6120_4 = call_0x1bf6120();
+                if ((uint8_t)ret_0x1bf6120_4 == 0) {
+                  L_0x4060c07:
+                  auto ret_0x1bf6090_5 = call_0x1bf6090();
+                  if ((uint8_t)ret_0x1bf6090_5 != 0) {
+                    L_0x4060c10:
+                    if (this->field_0x660 != 0) {
+                    call_0x1c564d0(this->field_0x660, param_2);
+                    }
+                  }
+                } else if (this->field_0x660 != 0) {
+                  call_0x1c564d0(this->field_0x660, param_2);
+                }
+              } else {
+                auto ret_0x1bf6090_5 = call_0x1bf6090();
+                if ((uint8_t)ret_0x1bf6090_5 != 0) {
+                  goto L_0x4060c10;
+                }
+              }
+            } else {
+              auto ret_0x1bf6120_4 = call_0x1bf6120();
+              if ((uint8_t)ret_0x1bf6120_4 == 0) {
+                goto L_0x4060c07;
+              } else {
+                goto L_0x4060c10;
+              }
+            }
+          } else {
+            goto L_0x4060c10;
+          }
+        } else {
+          goto L_0x4060c10;
+        }
+      }
+      auto ret_0x1c513c0_7 = call_0x1c513c0(this);
+      if (ret_0x1c513c0_7 != 0) {
+        void* stk_7;
+        if (param_2 != 0) {
+          do { // L_0x4060c51
+            atomic_try_incref(&param_2->field_0x10->field_0x8);
+            if (atomic_cas(&param_2->field_0x10->field_0x8, param_2->field_0x10->field_0x8, param_2->field_0x10->field_0x8 + 1) == 0) break;
+          } while (true); // loop -> L_0x4060c51
+          stk_7 = param_2->field_0x8;
+        } else {
+          stk_7 = 0;
+        }
+        auto local_0x20 = stk_7;
+        call_0x7d8d40(ret_0x1c513c0_7, &local_0x20);
+        if (local_0x28 != 0) {
+          call_0x6daf40(local_0x28);
+        }
+      }
+      param_2->vfunc_0x160(param_2, 0, this);
+    }
 
 [Strings .rdata na função]
-  * source_purpose
-  * destination_purpose
-  * [FLog::EngineContextDataModelMismatch] EngineContext mismatch: {} ({}) from '{}' added to DataMo
+  * "source_purpose"  [@rdata 0x742a078, ref @0x4060819, string_view len=14]
+  * "destination_purpose"  [@rdata 0x7429fd8, ref @0x406085c, string_view len=19]
+  * "[FLog::EngineContextDataModelMismatch] EngineContext mismatch: {} ({}) from '{}' added to DataMo"  [@rdata 0x7429ff0, ref @0x40608d5, FLog format]
 
 [Co-Flags na mesma função]
   * DFStringR15CollisionTypeField = "" (default)
+  * FFlagUseInstanceTagHooks3 = false (default)
+  * DFFlagReportEngineContextDataModelMismatch = true (default)
+  * FFlagInstanceTypeTracking = false (default)
+  * DFFlagSendDataModelAPIUsageMetrics = false (default)
+  * FFlagDescendantOfDataModel3 = true (default)
+  * FFlagCreationDBDMCTRequireCloudEditServer = false (default)
   * DFFlagDebugSimulateHangAtShutdown = false (default) [vizinha em .data]
   * DFFlagDebugSimulateExceptionAtShutdown = false (default) [vizinha em .data]
   * DFFlagDataModelAsyncContentInit = true (default) [vizinha em .data]
-  * DFFlagReportEngineContextDataModelMismatch = true (default) [vizinha em .data]
   * DFIntRccCloseReasonAdoptionMetricsHundredths = 100 (default) [vizinha em .data]
   * DFIntReportTeamCreatePublishFailurePermyriad = 100 (default) [vizinha em .data]
   * DFLogTrackPublishingHashOutput = 0 (default) [vizinha em .data]

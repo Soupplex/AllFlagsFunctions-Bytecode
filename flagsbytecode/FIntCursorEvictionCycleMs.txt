@@ -31,8 +31,8 @@ Operação  : 0x3b293bf: mov/math reg, [flag] ; fn=0x3b29380..0x3b295fc
       auto vret_1 = this->vfunc(this);
       double ftmp_1 = (double)vret_1 / 1000.0 - this->field_0x50;
       if (ftmp_1 * 1000.0 > (double)CursorEvictionCycleMs) {
-        if (CursorCache >= 6) {
-          if ((uint64_t)CursorCache >> 8 >= 3) {
+        if ((uint8_t)CursorCache >= 6) {
+          if ((uint8_t)((uint64_t)CursorCache >> 8) >= 3) {
             FLog::Log("[FLog::CursorCache] Performing eviction cycle");
           }
         }
@@ -42,14 +42,15 @@ Operação  : 0x3b293bf: mov/math reg, [flag] ; fn=0x3b29380..0x3b295fc
         if (f_18->field_0x0 != f_18) {
           void* i_eax = f_18;
           void* i_ebx = f_18->field_0x0;
+          void* v_rbx_5;
           do { // L_0x3b29463
             void* v_rax_2 = i_eax;
-            void* v_rax_3;
+            void* v_rax_4;
             if (i_ebx->field_0x50 != 0) {
               auto vret_3 = this->vfunc();
               double ftmp_2 = (double)vret_3 / 1000.0 - i_ebx->field_0x48;
               if (ftmp_2 * 1000.0 > (double)CursorTimeToLiveMs) {
-                if (CursorCache >= 6 && (uint64_t)CursorCache >> 8 >= 3) {
+                if ((uint8_t)CursorCache >= 6 && (uint8_t)((uint64_t)CursorCache >> 8) >= 3) {
                   auto vret_4 = this->vfunc();
                   call_0x4971a90(&local_0x50, &&sym_0x7789885->field_m0x399ced, i_ebx + 0x18, (double)(float)((double)vret_4 / 1000.0 - i_ebx->field_0x48));
                 }
@@ -70,24 +71,33 @@ Operação  : 0x3b293bf: mov/math reg, [flag] ; fn=0x3b29380..0x3b295fc
                 this->field_0x20--;
                 i_ebx->field_0x8->field_0x0 = i_ebx->field_0x0;
                 i_ebx->field_0x0->field_0x8 = i_ebx->field_0x8;
+                void* v_rbx_3 = i_ebx->field_0x0;
                 if (i_ebx->field_0x58 != 0 && atomic_fetch_sub(&i_ebx->field_0x58->field_0x8, 1) == 1) {
-                  i_ebx->field_0x58->vfunc_0x0(i_ebx->field_0x58);
+                  void* prev_0x0_3 = i_ebx->field_0x0;
+                  void* prev_0x58_4 = i_ebx->field_0x58;
+                  i_ebx->field_0x58->vfunc_0x0(prev_0x58_4);
                   if (atomic_fetch_sub(&i_ebx->field_0x58->field_0xc, 1) == 1) {
-                    i_ebx->field_0x58->vfunc_0x8(i_ebx->field_0x58);
+                    i_ebx->field_0x58->vfunc_0x8(prev_0x58_4);
+                    v_rbx_3 = prev_0x0_3;
+                  } else {
+                    v_rbx_3 = prev_0x0_3;
                   }
                 }
                 call_0x6f8fb0(i_ebx + 0x18);
-                v_rax_3 = call_0x4955ac0(i_ebx);
+                v_rax_4 = call_0x4955ac0(i_ebx);
+                v_rbx_5 = v_rbx_3;
               } else {
                 v_rax_2 = vret_3;
-                v_rax_3 = v_rax_2;
+                v_rax_4 = v_rax_2;
+                v_rbx_5 = i_ebx->field_0x0;
               }
             } else {
-              v_rax_3 = v_rax_2;
+              v_rax_4 = v_rax_2;
+              v_rbx_5 = i_ebx->field_0x0;
             }
-            i_eax = v_rax_3;
-            i_ebx = i_ebx->field_0x0;
-          } while (i_ebx->field_0x0 != this->field_0x18); // loop -> L_0x3b29463
+            i_eax = v_rax_4;
+            i_ebx = v_rbx_5;
+          } while (v_rbx_5 != this->field_0x18); // loop -> L_0x3b29463
         }
       }
     }
@@ -261,16 +271,135 @@ Operação  : 0x3b293bf: mov/math reg, [flag] ; fn=0x3b29380..0x3b295fc
     0x3b295f9 | 5f                       | pop rdi
     0x3b295fa | 5e                       | pop rsi
     0x3b295fb | c3                       | ret
+  
+  === [Decompilacao da Rotina Chamadora (Caller): 0x3b28700..0x3b28cc0 em RBX::CursorTime] ===
+    struct RBX::CursorTime {
+      /* +0x0 */ void*   field_0x0;
+      /* +0x8 */ void*   field_0x8;
+      /* +0x58 */ void*   field_0x58;
+    };
+    
+    // Flag defaults: CursorMaxRetries = 10, CursorRetryDelayMs = 1000, CursorCache = 0
+    auto RBX::CursorTime::func_0x3b28700(RBX::CursorTime* this, int64_t param_2, void* param_3) {
+      auto ret_0x11063c0_1 = call_0x11063c0(this->field_0x58, param_3);
+      if ((uint8_t)ret_0x11063c0_1 == 0) {
+        if ((uint8_t)CursorCache >= 6 && (uint8_t)((uint64_t)CursorCache >> 8) >= 3) {
+          FLog::Log("[FLog::CursorCache] Invalid asset ID: %s");
+          call_0x4971a90(&local_0x50, param_2, rax, param_4);
+        }
+      } else {
+        auto ret_0xb582d0_2 = call_0xb582d0(&param_3->field_0x8);
+        auto ret_0x1057220_3 = call_0x1057220(this + 0x10, &local_0x130, param_3, ret_0xb582d0_2);
+        void* v_r14_1 = ret_0x1057220_3->field_0x8;
+        if (ret_0x1057220_3->field_0x8 == 0) {
+          v_r14_1 = (this + 0x10)->field_0x8;
+        }
+        if (v_r14_1 != (this + 0x10)->field_0x8) {
+          if (v_r14_1->field_0x50 != 0) {
+            auto vret_25 = this->vfunc();
+            v_r14_1->field_0x48 = (double)vret_25 / 1000.0;
+            call_0x3b29380(this);
+            if (v_r14_1->field_0x58 != 0) {
+              v_r14_1->field_0x58->field_0x8++;
+              param_2->field_0x0 = v_r14_1->field_0x50;
+              param_2->field_0x8 = v_r14_1->field_0x58;
+              return param_2;
+            }
+            param_2->field_0x0 = v_r14_1->field_0x50;
+            param_2->field_0x8 = v_r14_1->field_0x58;
+            L_0x3b287ab:
+            call_0x6f8fb0(&param_3->field_0x8);
+            return param_2;
+          }
+          call_0x3b29380(this);
+          if (v_r14_1->field_0x3c <= CursorMaxRetries && v_r14_1->field_0x38 != 0) {
+            auto vret_9 = v_r14_1->vfunc_0x3c();
+            double ftmp_1 = (double)vret_9 / 1000.0 - v_r14_1->field_0x40;
+            if (ftmp_1 * 1000.0 > (double)(CursorRetryDelayMs << v_r14_1->field_0x3c)) {
+              if ((uint8_t)CursorCache < 6 || (uint8_t)((uint64_t)CursorCache >> 8) < 3) {
+                v_r14_1->field_0x38 = 0;
+                L_0x3b289e0:
+                do { // L_0x3b289e0
+                  atomic_try_incref(&this->field_0x8->field_0x8);
+                  auto* f_8 = this->field_0x8;
+                  if (atomic_cas(&f_8->field_0x8, f_8->field_0x8, f_8->field_0x8 + 1) == 0) break;
+                } while (true); // loop -> L_0x3b289e0
+                void* stk_3;
+                auto* f_8_2 = this->field_0x8;
+                if (f_8_2 != 0) {
+                  f_8_2->field_0xc++;
+                  call_0x6daf40(f_8_2);
+                  stk_3 = this->field_0x8;
+                } else {
+                  stk_3 = 0.0;
+                }
+                call_0x6f7510(&local_0x180, &param_3->field_0x8);
+                void* fstk_5;
+                if (stk_3 != 0) {
+                  stk_3->field_0xc++;
+                  fstk_5 = stk_3;
+                } else {
+                  fstk_5 = 0.0;
+                }
+                void* prev_0x58_1 = this->field_0x58;
+                auto local_0x178 = param_3->field_0x0;
+                call_0x707ef0(&local_0xb8, 56, param_3, &local_0x178);
+                call_0x11052c0(prev_0x58_1, &local_0x70, param_3);
+                int64_t local_0x158;
+                if (&local_0x78->field_0x60 != &local_0x158) {
+                  local_0x158 = 0;
+                  call_0x6f7000(&local_0x78->field_0x60, &local_0x158, 0);
+                }
+                call_0x6db970(&local_0x110, &local_0xb8);
+                auto local_0x80 = local_0x70;
+                call_0x11011b0(this->field_0x58, &local_0xf0, &local_0x80, &local_0x110);
+                call_0x6db7e0(&local_0xb8);
+                std::string::_Tidy_deallocate(local_0x158);
+                call_0x800f70(&local_0xd8);
+                auto ret_0x10e4a20_21 = call_0x10e4a20(this + 0x10, &local_0x150, param_3);
+                if (ret_0x10e4a20_21->field_0x0->field_0x58 != 0) {
+                  ret_0x10e4a20_21->field_0x0->field_0x58->field_0x8++;
+                }
+                param_2->field_0x0 = ret_0x10e4a20_21->field_0x0->field_0x50;
+                param_2->field_0x8 = ret_0x10e4a20_21->field_0x0->field_0x58;
+                if (fstk_5 != 0) {
+                  if (atomic_fetch_sub(&fstk_5->field_0xc, 1) == 1) {
+                    fstk_5->vfunc_0x8();
+                  }
+                }
+                call_0x6f8fb0(&local_0x180);
+                if (stk_3 != 0 && atomic_fetch_sub(&stk_3->field_0xc, 1) == 1) {
+                  stk_3->vfunc_0x8();
+                }
+                call_0x6f8fb0(&param_3->field_0x8);
+                return param_2;
+              }
+            }
+          }
+        } else {
+          call_0x3b29380(this);
+          auto vret_5 = this->vfunc();
+          this->vfunc();
+          auto local_0x90 = 0;
+          auto local_0x98 = (double)vret_5 / 1000.0;
+          call_0x3b2e870(this + 0x10, &local_0x140, param_3, &local_0x90);
+          goto L_0x3b289e0;
+        }
+      }
+      goto L_0x3b287ab;
+    }
 
 [Strings .rdata na função]
-  * [FLog::CursorCache] Performing eviction cycle
+  * "[FLog::CursorCache] Performing eviction cycle"  [@rdata 0x73efbd0, ref @0x3b293ff, FLog format]
+  * "[FLog::CursorCache] Invalid asset ID: %s"  [@rdata 0x73efb30, ref @0x3b2877a, FLog format]
+  * "[FLog::CursorCache] Retrying: %s [attempt %d/%d]"  [@rdata 0x73efb60, ref @0x3b28901, FLog format]
 
 [Co-Flags na mesma função]
   * FLogCursorCache = 0 (default)
   * FIntCursorTimeToLiveMs = 5000 (default)
+  * FIntCursorMaxRetries = 10 (default)
+  * FIntCursorRetryDelayMs = 1000 (default)
   * FFlagThumbnailerCanUseBetterDefaultMousePos = false (default) [vizinha em .data]
-  * FIntCursorMaxRetries = 10 (default) [vizinha em .data]
-  * FIntCursorRetryDelayMs = 1000 (default) [vizinha em .data]
   * FIntMaxCursorIconDimensions = 256 (default) [vizinha em .data]
   * FFlagMergeFakeInputEvents8 = false (default) [vizinha em .data]
   * FFlagTouchInputServiceGestureCoalesceFingers2 = true (default) [vizinha em .data]

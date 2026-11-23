@@ -9,12 +9,10 @@ Operação  : 0x4625902: mov/math reg, [flag] ; fn=0x4625830..0x4625b67
     Classe  : RBX::MegaCluster (Inferido)
     Padrão  : FLogMegaClusterNetworkInit = 1 (default) [log, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : MegaClusterNetworkInit < 6
-    Fórmula : (uint64_t)MegaClusterNetworkInit >> 8 < 3
+    Fórmula : (uint8_t)MegaClusterNetworkInit >= 6 && (uint8_t)((uint64_t)MegaClusterNetworkInit >> 8) >= 3
     Altera  : this->field_0x3310, this->field_0x3318, this->field_0x3310->field_0x58->field_0x4, this->field_0x33c0
     [XREF #2 @0x4625c32] Classe  : RBX::MegaCluster (Inferido)
-    [XREF #2 @0x4625c32] Fórmula : MegaClusterNetworkInit < 6
-    [XREF #2 @0x4625c32] Fórmula : (uint64_t)MegaClusterNetworkInit >> 8 < 3
+    [XREF #2 @0x4625c32] Fórmula : (uint8_t)MegaClusterNetworkInit >= 6 && (uint8_t)((uint64_t)MegaClusterNetworkInit >> 8) >= 3
     [XREF #2 @0x4625c32] Altera  : this->field_0x3310, this->field_0x3318
   
   === [Decompilacao C++ da Funcao 0x4625830..0x4625b67] ===
@@ -34,13 +32,14 @@ Operação  : 0x4625902: mov/math reg, [flag] ; fn=0x4625830..0x4625b67
       if (ret_0x4062490_1 != 0) {
         void* sel_r8_1 = &ret_0x4062490_1->field_0x2d0 != 0 ? ret_0x4062490_1 : 0;
         if (sel_r8_1->field_0x358 != 0 && sel_r8_1->field_0x358->field_0x4b0 != 0) {
+          void* prev_0x4b0_2 = sel_r8_1->field_0x358->field_0x4b0;
           auto ret_0xa1ccd0_2 = call_0xa1ccd0(this, &ret_0x4062490_1->field_0x2d0);
-          void* sel_rbx_2 = sel_r8_1->field_0x358->field_0x4b0->field_0x18->field_0x1c0 - ret_0xa1ccd0_2->field_0x1c0 <= ret_0xa1ccd0_2->field_0x1c2 ? sel_r8_1->field_0x358->field_0x4b0 : 0;
+          void* sel_rbx_2 = sel_r8_1->field_0x358->field_0x4b0->field_0x18->field_0x1c0 - ret_0xa1ccd0_2->field_0x1c0 <= ret_0xa1ccd0_2->field_0x1c2 ? prev_0x4b0_2 : 0;
           if (sel_rbx_2 != 0) {
-            if (NetworkCluster >= 6 && (uint64_t)NetworkCluster >> 8 >= 3) {
+            if ((uint8_t)NetworkCluster >= 6 && (uint8_t)((uint64_t)NetworkCluster >> 8) >= 3) {
               FLog::Log("[DFLog::NetworkCluster] Adding replication data for mega cluster instance %p");
             }
-            if (MegaClusterNetworkInit >= 6 && (uint64_t)MegaClusterNetworkInit >> 8 >= 3) {
+            if ((uint8_t)MegaClusterNetworkInit >= 6 && (uint8_t)((uint64_t)MegaClusterNetworkInit >> 8) >= 3) {
               FLog::Log("[FLog::MegaClusterNetworkInit] Adding MegaCluster replication data :%p");
             }
             call_0x5e051b0(&local_0x70, 0, 160);
@@ -99,10 +98,10 @@ Operação  : 0x4625902: mov/math reg, [flag] ; fn=0x4625830..0x4625b67
             }
             call_0x49698d0(this->field_0x3310->field_0x58, &local_0x158, v_rax_2);
             call_0x4954e70(ret_0x4954e70_16);
-            void* prev_0x33c0_1 = this->field_0x33c0;
+            void* prev_0x33c0_4 = this->field_0x33c0;
             this->field_0x33c0 = local_0x158;
-            if (prev_0x33c0_1 != 0 && atomic_fetch_sub(&this->field_0x33c0->field_0x4, 1) == 1) {
-              call_0x496a4e0(prev_0x33c0_1);
+            if (prev_0x33c0_4 != 0 && atomic_fetch_sub(&this->field_0x33c0->field_0x4, 1) == 1) {
+              call_0x496a4e0(prev_0x33c0_4);
               return;
             }
             return;
@@ -584,11 +583,13 @@ Operação  : 0x4625902: mov/math reg, [flag] ; fn=0x4625830..0x4625b67
       f_0->field_0x8->field_0x0 = 0;
       if (f_0->field_0x0 != 0) {
         void* i_edi = f_0->field_0x0;
+        void* prev_0x0_1;
         do { // L_0x46687f0
+          prev_0x0_1 = i_edi->field_0x0;
           call_0x78b350(i_edi + 0x20);
           call_0x4955ac0(i_edi);
-          i_edi = i_edi->field_0x0;
-        } while (i_edi->field_0x0 != 0); // loop -> L_0x46687f0
+          i_edi = prev_0x0_1;
+        } while (prev_0x0_1 != 0); // loop -> L_0x46687f0
       }
       call_0x4955ac0(this->field_0x0);
     }
@@ -721,13 +722,14 @@ Operação  : 0x4625902: mov/math reg, [flag] ; fn=0x4625830..0x4625b67
     // Flag defaults: MegaClusterNetworkInit = 1, NetworkCluster = 0, TerrainPerPlaceGrid2 = true, FixGridListenerLifecycle = true, DebugHashTableMetrics = false, NextGenReplicatorEnabledWrite4 = false
     void RBX::MegaCluster::func_0x4625b70(RBX::MegaCluster* this, int64_t param_2, void* param_3, void* param_4) {
       if (param_3->field_0x0 != 0) {
+        void* prev_0x0_2 = param_3->field_0x0;
         auto ret_0xa1ccd0_1 = call_0xa1ccd0(this);
-        void* sel_rbx_1 = param_3->field_0x0->field_0x18->field_0x1c0 - ret_0xa1ccd0_1->field_0x1c0 <= ret_0xa1ccd0_1->field_0x1c2 ? param_3->field_0x0 : 0;
+        void* sel_rbx_1 = param_3->field_0x0->field_0x18->field_0x1c0 - ret_0xa1ccd0_1->field_0x1c0 <= ret_0xa1ccd0_1->field_0x1c2 ? prev_0x0_2 : 0;
         if (sel_rbx_1 != 0 && this->field_0x3310 == 0) {
-          if (NetworkCluster >= 6 && (uint64_t)NetworkCluster >> 8 >= 3) {
+          if ((uint8_t)NetworkCluster >= 6 && (uint8_t)((uint64_t)NetworkCluster >> 8) >= 3) {
             FLog::Log("[DFLog::NetworkCluster] Adding replication data for mega cluster instance %p");
           }
-          if (MegaClusterNetworkInit >= 6 && (uint64_t)MegaClusterNetworkInit >> 8 >= 3) {
+          if ((uint8_t)MegaClusterNetworkInit >= 6 && (uint8_t)((uint64_t)MegaClusterNetworkInit >> 8) >= 3) {
             FLog::Log("[FLog::MegaClusterNetworkInit] Adding MegaCluster replication data :%p, listenToChanges: %u");
           }
           call_0x5e051b0(&local_0x70, 0, 160);
@@ -773,13 +775,14 @@ Operação  : 0x4625902: mov/math reg, [flag] ; fn=0x4625830..0x4625b67
       if (this->field_0x3b30 == 0) {
         call_0x46bb6a0(this->field_0x3b28, this, param_2, param_3);
         auto* f_3b28 = this->field_0x3b28;
-        if (DebugHashTableMetrics || (f_3b28->field_0x510 >> 3 & 0x1) != 0 || NextGenReplicatorEnabledWrite4 || (f_3b28->field_0x510 & 0x1) != 0) {
+        if (DebugHashTableMetrics || (f_3b28->field_0x510 >> 3 & 0x1) != 0 || NextGenReplicatorEnabledWrite4 || ((uint8_t)f_3b28->field_0x510 & 0x1) != 0) {
+          void* prev_0x0_4 = param_3->field_0x0;
           auto ret_0x46ec690_16 = call_0x46ec690(&f_3b28->field_0x508, param_3->field_0x0->field_0x18);
-          if (ret_0x46ec690_16 != 0) {
-            call_0x47f7230(this->field_0x3b28->field_0x3c8, param_3->field_0x0, this);
+          if ((uint8_t)ret_0x46ec690_16 != 0) {
+            call_0x47f7230(this->field_0x3b28->field_0x3c8, prev_0x0_4, this);
           }
         }
-        if (((uint32_t)param_3->field_0x0->field_0x18->field_0x1c4 >> 7 & 0x1) != 0) {
+        if (((uint8_t)((uint32_t)param_3->field_0x0->field_0x18->field_0x1c4 >> 7) & 0x1) != 0) {
           call_0x47fbda0(&this->field_0x2da0, this->field_0x2e18, param_3->field_0x0, param_2);
         }
       }
@@ -989,11 +992,133 @@ Operação  : 0x4625902: mov/math reg, [flag] ; fn=0x4625830..0x4625b67
     0x4625ef3 | 41 5e                    | pop r14
     0x4625ef5 | 5f                       | pop rdi
     0x4625ef6 | c3                       | ret
+  
+  === [Estrutura RTTI & VTable da Classe (RBX::MegaClusterInstance)] ===
+    VTable  : 0x6f2e6b0 (offset +0x0, 77 slots virtuais)
+    Herança : RBX::PropertyDescriptor, RBX::MemberDescriptor, RBX::Descriptor
+    +0x0 -> fn_0x3369a70
+    +0x8 -> fn_0x1c1f1a0
+    +0x10 -> fn_0xd6a600
+    +0x18 -> fn_0x1c44010
+    +0x38 -> fn_0x33816a0
+    +0x40 -> fn_0x1c3dbf0
+    +0x48 -> fn_0xdf5ee0
+    +0x50 -> fn_0x1c432c0
+    +0x60 -> fn_0xd5e340
+    +0x78 -> fn_0x1c3cdf0
+    +0x88 -> fn_0x1c49aa0
+    +0x90 -> fn_0x1c3d010
+    +0xb0 -> fn_0x1c43930
+    +0xb8 -> fn_0xd5eb10
+    +0xc0 -> fn_0x1c43cb0
+    +0xd0 -> fn_0x1c3da30
+  
+  === [Decompilacao de Metodo da Classe RBX::MegaClusterInstance: 0x3369a70..0x3369aae (vfunc_0x0)] ===
+    struct RBX::MegaClusterInstance {
+      /* +0x4d8 */ void*   field_0x4d8;
+    };
+    
+    auto RBX::MegaClusterInstance::func_0x3369a70(RBX::MegaClusterInstance* this, int64_t param_2) {
+      call_0x3369ad0(this);
+      this->field_0x4d8 = &sym_0x6f6d6f0;
+      if (((uint8_t)param_2 & 0x1) != 0) {
+        call_0x4955ac0(this);
+      }
+      return this;
+    }
+  
+  === [Decompilacao de Metodo da Classe RBX::MegaClusterInstance: 0xd6a600..0xd6a73b (vfunc_0x10)] ===
+    struct RBX::BasePart {
+      /* +0x178 */ void*   field_0x178;
+    };
+    
+    // Flag defaults: DMCTMigrateBasePartNetwork = true, ServerAutomaticNetworkOwnershipBufferMs = 3000
+    void RBX::BasePart::func_0xd6a600(RBX::BasePart* this, int64_t param_2, void* param_3, void* param_4) {
+      if (param_2 == &sym_0x85afc60) {
+        call_0xd75190(this);
+        void* sel_rax_1 = param_3->field_0x0->field_0x8 == 0 ? 0 : param_3->field_0x0->field_0x10;
+        int32_t v_rbx_1;
+        if (DMCTMigrateBasePartNetwork) {
+          void* sel_rax_3 = this == 0 ? 0 : this;
+          v_rbx_1 = sel_rax_3->field_0x178->field_0x258;
+        } else {
+          void* sel_rax_2 = this == 0 ? 0 : this;
+          v_rbx_1 = sel_rax_2->field_0x178->field_0x1dc;
+        }
+        int32_t v_rdi_2 = sel_rax_1->field_0x0;
+        auto expr_1 = (double)((float)ServerAutomaticNetworkOwnershipBufferMs / 1000.0f);
+        if (sel_rax_1->field_0x0 == 1) {
+          if (v_rbx_1 != param_4->field_0x0) {
+            auto prev_0x0_3 = param_4->field_0x0;
+            auto prev_0x0_4 = sel_rax_1->field_0x0;
+            auto ret_0x4062490_2 = call_0x4062490(this);
+            if (ret_0x4062490_2 != 0 && ret_0x4062490_2->field_0x970 == 2) {
+              if (prev_0x0_4 != 1 || v_rbx_1 != prev_0x0_3) {
+                return;
+              }
+              v_rdi_2 = prev_0x0_4;
+            }
+            v_rdi_2 = prev_0x0_4;
+          }
+          call_0xdf0d00(&this->field_0xa8, v_rdi_2);
+          call_0xd5df40(this, expr_1);
+          call_0xd5df40(this, 3.0);
+          return;
+        }
+        auto prev_0x0_3 = param_4->field_0x0;
+        auto prev_0x0_4 = sel_rax_1->field_0x0;
+        auto ret_0x4062490_2 = call_0x4062490(this);
+        if (ret_0x4062490_2 != 0 && ret_0x4062490_2->field_0x970 == 2) {
+          if (prev_0x0_4 != 1 || v_rbx_1 != prev_0x0_3) {
+            return;
+          }
+          v_rdi_2 = prev_0x0_4;
+        }
+        v_rdi_2 = prev_0x0_4;
+        call_0xdf0d00(&this->field_0xa8, v_rdi_2);
+        call_0xd5df40(this, expr_1);
+        call_0xd5df40(this, 3.0);
+        return;
+      }
+      switch (param_2->field_0x0->field_0x38) {
+      }
+    }
+  
+  === [Decompilacao de Metodo da Classe RBX::MegaClusterInstance: 0x1c44010..0x1c44138 (vfunc_0x18)] ===
+    struct RBX::Instance {
+      /* +0x48 */ void*   field_0x48;
+      /* +0x60 */ void*   field_0x60;
+    };
+    
+    // Flag defaults: CheckEngineContextOnInstanceAccess2 = false
+    void RBX::Instance::func_0x1c44010(RBX::Instance* this, int64_t param_2, void* param_3, void* param_4) {
+      if (this->field_0x60 != 0) {
+        (*global_0x80f4c48)(this);
+      }
+      auto ret_0x4956040_2 = call_0x4956040(24);
+      auto ret_0xffc540_3 = call_0xffc540(ret_0x4956040_2, param_3);
+      call_0xd29440(&local_0x40, ret_0xffc540_3);
+      auto* f_48 = this->field_0x48;
+      if (f_48 != 0 && f_48->field_0x8 != 0) {
+        auto ret_0xc700_5 = call_0xc700(global_0x84cf408, 1);
+        if (ret_0xc700_5->field_0x0 == 0) {
+          auto local_0x20 = 3;
+          call_0x7d7f00(this->field_0x48, &local_0x20, &local_0x28);
+        } else {
+          call_0x49710d0("Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel ", &sym_0x6647145);
+        }
+      }
+      if (local_0x48 != 0) {
+        call_0x6daf40(local_0x48);
+      }
+    }
 
 [Strings .rdata na função]
-  * [DFLog::NetworkCluster] Adding replication data for mega cluster instance %p
-  * [FLog::MegaClusterNetworkInit] Adding MegaCluster replication data :%p
-  * [FLog::MegaClusterNetworkInit] Adding MegaCluster replication data :%p, listenToChanges: %u
+  * "[DFLog::NetworkCluster] Adding replication data for mega cluster instance %p"  [@rdata 0x7465630, ref @0x46258e2, FLog format]
+  * "[FLog::MegaClusterNetworkInit] Adding MegaCluster replication data :%p"  [@rdata 0x7465590, ref @0x4625924, FLog format]
+  * "[FLog::MegaClusterNetworkInit] Adding MegaCluster replication data :%p, listenToChanges: %u"  [@rdata 0x7465520, ref @0x4625c5c, FLog format]
+  * "Variant cast failed"  [@rdata 0x7191e38, ref @0xd6a72f, literal, 19B]
+  * "Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel "  [@rdata 0x7280e40, ref @0x1c44110, literal, 96B]
 
 [Co-Flags na mesma função]
   * DFLogNetworkCluster = 0 (default)
@@ -1001,6 +1126,9 @@ Operação  : 0x4625902: mov/math reg, [flag] ; fn=0x4625830..0x4625b67
   * FFlagFixGridListenerLifecycle = true (default)
   * FFlagDebugHashTableMetrics = false (default)
   * FFlagNextGenReplicatorEnabledWrite4 = false (default)
+  * FFlagDMCTMigrateBasePartNetwork = true (default)
+  * DFIntServerAutomaticNetworkOwnershipBufferMs = 3000 (default)
+  * DFFlagCheckEngineContextOnInstanceAccess2 = false (default)
   * FLogScriptContextRemove = 0 (default) [vizinha em .data]
   * FLogScriptContextAdd = 0 (default) [vizinha em .data]
   * FLogLegacyLock = 0 (default) [vizinha em .data]

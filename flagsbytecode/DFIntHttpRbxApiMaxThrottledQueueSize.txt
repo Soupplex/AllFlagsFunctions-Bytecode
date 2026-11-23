@@ -9,7 +9,7 @@ Operação  : 0x3b7ebe5: mov/math reg, [flag] ; fn=0x3b7ea70..0x3b7ed8e
     Classe  : RBX::HttpRbx (Inferido)
     Padrão  : DFIntHttpRbxApiMaxThrottledQueueSize = 50 (default) [int, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : param_4->field_0x8 >= HttpRbxApiMaxThrottledQueueSize
+    Fórmula : param_4->field_0x8 < HttpRbxApiMaxThrottledQueueSize
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x3b7f251 (in fn_0x3b7ed90): call 0x3b7ea70  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
@@ -25,11 +25,11 @@ Operação  : 0x3b7ebe5: mov/math reg, [flag] ; fn=0x3b7ea70..0x3b7ed8e
     // Flag defaults: HttpRbxApiMaxThrottledQueueSize = 50, HttpRbxApiBudget = 0, DisableHttpRbxApiServiceLegacyTelemetry = false, HttpRbxApiClientPerMinuteRequestLimit = 300, HttpRbxApiRequestsPerMinutePerPlayerInServerLimit = 100, HttpRbxApiRequestsPerMinuteServerLimit = 300
     bool RBX::HttpRbx::func_0x3b7ea70(RBX::HttpRbx* this, int64_t param_2, void* param_3, void* param_4) {
       if (0.0 <= param_3->field_0x0) {
-        param_3->field_0x0 = param_3->field_0x0 - 1.0;
+        param_3->field_0x0 = param_3->field_0x0 - 1.0f;
         call_0x6db7e0(local_0x290);
         return false;
       }
-      if (HttpRbxApiBudget >= 6 && (uint64_t)HttpRbxApiBudget >> 8 >= 3) {
+      if ((uint8_t)HttpRbxApiBudget >= 6 && (uint8_t)((uint64_t)HttpRbxApiBudget >> 8) >= 3) {
         FLog::Log("[FLog::HttpRbxApiBudget] Throttling, budget: %f");
       }
       if (!DisableHttpRbxApiServiceLegacyTelemetry && this->field_0x1f8 != DisableHttpRbxApiServiceLegacyTelemetry) {
@@ -731,10 +731,266 @@ Operação  : 0x3b7ebe5: mov/math reg, [flag] ; fn=0x3b7ea70..0x3b7ed8e
     0x3b7d389 | 48 83 c4 20              | add rsp, 0x20
     0x3b7d38d | 5f                       | pop rdi
     0x3b7d38e | c3                       | ret
+  
+  === [Estrutura RTTI & VTable da Classe (RBX::HttpRbxApiJob)] ===
+    VTable  : 0x70c58f8 (offset +0x0, 4 slots virtuais)
+    +0x8 -> fn_0x4067bc0
+    +0x30 -> fn_0x4067b60
+    +0x38 -> fn_0x10c0d60
+    +0x40 -> fn_0x3b70ce0
+  
+  === [Decompilacao de Metodo da Classe RBX::HttpRbxApiJob: 0x4067bc0..0x4067fcc (vfunc_0x8)] ===
+    struct RBX::DataModelJob {
+      /* +0x0 */ void*   field_0x0;
+      /* +0x188 */ void*   field_0x188;
+      /* +0x190 */ uint8_t field_0x190;
+      /* +0x198 */ void*   field_0x198;
+      /* +0x1a0 */ int32_t field_0x1a0;
+      /* +0x1a4 */ int32_t field_0x1a4;
+      /* +0x1a8 */ uint8_t field_0x1a8;
+    };
+    
+    // Flag defaults: DataModelJobDefensiveEngineContextCheck = true, MicroProfilerPerMarkerDmContext = false, MicroProfilerMemoryScope = true
+    auto RBX::DataModelJob::func_0x4067bc0(RBX::DataModelJob* this, int64_t param_2) {
+      auto* f_198 = this->field_0x198;
+      if (this->field_0x190 == 0 && f_198->field_0x768 != 0) {
+        return 1;
+      }
+      void* v_rcx_1 = this;
+      auto* f_198_a50 = f_198->field_0xa50;
+      if (f_198 != 0 && f_198_a50 != 0 && f_198_a50->field_0x8 != 0) {
+        do { // L_0x4067c23
+          atomic_try_incref(&f_198_a50->field_0x8);
+          auto* f_198_2 = this->field_0x198;
+          auto* f_198_2_a50 = f_198_2->field_0xa50;
+          if (atomic_cas(&f_198_2_a50->field_0x8, f_198_2_a50->field_0x8, f_198_2_a50->field_0x8 + 1) == 0) break;
+          auto* f_198_3 = this->field_0x198;
+          auto* f_198_3_a50 = f_198_3->field_0xa50;
+        } while (f_198_3_a50->field_0x8 != 0); // loop -> L_0x4067c23
+        v_rcx_1 = f_198_3_a50->field_0x8 + 1;
+      }
+      int32_t v_rdi_18;
+      if (DataModelJobDefensiveEngineContextCheck && local_0xf0 == 0) {
+        v_rdi_18 = 1;
+      } else {
+        auto ret_0x4954c10_3 = call_0x4954c10(v_rcx_1, param_2, this->field_0x1a4 << 10);
+        int32_t v_rbx_2;
+        if (ret_0x4954c10_3 != 0) {
+          auto prev_0x0_1 = ret_0x4954c10_3->field_0x0;
+          ret_0x4954c10_3->field_0x0 = (ret_0x4954c10_3->field_0x0 ^ r8) & 0x7c00 ^ ret_0x4954c10_3->field_0x0;
+          v_rbx_2 = prev_0x0_1;
+        } else {
+          v_rbx_2 = call_0x4954d30(r8, 31744);
+        }
+        int64_t local_0xa8;
+        if (this->field_0x1a8 != 0) {
+          local_0xa8 = -1;
+          call_0x2973e30(&local_0x30, this->field_0x188, &local_0xa8);
+        }
+        int64_t stk_3;
+        if (MicroProfilerPerMarkerDmContext) {
+          call_0x29cd170(this->field_0x1a0);
+          stk_3 = 1;
+        } else {
+          stk_3 = 0;
+        }
+        auto vret_7 = this->vfunc_0x40(this, param_2);
+        if (stk_3 != 0) {
+          call_0x29cd170(local_0x140);
+        }
+        if (local_0xb0 != 0 && local_0xa8 != -1) {
+          uint64_t tsc_0x4067d8e = rdtsc();
+          call_0x2973cd0();
+          if (global_0x75b2c80 != -1) {
+            if (0) {
+              call_0x29a42e0(33, ((0) + 2) << 48, 0, 0);
+            }
+            if (global_0x84a44d6 != 0 && MicroProfilerMemoryScope) {
+              auto ret_0x497fea0_11 = call_0x497fea0();
+              void* v_rcx_5 = ret_0x497fea0_11->field_0x0;
+              if (ret_0x497fea0_11->field_0x0 == 0) {
+                v_rcx_5 = &ret_0x497fea0_11->field_0x8;
+              }
+              uint64_t stk_6;
+              uint64_t stk_7;
+              void* stk_8;
+              if (0) {
+                stk_6 = local_0x70 + (v_rcx_5->field_0x0);
+                stk_7 = local_0x60 + (v_rcx_5->field_0x8);
+                stk_8 = local_0x68 + (v_rcx_5->field_0x10);
+              } else {
+                stk_6 = 0;
+                stk_7 = 0.0;
+                stk_8 = 0.0;
+              }
+              if (((stk_6 & 0xffffff) << 24 | local_0x74 & 0xffffff) == 0) {
+                if ((stk_7 << 32 | stk_8) != 0) {
+                  auto local_0xc0 = stk_7 << 32 | stk_8;
+                  call_0x29a42e0(20, (stk_6 & 0xffffff) << 24 | local_0x74 & 0xffffff, &local_0xc0, 8);
+                }
+              } else {
+                auto local_0xc0 = stk_7 << 32 | stk_8;
+                call_0x29a42e0(20, (stk_6 & 0xffffff) << 24 | local_0x74 & 0xffffff, &local_0xc0, 8);
+              }
+            }
+            call_0x29a4650(local_0x40, global_0x75b2c80, tsc_0x4067d8e - global_0x8cda630);
+            if ((global_0x8629678 & (uint64_t)local_0x40 >> 14 & global_0x86295f8) != 0 && global_0x84dcf68 != 0) {
+              (*global_0x84dcf68)();
+            }
+          }
+          auto ret_0x29243d0_15 = call_0x29243d0();
+          ret_0x29243d0_15->field_0x0 = local_0x38;
+        }
+        auto ret_0x4954c10_16 = call_0x4954c10();
+        if (ret_0x4954c10_16 != 0) {
+          ret_0x4954c10_16->field_0x0 = ret_0x4954c10_16->field_0x0 ^ (ret_0x4954c10_16->field_0x0 ^ ((uint32_t)v_rbx_2 >> 10 & 0x1f) << 10) & 0x7c00;
+          v_rdi_18 = vret_7;
+        } else {
+          call_0x4954d30(((uint32_t)v_rbx_2 >> 10 & 0x1f) << 10, 31744);
+          v_rdi_18 = vret_7;
+        }
+      }
+      if (local_0xf0 != 0) {
+        call_0x1bf80e0(&local_0xd8);
+      }
+      return v_rdi_18;
+    }
+  
+  === [Decompilacao de Metodo da Classe RBX::HttpRbxApiJob: 0x10c0d60..0x10c0da5 (vfunc_0x38)] ===
+    struct RBX::EventBroadcast::Relay {
+      /* +0x1b8 */ void*   field_0x1b8;
+    };
+    
+    auto RBX::EventBroadcast::Relay::func_0x10c0d60(RBX::EventBroadcast::Relay* this, int64_t param_2) {
+      if (this->field_0x1b8 != 0) {
+        call_0x6daf40(this->field_0x1b8);
+      }
+      call_0x296ed50(this);
+      if (((uint8_t)param_2 & 0x1) != 0) {
+        call_0x4955ac0(this);
+      }
+      return this;
+    }
+  
+  === [Decompilacao de Metodo da Classe RBX::HttpRbxApiJob: 0x3b70ce0..0x3b710cc (vfunc_0x40)] ===
+    struct RBX::HttpRbxApiJob {
+      /* +0x178 */ double  field_0x178;
+      /* +0x1b0 */ void*   field_0x1b0;
+      /* +0x1c0 */ int32_t httpRbxApiJobFrequencyInSeconds_0x1c0;
+      /* +0x1c8 */ double  field_0x1c8;
+    };
+    
+    // Flag defaults: HttpRbxApiJobFrequencyInSeconds = 1, HttpRbxApiRequestsPerMinutePerPlayerInServerLimit = 100, HttpRbxApiRequestsPerMinuteServerLimit = 300, HttpRbxApiBudget = 0, HttpRbxApiClientPerMinuteRequestLimit = 300, HttpRbxApiMaxBudgetMultiplier = 1, HttpRbxApiRemoveAsyncRetryQueue = false, HttpRbxApiMaxRetryBudgetPerMinute = 10
+    bool RBX::HttpRbxApiJob::func_0x3b70ce0(RBX::HttpRbxApiJob* this, int64_t param_2) {
+      float ftmp_1 = (float)(param_2->field_0x8 * this->field_0x1c8 + this->field_0x178);
+      auto ret_0x60a2a44_1 = call_0x60a2a44(ftmp_1);
+      this->field_0x178 = (double)min(1.0f, ftmp_1 - min(1.0f, ret_0x60a2a44_1));
+      if (0.0 < min(1.0f, ret_0x60a2a44_1) && 1.0 <= (double)min(1.0f, ret_0x60a2a44_1)) {
+        if (HttpRbxApiJobFrequencyInSeconds != this->httpRbxApiJobFrequencyInSeconds_0x1c0) {
+          this->field_0x1c8 = (double)(1.0f / (float)HttpRbxApiJobFrequencyInSeconds);
+          this->httpRbxApiJobFrequencyInSeconds_0x1c0 = HttpRbxApiJobFrequencyInSeconds;
+        }
+        void* prev_0x1b0_2 = this->field_0x1b0;
+        auto ret_0x40625d0_2 = call_0x40625d0(prev_0x1b0_2);
+        auto expr_2 = (float)HttpRbxApiJobFrequencyInSeconds / 60.0f;
+        auto expr_3 = (uint64_t)HttpRbxApiBudget >> 8;
+        if (ret_0x40625d0_2 != 0) {
+          if (ret_0x40625d0_2->field_0x985 == 0) {
+            if (this->field_0x1b0->field_0x1ca != 0) {
+              L_0x3b70dd6:
+              auto ret_0x3b7d2d0_3 = call_0x3b7d2d0(prev_0x1b0_2);
+              float ftmp_2 = (float)(ret_0x3b7d2d0_3 * HttpRbxApiRequestsPerMinutePerPlayerInServerLimit + HttpRbxApiRequestsPerMinuteServerLimit);
+              float ftmp_3 = ftmp_2 * expr_2;
+              auto* f_1b0 = this->field_0x1b0;
+              f_1b0->field_0xa8 = min(ftmp_2, ftmp_3 + f_1b0->field_0xa8);
+              f_1b0->field_0xac = min(ftmp_2, ftmp_3 + f_1b0->field_0xac);
+              if ((uint8_t)HttpRbxApiBudget >= 6 && (uint8_t)expr_3 >= 3) {
+                FLog::Log("[FLog::HttpRbxApiBudget] Adding budget %f, default budget is at: %f, elevated budget is at: %f");
+              }
+            }
+          } else {
+            goto L_0x3b70dd6;
+          }
+        } else if (this->field_0x1b0->field_0x1ca != 0) {
+          goto L_0x3b70dd6;
+        }
+        auto ret_0x40625d0_4 = call_0x40625d0(prev_0x1b0_2);
+        if (ret_0x40625d0_4 != 0) {
+          auto expr_1 = HttpRbxApiMaxBudgetMultiplier * HttpRbxApiClientPerMinuteRequestLimit;
+          if (ret_0x40625d0_4->field_0xa44 == 0) {
+            auto* f_1b0_2 = this->field_0x1b0;
+            if (f_1b0_2->field_0x1ca != 0) {
+              L_0x3b70f04:
+              float ftmp_4 = (float)HttpRbxApiClientPerMinuteRequestLimit * expr_2;
+              float ftmp_5 = (float)expr_1;
+              f_1b0_2->field_0xb0 = min(ftmp_5, ftmp_4 + f_1b0_2->field_0xb0);
+              if ((uint8_t)HttpRbxApiBudget >= 6 && (uint8_t)expr_3 >= 3) {
+                FLog::Log("[FLog::HttpRbxApiBudget] Adding budget %f, client budget is at: %f");
+              }
+            }
+          } else {
+            float ftmp_4 = (float)HttpRbxApiClientPerMinuteRequestLimit * expr_2;
+            float ftmp_5 = (float)expr_1;
+            auto* f_1b0_3 = this->field_0x1b0;
+            f_1b0_3->field_0xb0 = min(ftmp_5, ftmp_4 + f_1b0_3->field_0xb0);
+            if ((uint8_t)HttpRbxApiBudget >= 6 && (uint8_t)expr_3 >= 3) {
+              FLog::Log("[FLog::HttpRbxApiBudget] Adding budget %f, client budget is at: %f");
+            }
+          }
+          auto* f_1b0_4 = this->field_0x1b0;
+        } else if (f_1b0_4->field_0x1ca != 0) {
+          goto L_0x3b70f04;
+        }
+        if (!HttpRbxApiRemoveAsyncRetryQueue) {
+          float ftmp_6 = (float)HttpRbxApiMaxRetryBudgetPerMinute * expr_2;
+          f_1b0_4->field_0xb4 = min((float)HttpRbxApiMaxRetryBudgetPerMinute, ftmp_6 + f_1b0_4->field_0xb4);
+        }
+        void* prev_0x1b0_3 = f_1b0_4;
+        auto ret_0x40625d0_5 = call_0x40625d0(prev_0x1b0_3);
+        if (ret_0x40625d0_5 != 0) {
+          if (ret_0x40625d0_5->field_0x985 == 0) {
+            auto* f_1b0_5 = this->field_0x1b0;
+            if (f_1b0_5->field_0x1ca != 0) {
+              L_0x3b71047:
+              call_0x3b7e3d0(prev_0x1b0_3, &f_1b0_5->field_0xb8, &f_1b0_5->field_0xa8);
+              auto* f_1b0_6 = this->field_0x1b0;
+              call_0x3b7e3d0(prev_0x1b0_3, &f_1b0_6->field_0xe8, &f_1b0_6->field_0xac);
+            }
+          } else {
+            auto* f_1b0_7 = this->field_0x1b0;
+            call_0x3b7e3d0(prev_0x1b0_3, &f_1b0_7->field_0xb8, &f_1b0_7->field_0xa8);
+            auto* f_1b0_8 = this->field_0x1b0;
+            call_0x3b7e3d0(prev_0x1b0_3, &f_1b0_8->field_0xe8, &f_1b0_8->field_0xac);
+          }
+        } else if (this->field_0x1b0->field_0x1ca != 0) {
+          goto L_0x3b71047;
+        }
+        auto ret_0x40625d0_8 = call_0x40625d0(prev_0x1b0_3);
+        if (ret_0x40625d0_8 != 0) {
+          if (ret_0x40625d0_8->field_0xa44 == 0) {
+            auto* f_1b0_9 = this->field_0x1b0;
+            if (f_1b0_9->field_0x1ca != 0) {
+              L_0x3b71092:
+              call_0x3b7e3d0(prev_0x1b0_3, &f_1b0_9->field_0x118, &f_1b0_9->field_0xb0);
+            }
+          } else {
+            auto* f_1b0_10 = this->field_0x1b0;
+            call_0x3b7e3d0(prev_0x1b0_3, &f_1b0_10->field_0x118, &f_1b0_10->field_0xb0);
+          }
+          auto* f_1b0_11 = this->field_0x1b0;
+        } else if (f_1b0_11->field_0x1ca != 0) {
+          goto L_0x3b71092;
+        }
+        call_0x3b7dcb0(f_1b0_11);
+      }
+      return true;
+    }
 
 [Strings .rdata na função]
-  * [FLog::HttpRbxApiBudget] Throttling, budget: %f
-  * number of API requests/minute exceeded limit for HTTP API throttle. Please don't issue more than
+  * "[FLog::HttpRbxApiBudget] Throttling, budget: %f"  [@rdata 0x73f3190, ref @0x3b7eb00, FLog format]
+  * "number of API requests/minute exceeded limit for HTTP API throttle. Please don't issue more than"  [@rdata 0x73f31c0, ref @0x3b7ecc2, literal, 96B]
+  * "[FLog::HttpRbxApiBudget] Adding budget %f, default budget is at: %f, elevated budget is at: %f"  [@rdata 0x73f3130, ref @0x3b70e7d, FLog format]
+  * "[FLog::HttpRbxApiBudget] Adding budget %f, client budget is at: %f"  [@rdata 0x73f3070, ref @0x3b70f8f, FLog format]
 
 [Co-Flags na mesma função]
   * FLogHttpRbxApiBudget = 0 (default)
@@ -742,9 +998,14 @@ Operação  : 0x3b7ebe5: mov/math reg, [flag] ; fn=0x3b7ea70..0x3b7ed8e
   * DFIntHttpRbxApiClientPerMinuteRequestLimit = 300 (default)
   * DFIntHttpRbxApiRequestsPerMinutePerPlayerInServerLimit = 100 (default)
   * DFIntHttpRbxApiRequestsPerMinuteServerLimit = 300 (default)
+  * DFFlagDataModelJobDefensiveEngineContextCheck = true (default)
+  * FFlagMicroProfilerPerMarkerDmContext = false (default)
+  * DFFlagMicroProfilerMemoryScope = true (default)
+  * DFIntHttpRbxApiJobFrequencyInSeconds = 1 (default)
+  * DFIntHttpRbxApiMaxBudgetMultiplier = 1 (default)
+  * DFFlagHttpRbxApiRemoveAsyncRetryQueue = false (default)
+  * DFIntHttpRbxApiMaxRetryBudgetPerMinute = 10 (default)
   * DFIntHttpRbxApiMaxRetryQueueSize = 500 (default) [vizinha em .data]
   * DFIntHttpRbxApiMaxSyncRetries = 3 (default) [vizinha em .data]
-  * DFIntHttpRbxApiMaxRetryBudgetPerMinute = 10 (default) [vizinha em .data]
   * DFIntHttpRbxApiMaxRetryCount = 3 (default) [vizinha em .data]
-  * DFIntHttpRbxApiMaxBudgetMultiplier = 1 (default) [vizinha em .data]
   * DFIntPercentApiRequestsRecordGoogleAnalytics = 5 (default) [vizinha em .data]

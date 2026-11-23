@@ -9,7 +9,7 @@ Operação  : 0x9a0040: cmp [flag], reg ; fn=0x99ffe0..0x9a024e
     Classe  : RBX::CDVisShow (Inferido)
     Padrão  : FFlagCDVisShowAsyncIndicator = false (default) [bool, mode=1]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
-    Fórmula : !CDVisShowAsyncIndicator
+    Fórmula : CDVisShowAsyncIndicator && param_2 != 0
     Altera  : this->field_0x20, this->field_0x10, this->field_0x0, this->field_0x8, this->field_0x18, this->field_0x48
     [XREF #2 @0xcc2634] Classe  : RBX::RecomputeCollision (Inferido)
     [XREF #2 @0xcc2634] Fórmula : CDVisShowAsyncIndicator && v_bl_6 != 0 && v_rsi_7 >= 3 && v_rsi_7 <= 4
@@ -83,12 +83,13 @@ Operação  : 0x9a0040: cmp [flag], reg ; fn=0x99ffe0..0x9a024e
           if (this->field_0x58->field_0x0 != 0) {
             if (atomic_cas(&this->field_0x58->field_0x0, this->field_0x58->field_0x0, this->field_0x58->field_0x0 + 1) == 0) {
               if (this->field_0x58 != 0 && atomic_fetch_sub(&this->field_0x58->field_0x0, 1) == 1) {
-                call_0x4969520(this->field_0x58);
+                void* prev_0x58_1 = this->field_0x58;
+                call_0x4969520(prev_0x58_1);
                 if (atomic_fetch_sub(&this->field_0x58->field_0x4, 1) == 1) {
-                  call_0x496a4e0(this->field_0x58);
-                  v_r14_3 = this->field_0x58;
+                  call_0x496a4e0(prev_0x58_1);
+                  v_r14_3 = prev_0x58_1;
                 } else {
-                  v_r14_3 = this->field_0x58;
+                  v_r14_3 = prev_0x58_1;
                 }
               } else {
                 v_r14_3 = this->field_0x58;
@@ -375,14 +376,14 @@ Operação  : 0x9a0040: cmp [flag], reg ; fn=0x99ffe0..0x9a024e
       }
       void* stk_16;
       if (v_rdi_1 != 0 && v_rdi_1->field_0x240 == this->field_0x14) {
+        auto prev_0x240_1 = v_rdi_1->field_0x240;
         auto ret_0xcc2e20_1 = call_0xcc2e20(v_rdi_1);
         auto ret_0xcca610_2 = call_0xcca610(this, &v_rdi_1->field_0x1c0);
-        auto ret_0x99fc20_3 = call_0x99fc20(v_rdi_1->field_0x240, ret_0xcca610_2, ret_0xcc2e20_1);
-        if (ret_0x99fc20_3 == 0) {
+        auto ret_0x99fc20_3 = call_0x99fc20(prev_0x240_1, ret_0xcca610_2, ret_0xcc2e20_1);
+        if ((uint8_t)ret_0x99fc20_3 == 0) {
           void* v_rsi_4;
           void* v_rsi_5 = v_rdi_1->field_0x60;
           if (v_rdi_1->field_0x60 != 0) {
-            int64_t local_0x28;
             if (v_rdi_1->field_0x60->field_0x60 != 0) {
               v_rsi_4 = call_0x7571b0(v_rdi_1->field_0x60->field_0x60);
               if (v_rsi_4 != 0) {
@@ -395,15 +396,16 @@ Operação  : 0x9a0040: cmp [flag], reg ; fn=0x99ffe0..0x9a024e
                   if (ret_0xccc290_6 != 0) {
                     uint8_t v_bl_6;
                     int32_t v_rsi_7;
-                    if (v_rdi_1->field_0x240 >= 0 && (v_rdi_1->field_0x240 & 0xfffe0000) == 0 && v_rdi_1->field_0x240 >> 8 <= 4) {
+                    if (prev_0x240_1 >= 0 && (prev_0x240_1 & 0xfffe0000) == 0 && prev_0x240_1 >> 8 <= 4) {
                     v_bl_6 = 1;
-                    v_rsi_7 = v_rdi_1->field_0x240 >> 8;
+                    v_rsi_7 = prev_0x240_1 >> 8;
                     } else {
                     v_bl_6 = 0;
                     v_rsi_7 = local_0x40;
                     }
                     void* v_rdi_8 = v_rdi_1;
                     void* stk_9;
+                    int64_t local_0x28;
                     if (CDVisShowAsyncIndicator && v_bl_6 != 0 && v_rsi_7 >= 3 && v_rsi_7 <= 4) {
                     void* sel_r13_3 = &param_2->field_0x2d0 == 0 ? 0 : param_2;
                     if (sel_r13_3->field_0x358 != 0) {
@@ -422,7 +424,7 @@ Operação  : 0x9a0040: cmp [flag], reg ; fn=0x99ffe0..0x9a024e
                     }
                     if (RecomputeCollisionGeometryOnUndoTelemetryEnabled && this->field_0x18 != 0 && v_bl_6 != 0) {
                     call_0x746610(&local_0xd8, &sym_0x8158bd0);
-                    call_0x2dbd0c0(&local_0x3b8, &local_0x80, v_rsi_7, 1);
+                    call_0x2dbd0c0(&local_0x3b8, std::string_view("CollisionFidelity", 17), v_rsi_7, 1);
                     auto local_0xb8 = 0;
                     call_0x2dc0a10(&local_0x3b8, &local_0xb8);
                     std::string::_Tidy_deallocate(local_0xb8);
@@ -442,13 +444,14 @@ Operação  : 0x9a0040: cmp [flag], reg ; fn=0x99ffe0..0x9a024e
                     if (!CheckDMExistsForPIPS || ret_0x4062490_19 != 0) {
                     auto ret_0xc8a0_20 = call_0xc8a0();
                     if (ret_0x4062490_19->field_0x700 == ret_0xc8a0_20) {
+                    void* prev_0x240_6 = ret_0xccc290_6->field_0x240;
                     call_0x2e12fd0(&ret_0xccc290_6->field_0x240->field_0x8);
                     auto local_0x48 = stk_9;
                     call_0xcfad50(&ret_0xccc290_6->field_0x240->field_0x10, &local_0x48);
                     if (ret_0xccc290_6->field_0x240->field_0x8 != 3 || atomic_cas(&ret_0xccc290_6->field_0x240->field_0x8, ret_0xccc290_6->field_0x240->field_0x8, 1) != 0) {
                     call_0xdac0(&ret_0xccc290_6->field_0x240->field_0x8);
                     }
-                    call_0xcf04b0(ret_0xccc290_6->field_0x240);
+                    call_0xcf04b0(prev_0x240_6);
                     if (local_0x50 != 0) {
                     call_0x6daf40(local_0x50);
                     }
@@ -477,72 +480,7 @@ Operação  : 0x9a0040: cmp [flag], reg ; fn=0x99ffe0..0x9a024e
                 goto L_0xcc28a8;
               }
             } else {
-              auto ret_0x27c5150_5 = call_0x27c5150();
-              void* sel_rcx_2 = v_rsi_5->field_0x18->field_0x1c0 - ret_0x27c5150_5->field_0x1c0 <= ret_0x27c5150_5->field_0x1c2 ? v_rsi_5 : 0;
-              if (sel_rcx_2 != 0) {
-                auto ret_0xccc290_6 = call_0xccc290(sel_rcx_2);
-                if (ret_0xccc290_6 != 0) {
-                  uint8_t v_bl_6;
-                  int32_t v_rsi_7;
-                  if (v_rdi_1->field_0x240 >= 0 && (v_rdi_1->field_0x240 & 0xfffe0000) == 0 && v_rdi_1->field_0x240 >> 8 <= 4) {
-                    v_bl_6 = 1;
-                    v_rsi_7 = v_rdi_1->field_0x240 >> 8;
-                  } else {
-                    v_bl_6 = 0;
-                    v_rsi_7 = local_0x40;
-                  }
-                  void* v_rdi_8 = v_rdi_1;
-                  void* stk_9;
-                  if (CDVisShowAsyncIndicator && v_bl_6 != 0 && v_rsi_7 >= 3 && v_rsi_7 <= 4) {
-                    void* sel_r13_3 = &param_2->field_0x2d0 == 0 ? 0 : param_2;
-                    if (sel_r13_3->field_0x358 != 0) {
-                    goto L_0xcc2668;
-                    } else {
-                    stk_9 = stk_2;
-                    }
-                  } else {
-                    stk_9 = stk_2;
-                  }
-                  if (RecomputeCollisionGeometryOnUndoTelemetryEnabled && this->field_0x18 != 0 && v_bl_6 != 0) {
-                    goto L_0xcc26a4;
-                  }
-                  void* v_rdi_11 = v_rdi_8;
-                  if (local_0x28 != 0) {
-                    v_rdi_11 = stk_9;
-                  }
-                  auto ret_0x4062490_19 = call_0x4062490(v_rdi_11);
-                  float fstk_13;
-                  if (!CheckDMExistsForPIPS || ret_0x4062490_19 != 0) {
-                    auto ret_0xc8a0_20 = call_0xc8a0();
-                    if (ret_0x4062490_19->field_0x700 == ret_0xc8a0_20) {
-                    call_0x2e12fd0(&ret_0xccc290_6->field_0x240->field_0x8);
-                    auto local_0x48 = stk_9;
-                    call_0xcfad50(&ret_0xccc290_6->field_0x240->field_0x10, &local_0x48);
-                    if (ret_0xccc290_6->field_0x240->field_0x8 != 3 || atomic_cas(&ret_0xccc290_6->field_0x240->field_0x8, ret_0xccc290_6->field_0x240->field_0x8, 1) != 0) {
-                    call_0xdac0(&ret_0xccc290_6->field_0x240->field_0x8);
-                    }
-                    call_0xcf04b0(ret_0xccc290_6->field_0x240);
-                    if (local_0x50 != 0) {
-                    call_0x6daf40(local_0x50);
-                    }
-                    fstk_13 = 0.0;
-                    } else {
-                    call_0x49710d0("InvalidAccess", &sym_0x6647145);
-                    }
-                  }
-                  fstk_13 = local_0x28;
-                  if (fstk_13 != 0) {
-                    call_0x6daf40(fstk_13);
-                    stk_16 = local_0x28;
-                  } else {
-                    stk_16 = local_0x28;
-                  }
-                } else {
-                  goto L_0xcc28a8;
-                }
-              } else {
-                goto L_0xcc28a8;
-              }
+              goto L_0xcc25cb;
             }
           } else {
             v_rsi_4 = v_rdi_1;
@@ -869,7 +807,7 @@ Operação  : 0x9a0040: cmp [flag], reg ; fn=0x99ffe0..0x9a024e
       auto frame_0x2b0 = xmm7 - rax->field_0x8;
       call_0x50ec630(&frame_0x9b0, &frame_0x2a8, rsi, &frame_0x42c);
       float fxmm8_1;
-      if (800.0 > xmm8) {
+      if (800.0f > xmm8) {
         if (xmm14 > xmm8) {
           fxmm8_1 = 0.0;
         } else {
@@ -881,7 +819,7 @@ Operação  : 0x9a0040: cmp [flag], reg ; fn=0x99ffe0..0x9a024e
       float ftmp_1 = (fxmm8_1 - global_0x815ded0) * global_0x815ded8;
       auto ret_0x5e338a8_2 = call_0x5e338a8(ftmp_1);
       rdi->field_0x15c = (int32_t)ret_0x5e338a8_2;
-      int32_t i_ebx = rbx + (param_2 >> 8 & 0xFF);
+      int32_t i_ebx = (uint8_t)rbx + (param_2 >> 8 & 0xFF);
       do { // L_0x33287c0
         i_ebx++;
       } while (r14[i_ebx * 8] == r15); // loop -> L_0x33287c0
@@ -1796,8 +1734,8 @@ Operação  : 0x9a0040: cmp [flag], reg ; fn=0x99ffe0..0x9a024e
     0x332976a | c3                       | ret
 
 [Strings .rdata na função]
-  * CollisionFidelity
-  * InvalidAccess
+  * "CollisionFidelity"  [@rdata 0x71b9498, ref @0xcc26b8, string_view len=17]
+  * "InvalidAccess"  [@rdata 0x71c4fc8, ref @0xcc28f1, key/identifier]
 
 [Co-Flags na mesma função]
   * FFlagSimPhysicalConfigDataEngineAccessors = true (default)

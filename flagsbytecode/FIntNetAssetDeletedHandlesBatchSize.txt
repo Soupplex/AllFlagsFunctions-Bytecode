@@ -9,7 +9,7 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
     Classe  : RBX::Network::Item (RTTI Resolvido)
     Padrão  : FIntNetAssetDeletedHandlesBatchSize = 128 (default) [int, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : r14->field_0x1c0->field_0x498->field_0x28 >= max(1, NetAssetDeletedHandlesBatchSize)
+    Fórmula : r14->field_0x1c0->field_0x498->field_0x28 >= max(1, NetAssetDeletedHandlesBatchSize) || atomic_fetch_add(&r14->field_0x1c0->field_0x498->field_0x30, 1) + 1 >= max(1, NetAssetDeletedHandlesMaxProcessCalls)
     Altera  : this->field_m0x74b7d38c[this * 8]
     Wasm    : .data=0x123f800 [via DFFlagDebugIgnoreNetAssetChecks_FLIPPED]
     [Wasm]  : DebugIgnoreNetAssetChecks_FLIPPED
@@ -18,10 +18,10 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
   === [Decompilacao C++ da Funcao 0x46cde9c..0x46d0024] ===
     // Flag defaults: NetAssetDeletedHandlesBatchSize = 128, LrPullSystemReportInlineSends = false, NetAssetGatherDeletedHandles = true, NetAssetDeletedHandlesMaxProcessCalls = 60, ServerDrivenObjectDeletion = false, ReportIsrReliableQueueTimeLatencyImprovement = true, DebugHashTableMetrics = false, NextGenReplicatorEnabledWrite4 = false
     bool RBX::Network::Item::func_0x46cde9c(RBX::Network::Item* this, void* param_3, void* param_4) {
-      rax->field_0x0 = rax->field_0x0 + rax;
-      rdi->field_0x0 = rdi->field_0x0 + this;
-      this->field_m0x74b7d38c[this * 8] = this->field_m0x74b7d38c[this * 8] | rax;
-      param_3->field_m0x77 = param_3->field_m0x77 + param_4;
+      rax->field_0x0 = rax->field_0x0 + (uint8_t)rax;
+      rdi->field_0x0 = rdi->field_0x0 + (uint8_t)this;
+      this->field_m0x74b7d38c[this * 8] = this->field_m0x74b7d38c[this * 8] | (uint8_t)rax;
+      param_3->field_m0x77 = param_3->field_m0x77 + (uint8_t)param_4;
       call_0x7385b0(&frame_0xb0, param_2 & ~0xFF00 | (77) << 8);
       call_0x6f6690(&frame_0xb0);
       if (frame_0x8 != 0) {
@@ -68,16 +68,19 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
           }
         }
         call_0x81dd50(&frame_0xfe0, global_0x8defd50);
+        void* v_rbx_5 = r14->field_0x1c0;
         if (r14->field_0x1c0->field_0x498->field_0x28 != 0) {
           if (r14->field_0x1c0->field_0x498->field_0x28 >= max(1, NetAssetDeletedHandlesBatchSize) || atomic_fetch_add(&r14->field_0x1c0->field_0x498->field_0x30, 1) + 1 >= max(1, NetAssetDeletedHandlesMaxProcessCalls)) {
+            void* prev_0x1c0_1 = r14->field_0x1c0;
             call_0x1c26c40(r14->field_0x1c0->field_0x498);
+            v_rbx_5 = prev_0x1c0_1;
           }
         }
-        call_0x1c27000(&r14->field_0x1c0->field_0x498);
+        call_0x1c27000(&v_rbx_5->field_0x498);
         call_0x2925410(&frame_0xfe0, -1, 0);
       }
       if (ServerDrivenObjectDeletion && r14->field_0x1c0->field_0x200 != 0) {
-        call_0x46b9a40(r14->field_0x1c0);
+        call_0x46b9a40();
       }
       if (global_0x8defd58 > rbp->field_0x58->field_0x0->field_0x0[40]) {
         call_0x12e0(&sym_0x8defd58);
@@ -87,69 +90,73 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
         }
       }
       call_0x81dd50(&frame_0x1060, global_0x8defd60);
-      void* v_r12_5;
-      uint8_t v_r13b_6;
+      void* v_r12_6;
+      uint8_t v_r13b_7;
       if (r14->field_0x1c0->field_0x3c8 != 0 && ReportIsrReliableQueueTimeLatencyImprovement) {
         auto ret_0x46addb0_21 = call_0x46addb0(r14->field_0x1c0, &frame_0x5e0, r14->field_0x1c0->field_0x3c8);
         if (!DebugHashTableMetrics && (ret_0x46addb0_21->field_0x0 >> 3 & 0x1) == 0 && !NextGenReplicatorEnabledWrite4) {
-          if ((ret_0x46addb0_21->field_0x0 & 0x1) != 0) {
-            v_r12_5 = r8->field_0x0;
-            v_r13b_6 = 1;
+          if (((uint8_t)ret_0x46addb0_21->field_0x0 & 0x1) != 0) {
+            v_r12_6 = r8->field_0x0;
+            v_r13b_7 = 1;
           } else {
-            v_r12_5 = frame_0x290;
-            v_r13b_6 = 0;
+            v_r12_6 = frame_0x290;
+            v_r13b_7 = 0;
           }
         } else {
-          v_r12_5 = r8->field_0x0;
-          v_r13b_6 = 1;
+          v_r12_6 = r8->field_0x0;
+          v_r13b_7 = 1;
         }
       } else {
-        v_r12_5 = frame_0x290;
-        v_r13b_6 = 0;
+        v_r12_6 = frame_0x290;
+        v_r13b_7 = 0;
       }
       int32_t i_r15d;
       void* i_ebx;
       void* i_ecx;
+      auto expr_4 = r14->field_0x1c0->field_0xc18->field_0x10;
       if (r14->field_0x1c0->field_0x7c8 != r14->field_0x1c0->field_0x7c0) {
         i_ecx = r14->field_0x1c0->field_0x7c8;
         i_ebx = r14->field_0x1c0->field_0x7c8;
         i_r15d = 40;
         do { // L_0x46ce250
-          uint8_t v_r15b_7;
-          if (TeamCreateDataStreamTimestamp && i_ecx->field_m0x8 != 0 && i_ecx->field_m0x8->field_0x3b28->field_0xc68 != 0 && ((uint64_t)i_ecx->field_m0x8->field_0x3fa8 >> 58 & 0x1) != 0) {
-            call_0x4624620(i_ecx->field_m0x8);
-            v_r15b_7 = 1;
+          void* v_rdi_8 = i_ecx->field_m0x8;
+          uint8_t v_r15b_9;
+          if (TeamCreateDataStreamTimestamp && i_ecx->field_m0x8 != 0 && i_ecx->field_m0x8->field_0x3b28->field_0xc68 != 0 && ((uint8_t)((uint64_t)i_ecx->field_m0x8->field_0x3fa8 >> 58) & 0x1) != 0) {
+            void* mem_2_2 = i_ecx->field_m0x8;
+            call_0x4624620(mem_2_2);
+            v_rdi_8 = mem_2_2;
+            v_r15b_9 = 1;
           } else {
-            v_r15b_7 = 0;
+            v_r15b_9 = 0;
           }
-          if (v_r13b_6 != 0 && v_r15b_7 == 0) {
-            auto ret_0x46ca560_23 = call_0x46ca560(i_ecx, i_ecx->field_m0x8);
+          if (v_r13b_7 != 0 && v_r15b_9 == 0) {
+            auto ret_0x46ca560_23 = call_0x46ca560(i_ecx, v_rdi_8);
             if (ret_0x46ca560_23 > 0) {
               auto ret_0x4956040_24 = call_0x4956040(72);
               if (ret_0x4956040_24 == 0) break;
-              if (local_0x54 == v_r15b_7) break;
+              if (local_0x54 == v_r15b_9) break;
               ret_0x4956040_24->field_0x8 = rsi;
               ret_0x4956040_24->field_0x10 = rsi;
               ret_0x4956040_24->field_0x0 = &sym_0x713ac80;
-              ret_0x4956040_24->field_0x18 = i_ecx->field_m0x8;
-              ret_0x4956040_24->field_0x20 = i_ecx->field_m0x8->field_0x3b28->field_0x870;
-              ret_0x4956040_24->field_0x28 = v_r15b_7;
+              ret_0x4956040_24->field_0x18 = v_rdi_8;
+              ret_0x4956040_24->field_0x20 = v_rdi_8->field_0x3b28->field_0x870;
+              ret_0x4956040_24->field_0x28 = v_r15b_9;
               ret_0x4956040_24->field_0x30 = rsi;
               ret_0x4956040_24->field_0x38 = rsi;
               ret_0x4956040_24->field_0x0 = &sym_0x7141888;
-              ret_0x4956040_24->field_0x40 = v_r12_5;
-              call_0x47a9150(&i_ecx->field_m0x8->field_0x3bb8, ret_0x4956040_24);
+              ret_0x4956040_24->field_0x40 = v_r12_6;
+              call_0x47a9150(&v_rdi_8->field_0x3bb8, ret_0x4956040_24);
             }
           }
           if (!NetworkJobUseParallelFor) {
             auto frame_0x370 = &frame_0x460;
-            call_0x2992300(r14->field_0x1c0->field_0xc18->field_0x10, &frame_0x370);
-            auto frame_0x460 = i_ecx->field_m0x8;
+            call_0x2992300(expr_4, &frame_0x370);
+            auto frame_0x460 = v_rdi_8;
             call_0x6f5b70(&frame_0x460);
           }
           i_ebx -= 8;
           i_ecx = i_ebx;
-          i_r15d = v_r15b_7;
+          i_r15d = v_r15b_9;
         } while (i_ebx != r14->field_0x1c0->field_0x7c0); // loop -> L_0x46ce250
       }
       auto expr_2 = (r14->field_0x1c0->field_0x7c8 - r14->field_0x1c0->field_0x7c0) >> 3;
@@ -164,7 +171,7 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
         auto frame_0xb10 = r14;
         call_0x2995e40(&frame_0xb10, expr_2, 1, MegaReplicatorNumParallelTasks);
       }
-      call_0x2992b00(r14->field_0x1c0->field_0xc18->field_0x10);
+      call_0x2992b00(expr_4);
       if (local_0x58 != 0) {
         if (stk_4 != 0) {
           call_0x46ca9f0(r14);
@@ -173,7 +180,7 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
       } else {
         auto ret_0x46addb0_33 = call_0x46addb0(r14->field_0x1c0, &frame_0x5e8);
         auto ret_0xd32450_34 = call_0xd32450(ret_0x46addb0_33);
-        if (ret_0xd32450_34 != 0) {
+        if ((uint8_t)ret_0xd32450_34 != 0) {
           call_0x46ca9f0(r14);
           call_0x47f9d10(r14->field_0x1c0->field_0x3c8);
         } else {
@@ -186,32 +193,35 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
       call_0x46c31e0(r14->field_0x1c0);
       r14->field_0x1c0->field_0xb20 = r14->field_0x1c0->field_0xb18;
       call_0x2925410(&frame_0x1060, -1, 0);
-      void* v_r13_9 = rsi;
-      if (SlimReplicationUseReplicatorBandwidthForRateLimiting != rsi) {
+      void* v_r13_11 = rsi;
+      if (SlimReplicationUseReplicatorBandwidthForRateLimiting != (uint8_t)rsi) {
         call_0x7585c0(r14 + 0x1b0, &frame_0x380);
-        void* v_r13_8 = rsi;
+        void* v_r13_10 = rsi;
         if (frame_0x380 != 0 && &frame_0x380->field_0x1f0 != 0) {
           auto ret_0x34bbd90_42 = call_0x34bbd90(&frame_0x380->field_0x1f0);
-          v_r13_8 = ret_0x34bbd90_42->field_0x0;
+          v_r13_10 = ret_0x34bbd90_42->field_0x0;
         }
         if (frame_0x388 != 0) {
           call_0x6daf40(frame_0x388);
-          v_r13_9 = v_r13_8;
+          v_r13_11 = v_r13_10;
         } else {
-          v_r13_9 = v_r13_8;
+          v_r13_11 = v_r13_10;
         }
       }
       void* i_edi;
       if (stk_3 != 0) {
         if (r14->field_0x1c0->field_0x7c0 != r14->field_0x1c0->field_0x7c8) {
           i_edi = &sym_0x724baaf;
+          void* v_r15_17;
           do { // L_0x46ce5d0
-            void* v_rdi_14 = i_edi;
+            void* v_rdi_16 = i_edi;
+            v_r15_17 = r14->field_0x1c0->field_0x7c8;
             if (i_ebx->field_0x0->field_0x3b31 == 0 && i_ebx->field_0x0->field_0x4bd4 != 0 && i_ebx->field_0x0->field_0x3450 > 0) {
               if (i_ebx->field_0x0->field_0x2b84 == 0 && i_ebx->field_0x0->field_0x2b70 != 0) {
                 if (i_ebx->field_0x0->field_0x2b70->field_0x40 != 2) {
                   if (i_ebx->field_0x0->field_0x3338 > 0) {
                     L_0x46ce623:
+                    void* prev_0x7c8_3 = r14->field_0x1c0->field_0x7c8;
                     auto ret_0x4617630_44 = call_0x4617630(i_ebx->field_0x0, i_ebx->field_0x0->field_0x17c0 - 0xc8 > 0 ? i_ebx->field_0x0->field_0x17c0 - 0xc8 : rsi, 2, 1);
                     if (ret_0x4617630_44 > 0) {
                     if (global_0x8defd78 > rbp->field_0x58->field_0x0->field_0x0[40]) {
@@ -225,33 +235,34 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
                     call_0x6e1a50(&frame_0xce0);
                     call_0x2924c40(&frame_0xce0, global_0x8defd80, -1, 0);
                     call_0x472d5d0(&i_ebx->field_0x0->field_0x33c8);
-                    void* v_rdi_13 = i_edi;
-                    if (SlimReplicationUseReplicatorBandwidthForRateLimiting && v_r13_9 != 0) {
+                    void* v_rdi_15 = i_edi;
+                    if (SlimReplicationUseReplicatorBandwidthForRateLimiting && v_r13_11 != 0) {
                     auto vret_57 = i_ebx->field_0x0->vfunc_0x280();
                     if (vret_57 != 0) {
-                    void* v_rdx_12;
+                    void* v_rdx_14;
                     if (MigrateUserIdAccessors) {
-                    v_rdx_12 = vret_57->field_0xb8;
+                    v_rdx_14 = vret_57->field_0xb8;
                     L_0x46ce79e:
-                    auto frame_0x298 = v_rdx_12;
-                    call_0x2f9c320(&v_r13_9->field_0x190, &frame_0x390, &frame_0x298);
-                    v_rdi_13 = &sym_0x724baaf;
+                    auto frame_0x298 = v_rdx_14;
+                    call_0x2f9c320(&v_r13_11->field_0x190, &frame_0x390, &frame_0x298);
+                    v_rdi_15 = &sym_0x724baaf;
                     } else {
                     void* sel_rcx_1 = &vret_57->field_0x98 != 0 ? vret_57 : rsi;
                     if (sel_rcx_1->field_0x318 != sel_rcx_1->field_0x458 - 0xe98c18d) break;
                     if (PlayerUserIdReturnsEffectiveId3) {
-                    v_rdx_12 = sel_rcx_1->field_0xa0;
+                    v_rdx_14 = sel_rcx_1->field_0xa0;
                     } else {
-                    v_rdx_12 = sel_rcx_1->field_0x318;
+                    v_rdx_14 = sel_rcx_1->field_0x318;
                     }
-                    auto frame_0x298 = v_rdx_12;
-                    call_0x2f9c320(&v_r13_9->field_0x190, &frame_0x390, &frame_0x298);
-                    v_rdi_13 = &sym_0x724baaf;
+                    auto frame_0x298 = v_rdx_14;
+                    call_0x2f9c320(&v_r13_11->field_0x190, &frame_0x390, &frame_0x298);
+                    v_rdi_15 = &sym_0x724baaf;
                     }
                     }
                     }
                     call_0x2925410(&frame_0xce0, -1, 0);
-                    v_rdi_14 = v_rdi_13;
+                    v_rdi_16 = v_rdi_15;
+                    v_r15_17 = prev_0x7c8_3;
                     } else {
                     if (global_0x8defd88 > rbp->field_0x58->field_0x0->field_0x0[40]) {
                     call_0x12e0(&sym_0x8defd88);
@@ -264,9 +275,11 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
                     call_0x6e1a50(&frame_0xd60);
                     call_0x2924c40(&frame_0xd60, global_0x8defd90, -1, 0);
                     call_0x2925410(&frame_0xd60, -1, 0);
+                    v_r15_17 = prev_0x7c8_3;
                     }
                   }
                 } else {
+                  void* prev_0x7c8_3 = r14->field_0x1c0->field_0x7c8;
                   auto ret_0x4617630_44 = call_0x4617630(i_ebx->field_0x0, i_ebx->field_0x0->field_0x17c0 - 0xc8 > 0 ? i_ebx->field_0x0->field_0x17c0 - 0xc8 : rsi, 2, 1);
                   if (ret_0x4617630_44 > 0) {
                     if (global_0x8defd78 > rbp->field_0x58->field_0x0->field_0x0[40]) {
@@ -280,28 +293,29 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
                     call_0x6e1a50(&frame_0xce0);
                     call_0x2924c40(&frame_0xce0, global_0x8defd80, -1, 0);
                     call_0x472d5d0(&i_ebx->field_0x0->field_0x33c8);
-                    void* v_rdi_13 = i_edi;
-                    if (SlimReplicationUseReplicatorBandwidthForRateLimiting && v_r13_9 != 0) {
+                    void* v_rdi_15 = i_edi;
+                    if (SlimReplicationUseReplicatorBandwidthForRateLimiting && v_r13_11 != 0) {
                     auto vret_57 = i_ebx->field_0x0->vfunc_0x280();
                     if (vret_57 != 0) {
-                    void* v_rdx_12;
+                    void* v_rdx_14;
                     if (MigrateUserIdAccessors) {
-                    v_rdx_12 = vret_57->field_0xb8;
+                    v_rdx_14 = vret_57->field_0xb8;
                     goto L_0x46ce79e;
                     } else {
                     void* sel_rcx_1 = &vret_57->field_0x98 != 0 ? vret_57 : rsi;
                     if (sel_rcx_1->field_0x318 != sel_rcx_1->field_0x458 - 0xe98c18d) break;
                     if (PlayerUserIdReturnsEffectiveId3) {
-                    v_rdx_12 = sel_rcx_1->field_0xa0;
+                    v_rdx_14 = sel_rcx_1->field_0xa0;
                     } else {
-                    v_rdx_12 = sel_rcx_1->field_0x318;
+                    v_rdx_14 = sel_rcx_1->field_0x318;
                     }
                     goto L_0x46ce79e;
                     }
                     }
                     }
                     call_0x2925410(&frame_0xce0, -1, 0);
-                    v_rdi_14 = v_rdi_13;
+                    v_rdi_16 = v_rdi_15;
+                    v_r15_17 = prev_0x7c8_3;
                   } else {
                     if (global_0x8defd88 > rbp->field_0x58->field_0x0->field_0x0[40]) {
                     call_0x12e0(&sym_0x8defd88);
@@ -314,6 +328,7 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
                     call_0x6e1a50(&frame_0xd60);
                     call_0x2924c40(&frame_0xd60, global_0x8defd90, -1, 0);
                     call_0x2925410(&frame_0xd60, -1, 0);
+                    v_r15_17 = prev_0x7c8_3;
                   }
                 }
               } else if (i_ebx->field_0x0->field_0x3338 > 0) {
@@ -321,8 +336,8 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
               }
             }
             i_ebx += 8;
-            i_edi = v_rdi_14;
-          } while (i_ebx != r14->field_0x1c0->field_0x7c8); // loop -> L_0x46ce5d0
+            i_edi = v_rdi_16;
+          } while (i_ebx != v_r15_17); // loop -> L_0x46ce5d0
         }
         if (r14->field_0x1c0->field_0x9c0 != r14->field_0x1c0->field_0x9c8) {
           call_0x46ca2a0(r14->field_0x1c0);
@@ -330,7 +345,7 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
       }
       auto ret_0x46addb0_61 = call_0x46addb0(r14->field_0x1c0, &frame_0x5f0);
       auto ret_0xd32450_62 = call_0xd32450(ret_0x46addb0_61);
-      if (ret_0xd32450_62 == 0 && local_0x69 != 0) {
+      if ((uint8_t)ret_0xd32450_62 == 0 && local_0x69 != 0) {
         call_0x46c2400(r14->field_0x1c0);
         if (r14->field_0x1c0->field_0xc80 != 0) {
           if (NetworkJobUseParallelFor) {
@@ -354,28 +369,23 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
             call_0x13feb30(&frame_0xc50, global_0x8defdb0, 1);
             auto frame_0x630 = r14;
             call_0x197bcf0(r14->field_0x1c0->field_0xc18, &frame_0x630, expr_2, TrackerDataParallelSerializationBatchSize);
-            call_0x2992b00(r14->field_0x1c0->field_0xc18->field_0x10);
+            call_0x2992b00(expr_4);
             if (frame_0xcd0 != 0) {
               call_0x2973db0(&frame_0xc50, frame_0xcc8);
             }
           }
           if (r14->field_0x1c0->field_0xc80 * 4 < r14->field_0x1c0->field_0xc88 && r14->field_0x1c0->field_0xc88 > 64) {
+            auto prev_0xc80_7 = r14->field_0x1c0->field_0xc80;
             call_0x46d7250(&r14->field_0x1c0->field_0xc78);
-            int32_t v_rbx_20 = rsi;
-            if (r14->field_0x1c0->field_0xc80 != 0) {
-              int32_t v_rcx_19;
-              if (r14->field_0x1c0->field_0xc80 == 1) {
-                v_rcx_19 = r14->field_0x1c0->field_0xc80 + 0x1f;
-              } else {
-                v_rcx_19 = bsr(r14->field_0x1c0->field_0xc80 - 1) ^ 0x1f;
-              }
-              v_rbx_20 = max(64, 1 << (33 - v_rcx_19));
+            int32_t v_rbx_22 = rsi;
+            if (prev_0xc80_7 != 0) {
+              v_rbx_22 = max(64, 1 << (33 - prev_0xc80_7 == 1 ? prev_0xc80_7 + 0x1f : bsr(prev_0xc80_7 - 1) ^ 0x1f));
             }
-            if (v_rbx_20 == r14->field_0x1c0->field_0xc88) {
+            if (v_rbx_22 == r14->field_0x1c0->field_0xc88) {
               call_0x46d7e20(&r14->field_0x1c0->field_0xc78);
             } else {
               call_0x4955ac0(r14->field_0x1c0->field_0xc78);
-              call_0x46d70f0(&r14->field_0x1c0->field_0xc78, v_rbx_20);
+              call_0x46d70f0(&r14->field_0x1c0->field_0xc78, v_rbx_22);
             }
           } else {
             if (r14->field_0x1c0->field_0xc80 != 0 || r14->field_0x1c0->field_0xc84 != r14->field_0x1c0->field_0xc80) {
@@ -418,7 +428,7 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
           call_0x2995e40(&frame_0xc00, expr_2, 1, MegaReplicatorNumParallelTasks);
         } else {
           call_0x197bcf0(r14->field_0x1c0->field_0xc18, &frame_0x650, expr_1, expr_3);
-          call_0x2992b00(r14->field_0x1c0->field_0xc18->field_0x10);
+          call_0x2992b00(expr_4);
           call_0x46d5bc0(&r14->field_0x1c0->field_0xc90);
           call_0x46d61c0(&r14->field_0x1c0->field_0x428, rsi);
           auto frame_0x670 = r14;
@@ -426,55 +436,56 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
         }
       }
       auto ret_0x80c170_95 = call_0x80c170(&r14->field_0x198->field_0x1f0);
-      void* v_rbx_25 = rsi;
-      void* fstk_26;
-      void* fstk_27;
-      if (ret_0x80c170_95 != 0 && r14->field_0x1c0->field_0x449 != rsi) {
+      void* v_rbx_27 = rsi;
+      void* fstk_28;
+      void* fstk_29;
+      if (ret_0x80c170_95 != 0 && r14->field_0x1c0->field_0x449 != (uint8_t)rsi) {
         call_0x46adef0(&frame_0xa70, &ret_0x80c170_95->field_0x790);
-        void* v_rbx_22 = rsi;
-        void* fstk_23;
-        void* fstk_24;
+        void* v_rbx_24 = rsi;
+        void* fstk_25;
+        void* fstk_26;
         if (frame_0xa88 != rsi) {
           auto ret_0x46db010_97 = call_0x46db010(&frame_0x528, &frame_0xa70);
-          void* prev_0x0_2 = ret_0x46db010_97->field_0x0;
+          void* prev_0x0_9 = ret_0x46db010_97->field_0x0;
           ret_0x46db010_97->field_0x0 = rsi;
-          void* prev_0x8_3 = ret_0x46db010_97->field_0x8;
+          void* prev_0x8_10 = ret_0x46db010_97->field_0x8;
           ret_0x46db010_97->field_0x8 = rsi;
           if (frame_0x530 != 0) {
             call_0x6daf40(frame_0x530);
-            v_rbx_22 = prev_0x8_3;
-            fstk_23 = prev_0x0_2;
-            fstk_24 = prev_0x8_3;
+            v_rbx_24 = prev_0x8_10;
+            fstk_25 = prev_0x0_9;
+            fstk_26 = prev_0x8_10;
           } else {
-            v_rbx_22 = prev_0x8_3;
-            fstk_23 = prev_0x0_2;
-            fstk_24 = prev_0x8_3;
+            v_rbx_24 = prev_0x8_10;
+            fstk_25 = prev_0x0_9;
+            fstk_26 = prev_0x8_10;
           }
         } else {
-          fstk_23 = 0.0;
-          fstk_24 = 0.0;
+          fstk_25 = 0.0;
+          fstk_26 = 0.0;
         }
         call_0x3316df0(&frame_0xa70);
-        v_rbx_25 = v_rbx_22;
-        fstk_26 = fstk_23;
-        fstk_27 = fstk_24;
+        v_rbx_27 = v_rbx_24;
+        fstk_28 = fstk_25;
+        fstk_29 = fstk_26;
       } else {
-        fstk_26 = 0.0;
-        fstk_27 = 0.0;
+        fstk_28 = 0.0;
+        fstk_29 = 0.0;
       }
-      if (v_rbx_25 != 0) {
-        fstk_27->field_0x8++;
+      if (v_rbx_27 != 0) {
+        fstk_29->field_0x8++;
       }
+      void* prev_0xc18_11 = r14->field_0x1c0->field_0xc18;
       auto ret_0x4956380_100 = call_0x4956380(32, 8);
       ret_0x4956380_100->field_0x0 = r14;
-      ret_0x4956380_100->field_0x8 = fstk_26;
-      ret_0x4956380_100->field_0x10 = fstk_27;
+      ret_0x4956380_100->field_0x8 = fstk_28;
+      ret_0x4956380_100->field_0x10 = fstk_29;
       ret_0x4956380_100->field_0x18 = &local_0x6a;
       if (0.0 != 0) {
         call_0x6daf40(0.0);
       }
       auto frame_0x2e0 = ret_0x4956380_100;
-      call_0x197bcf0(r14->field_0x1c0->field_0xc18, &frame_0x2e0, expr_2, 1);
+      call_0x197bcf0(prev_0xc18_11, &frame_0x2e0, expr_2, 1);
       if (global_0x8defdd8 > rbp->field_0x58->field_0x0->field_0x0[40]) {
         call_0x12e0(&sym_0x8defdd8);
         if (global_0x8defdd8 == -1) {
@@ -483,58 +494,67 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
         }
       }
       call_0x81dd50(&frame_0x10e0, global_0x8defde0);
-      call_0x2992b00(r14->field_0x1c0->field_0xc18->field_0x10);
+      call_0x2992b00(expr_4);
       call_0x2925410(&frame_0x10e0, -1, 0);
       if (DMCTMigratePlayerSimple && r14->field_0x1c0->field_0x200 == 0) {
         auto ret_0x46addb0_109 = call_0x46addb0(r14->field_0x1c0, &frame_0x6a8);
         auto ret_0xd32450_110 = call_0xd32450(ret_0x46addb0_109);
-        if (ret_0xd32450_110 == 0 && local_0x69 != 0 && r14->field_0x1c0->field_0x7c0 != r14->field_0x1c0->field_0x7c8) {
+        if ((uint8_t)ret_0xd32450_110 == 0 && local_0x69 != 0 && r14->field_0x1c0->field_0x7c0 != r14->field_0x1c0->field_0x7c8) {
+          void* v_r15_32;
           do { // L_0x46cf170
             if (i_edi->field_0x0->field_0x4b48 != 0) {
               i_edi->field_0x0->field_0x4b48->field_0x8++;
             }
+            void* v_rbx_31 = i_edi->field_0x0->field_0x4b40;
+            v_r15_32 = r14->field_0x1c0->field_0x7c8;
             if (i_edi->field_0x0->field_0x4b48 != 0) {
+              void* prev_0x4b40_12 = i_edi->field_0x0->field_0x4b40;
+              void* prev_0x7c8_13 = r14->field_0x1c0->field_0x7c8;
               call_0x6daf40(i_edi->field_0x0->field_0x4b48);
+              v_rbx_31 = prev_0x4b40_12;
+              v_r15_32 = prev_0x7c8_13;
             }
-            if (i_edi->field_0x0->field_0x4b40 != 0 && i_edi->field_0x0->field_0x4b40->field_0x60 != 0) {
-              i_edi->field_0x0->field_0x4b40->field_0x60 = 0;
-              auto vret_112 = i_edi->field_0x0->field_0x4b40->field_0x18->vfunc_0x280();
+            if (v_rbx_31 != 0 && v_rbx_31->field_0x60 != 0) {
+              v_rbx_31->field_0x60 = 0;
+              float prev_0x5c_15 = v_rbx_31->field_0x5c;
+              auto vret_112 = v_rbx_31->field_0x18->vfunc_0x280();
               if (vret_112 != 0) {
-                float fxmm1_29;
-                if (0.0 <= i_edi->field_0x0->field_0x4b40->field_0x5c) {
-                  fxmm1_29 = sqrtf(i_edi->field_0x0->field_0x4b40->field_0x5c);
+                float fxmm1_33;
+                if (0.0 <= prev_0x5c_15) {
+                  fxmm1_33 = sqrtf(prev_0x5c_15);
                 } else {
-                  fxmm1_29 = call_0x609e228(i_edi->field_0x0->field_0x4b40->field_0x5c);
+                  fxmm1_33 = call_0x609e228(prev_0x5c_15);
                 }
-                if (vret_112->field_0x3b4 > fxmm1_29) {
+                if (vret_112->field_0x3b4 > fxmm1_33) {
                   call_0x3d1cff0(vret_112);
                 }
               }
             }
             i_edi += 8;
-          } while (i_edi != r14->field_0x1c0->field_0x7c8); // loop -> L_0x46cf170
+          } while (i_edi != v_r15_32); // loop -> L_0x46cf170
         }
       }
       if (SlimReplicationUseReplicatorBandwidthForRateLimiting) {
         auto ret_0x46addb0_115 = call_0x46addb0(r14->field_0x1c0, &frame_0x5f8);
-        if (!DebugHashTableMetrics && (ret_0x46addb0_115->field_0x0 >> 3 & 0x1) == 0 && !NextGenReplicatorEnabledWrite4 && (ret_0x46addb0_115->field_0x0 & 0x1) == 0 && local_0x69 != 0 && v_r13_9 != 0) {
+        if (!DebugHashTableMetrics && (ret_0x46addb0_115->field_0x0 >> 3 & 0x1) == 0 && !NextGenReplicatorEnabledWrite4 && ((uint8_t)ret_0x46addb0_115->field_0x0 & 0x1) == 0 && local_0x69 != 0 && v_r13_11 != 0) {
           while (i_edi != r14->field_0x1c0->field_0x7c8) {
             if (i_edi->field_0x0->field_0x3b31 == 0 && i_edi->field_0x0->field_0x4bd4 != 0 && i_edi->field_0x0->field_0x35a4 == r14->field_0x1c0->field_0x978) {
-              auto vret_194 = i_edi->field_0x0->vfunc_0x280(i_edi->field_0x0);
+              void* prev_0x0_20 = i_edi->field_0x0;
+              auto vret_194 = i_edi->field_0x0->vfunc_0x280(prev_0x0_20);
               if (vret_194 != 0) {
-                void* v_rdx_82;
+                void* v_rdx_86;
                 if (MigrateUserIdAccessors) {
-                  v_rdx_82 = vret_194->field_0xb8;
+                  v_rdx_86 = vret_194->field_0xb8;
                 } else {
                   void* sel_rcx_5 = &vret_194->field_0x98 != 0 ? vret_194 : rsi;
                   if (PlayerUserIdReturnsEffectiveId3) {
-                    v_rdx_82 = sel_rcx_5->field_0xa0;
+                    v_rdx_86 = sel_rcx_5->field_0xa0;
                   } else {
-                    v_rdx_82 = sel_rcx_5->field_0x318;
+                    v_rdx_86 = sel_rcx_5->field_0x318;
                   }
                 }
-                auto frame_0x2a0 = v_rdx_82;
-                call_0x2f9c320(&v_r13_9->field_0x190, &frame_0x3f0, &frame_0x2a0);
+                auto frame_0x2a0 = v_rdx_86;
+                call_0x2f9c320(&v_r13_11->field_0x190, &frame_0x3f0, &frame_0x2a0);
               }
             }
             i_edi += 8;
@@ -545,13 +565,16 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
       r14->field_0x1c0->field_0x978++;
       call_0x46d6460(&r14->field_0x1c0->field_0x1e0, r14->field_0x1c0->field_0x1f0 > (NetworkSenderMaxRetainedPropertyItemsBuckets < 0 ? rsi : NetworkSenderMaxRetainedPropertyItemsBuckets));
       if (TrackNetworkSenderStall && r14->field_0x1c0->field_0x7c0 != r14->field_0x1c0->field_0x7c8) {
+        void* prev_0x7c8_17;
         do { // L_0x46cf440
+          void* prev_0x0_16 = i_r15d->field_0x0;
+          prev_0x7c8_17 = r14->field_0x1c0->field_0x7c8;
           call_0x47e7de0(&i_r15d->field_0x0->field_0x2cd0, i_r15d->field_0x0->field_0x3410);
-          auto ret_0x4617630_118 = call_0x4617630(i_r15d->field_0x0, i_r15d->field_0x0->field_0x17c0 - 0xc8 > 0 ? i_r15d->field_0x0->field_0x17c0 - 0xc8 : rsi, 2, 1);
+          auto ret_0x4617630_118 = call_0x4617630(prev_0x0_16, i_r15d->field_0x0->field_0x17c0 - 0xc8 > 0 ? i_r15d->field_0x0->field_0x17c0 - 0xc8 : rsi, 2, 1);
           call_0x47e8050(&i_r15d->field_0x0->field_0x2ce0, ret_0x4617630_118 > 0);
           call_0x47e7b60(&i_r15d->field_0x0->field_0x2cc0);
           i_r15d += 8;
-        } while (i_r15d != r14->field_0x1c0->field_0x7c8); // loop -> L_0x46cf440
+        } while (i_r15d != prev_0x7c8_17); // loop -> L_0x46cf440
       }
       if (!DisableMegaReplicatorLegacyTelemetry && IncorrectlyPausedReplicationHundredthsPercentage > 0 && r14->field_0x1c0->field_0xa00 != 0) {
         auto ret_0x495a220_121 = call_0x495a220(&frame_0x600);
@@ -569,11 +592,12 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
           }
           call_0x2960a60(&frame_0x16d0, -1);
           call_0x2963580(&frame_0x16d0, "GameInstanceId", &frame_0x11a0);
+          auto prev_0xa00_19 = r14->field_0x1c0->field_0xa00;
           auto ret_0x2963eb0_129 = call_0x2963eb0(&frame_0x16d0, "NumTimesPausedDataSendDuringInterval", 0);
           if (ret_0x2963eb0_129 != 0) {
-            call_0x295eda0(ret_0x2963eb0_129, r14->field_0x1c0->field_0xa00);
+            call_0x295eda0(ret_0x2963eb0_129, prev_0xa00_19);
             if (frame_0x1928 != 0) {
-              frame_0x1928->vfunc_0x20(frame_0x1928, &frame_0x5d0, r14->field_0x1c0->field_0xa00, 1);
+              frame_0x1928->vfunc_0x20(frame_0x1928, std::string_view("NumTimesPausedDataSendDuringInterval", 36), prev_0xa00_19, 1);
             }
           }
           auto frame_0x1180 = 0;
@@ -583,7 +607,7 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
           call_0x767870(r14 + 0x1c8, &frame_0x608);
           call_0x7117f0(&frame_0x16d0);
           if (frame_0x11b8 >= 16) {
-            void* v_rcx_39 = frame_0x11a0;
+            void* v_rcx_43 = frame_0x11a0;
             if (frame_0x11b8 + 1 >= 0x1000) {
               if (frame_0x11a0 - frame_0x11a0->field_m0x8 < 8 || frame_0x11a0 - frame_0x11a0->field_m0x8 > 39) {
                 call_0x5e14580();
@@ -595,7 +619,7 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
                 call_0x49710d0("SecurityViolation", &sym_0x6647145);
               }
             }
-            call_0x4955ac0(v_rcx_39);
+            call_0x4955ac0(v_rcx_43);
           }
         }
       }
@@ -621,18 +645,18 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
       }
       auto ret_0x7678c0_156 = call_0x7678c0(r14 + 0x1d8, &frame_0x6a0);
       if (ret_0x7678c0_156->field_0x0 > (double)ReportNetworkSyncMemoryUsage2EveryXSeconds) {
-        int32_t v_rbx_57 = rsi;
-        int32_t v_rdi_58 = rsi;
-        int32_t v_r12_59 = rsi;
-        int32_t v_r13_60 = rsi;
-        int32_t v_r15_61 = rsi;
-        int32_t stk_63;
-        int32_t stk_64;
-        int32_t stk_65;
-        int32_t stk_66;
+        int32_t v_rbx_61 = rsi;
+        int32_t v_rdi_62 = rsi;
+        int32_t v_r12_63 = rsi;
+        int32_t v_r13_64 = rsi;
+        int32_t v_r15_65 = rsi;
         int32_t stk_67;
         int32_t stk_68;
-        uint64_t v_rsi_46;
+        int32_t stk_69;
+        int32_t stk_70;
+        int32_t stk_71;
+        int32_t stk_72;
+        uint64_t v_rsi_50;
         if (r14->field_0x1c0->field_0x7c0 != r14->field_0x1c0->field_0x7c8) {
           void* i_r8d = r14->field_0x1c0->field_0x7c0;
           int32_t i_eax = rsi;
@@ -643,85 +667,85 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
           int32_t i_r12d = rsi;
           int32_t i_r13d = rsi;
           int32_t i_r14d = rsi;
-          void* stk_56;
-          void* stk_55;
-          int32_t v_r14_53;
-          int32_t v_r13_52;
-          int32_t v_r11_50;
-          int32_t v_r10_49;
-          int32_t v_r9_48;
-          int32_t v_rdi_47;
-          int32_t v_rbx_45;
-          void* v_rcx_44;
-          int32_t v_r15_54;
-          int32_t v_r12_51;
+          void* stk_60;
+          void* stk_59;
+          int32_t v_r14_57;
+          int32_t v_r13_56;
+          int32_t v_r12_55;
+          int32_t v_r10_53;
+          int32_t v_r9_52;
+          int32_t v_rdi_51;
+          void* v_rcx_48;
+          int32_t v_r11_54;
+          int32_t v_r15_58;
+          int32_t v_rbx_49;
           do { // L_0x46cf9a0
-            int32_t v_rax_43 = i_eax;
-            v_rcx_44 = i_ecx;
-            v_rbx_45 = i_ebx;
-            v_rsi_46 = i_esi;
-            v_rdi_47 = i_edi;
-            v_r9_48 = i_r9d;
-            v_r10_49 = i_r10d;
-            v_r11_50 = i_r11d;
-            v_r12_51 = i_r12d;
-            v_r13_52 = i_r13d;
-            v_r14_53 = i_r14d;
-            v_r15_54 = i_r15d;
+            int32_t v_rax_47 = i_eax;
+            v_rcx_48 = i_ecx;
+            v_rbx_49 = i_ebx;
+            v_rsi_50 = i_esi;
+            v_rdi_51 = i_edi;
+            v_r9_52 = i_r9d;
+            v_r10_53 = i_r10d;
+            v_r11_54 = i_r11d;
+            v_r12_55 = i_r12d;
+            v_r13_56 = i_r13d;
+            v_r14_57 = i_r14d;
+            v_r15_58 = i_r15d;
             if (i_r8d->field_0x0->field_0x4bd4 != 0) {
               auto ret_0x46d6bc0_157 = call_0x46d6bc0(&i_r8d->field_0x0->field_0x3c60, i_r8d->field_0x0, i_r8d, i_r9d);
               int64_t idx_2 = i_edi + rdx->field_0x3cc8 + (i_edi + rdx->field_0x3cc8) * 2;
               int64_t idx_3 = i_r15d + rdx->field_0x3ccc + (i_r15d + rdx->field_0x3ccc) * 4;
-              v_rax_43 = i_eax + i_r8d->field_0x0->field_0x3c70;
-              v_rcx_44 = r14->field_0x1c0->field_0x7c8;
-              v_rbx_45 = (rdx->field_0x3cc0 << 5) + i_ebx + idx_3 * 8;
-              v_rsi_46 = i_esi + (rdx->field_0x3cc0 << 5) + i_ebx + idx_3 * 8 + (rdx->field_0x3ca8 << 5) + i_r13d + idx_2 * 8 + i_r12d + ret_0x46d6bc0_157;
-              v_rdi_47 = i_edi + rdx->field_0x3cc8;
-              v_r9_48 = r9 + rdx->field_0x3ca0;
-              v_r10_49 = r10 + rdx->field_0x3ca8;
-              v_r11_50 = r11 + rdx->field_0x3cb8;
-              v_r12_51 = i_r12d + ret_0x46d6bc0_157;
-              v_r13_52 = (rdx->field_0x3ca8 << 5) + i_r13d + idx_2 * 8;
-              v_r14_53 = i_r14d + i_r8d->field_0x0->field_0x3c68;
-              v_r15_54 = i_r15d + rdx->field_0x3ccc;
-              stk_55 = i_eax + i_r8d->field_0x0->field_0x3c70;
-              stk_56 = frame_m0x78 + rdx->field_0x3cc0;
+              v_rax_47 = i_eax + i_r8d->field_0x0->field_0x3c70;
+              v_rcx_48 = r14->field_0x1c0->field_0x7c8;
+              v_rbx_49 = (rdx->field_0x3cc0 << 5) + i_ebx + idx_3 * 8;
+              v_rsi_50 = i_esi + (rdx->field_0x3cc0 << 5) + i_ebx + idx_3 * 8 + (rdx->field_0x3ca8 << 5) + i_r13d + idx_2 * 8 + i_r12d + ret_0x46d6bc0_157;
+              v_rdi_51 = i_edi + rdx->field_0x3cc8;
+              v_r9_52 = r9 + rdx->field_0x3ca0;
+              v_r10_53 = r10 + rdx->field_0x3ca8;
+              v_r11_54 = r11 + rdx->field_0x3cb8;
+              v_r12_55 = i_r12d + ret_0x46d6bc0_157;
+              v_r13_56 = (rdx->field_0x3ca8 << 5) + i_r13d + idx_2 * 8;
+              v_r14_57 = i_r14d + i_r8d->field_0x0->field_0x3c68;
+              v_r15_58 = i_r15d + rdx->field_0x3ccc;
+              stk_59 = i_eax + i_r8d->field_0x0->field_0x3c70;
+              stk_60 = frame_m0x78 + rdx->field_0x3cc0;
             } else {
-              stk_55 = rsi;
-              stk_56 = rsi;
+              stk_59 = rsi;
+              stk_60 = rsi;
             }
             i_r8d += 8;
-            i_eax = v_rax_43;
-            i_r9d = v_r9_48;
-            i_ecx = v_rcx_44;
-            i_ebx = v_rbx_45;
-            i_esi = v_rsi_46;
-            i_edi = v_rdi_47;
-            i_r10d = v_r10_49;
-            i_r11d = v_r11_50;
-            i_r12d = v_r12_51;
-            i_r13d = v_r13_52;
-            i_r14d = v_r14_53;
-            i_r15d = v_r15_54;
-          } while (i_r8d != v_rcx_44); // loop -> L_0x46cf9a0
-          v_rbx_57 = v_rbx_45;
-          v_rdi_58 = v_rdi_47;
-          v_r12_59 = v_r12_51;
-          v_r13_60 = v_r13_52;
-          v_r15_61 = v_r15_54;
-          stk_63 = v_r11_50;
-          stk_64 = v_r14_53;
-          stk_65 = stk_55;
-          stk_66 = v_r9_48;
-          stk_67 = v_r10_49;
-          stk_68 = stk_56;
+            i_eax = v_rax_47;
+            i_r9d = v_r9_52;
+            i_ecx = v_rcx_48;
+            i_ebx = v_rbx_49;
+            i_esi = v_rsi_50;
+            i_edi = v_rdi_51;
+            i_r10d = v_r10_53;
+            i_r11d = v_r11_54;
+            i_r12d = v_r12_55;
+            i_r13d = v_r13_56;
+            i_r14d = v_r14_57;
+            i_r15d = v_r15_58;
+          } while (i_r8d != v_rcx_48); // loop -> L_0x46cf9a0
+          v_rbx_61 = v_rbx_49;
+          v_rdi_62 = v_rdi_51;
+          v_r12_63 = v_r12_55;
+          v_r13_64 = v_r13_56;
+          v_r15_65 = v_r15_58;
+          stk_67 = v_r11_54;
+          stk_68 = v_r14_57;
+          stk_69 = stk_59;
+          stk_70 = v_r9_52;
+          stk_71 = v_r10_53;
+          stk_72 = stk_60;
         } else {
-          stk_63 = rsi;
-          stk_64 = rsi;
-          stk_65 = rsi;
-          stk_66 = rsi;
           stk_67 = rsi;
           stk_68 = rsi;
+          stk_69 = rsi;
+          stk_70 = rsi;
+          stk_71 = rsi;
+          stk_72 = rsi;
         }
         call_0x2960a60(&frame_0x1200, -1);
         call_0x2963960(&frame_0x1200, "AliveForAllInstancesCount", frame_0x10->field_0x1c0->field_0xac0);
@@ -732,43 +756,43 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
         call_0x2963960(&frame_0x1200, "AliveConnDataVectorEntryCount", frame_0x10->field_0x1c0->field_0xacc);
         call_0x2963670(&frame_0x1200, "IsStreamingEnabled", frame_0x10->field_0x1c0->field_0xc69);
         call_0x29638c0(&frame_0x1200, "JoinedReplicatorCount", frame_0x10->field_0x1c0->field_0x9ec);
-        call_0x2963960(&frame_0x1200, "TotalInstanceSyncEntries", stk_64);
-        call_0x2963960(&frame_0x1200, "TotalInstanceSyncBuckets", stk_65);
-        call_0x2963960(&frame_0x1200, "TotalInstanceSyncMemory", v_r12_59);
-        call_0x2963960(&frame_0x1200, "TotalPropertyOverrides", v_rdi_58);
-        call_0x2963960(&frame_0x1200, "TotalPropertyOverrideEntries", stk_66);
-        call_0x2963960(&frame_0x1200, "TotalPropertyOverrideBuckets", stk_67);
-        call_0x2963960(&frame_0x1200, "TotalPropertyOverrideMemory", v_r13_60);
-        call_0x2963960(&frame_0x1200, "TotalAttributeOverrides", v_r15_61);
-        call_0x2963960(&frame_0x1200, "TotalAttributeOverrideEntries", stk_63);
-        call_0x2963960(&frame_0x1200, "TotalAttributeOverrideBuckets", stk_68);
-        call_0x2963960(&frame_0x1200, "TotalAttributeOverrideMemory", v_rbx_57);
-        call_0x2963960(&frame_0x1200, "TotalSyncMapMemoryUsed", v_rsi_46);
+        call_0x2963960(&frame_0x1200, "TotalInstanceSyncEntries", stk_68);
+        call_0x2963960(&frame_0x1200, "TotalInstanceSyncBuckets", stk_69);
+        call_0x2963960(&frame_0x1200, "TotalInstanceSyncMemory", v_r12_63);
+        call_0x2963960(&frame_0x1200, "TotalPropertyOverrides", v_rdi_62);
+        call_0x2963960(&frame_0x1200, "TotalPropertyOverrideEntries", stk_70);
+        call_0x2963960(&frame_0x1200, "TotalPropertyOverrideBuckets", stk_71);
+        call_0x2963960(&frame_0x1200, "TotalPropertyOverrideMemory", v_r13_64);
+        call_0x2963960(&frame_0x1200, "TotalAttributeOverrides", v_r15_65);
+        call_0x2963960(&frame_0x1200, "TotalAttributeOverrideEntries", stk_67);
+        call_0x2963960(&frame_0x1200, "TotalAttributeOverrideBuckets", stk_72);
+        call_0x2963960(&frame_0x1200, "TotalAttributeOverrideMemory", v_rbx_61);
+        call_0x2963960(&frame_0x1200, "TotalSyncMapMemoryUsed", v_rsi_50);
         call_0x6f7480(&frame_0x11e0, "NetworkSyncMemoryUsage", param_3);
         call_0x2964130(&frame_0x1200, &frame_0x11e0, ReportNetworkSyncMemoryUsage2HundredthsPercentage, 0);
         call_0x6f8fb0(&frame_0x11e0);
         auto ret_0x6dc1a0_182 = call_0x6dc1a0(&frame_0x540, 3);
-        if (ret_0x6dc1a0_182 != 0) {
+        if ((uint8_t)ret_0x6dc1a0_182 != 0) {
           FLog::Log("[DFLog::NetworkSyncMemoryUsage] AliveForAllInstancesCount: %d, NotAliveForAllInstancesCount: %d, ");
           "[DFLog::NetworkSyncMemoryUsage] AliveForAllInstancesCount: %d, NotAliveForAllInstancesCount: %d,";
         }
         auto ret_0x6dc1a0_183 = call_0x6dc1a0(&frame_0x560, 3);
-        if (ret_0x6dc1a0_183 != 0) {
+        if ((uint8_t)ret_0x6dc1a0_183 != 0) {
           FLog::Log("[DFLog::NetworkSyncMemoryUsage] TotalInstanceSyncEntries: %d, TotalInstanceSyncBuckets: %d, Tota");
           "[DFLog::NetworkSyncMemoryUsage] TotalInstanceSyncEntries: %d, TotalInstanceSyncBuckets: %d, Tota";
         }
         auto ret_0x6dc1a0_184 = call_0x6dc1a0(&frame_0x580, 3);
-        if (ret_0x6dc1a0_184 != 0) {
+        if ((uint8_t)ret_0x6dc1a0_184 != 0) {
           FLog::Log("[DFLog::NetworkSyncMemoryUsage] TotalPropertyOverrides: %d, TotalPropertyOverrideEntries: %d, To");
           "[DFLog::NetworkSyncMemoryUsage] TotalPropertyOverrides: %d, TotalPropertyOverrideEntries: %d, To";
         }
         auto ret_0x6dc1a0_185 = call_0x6dc1a0(&frame_0x5a0, 3);
-        if (ret_0x6dc1a0_185 != 0) {
+        if ((uint8_t)ret_0x6dc1a0_185 != 0) {
           FLog::Log("[DFLog::NetworkSyncMemoryUsage] TotalAttributeOverrides: %d, TotalAttributeOverrideEntries: %d, ");
           "[DFLog::NetworkSyncMemoryUsage] TotalAttributeOverrides: %d, TotalAttributeOverrideEntries: %d, ";
         }
         auto ret_0x6dc1a0_186 = call_0x6dc1a0(&frame_0x5c0, 3);
-        if (ret_0x6dc1a0_186 != 0) {
+        if ((uint8_t)ret_0x6dc1a0_186 != 0) {
           FLog::Log("[DFLog::NetworkSyncMemoryUsage] TotalSyncMapMemoryUsed: %d");
           "[DFLog::NetworkSyncMemoryUsage] TotalSyncMapMemoryUsed: %d";
         }
@@ -780,9 +804,9 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
         call_0x46d5290(&frame_0x10->field_0x1c0->field_0x68, frame_0x3b0->field_0x640);
       }
       call_0x6dc460(&frame_0x3b0);
-      auto frame_m0x68 = fstk_26;
+      auto frame_m0x68 = fstk_28;
       auto frame_m0x64 = 0.0;
-      auto frame_m0x60 = fstk_27;
+      auto frame_m0x60 = fstk_29;
       auto frame_m0x5c = 0.0;
       call_0x6dc460(&frame_m0x68);
       call_0x4954e70(frame_m0x1c);
@@ -2619,452 +2643,6 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
     0x46d0018 | 48 8d 0d 29 b7 d3 02     | lea rcx, [rip + 0x2d3b729] ; "SecurityViolation"
     0x46d001f | e8 ac 10 2a 00           | call 0x49710d0
   
-  === [Sub-Rotina Chamada: 0x46b9a40..0x46b9fa0 via call @0x46ce108 (Direct Engine Sub-Call)] ===
-    struct RBX::Network::SharedDeletePureObjectItem {
-      /* +0x7c0 */ void*   field_0x7c0;
-      /* +0x7c8 */ void*   field_0x7c8;
-      /* +0x870 */ uint8_t field_0x870;
-    };
-    
-    // Flag defaults: TeamCreateDataStreamTimestamp = false
-    void RBX::Network::SharedDeletePureObjectItem::func_0x46b9a40(RBX::Network::SharedDeletePureObjectItem* this) {
-      if (this->field_0x7c0 != this->field_0x7c8) {
-        void* i_edx = this->field_0x7c0;
-        do { // L_0x46b9a80
-          if (i_edx->field_0x0->field_0x5e40 != i_edx->field_0x0->field_0x5e48) break;
-          i_edx += 8;
-        } while (i_edx != this->field_0x7c8); // loop -> L_0x46b9a80
-        return;
-      }
-    }
-  
-  === [Instrucoes x86-64 da Sub-Rotina Chamada (0x46b9a40..0x46b9fa0)] ===
-    0x46b9a40 | 48 89 4c 24 08           | mov qword ptr [rsp + 0x8], rcx
-    0x46b9a45 | 55                       | push rbp
-    0x46b9a46 | 53                       | push rbx
-    0x46b9a47 | 56                       | push rsi
-    0x46b9a48 | 57                       | push rdi
-    0x46b9a49 | 41 54                    | push r12
-    0x46b9a4b | 41 55                    | push r13
-    0x46b9a4d | 41 56                    | push r14
-    0x46b9a4f | 41 57                    | push r15
-    0x46b9a51 | 48 8d 6c 24 f8           | lea rbp, [rsp - 0x8]
-    0x46b9a56 | 48 81 ec 08 01 00 00     | sub rsp, 0x108
-    0x46b9a5d | 4c 8b 81 c8 07 00 00     | mov r8, qword ptr [rcx + 0x7c8]
-    0x46b9a64 | 4c 8b a1 c0 07 00 00     | mov r12, qword ptr [rcx + 0x7c0]
-    0x46b9a6b | 4d 3b e0                 | cmp r12, r8
-    0x46b9a6e | 0f 84 fd 04 00 00        | je 0x46b9f71
-    0x46b9a74 | 49 8b d4                 | mov rdx, r12
-    0x46b9a77 | 66 0f 1f 84 00 00 00 00.. | nop
-    L_0x46b9a80:
-    0x46b9a80 | 48 8b 0a                 | mov rcx, qword ptr [rdx]
-    0x46b9a83 | 48 8b 81 48 5e 00 00     | mov rax, qword ptr [rcx + 0x5e48]
-    0x46b9a8a | 48 39 81 40 5e 00 00     | cmp qword ptr [rcx + 0x5e40], rax
-    0x46b9a91 | 75 0e                    | jne 0x46b9aa1
-    0x46b9a93 | 48 83 c2 08              | add rdx, 0x8
-    0x46b9a97 | 49 3b d0                 | cmp rdx, r8
-    0x46b9a9a | 75 e4                    | jne 0x46b9a80
-    0x46b9a9c | e9 d0 04 00 00           | jmp 0x46b9f71
-    L_0x46b9aa1:
-    0x46b9aa1 | 33 db                    | xor ebx, ebx
-    0x46b9aa3 | 48 89 5c 24 3c           | mov qword ptr [rsp + 0x3c], rbx
-    0x46b9aa8 | 8b fb                    | mov edi, ebx
-    0x46b9aaa | 48 89 5c 24 30           | mov qword ptr [rsp + 0x30], rbx
-    0x46b9aaf | 89 5c 24 38              | mov dword ptr [rsp + 0x38], ebx
-    0x46b9ab3 | 4d 8b e8                 | mov r13, r8
-    0x46b9ab6 | 4d 3b e0                 | cmp r12, r8
-    0x46b9ab9 | 0f 84 5b 04 00 00        | je 0x46b9f1a
-    0x46b9abf | 90                       | nop
-    L_0x46b9ac0:
-    0x46b9ac0 | 4d 8b 3c 24              | mov r15, qword ptr [r12]
-    0x46b9ac4 | 4c 89 7d 60              | mov qword ptr [rbp + 0x60], r15
-    0x46b9ac8 | 41 8b 97 90 4c 00 00     | mov edx, dword ptr [r15 + 0x4c90]
-    0x46b9acf | 80 3d 12 a9 a3 03 00     | cmp byte ptr [rip + 0x3a3a912], 0x0 ; FFlagTeamCreateDataStreamTimestamp
-    0x46b9ad6 | 74 2b                    | je 0x46b9b03
-    0x46b9ad8 | 49 8b 87 28 3b 00 00     | mov rax, qword ptr [r15 + 0x3b28]
-    0x46b9adf | 80 b8 68 0c 00 00 00     | cmp byte ptr [rax + 0xc68], 0x0
-    0x46b9ae6 | 74 1b                    | je 0x46b9b03
-    0x46b9ae8 | 49 8b 87 a8 3f 00 00     | mov rax, qword ptr [r15 + 0x3fa8]
-    0x46b9aef | 48 c1 e8 3a              | shr rax, 0x3a
-    0x46b9af3 | a8 01                    | test al, 0x1
-    0x46b9af5 | 74 0c                    | je 0x46b9b03
-    0x46b9af7 | 81 fa ff ff ff 7f        | cmp edx, 0x7fffffff
-    0x46b9afd | 74 04                    | je 0x46b9b03
-    0x46b9aff | b1 01                    | mov cl, 0x1
-    0x46b9b01 | eb 02                    | jmp 0x46b9b05
-    L_0x46b9b03:
-    0x46b9b03 | 32 c9                    | xor cl, cl
-    L_0x46b9b05:
-    0x46b9b05 | 8b c3                    | mov eax, ebx
-    0x46b9b07 | 84 c9                    | test cl, cl
-    0x46b9b09 | 0f 45 c2                 | cmovnz eax, edx
-    0x46b9b0c | 89 45 58                 | mov dword ptr [rbp + 0x58], eax
-    0x46b9b0f | 48 8d 45 58              | lea rax, [rbp + 0x58]
-    0x46b9b13 | 48 89 45 a0              | mov qword ptr [rbp - 0x60], rax
-    0x46b9b17 | 48 8d 44 24 30           | lea rax, [rsp + 0x30]
-    0x46b9b1c | 48 89 45 a8              | mov qword ptr [rbp - 0x58], rax
-    0x46b9b20 | 48 8d 45 60              | lea rax, [rbp + 0x60]
-    0x46b9b24 | 48 89 45 b0              | mov qword ptr [rbp - 0x50], rax
-    0x46b9b28 | 4d 8b b7 48 5e 00 00     | mov r14, qword ptr [r15 + 0x5e48]
-    0x46b9b2f | 49 8b b7 40 5e 00 00     | mov rsi, qword ptr [r15 + 0x5e40]
-    0x46b9b36 | 0f 10 45 a0              | movups xmm0, xmmword ptr [rbp - 0x60]
-    0x46b9b3a | 0f 29 44 24 70           | movaps xmmword ptr [rsp + 0x70], xmm0
-    0x46b9b3f | f2 0f 10 4d b0           | movsd xmm1, qword ptr [rbp - 0x50]
-    0x46b9b44 | f2 0f 11 4d 80           | movsd qword ptr [rbp - 0x80], xmm1
-    0x46b9b49 | 49 3b f6                 | cmp rsi, r14
-    0x46b9b4c | 0f 84 fb 01 00 00        | je 0x46b9d4d
-    L_0x46b9b52:
-    0x46b9b52 | 48 8b d6                 | mov rdx, rsi
-    0x46b9b55 | 48 8d 4c 24 70           | lea rcx, [rsp + 0x70]
-    0x46b9b5a | e8 51 04 00 00           | call 0x46b9fb0
-    0x46b9b5f | 84 c0                    | test al, al
-    0x46b9b61 | 75 09                    | jne 0x46b9b6c
-    0x46b9b63 | 48 83 c6 0c              | add rsi, 0xc
-    0x46b9b67 | 49 3b f6                 | cmp rsi, r14
-    0x46b9b6a | 75 e6                    | jne 0x46b9b52
-    L_0x46b9b6c:
-    0x46b9b6c | 49 3b f6                 | cmp rsi, r14
-    0x46b9b6f | 0f 84 d8 01 00 00        | je 0x46b9d4d
-    0x46b9b75 | 48 8d 7e 0c              | lea rdi, [rsi + 0xc]
-    0x46b9b79 | 49 3b fe                 | cmp rdi, r14
-    0x46b9b7c | 0f 84 cb 01 00 00        | je 0x46b9d4d
-    L_0x46b9b82:
-    0x46b9b82 | 8b 47 08                 | mov eax, dword ptr [rdi + 0x8]
-    0x46b9b85 | 39 45 58                 | cmp dword ptr [rbp + 0x58], eax
-    0x46b9b88 | 73 17                    | jae 0x46b9ba1
-    0x46b9b8a | f2 0f 10 07              | movsd xmm0, qword ptr [rdi]
-    0x46b9b8e | f2 0f 11 06              | movsd qword ptr [rsi], xmm0
-    0x46b9b92 | 8b 47 08                 | mov eax, dword ptr [rdi + 0x8]
-    0x46b9b95 | 89 46 08                 | mov dword ptr [rsi + 0x8], eax
-    0x46b9b98 | 48 83 c6 0c              | add rsi, 0xc
-    0x46b9b9c | e9 9f 01 00 00           | jmp 0x46b9d40
-    L_0x46b9ba1:
-    0x46b9ba1 | 4c 8d 44 24 48           | lea r8, [rsp + 0x48]
-    0x46b9ba6 | 48 8b d7                 | mov rdx, rdi
-    0x46b9ba9 | 48 8d 4c 24 30           | lea rcx, [rsp + 0x30]
-    0x46b9bae | e8 2d 17 02 00           | call 0x46db2e0
-    0x46b9bb3 | 48 8b 54 24 48           | mov rdx, qword ptr [rsp + 0x48]
-    0x46b9bb8 | 84 c0                    | test al, al
-    0x46b9bba | 0f 85 a0 00 00 00        | jne 0x46b9c60
-    0x46b9bc0 | 48 89 55 68              | mov qword ptr [rbp + 0x68], rdx
-    0x46b9bc4 | 44 8b 4c 24 38           | mov r9d, dword ptr [rsp + 0x38]
-    0x46b9bc9 | 41 ff c1                 | inc r9d
-    0x46b9bcc | 44 8b 44 24 40           | mov r8d, dword ptr [rsp + 0x40]
-    0x46b9bd1 | 43 8d 0c 40              | lea ecx, [r8 + r8*2]
-    0x46b9bd5 | 42 8d 04 8d 00 00 00 00  | lea eax, [r9*4]
-    0x46b9bdd | 3b c1                    | cmp eax, ecx
-    0x46b9bdf | 72 06                    | jb 0x46b9be7
-    0x46b9be1 | 43 8d 14 00              | lea edx, [r8 + r8]
-    0x46b9be5 | eb 17                    | jmp 0x46b9bfe
-    L_0x46b9be7:
-    0x46b9be7 | 41 8b c8                 | mov ecx, r8d
-    0x46b9bea | 2b 4c 24 3c              | sub ecx, dword ptr [rsp + 0x3c]
-    0x46b9bee | 41 2b c9                 | sub ecx, r9d
-    0x46b9bf1 | 41 8b c0                 | mov eax, r8d
-    0x46b9bf4 | c1 e8 03                 | shr eax, 0x3
-    0x46b9bf7 | 3b c8                    | cmp ecx, eax
-    0x46b9bf9 | 77 22                    | ja 0x46b9c1d
-    0x46b9bfb | 41 8b d0                 | mov edx, r8d
-    L_0x46b9bfe:
-    0x46b9bfe | 48 8d 4c 24 30           | lea rcx, [rsp + 0x30]
-    0x46b9c03 | e8 58 4e 02 00           | call 0x46dea60
-    0x46b9c08 | 4c 8d 45 68              | lea r8, [rbp + 0x68]
-    0x46b9c0c | 48 8b d7                 | mov rdx, rdi
-    0x46b9c0f | 48 8d 4c 24 30           | lea rcx, [rsp + 0x30]
-    0x46b9c14 | e8 c7 16 02 00           | call 0x46db2e0
-    0x46b9c19 | 48 8b 55 68              | mov rdx, qword ptr [rbp + 0x68]
-    L_0x46b9c1d:
-    0x46b9c1d | ff 44 24 38              | inc dword ptr [rsp + 0x38]
-    0x46b9c21 | 83 7a 04 00              | cmp dword ptr [rdx + 0x4], 0x0
-    0x46b9c25 | 75 05                    | jne 0x46b9c2c
-    0x46b9c27 | 83 3a ff                 | cmp dword ptr [rdx], -0x1
-    0x46b9c2a | 74 04                    | je 0x46b9c30
-    L_0x46b9c2c:
-    0x46b9c2c | ff 4c 24 3c              | dec dword ptr [rsp + 0x3c]
-    L_0x46b9c30:
-    0x46b9c30 | 48 8b 07                 | mov rax, qword ptr [rdi]
-    0x46b9c33 | 48 89 02                 | mov qword ptr [rdx], rax
-    0x46b9c36 | 48 8d 42 10              | lea rax, [rdx + 0x10]
-    0x46b9c3a | 48 c7 42 08 01 00 00 00  | mov qword ptr [rdx + 0x8], 0x1
-    0x46b9c42 | 48 8d 48 40              | lea rcx, [rax + 0x40]
-    0x46b9c46 | 48 3b c1                 | cmp rax, rcx
-    0x46b9c49 | 74 15                    | je 0x46b9c60
-    0x46b9c4b | 0f 1f 44 00 00           | nop
-    L_0x46b9c50:
-    0x46b9c50 | 48 c7 00 00 f0 ff ff     | mov qword ptr [rax], -0x1000
-    0x46b9c57 | 48 83 c0 10              | add rax, 0x10
-    0x46b9c5b | 48 3b c1                 | cmp rax, rcx
-    0x46b9c5e | 75 f0                    | jne 0x46b9c50
-    L_0x46b9c60:
-    0x46b9c60 | 48 8d 5a 08              | lea rbx, [rdx + 0x8]
-    0x46b9c64 | 4c 8d 44 24 50           | lea r8, [rsp + 0x50]
-    0x46b9c69 | 48 8d 55 60              | lea rdx, [rbp + 0x60]
-    0x46b9c6d | 48 8b cb                 | mov rcx, rbx
-    0x46b9c70 | e8 7b 76 d5 fc           | call 0x14112f0
-    0x46b9c75 | 48 8b 54 24 50           | mov rdx, qword ptr [rsp + 0x50]
-    0x46b9c7a | 84 c0                    | test al, al
-    0x46b9c7c | 0f 85 aa 00 00 00        | jne 0x46b9d2c
-    0x46b9c82 | 8b 03                    | mov eax, dword ptr [rbx]
-    0x46b9c84 | 44 8b c8                 | mov r9d, eax
-    0x46b9c87 | 41 d1 e9                 | shr r9d, 0x1
-    0x46b9c8a | 41 ff c1                 | inc r9d
-    0x46b9c8d | a8 01                    | test al, 0x1
-    0x46b9c8f | 41 b8 04 00 00 00        | mov r8d, 0x4
-    0x46b9c95 | 75 04                    | jne 0x46b9c9b
-    0x46b9c97 | 44 8b 43 10              | mov r8d, dword ptr [rbx + 0x10]
-    L_0x46b9c9b:
-    0x46b9c9b | 43 8d 0c 40              | lea ecx, [r8 + r8*2]
-    0x46b9c9f | 42 8d 04 8d 00 00 00 00  | lea eax, [r9*4]
-    0x46b9ca7 | 3b c1                    | cmp eax, ecx
-    0x46b9ca9 | 72 24                    | jb 0x46b9ccf
-    0x46b9cab | 43 8d 14 00              | lea edx, [r8 + r8]
-    0x46b9caf | 48 8b cb                 | mov rcx, rbx
-    0x46b9cb2 | e8 69 52 02 00           | call 0x46def20
-    0x46b9cb7 | 4c 8d 44 24 58           | lea r8, [rsp + 0x58]
-    0x46b9cbc | 48 8d 55 60              | lea rdx, [rbp + 0x60]
-    0x46b9cc0 | 48 8b cb                 | mov rcx, rbx
-    0x46b9cc3 | e8 28 76 d5 fc           | call 0x14112f0
-    0x46b9cc8 | 48 8b 54 24 58           | mov rdx, qword ptr [rsp + 0x58]
-    0x46b9ccd | eb 34                    | jmp 0x46b9d03
-    L_0x46b9ccf:
-    0x46b9ccf | 41 8b c8                 | mov ecx, r8d
-    0x46b9cd2 | 2b 4b 04                 | sub ecx, dword ptr [rbx + 0x4]
-    0x46b9cd5 | 41 2b c9                 | sub ecx, r9d
-    0x46b9cd8 | 41 8b c0                 | mov eax, r8d
-    0x46b9cdb | c1 e8 03                 | shr eax, 0x3
-    0x46b9cde | 3b c8                    | cmp ecx, eax
-    0x46b9ce0 | 77 21                    | ja 0x46b9d03
-    0x46b9ce2 | 41 8b d0                 | mov edx, r8d
-    0x46b9ce5 | 48 8b cb                 | mov rcx, rbx
-    0x46b9ce8 | e8 33 52 02 00           | call 0x46def20
-    0x46b9ced | 4c 8d 44 24 60           | lea r8, [rsp + 0x60]
-    0x46b9cf2 | 48 8d 55 60              | lea rdx, [rbp + 0x60]
-    0x46b9cf6 | 48 8b cb                 | mov rcx, rbx
-    0x46b9cf9 | e8 f2 75 d5 fc           | call 0x14112f0
-    0x46b9cfe | 48 8b 54 24 60           | mov rdx, qword ptr [rsp + 0x60]
-    L_0x46b9d03:
-    0x46b9d03 | 8b 0b                    | mov ecx, dword ptr [rbx]
-    0x46b9d05 | 8b c1                    | mov eax, ecx
-    0x46b9d07 | d1 e8                    | shr eax, 0x1
-    0x46b9d09 | ff c0                    | inc eax
-    0x46b9d0b | 83 e1 01                 | and ecx, 0x1
-    0x46b9d0e | 03 c0                    | add eax, eax
-    0x46b9d10 | 0b c8                    | or ecx, eax
-    0x46b9d12 | 89 0b                    | mov dword ptr [rbx], ecx
-    0x46b9d14 | 48 81 3a 00 f0 ff ff     | cmp qword ptr [rdx], -0x1000
-    0x46b9d1b | 74 03                    | je 0x46b9d20
-    0x46b9d1d | ff 4b 04                 | dec dword ptr [rbx + 0x4]
-    L_0x46b9d20:
-    0x46b9d20 | 48 8b 45 60              | mov rax, qword ptr [rbp + 0x60]
-    0x46b9d24 | 48 89 02                 | mov qword ptr [rdx], rax
-    0x46b9d27 | 33 c0                    | xor eax, eax
-    0x46b9d29 | 89 42 08                 | mov dword ptr [rdx + 0x8], eax
-    L_0x46b9d2c:
-    0x46b9d2c | 48 8d 4a 08              | lea rcx, [rdx + 0x8]
-    0x46b9d30 | 8b 47 08                 | mov eax, dword ptr [rdi + 0x8]
-    0x46b9d33 | 39 01                    | cmp dword ptr [rcx], eax
-    0x46b9d35 | 48 0f 42 d7              | cmovb rdx, rdi
-    0x46b9d39 | 8b 42 08                 | mov eax, dword ptr [rdx + 0x8]
-    0x46b9d3c | 89 01                    | mov dword ptr [rcx], eax
-    0x46b9d3e | 33 db                    | xor ebx, ebx
-    L_0x46b9d40:
-    0x46b9d40 | 48 83 c7 0c              | add rdi, 0xc
-    0x46b9d44 | 49 3b fe                 | cmp rdi, r14
-    0x46b9d47 | 0f 85 35 fe ff ff        | jne 0x46b9b82
-    L_0x46b9d4d:
-    0x46b9d4d | 49 3b b7 48 5e 00 00     | cmp rsi, qword ptr [r15 + 0x5e48]
-    0x46b9d54 | 74 07                    | je 0x46b9d5d
-    0x46b9d56 | 49 89 b7 48 5e 00 00     | mov qword ptr [r15 + 0x5e48], rsi
-    L_0x46b9d5d:
-    0x46b9d5d | 49 83 c4 08              | add r12, 0x8
-    0x46b9d61 | 4d 3b e5                 | cmp r12, r13
-    0x46b9d64 | 0f 85 56 fd ff ff        | jne 0x46b9ac0
-    0x46b9d6a | 48 8b 7c 24 30           | mov rdi, qword ptr [rsp + 0x30]
-    0x46b9d6f | 83 7c 24 38 00           | cmp dword ptr [rsp + 0x38], 0x0
-    0x46b9d74 | 0f 84 a0 01 00 00        | je 0x46b9f1a
-    0x46b9d7a | 8b 44 24 40              | mov eax, dword ptr [rsp + 0x40]
-    0x46b9d7e | 48 8d 34 80              | lea rsi, [rax + rax*4]
-    0x46b9d82 | 48 c1 e6 04              | shl rsi, 0x4
-    0x46b9d86 | 48 03 f7                 | add rsi, rdi
-    0x46b9d89 | 48 8b df                 | mov rbx, rdi
-    0x46b9d8c | 48 3b fe                 | cmp rdi, rsi
-    0x46b9d8f | 74 1a                    | je 0x46b9dab
-    L_0x46b9d91:
-    0x46b9d91 | 8b 43 04                 | mov eax, dword ptr [rbx + 0x4]
-    0x46b9d94 | 85 c0                    | test eax, eax
-    0x46b9d96 | 74 05                    | je 0x46b9d9d
-    0x46b9d98 | 83 f8 01                 | cmp eax, 0x1
-    0x46b9d9b | 75 0e                    | jne 0x46b9dab
-    L_0x46b9d9d:
-    0x46b9d9d | 83 3b ff                 | cmp dword ptr [rbx], -0x1
-    0x46b9da0 | 75 09                    | jne 0x46b9dab
-    0x46b9da2 | 48 83 c3 50              | add rbx, 0x50
-    0x46b9da6 | 48 3b de                 | cmp rbx, rsi
-    0x46b9da9 | 75 e6                    | jne 0x46b9d91
-    L_0x46b9dab:
-    0x46b9dab | 48 3b de                 | cmp rbx, rsi
-    0x46b9dae | 0f 84 66 01 00 00        | je 0x46b9f1a
-    0x46b9db4 | 4c 8b 65 50              | mov r12, qword ptr [rbp + 0x50]
-    0x46b9db8 | 0f 1f 84 00 00 00 00 00  | nop
-    L_0x46b9dc0:
-    0x46b9dc0 | 4d 8b ac 24 70 08 00 00  | mov r13, qword ptr [r12 + 0x870]
-    0x46b9dc8 | 49 8d 45 01              | lea rax, [r13 + 0x1]
-    0x46b9dcc | 49 89 84 24 70 08 00 00  | mov qword ptr [r12 + 0x870], rax
-    0x46b9dd4 | 44 8b 05 21 38 e1 03     | mov r8d, dword ptr [rip + 0x3e13821]
-    0x46b9ddb | 41 81 f8 00 04 00 00     | cmp r8d, 0x400
-    0x46b9de2 | 72 09                    | jb 0x46b9ded
-    0x46b9de4 | e8 97 49 29 00           | call 0x494e780
-    0x46b9de9 | 33 ff                    | xor edi, edi
-    0x46b9deb | eb 32                    | jmp 0x46b9e1f
-    L_0x46b9ded:
-    0x46b9ded | e8 1e ae 29 00           | call 0x4954c10
-    0x46b9df2 | 48 85 c0                 | test rax, rax
-    0x46b9df5 | 74 13                    | je 0x46b9e0a
-    0x46b9df7 | 8b 38                    | mov edi, dword ptr [rax]
-    0x46b9df9 | 8b cf                    | mov ecx, edi
-    0x46b9dfb | 41 33 c8                 | xor ecx, r8d
-    0x46b9dfe | 81 e1 ff 03 00 00        | and ecx, 0x3ff
-    0x46b9e04 | 33 cf                    | xor ecx, edi
-    0x46b9e06 | 89 08                    | mov dword ptr [rax], ecx
-    0x46b9e08 | eb 0f                    | jmp 0x46b9e19
-    L_0x46b9e0a:
-    0x46b9e0a | ba ff 03 00 00           | mov edx, 0x3ff
-    0x46b9e0f | 41 8b c8                 | mov ecx, r8d
-    0x46b9e12 | e8 19 af 29 00           | call 0x4954d30
-    0x46b9e17 | 8b f8                    | mov edi, eax
-    L_0x46b9e19:
-    0x46b9e19 | 81 e7 ff 03 00 00        | and edi, 0x3ff
-    L_0x46b9e1f:
-    0x46b9e1f | 89 7d 50                 | mov dword ptr [rbp + 0x50], edi
-    0x46b9e22 | b9 d8 00 00 00           | mov ecx, 0xd8
-    0x46b9e27 | e8 14 c2 29 00           | call 0x4956040
-    0x46b9e2c | 4c 8b f0                 | mov r14, rax
-    0x46b9e2f | 48 85 c0                 | test rax, rax
-    0x46b9e32 | 0f 84 4d 01 00 00        | je 0x46b9f85
-    0x46b9e38 | 48 89 45 58              | mov qword ptr [rbp + 0x58], rax
-    0x46b9e3c | 48 8d 53 08              | lea rdx, [rbx + 0x8]
-    0x46b9e40 | 48 8d 4d b8              | lea rcx, [rbp - 0x48]
-    0x46b9e44 | e8 57 23 02 00           | call 0x46dc1a0
-    0x46b9e49 | 4c 8b f8                 | mov r15, rax
-    0x46b9e4c | 48 89 45 60              | mov qword ptr [rbp + 0x60], rax
-    0x46b9e50 | 0f 57 c0                 | xorps xmm0, xmm0
-    0x46b9e53 | f3 0f 7f 44 24 70        | movdqu xmmword ptr [rsp + 0x70], xmm0
-    0x46b9e59 | 33 c0                    | xor eax, eax
-    0x46b9e5b | 48 89 45 80              | mov qword ptr [rbp - 0x80], rax
-    0x46b9e5f | 48 89 45 88              | mov qword ptr [rbp - 0x78], rax
-    0x46b9e63 | 48 89 45 90              | mov qword ptr [rbp - 0x70], rax
-    0x46b9e67 | 48 89 44 24 20           | mov qword ptr [rsp + 0x20], rax
-    0x46b9e6c | 45 33 c9                 | xor r9d, r9d
-    0x46b9e6f | 4c 8d 44 24 70           | lea r8, [rsp + 0x70]
-    0x46b9e74 | 49 8b d5                 | mov rdx, r13
-    0x46b9e77 | 49 8b ce                 | mov rcx, r14
-    0x46b9e7a | e8 51 a8 12 00           | call 0x47e46d0
-    0x46b9e7f | 90                       | nop
-    0x46b9e80 | 48 8d 05 09 6d a8 02     | lea rax, [rip + 0x2a86d09]
-    0x46b9e87 | 49 89 06                 | mov qword ptr [r14], rax
-    0x46b9e8a | 48 8b 03                 | mov rax, qword ptr [rbx]
-    0x46b9e8d | 49 89 86 88 00 00 00     | mov qword ptr [r14 + 0x88], rax
-    0x46b9e94 | 49 8d 8e 90 00 00 00     | lea rcx, [r14 + 0x90]
-    0x46b9e9b | 49 8b d7                 | mov rdx, r15
-    0x46b9e9e | e8 fd 22 02 00           | call 0x46dc1a0
-    0x46b9ea3 | 90                       | nop
-    0x46b9ea4 | 41 f6 07 01              | test byte ptr [r15], 0x1
-    0x46b9ea8 | 75 0a                    | jne 0x46b9eb4
-    0x46b9eaa | 49 8b 4f 08              | mov rcx, qword ptr [r15 + 0x8]
-    0x46b9eae | e8 0d bc 29 00           | call 0x4955ac0
-    0x46b9eb3 | 90                       | nop
-    L_0x46b9eb4:
-    0x46b9eb4 | e8 57 ad 29 00           | call 0x4954c10
-    0x46b9eb9 | 48 85 c0                 | test rax, rax
-    0x46b9ebc | 74 0e                    | je 0x46b9ecc
-    0x46b9ebe | 8b 08                    | mov ecx, dword ptr [rax]
-    0x46b9ec0 | 81 e1 00 fc ff ff        | and ecx, -0x400
-    0x46b9ec6 | 0b cf                    | or ecx, edi
-    0x46b9ec8 | 89 08                    | mov dword ptr [rax], ecx
-    0x46b9eca | eb 0d                    | jmp 0x46b9ed9
-    L_0x46b9ecc:
-    0x46b9ecc | ba ff 03 00 00           | mov edx, 0x3ff
-    0x46b9ed1 | 8b cf                    | mov ecx, edi
-    0x46b9ed3 | e8 58 ae 29 00           | call 0x4954d30
-    0x46b9ed8 | 90                       | nop
-    L_0x46b9ed9:
-    0x46b9ed9 | 49 8d 8c 24 40 08 00 00  | lea rcx, [r12 + 0x840]
-    0x46b9ee1 | 49 8b d6                 | mov rdx, r14
-    0x46b9ee4 | e8 d7 a7 01 00           | call 0x46d46c0
-    0x46b9ee9 | 48 83 c3 50              | add rbx, 0x50
-    0x46b9eed | 48 3b de                 | cmp rbx, rsi
-    0x46b9ef0 | 74 23                    | je 0x46b9f15
-    L_0x46b9ef2:
-    0x46b9ef2 | 8b 43 04                 | mov eax, dword ptr [rbx + 0x4]
-    0x46b9ef5 | 85 c0                    | test eax, eax
-    0x46b9ef7 | 74 05                    | je 0x46b9efe
-    0x46b9ef9 | 83 f8 01                 | cmp eax, 0x1
-    0x46b9efc | 75 0e                    | jne 0x46b9f0c
-    L_0x46b9efe:
-    0x46b9efe | 83 3b ff                 | cmp dword ptr [rbx], -0x1
-    0x46b9f01 | 75 09                    | jne 0x46b9f0c
-    0x46b9f03 | 48 83 c3 50              | add rbx, 0x50
-    0x46b9f07 | 48 3b de                 | cmp rbx, rsi
-    0x46b9f0a | 75 e6                    | jne 0x46b9ef2
-    L_0x46b9f0c:
-    0x46b9f0c | 48 3b de                 | cmp rbx, rsi
-    0x46b9f0f | 0f 85 ab fe ff ff        | jne 0x46b9dc0
-    L_0x46b9f15:
-    0x46b9f15 | 48 8b 7c 24 30           | mov rdi, qword ptr [rsp + 0x30]
-    L_0x46b9f1a:
-    0x46b9f1a | 8b 44 24 40              | mov eax, dword ptr [rsp + 0x40]
-    0x46b9f1e | 85 c0                    | test eax, eax
-    0x46b9f20 | 74 46                    | je 0x46b9f68
-    0x46b9f22 | 48 8d 1c 80              | lea rbx, [rax + rax*4]
-    0x46b9f26 | 48 c1 e3 04              | shl rbx, 0x4
-    0x46b9f2a | 48 03 df                 | add rbx, rdi
-    0x46b9f2d | 48 3b fb                 | cmp rdi, rbx
-    0x46b9f30 | 74 36                    | je 0x46b9f68
-    L_0x46b9f32:
-    0x46b9f32 | 8b 47 04                 | mov eax, dword ptr [rdi + 0x4]
-    0x46b9f35 | 85 c0                    | test eax, eax
-    0x46b9f37 | 75 07                    | jne 0x46b9f40
-    0x46b9f39 | 83 3f ff                 | cmp dword ptr [rdi], -0x1
-    0x46b9f3c | 75 0c                    | jne 0x46b9f4a
-    0x46b9f3e | eb 1a                    | jmp 0x46b9f5a
-    L_0x46b9f40:
-    0x46b9f40 | 83 f8 01                 | cmp eax, 0x1
-    0x46b9f43 | 75 05                    | jne 0x46b9f4a
-    0x46b9f45 | 83 3f ff                 | cmp dword ptr [rdi], -0x1
-    0x46b9f48 | 74 10                    | je 0x46b9f5a
-    L_0x46b9f4a:
-    0x46b9f4a | f6 47 08 01              | test byte ptr [rdi + 0x8], 0x1
-    0x46b9f4e | 75 0a                    | jne 0x46b9f5a
-    0x46b9f50 | 48 8b 4f 10              | mov rcx, qword ptr [rdi + 0x10]
-    0x46b9f54 | e8 67 bb 29 00           | call 0x4955ac0
-    0x46b9f59 | 90                       | nop
-    L_0x46b9f5a:
-    0x46b9f5a | 48 83 c7 50              | add rdi, 0x50
-    0x46b9f5e | 48 3b fb                 | cmp rdi, rbx
-    0x46b9f61 | 75 cf                    | jne 0x46b9f32
-    0x46b9f63 | 48 8b 7c 24 30           | mov rdi, qword ptr [rsp + 0x30]
-    L_0x46b9f68:
-    0x46b9f68 | 48 8b cf                 | mov rcx, rdi
-    0x46b9f6b | e8 50 bb 29 00           | call 0x4955ac0
-    0x46b9f70 | 90                       | nop
-    L_0x46b9f71:
-    0x46b9f71 | 48 81 c4 08 01 00 00     | add rsp, 0x108
-    0x46b9f78 | 41 5f                    | pop r15
-    0x46b9f7a | 41 5e                    | pop r14
-    0x46b9f7c | 41 5d                    | pop r13
-    0x46b9f7e | 41 5c                    | pop r12
-    0x46b9f80 | 5f                       | pop rdi
-    0x46b9f81 | 5e                       | pop rsi
-    0x46b9f82 | 5b                       | pop rbx
-    0x46b9f83 | 5d                       | pop rbp
-    0x46b9f84 | c3                       | ret
-    L_0x46b9f85:
-    0x46b9f85 | 48 8d 4c 24 70           | lea rcx, [rsp + 0x70]
-    0x46b9f8a | e8 41 08 01 fc           | call 0x6ca7d0
-    0x46b9f8f | 48 8d 15 2a 1c a1 03     | lea rdx, [rip + 0x3a11c2a]
-    0x46b9f96 | 48 8d 4c 24 70           | lea rcx, [rsp + 0x70]
-    0x46b9f9b | e8 50 c7 74 01           | call 0x5e066f0
-  
   === [Sub-Rotina Chamada: 0x46addb0..0x46addf8 via call @0x46ce1c2 (Direct Engine Sub-Call)] ===
     struct SubObj_0x46addb0 {
       /* +0x509 */ uint8_t field_0x509;
@@ -3129,7 +2707,7 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
     // Flag defaults: TeamCreateDataStreamTimestamp = false
     void RBX::Network::Item::func_0x4624620(RBX::Network::Item* this) {
       auto* f_3b28 = this->field_0x3b28;
-      if (TeamCreateDataStreamTimestamp && f_3b28->field_0xc68 != 0 && ((uint64_t)this->field_0x3fa8 >> 58 & 0x1) != 0) {
+      if (TeamCreateDataStreamTimestamp && f_3b28->field_0xc68 != 0 && ((uint8_t)((uint64_t)this->field_0x3fa8 >> 58) & 0x1) != 0) {
         if (this->field_0x3bc0 != 0) {
           if (this->field_0x3bc0 == &this->field_0x3bc0) {
             if (this->field_0x3bf0 != 0) {
@@ -3290,8 +2868,8 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
       }
       if (!DebugHashTableMetrics && (param_2->field_0x3b28->field_0x510 >> 3 & 0x1) == 0) {
         if (!NextGenReplicatorEnabledWrite4) {
-          auto expr_1 = param_2->field_0x3b28->field_0x510 >> 2 & 0x1;
-          if ((param_2->field_0x3b28->field_0x510 & 0x1) != 0) {
+          auto expr_1 = (uint8_t)param_2->field_0x3b28->field_0x510 >> 2 & 0x1;
+          if (((uint8_t)param_2->field_0x3b28->field_0x510 & 0x1) != 0) {
             if (!DebugNextGenRepUsePropBlacklist) {
               L_0x46ca5b6:
               if (expr_1 == 0) {
@@ -3359,6 +2937,28 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
     L_0x46ca5df:
     0x46ca5df | c3                       | ret
   
+  === [Estrutura RTTI & VTable da Classe (RBX::Network::Item)] ===
+    VTable  : 0x713ac80 (offset +0x0, 2 slots virtuais)
+    Herança : RBX::Noncopyable (+0x8), boost::intrusive::boost (+0x8), intrus::boost::intrusive (+0x8), boost::intrusive::Network (+0x8), boost::intrusive::PEAX (+0x8), int::PEAX::list_node_traits (+0x18)
+    +0x0 -> fn_0x45d75b0
+    +0x40 -> fn_0x45d7550
+  
+  === [Decompilacao de Metodo da Classe RBX::Network::Item: 0x45d7550..0x45d75a4 (vfunc_0x40)] ===
+    struct RBX::Network::Item {
+      /* +0x0 */ void*   field_0x0;
+    };
+    
+    auto RBX::Network::Item::func_0x45d7550(RBX::Network::Item* this, int64_t param_2) {
+      auto vret_1 = this->vfunc_0x10(this);
+      auto ret_0x47a4370_2 = call_0x47a4370(vret_1);
+      uint64_t i_r8d = -1;
+      do { // L_0x45d7587
+        i_r8d++;
+      } while (ret_0x47a4370_2->field_0x0[i_r8d] != 0); // loop -> L_0x45d7587
+      call_0x6f7000(param_2, ret_0x47a4370_2, i_r8d);
+      return param_2;
+    }
+  
   === [Decompilacao C++ Cross-Engine (WebClient.wasm)] ===
     void w2c_WebClient_f9896(void* this_ptr, int32_t param_1, int32_t param_2, int32_t param_3) {
       *(local_4 + 0x11e) = 0;
@@ -3387,14 +2987,14 @@ Operação  : 0x46ce09c: cmp [flag], reg ; fn=0x46cde9c..0x46d0024
 
 [Strings .rdata na função]
   * etc2
-  * LR Deleted
-  * Network
-  * Dispatch Data Senders
-  * Cluster: insufficient buffer to send
-  * Preserialize TrackerData
-  * Dispatch Assemblies Prep
-  * Dispatch Physics Send
-  * Team Create data-stream timestamp counter exhausted
+  * "LR Deleted"  [@rdata 0x746f8d0, ref @0x46ce01d, literal, 10B]
+  * "Network"  [@rdata 0x71d8eb8, ref @0x46ce035, key/identifier]
+  * "Dispatch Data Senders"  [@rdata 0x746f8b8, ref @0x46ce14b, literal, 21B]
+  * "Cluster: insufficient buffer to send"  [@rdata 0x746f880, ref @0x46ce835, literal, 36B]
+  * "Preserialize TrackerData"  [@rdata 0x746f860, ref @0x46ce980, literal, 24B]
+  * "Dispatch Assemblies Prep"  [@rdata 0x74701b0, ref @0x46cec28, literal, 24B]
+  * "Dispatch Physics Send"  [@rdata 0x7470198, ref @0x46ced13, literal, 21B]
+  * "Team Create data-stream timestamp counter exhausted"  [@rdata 0x74656d0, ref @0x4624784, literal, 51B]
 
 [Co-Flags na mesma função]
   * FFlagLrPullSystemReportInlineSends = false (default)

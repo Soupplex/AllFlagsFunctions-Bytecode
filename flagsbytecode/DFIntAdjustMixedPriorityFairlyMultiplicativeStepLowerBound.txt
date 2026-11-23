@@ -9,7 +9,7 @@ Operação  : 0x39bd6bb: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
     Classe  : RBX::DefaultInitial (Inferido)
     Padrão  : DFIntAdjustMixedPriorityFairlyMultiplicativeStepLowerBound = 1 (default) [int, mode=2]
     Papel   : Multiplicador / Escala aplicado sobre limites ou métricas da função
-    Fórmula : max((1.0 / (float)S2PhysicsSenderRate > 240 ? 240 : max(S2PhysicsSenderRate, 10)) * (float)AdjustMixedPriorityFairlyMultiplicativeStepLowerBound, (float)fxmm1_4)
+    Fórmula : (1.0f / (float)S2PhysicsSenderRate > 240 ? 240 : max(S2PhysicsSenderRate, 10)) * (float)AdjustMixedPriorityFairlyMultiplicativeStepLowerBound
     Altera  : this->field_0x858, this->field_0x868, this->field_0x878, this->field_0x868[i_edi->field_0x10 * 8], this->field_0x840, this->field_0x844
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
@@ -43,19 +43,24 @@ Operação  : 0x39bd6bb: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
         call_0x39d4560(&this->field_0x8, &this->field_0x850);
         if (this->field_0x850 != this->field_0x858) {
           void* i_edi = this->field_0x850;
+          void* prev_0x858_2;
           do { // L_0x39bd650
             if (SupportISRSubChannels) {
               this->field_0x868[i_edi->field_0x10 * 8]++;
             }
+            float prev_0x8_1 = i_edi->field_0x8;
+            prev_0x858_2 = this->field_0x858;
+            void* prev_0x838_3 = this->field_0x838;
             auto ret_0x2258560_3 = call_0x2258560(&this->field_0x838, i_edi, &local_0xc8);
+            float ftmp_1 = (1.0f / (float)S2PhysicsSenderRate > 240 ? 240 : max(S2PhysicsSenderRate, 10)) * (float)AdjustMixedPriorityFairlyMultiplicativeStepLowerBound;
             float fxmm1_4;
-            if (ret_0x2258560_3 != 0 ? local_0xc8 : this->field_0x838 + (this->field_0x848 + this->field_0x848 * 2) * 8 != this->field_0x838 + (this->field_0x848 + this->field_0x848 * 2) * 8) {
+            if ((uint8_t)ret_0x2258560_3 != 0 ? local_0xc8 : prev_0x838_3 + (this->field_0x848 + this->field_0x848 * 2) * 8 != prev_0x838_3 + (this->field_0x848 + this->field_0x848 * 2) * 8) {
               fxmm1_4 = param_2 - rdx->field_0x8;
             } else {
               call_0x2937a50(&local_0x28);
               auto ret_0x2258560_5 = call_0x2258560(&this->field_0x838, i_edi, &local_0xc0);
               void* v_rdx_3 = local_0xc0;
-              if (ret_0x2258560_5 == 0) {
+              if ((uint8_t)ret_0x2258560_5 == 0) {
                 void* v_rdx_1 = local_0xc0;
                 if ((this->field_0x840 + 1) * 4 >= this->field_0x848 + this->field_0x848 * 2) {
                   call_0x2bbbd50(&this->field_0x838, this->field_0x848 * 2);
@@ -80,11 +85,10 @@ Operação  : 0x39bd6bb: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
               v_rdx_3->field_0x8 = param_2 - DefaultInitialSendPriority;
               fxmm1_4 = DefaultInitialSendPriority;
             }
-            float ftmp_1 = max((1.0 / (float)S2PhysicsSenderRate > 240 ? 240 : max(S2PhysicsSenderRate, 10)) * (float)AdjustMixedPriorityFairlyMultiplicativeStepLowerBound, (float)fxmm1_4);
-            float ftmp_2 = (float)AdjustMixedPriorityFairlyMultiplicativeConstantThousandths / 1000.0 * (float)fxmm1_4;
-            i_edi->field_0x8 = ftmp_2 + ftmp_1 * i_edi->field_0x8;
+            float ftmp_2 = (float)AdjustMixedPriorityFairlyMultiplicativeConstantThousandths / 1000.0f * (float)fxmm1_4;
+            i_edi->field_0x8 = ftmp_2 + max(ftmp_1, (float)fxmm1_4) * prev_0x8_1;
             i_edi += 0x18;
-          } while (i_edi != this->field_0x858); // loop -> L_0x39bd650
+          } while (i_edi != prev_0x858_2); // loop -> L_0x39bd650
         }
         if (SupportISRSubChannels) {
           return tailcall_0x39bdc80(this->field_0x850, this->field_0x858, (rdx >> 2) + ((uint64_t)(rdx >> 2) >> 63), local_0xb0);
@@ -663,9 +667,11 @@ Operação  : 0x39bd6bb: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
         void* i_ebx = &v_rdi_9->field_0x18;
         do { // L_0x39be030
           if (i_ebx->field_0x8 > v_rdi_9->field_0x8) {
+            float prev_0x0_6 = i_ebx->field_0x0;
+            double prev_0x10_7 = i_ebx->field_0x10;
             call_0x5e05370(i_ebx - i_esi + 0x18, v_rdi_9, i_esi);
-            v_rdi_9->field_0x0 = i_ebx->field_0x0;
-            v_rdi_9->field_0x10 = i_ebx->field_0x10;
+            v_rdi_9->field_0x0 = prev_0x0_6;
+            v_rdi_9->field_0x10 = prev_0x10_7;
           } else {
             void* v_rcx_10 = i_ebx;
             if (i_ebx->field_0x8 > v_rdi_9->field_m0x10[i_esi]) {
@@ -949,10 +955,490 @@ Operação  : 0x39bd6bb: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
     0x39be2aa | 41 5e                    | pop r14
     0x39be2ac | 41 5c                    | pop r12
     0x39be2ae | c3                       | ret
+  
+  === [Decompilacao da Rotina Chamadora (Caller): 0x39bc7b0..0x39bd57a em RBX::DefaultInitial] ===
+    struct RBX::DefaultInitial {
+      /* +0x0 */ void*   field_0x0;
+      /* +0x8 */ uint8_t field_0x8;
+      /* +0x28 */ double  field_0x28;
+      /* +0x30 */ uint8_t field_0x30;
+      /* +0x68 */ double  field_0x68;
+      /* +0x70 */ double  field_0x70;
+      /* +0x78 */ double  field_0x78;
+      /* +0x80 */ double  field_0x80;
+      /* +0x88 */ uint8_t field_0x88;
+      /* +0x2f0 */ uint8_t field_0x2f0;
+      /* +0x2f8 */ double  field_0x2f8;
+      /* +0x300 */ double  field_0x300;
+      /* +0x308 */ double  field_0x308;
+      /* +0x310 */ int32_t field_0x310;
+      /* +0x338 */ uint8_t field_0x338;
+      /* +0x340 */ double  field_0x340;
+      /* +0x348 */ double  field_0x348;
+      /* +0x350 */ double  field_0x350;
+      /* +0x358 */ int32_t field_0x358;
+      /* +0x5d8 */ double  field_0x5d8;
+      /* +0x5e0 */ int32_t field_0x5e0;
+      /* +0x5e8 */ void*   field_0x5e8;
+      /* +0x5f0 */ void*   field_0x5f0;
+      /* +0x5f8 */ void*   field_0x5f8;
+      /* +0x600 */ void*   field_0x600;
+      /* +0x608 */ uint8_t field_0x608;
+      /* +0x609 */ int32_t field_0x609;
+      /* +0x60d */ uint16_t field_0x60d;
+      /* +0x60f */ uint8_t field_0x60f;
+      /* +0x610 */ void*   field_0x610;
+      /* +0x618 */ void*   field_0x618;
+      /* +0x620 */ void*   field_0x620;
+      /* +0x628 */ void*   field_0x628;
+      /* +0x630 */ uint8_t field_0x630;
+      /* +0x638 */ void*   field_0x638;
+      /* +0x640 */ void*   field_0x640;
+      /* +0x648 */ void*   field_0x648;
+      /* +0x650 */ void*   field_0x650;
+      /* +0x658 */ uint8_t field_0x658;
+      /* +0x659 */ int32_t field_0x659;
+      /* +0x65d */ uint16_t field_0x65d;
+      /* +0x65f */ uint8_t field_0x65f;
+      /* +0x660 */ void*   field_0x660;
+      /* +0x668 */ void*   field_0x668;
+      /* +0x670 */ void*   field_0x670;
+      /* +0x678 */ void*   field_0x678;
+      /* +0x680 */ uint8_t field_0x680;
+      /* +0x830 */ void*   field_0x830;
+      /* +0x840 */ int32_t field_0x840;
+      /* +0x844 */ int32_t field_0x844;
+      /* +0x848 */ int32_t field_0x848;
+      /* +0x850 */ void*   field_0x850;
+      /* +0x858 */ void*   field_0x858;
+      /* +0x868 */ void*   field_0x868;
+      /* +0x880 */ uint8_t field_0x880;
+      /* +0x881 */ uint16_t field_0x881;
+      /* +0x883 */ uint8_t field_0x883;
+      /* +0x8a8 */ double  field_0x8a8;
+    };
+    
+    // Flag defaults: ReportBandwidthCapHit = true, SupportISRSubChannels = false, ISRSkipRedundantTimestampSend = true, DebugISRDefaultChannelDoesNotUseUnusedBudget = false, ISRTimestampHeartbeat = true, ISRFixBytesLeftInFrameAccounting = false
+    auto RBX::DefaultInitial::func_0x39bc7b0(RBX::DefaultInitial* this, int64_t param_2, void* param_3, void* param_4) {
+      if (ReportBandwidthCapHit) {
+        if (SupportISRSubChannels) {
+          this->field_0x881 = 0;
+          this->field_0x883 = 0;
+        } else {
+          this->field_0x880 = 0;
+        }
+      }
+      call_0x39bd580(this, param_4);
+      if (((this->field_0x858 - this->field_0x850) / 24 >> 2) + ((uint64_t)((this->field_0x858 - this->field_0x850) / 24 >> 2) >> 63) == 0) {
+        return param_2;
+      }
+      void* i_eax = local_0x230;
+      int32_t i_r9d = 0;
+      int32_t i_ecx = SupportISRSubChannels;
+      int32_t i_r10d = 0;
+      int32_t i_edx = 0;
+      void* i_esi = param_3;
+      void* i_edi = &this->field_0x850;
+      int32_t i_r12d = -1;
+      int32_t i_r15d = (SupportISRSubChannels ? -1 : 0) & 0x2;
+      do { // L_0x39bc8c0
+        void* v_rax_45 = i_eax;
+        uint8_t v_cl_46 = i_ecx;
+        int32_t v_rdx_47 = i_edx;
+        void* v_rsi_48 = i_esi;
+        void* v_rdi_49 = i_edi;
+        void* v_r9_50;
+        int32_t v_r12_51 = i_r12d;
+        void* v_r15_52 = i_r15d;
+        void* stk_53;
+        if (i_ecx != 0 && ISRSkipRedundantTimestampSend && i_r15d[i_eax] != 0) {
+          v_r9_50 = i_r9d + this->field_0x868[i_r15d * 8];
+          stk_53 = 0;
+          if (v_r15_52 - 1 < 0) break;
+          i_eax = v_rax_45;
+          i_r9d = v_r9_50;
+          i_ecx = v_cl_46;
+          i_r10d = stk_53;
+          i_edx = v_rdx_47;
+          i_esi = v_rsi_48;
+          i_edi = v_rdi_49;
+          i_r12d = v_r12_51;
+          i_r15d = v_r15_52 - 1;
+        } else {
+          int32_t v_rbx_1 = i_esi[i_r15d * 4];
+          if (i_ecx != 0 && i_r15d == 0 && i_esi[i_r15d * 4] > 0 && i_r10d > 0 && DebugISRDefaultChannelDoesNotUseUnusedBudget == (uint8_t)i_r15d) {
+            v_rbx_1 = i_esi[i_r15d * 4] + i_r10d;
+          }
+          int32_t i_ebx = v_rbx_1;
+          uint64_t i_r8d = i_ecx != 0 ? i_r9d : i_edx;
+          int32_t v_r12_28;
+          void* v_rdi_27;
+          void* fstk_8;
+          float fstk_38;
+          void* stk_35;
+          int32_t v_r12_32;
+          void* v_r8_31;
+          void* v_rdi_30;
+          int32_t v_rsi_29;
+          do { // L_0x39bc970
+            v_rsi_29 = i_esi;
+            v_rdi_30 = i_edi;
+            v_r8_31 = i_r8d;
+            v_r12_32 = i_r12d;
+            if (i_ebx <= 0) {
+              if (i_edx == 0) break;
+            }
+            if (i_r8d >= i_r9d) break;
+            auto vret_2 = this->field_0x830->vfunc_0x8();
+            if (0.0 == 0) {
+              auto vret_3 = this->field_0x830->vfunc_0x8();
+              int32_t v_rax_3 = min(vret_2, vret_3);
+              if (min(vret_2, vret_3) < 0) {
+                v_rax_3 = min(vret_2, vret_3) + 1;
+              }
+              if (ISRTimestampHeartbeat) {
+                auto local_0xc0 = (v_rax_3 >> 1) + min(vret_2, vret_3);
+                call_0x39bdb50(&local_0xe0, &local_0xc0);
+                auto local_0x58 = 161;
+                call_0x1c2a620(local_0xe0, &local_0x58, 1);
+                this->field_0x830->vfunc_0x40();
+                call_0x39d3650(local_0xe0, param_4, local_0xf0);
+                if (0.0 != 0) {
+                  if (atomic_fetch_add(&0.0->field_0x8, i_r12d) == 1) {
+                    0.0->vfunc_0x0(0.0);
+                    if (atomic_fetch_add(&0.0->field_0xc, i_r12d) == 1) {
+                    0.0->vfunc_0x8(0.0);
+                    } else {
+                    atomic_fetch_add(&0.0->field_0xc, i_r12d);
+                    }
+                  } else {
+                    atomic_fetch_add(&0.0->field_0x8, i_r12d);
+                  }
+                }
+                if (0.0 != 0) {
+                  if (atomic_fetch_add(&0.0->field_0x8, i_r12d) == 1) {
+                    0.0->vfunc_0x0(0.0);
+                    if (atomic_fetch_add(&0.0->field_0xc, i_r12d) == 1) {
+                    0.0->vfunc_0x8(0.0);
+                    fstk_8 = local_0xe8;
+                    } else {
+                    atomic_fetch_add(&0.0->field_0xc, i_r12d);
+                    fstk_8 = local_0xe8;
+                    }
+                  } else {
+                    atomic_fetch_add(&0.0->field_0x8, i_r12d);
+                    fstk_8 = local_0xe8;
+                  }
+                } else {
+                  fstk_8 = local_0xe8;
+                }
+              } else {
+                auto local_0xd8 = (v_rax_3 >> 1) + min(vret_2, vret_3);
+                auto ret_0x39bdb50_4 = call_0x39bdb50(&local_0x130, &local_0xd8);
+                void* prev_0x0_1 = ret_0x39bdb50_4->field_0x0;
+                ret_0x39bdb50_4->field_0x0 = i_r15d;
+                void* prev_0x8_2 = ret_0x39bdb50_4->field_0x8;
+                ret_0x39bdb50_4->field_0x8 = i_r15d;
+                if (0.0 != 0 && atomic_fetch_add(&0.0->field_0x8, i_r12d) == 1) {
+                  0.0->vfunc_0x0(0.0);
+                  if (atomic_fetch_add(&0.0->field_0xc, i_r12d) == 1) {
+                    0.0->vfunc_0x8(0.0);
+                  }
+                }
+                if (local_0x138 != 0 && atomic_fetch_add(&local_0x138->field_0x8, i_r12d) == 1) {
+                  local_0x138->vfunc_0x0(local_0x138);
+                  if (atomic_fetch_add(&local_0x138->field_0xc, i_r12d) == 1) {
+                    local_0x138->vfunc_0x8(local_0x138);
+                  }
+                }
+                auto local_0x60 = 161;
+                call_0x1c2a620(prev_0x0_1, &local_0x60, 1);
+                this->field_0x830->vfunc_0x40();
+                call_0x39d3650(prev_0x0_1, param_4, local_0xf0);
+                fstk_8 = prev_0x8_2;
+              }
+            } else {
+              fstk_8 = 0.0;
+            }
+            this->field_0x830->vfunc_0x8();
+            local_0x80->vfunc_0x10(local_0x80);
+            this->vfunc(this, &local_0x90, local_0x80, &this->field_0x850);
+            call_0x39cca70(&this->field_0x830->field_0x3c8);
+            int64_t stk_9;
+            uint8_t stk_10;
+            uint8_t stk_11;
+            if (local_0x90 == 0) {
+              stk_9 = 1;
+              L_0x39bcc72:
+              stk_10 = stk_9;
+              stk_11 = 1;
+            } else if (!ISRFixBytesLeftInFrameAccounting) {
+              if (local_0x68 > 0) {
+                stk_10 = 0;
+                stk_11 = 0;
+              } else {
+                stk_9 = 0;
+                stk_10 = stk_9;
+                stk_11 = 1;
+              }
+            } else if (local_0x92 != 0) {
+              stk_9 = 0;
+              goto L_0x39bcc72;
+            } else {
+              stk_10 = 0;
+              stk_11 = 0;
+            }
+            int32_t v_rsi_12 = local_0x70 + (local_0x98 - (i_ecx != 0 ? i_r9d : i_edx));
+            int32_t stk_13;
+            if (local_0x91 != 0) {
+              v_rsi_12 = local_0x70 + (local_0x98 - (i_ecx != 0 ? i_r9d : i_edx)) + 1;
+              stk_13 = local_0x70 + (local_0x98 - (i_ecx != 0 ? i_r9d : i_edx)) + 1;
+            } else {
+              stk_13 = local_0x70 + (local_0x98 - (i_ecx != 0 ? i_r9d : i_edx));
+            }
+            int64_t idx_1 = (i_ecx != 0 ? i_r9d : i_edx) + (i_ecx != 0 ? i_r9d : i_edx) * 2;
+            int32_t v_rsi_26 = v_rsi_12;
+            v_rdi_27 = &this->field_0x850;
+            v_r12_28 = i_r12d;
+            if (this->field_0x850 + idx_1 * 8 < this->field_0x850 + (local_0x98 + local_0x98 * 2) * 8) {
+              void* v_rdi_24;
+              do { // L_0x39bccc1
+                auto ret_0x2258560_24 = call_0x2258560(&this->field_0x838, i_ebx, &local_0xf8);
+                void* v_rsi_16 = local_0xf8;
+                if ((uint8_t)ret_0x2258560_24 == 0) {
+                  void* v_rsi_14 = local_0xf8;
+                  if ((this->field_0x840 + 1) * 4 >= this->field_0x848 + this->field_0x848 * 2) {
+                    call_0x2bbbd50(&this->field_0x838, this->field_0x848 * 2);
+                    auto local_0xb0 = local_0xf8;
+                    call_0x2258560(&this->field_0x838, i_ebx, &local_0xb0);
+                    v_rsi_14 = local_0xb0;
+                  } else if (this->field_0x848 - this->field_0x844 - (this->field_0x840 + 1) <= (uint32_t)this->field_0x848 >> 3) {
+                    call_0x2bbbd50(&this->field_0x838, this->field_0x848 * 2);
+                    auto local_0xb0 = local_0xf8;
+                    call_0x2258560(&this->field_0x838, i_ebx, &local_0xb0);
+                    v_rsi_14 = local_0xb0;
+                  }
+                  this->field_0x840++;
+                  if (v_rsi_14->field_0x0 != -1) {
+                    this->field_0x844--;
+                  }
+                  v_rsi_14->field_0x0 = i_ebx->field_0x0;
+                  v_rsi_14->field_0x8 = 2147483647;
+                  v_rsi_14->field_0x10 = 0;
+                  v_rsi_16 = v_rsi_14;
+                }
+                v_rdi_24 = i_edi;
+                if (v_rsi_16->field_0x8 != 2147483647) {
+                  if (global_0x8da5d90 > rbp->field_0x58->field_0x0->field_0x0[40]) {
+                    call_0x12e0(&sym_0x8da5d90);
+                    if (global_0x8da5d90 == -1) {
+                    auto ret_0x4956040_28 = call_0x4956040(552);
+                    if (ret_0x4956040_28 == 0) break;
+                    global_0x8da5d98 = call_0x2931010(ret_0x4956040_28);
+                    call_0x14f0(&sym_0x8da5d90);
+                    }
+                  }
+                  double fxmm0_17;
+                  double fxmm6_19;
+                  if (this->field_0x338 != 0) {
+                    this->field_0x340 = global_0x8da5d98->field_0x98 - v_rsi_16->field_0x10;
+                    double ftmp_1 = global_0x8da5d98->field_0x98 - v_rsi_16->field_0x10;
+                    fxmm0_17 = ftmp_1;
+                    fxmm6_19 = ftmp_1;
+                  } else {
+                    this->field_0x340 = min(this->field_0x340, global_0x8da5d98->field_0x98 - v_rsi_16->field_0x10);
+                    fxmm0_17 = min(global_0x8da5d98->field_0x98 - v_rsi_16->field_0x10, this->field_0x348);
+                    fxmm6_19 = global_0x8da5d98->field_0x98 - v_rsi_16->field_0x10;
+                  }
+                  this->field_0x348 = fxmm0_17;
+                  call_0x1143a40(&this->field_0x318, fxmm6_19);
+                  this->field_0x358++;
+                  this->field_0x350 = fxmm6_19 + this->field_0x350;
+                  double fxmm0_20;
+                  double fxmm6_22;
+                  if (this->field_0x2f0 != 0) {
+                    this->field_0x2f8 = (double)(param_4 - v_rsi_16->field_0x8);
+                    double ftmp_2 = (double)(param_4 - v_rsi_16->field_0x8);
+                    fxmm0_20 = ftmp_2;
+                    fxmm6_22 = ftmp_2;
+                  } else {
+                    this->field_0x2f8 = min(this->field_0x2f8, (double)(param_4 - v_rsi_16->field_0x8));
+                    fxmm0_20 = min((double)(param_4 - v_rsi_16->field_0x8), this->field_0x300);
+                    fxmm6_22 = (double)(param_4 - v_rsi_16->field_0x8);
+                  }
+                  this->field_0x300 = fxmm0_20;
+                  call_0x1143a40(&this->field_0x2d0, fxmm6_22);
+                  this->field_0x310++;
+                  this->field_0x308 = fxmm6_22 + this->field_0x308;
+                  if (global_0x8da5d90 > rbp->field_0x58->field_0x0->field_0x0[40]) {
+                    call_0x12e0(&sym_0x8da5d90);
+                    if (global_0x8da5d90 == -1) {
+                    auto ret_0x4956040_34 = call_0x4956040(552);
+                    global_0x8da5d98 = call_0x2931010(ret_0x4956040_34);
+                    call_0x14f0(&sym_0x8da5d90);
+                    }
+                  }
+                  if (this->field_0x8 != 0) {
+                    do { // L_0x39bcf42
+                    if (i_ecx->field_0x5d0[this] != 0) {
+                    if (i_ecx->field_0x5c8[this] == i_ebx->field_0x0) break;
+                    i_edx++;
+                    i_r8d++;
+                    i_ecx += 0xd0;
+                    if (i_edx >= 3) break;
+                    } else {
+                    i_edx++;
+                    i_r8d++;
+                    i_ecx += 0xd0;
+                    if (i_edx >= 3) break;
+                    }
+                    } while (true); // loop -> L_0x39bcf42
+                  }
+                  v_rdi_24 = &this->field_0x850;
+                }
+                if (global_0x8da5d90 > rbp->field_0x58->field_0x0->field_0x0[40]) {
+                  call_0x12e0(&sym_0x8da5d90);
+                  if (global_0x8da5d90 == -1) {
+                    auto ret_0x4956040_40 = call_0x4956040(552);
+                    if (ret_0x4956040_40 == 0) break;
+                    global_0x8da5d98 = call_0x2931010(ret_0x4956040_40);
+                    call_0x14f0(&sym_0x8da5d90);
+                  }
+                }
+                v_rsi_16->field_0x8 = param_4;
+                i_ebx += 0x18;
+                i_edi = v_rdi_24;
+              } while (i_ebx < v_rdi_24->field_0x0 + (local_0x98 + local_0x98 * 2) * 8); // loop -> L_0x39bccc1
+              v_rsi_26 = stk_13;
+              v_rdi_27 = v_rdi_24;
+              v_r12_28 = -1;
+            }
+            if (stk_11 == 0) {
+              L_0x39bd1a9:
+              auto local_0x84 = 0.0;
+              auto local_0x88 = fstk_8;
+              auto local_0x8c = 0.0;
+              auto ret_0x39bd990_53 = call_0x39bd990(this, &local_0x80, param_4, v_rsi_26);
+              if (ret_0x39bd990_53 == 0) {
+                i_edx = stk_10;
+                i_ebx = local_0x68;
+                i_esi = local_0x6c;
+                i_r15d = 0;
+                i_edi = &this->field_0x850;
+                i_r8d = local_0x98;
+                i_r9d = local_0x78;
+                i_r12d = v_r12_28;
+                continue;
+              } else {
+                if (local_0x88 != 0 && atomic_fetch_add(&local_0x88->field_0x8, v_r12_28) == 1) {
+                  local_0x88->vfunc_0x0(local_0x88);
+                  if (atomic_fetch_add(&local_0x88->field_0xc, v_r12_28) == 1) {
+                    local_0x88->vfunc_0x8(local_0x88);
+                  }
+                }
+                if (this->field_0x30 != 0) {
+                  if (global_0x813ca18 <= 1) {
+                    this->field_0x28 = call_0x4959ee0();
+                    this->field_0x30 = 0;
+                  } else {
+                    call_0x495a220(&local_0x108);
+                    this->field_0x28 = local_0x108;
+                    this->field_0x30 = 0;
+                  }
+                } else {
+                  double fxmm0_42;
+                  if (global_0x813ca18 <= 1) {
+                    fxmm0_42 = call_0x4959ee0();
+                  } else {
+                    call_0x495a220(&local_0xd0);
+                    fxmm0_42 = local_0xd0;
+                  }
+                  this->field_0x28 = fxmm0_42;
+                  call_0x1143a40(&this->field_0x38, fxmm0_42 - this->field_0x28);
+                }
+                auto ret_0x5e20b98_61 = call_0x5e20b98((double)ret_0x39bd990_53);
+                if (ret_0x5e20b98_61 <= 0) {
+                  double fxmm2_44;
+                  if (this->field_0x88 != 0) {
+                    fxmm2_44 = (double)ret_0x39bd990_53;
+                  } else {
+                    double ftmp_3 = (1.0 - this->field_0x68) * this->field_0x78;
+                    fxmm2_44 = ftmp_3 + (double)ret_0x39bd990_53 * this->field_0x68;
+                  }
+                  this->field_0x78 = fxmm2_44;
+                  this->field_0x70 = (double)ret_0x39bd990_53;
+                  this->field_0x88 = 0;
+                  double ftmp_4 = (double)ret_0x39bd990_53 - fxmm2_44;
+                  double ftmp_5 = ftmp_4 * ftmp_4 * this->field_0x68;
+                  double ftmp_6 = (1.0 - this->field_0x68) * this->field_0x80;
+                  this->field_0x80 = ftmp_5 + ftmp_6;
+                }
+                i_edx = stk_10;
+                i_ebx = local_0x68 - ret_0x39bd990_53;
+                i_esi = local_0x6c + ret_0x39bd990_53;
+                i_r15d = 0;
+                i_edi = &this->field_0x850;
+                i_r8d = local_0x98;
+                i_r9d = local_0x78;
+                i_r12d = v_r12_28;
+              }
+            }
+            if (v_rsi_26 == 0) break;
+            goto L_0x39bd1a9;
+          } while (true); // loop -> L_0x39bc970
+          if (fstk_8 != 0) {
+            if (atomic_fetch_add(&fstk_8->field_0x8, v_r12_28) == 1) {
+              fstk_8->vfunc_0x0(fstk_8);
+              if (atomic_fetch_add(&fstk_8->field_0xc, v_r12_28) == 1) {
+                fstk_8->vfunc_0x8(fstk_8);
+              }
+            }
+          }
+          v_rsi_29 = local_0x6c;
+          v_rdi_30 = v_rdi_27;
+          v_r8_31 = local_0x98;
+          v_r12_32 = v_r12_28;
+          stk_35 = local_0x78;
+          fstk_38 = 0;
+          if (ReportBandwidthCapHit && !SupportISRSubChannels) {
+            this->field_0x880 = v_r8_31 < stk_35;
+          }
+          if (!SupportISRSubChannels) break;
+          if (fstk_38 != 0) {
+            if (atomic_fetch_add(&fstk_38->field_0x8, v_r12_32) == 1) {
+              fstk_38->vfunc_0x0(fstk_38);
+              if (atomic_fetch_add(&fstk_38->field_0xc, v_r12_32) == 1) {
+                fstk_38->vfunc_0x8();
+              }
+            }
+          }
+          v_rax_45 = local_0x230;
+          v_cl_46 = SupportISRSubChannels;
+          v_rdx_47 = 0;
+          v_rsi_48 = local_0xb8;
+          v_rdi_49 = v_rdi_30;
+          v_r9_50 = stk_35;
+          v_r12_51 = v_r12_32;
+          v_r15_52 = local_0xa8;
+          stk_53 = local_0xa0 + (local_0xb8->field_0x0[local_0xa8 * 4] - v_rsi_29);
+          if (v_r15_52 - 1 < 0) break;
+          i_eax = v_rax_45;
+          i_r9d = v_r9_50;
+          i_ecx = v_cl_46;
+          i_r10d = stk_53;
+          i_edx = v_rdx_47;
+          i_esi = v_rsi_48;
+          i_edi = v_rdi_49;
+          i_r12d = v_r12_51;
+          i_r15d = v_r15_52 - 1;
+        }
+      } while (true); // loop -> L_0x39bc8c0
+      return local_0x110;
+    }
 
 [Strings .rdata na função]
-  * IsrPartialSortMetrics
-  * Network
+  * "IsrPartialSortMetrics"  [@rdata 0x73ddfa0, ref @0x39d48d0, key/identifier]
+  * "Network"  [@rdata 0x71d8eb8, ref @0x39d48e6, key/identifier]
 
 [Co-Flags na mesma função]
   * FFlagSupportISRSubChannels = false (default)
@@ -960,6 +1446,11 @@ Operação  : 0x39bd6bb: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
   * DFIntDefaultInitialSendPriority = 5 (default)
   * DFIntAdjustMixedPriorityFairlyMultiplicativeConstantThousandths = 1000 (default)
   * DFFlagMicroProfilerMemoryScope = true (default)
+  * FFlagReportBandwidthCapHit = true (default)
+  * DFFlagISRSkipRedundantTimestampSend = true (default)
+  * DFFlagDebugISRDefaultChannelDoesNotUseUnusedBudget = false (default)
+  * DFFlagISRTimestampHeartbeat = true (default)
+  * FFlagISRFixBytesLeftInFrameAccounting = false (default)
   * DFFlagCLI183138Post2 = false (default) [vizinha em .data]
   * FFlagCLI1842832 = true (default) [vizinha em .data]
   * DFFlagCLI183138Pre = false (default) [vizinha em .data]

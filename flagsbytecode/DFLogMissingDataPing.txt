@@ -13,7 +13,7 @@ Operação  : 0x464081a: mov/math reg, [flag] ; fn=0x4640680..0x4640b40
     Fórmula : MissingDataPingIntervalMs != 0
     Fórmula : ftmp_2 >= (double)MissingDataPingIntervalMs
     Fórmula : v_r8_2 < MissingDataPingReportThrottleHundredthsPercent
-    Fórmula : MissingDataPing >= 6 && (uint64_t)MissingDataPing >> 8 >= 6
+    Fórmula : (uint8_t)MissingDataPing >= 6 && (uint8_t)((uint64_t)MissingDataPing >> 8) >= 6
     Altera  : this->field_0x51a8, this->field_0x51ac, this->field_0x2f90, this->field_0x2f98
   
   === [Decompilacao C++ da Funcao 0x4640680..0x4640b40] ===
@@ -65,20 +65,36 @@ Operação  : 0x464081a: mov/math reg, [flag] ; fn=0x4640680..0x4640b40
           auto ret_0x2798db0_3 = call_0x2798db0();
           call_0x495a220(&local_0x50);
           if (v_dil_1 != 0) {
-            this->vfunc_0x280(this);
+            auto vret_5 = this->vfunc_0x280(this);
             this->field_0x2f90 = param_2->field_0x0;
-            if (MissingDataPing >= 6 && (uint64_t)MissingDataPing >> 8 >= 6) {
-              FLog::Log("[DFLog::MissingDataPing] Time since last data ping received for user {}: {} {} ms ({} frames), t");
+            if ((uint8_t)MissingDataPing >= 6 && (uint8_t)((uint64_t)MissingDataPing >> 8) >= 6) {
+              void* sel_r10_2 = (double)this->field_0x51a8 >= ftmp_1 ? "late:" : "on time:";
+              void* v_r9_5;
+              if (vret_5 != 0) {
+                if (MigrateUserIdAccessors) {
+                  v_r9_5 = vret_5->field_0xb8;
+                } else {
+                  void* sel_rdx_3 = &vret_5->field_0x98 != 0 ? vret_5 : 0;
+                  if (PlayerUserIdReturnsEffectiveId3) {
+                    v_r9_5 = sel_rdx_3->field_0xa0;
+                  } else {
+                    v_r9_5 = sel_rdx_3->field_0x318;
+                  }
+                }
+              } else {
+                v_r9_5 = -1;
+              }
+              FLog::Log("[DFLog::MissingDataPing] Time since last data ping received for user {}: {} {} ms ({} frames), t", v_r9_5, sel_r10_2, ret_0x2798db0_3 - this->field_0x1ca8, this->field_0x51a8);
               "[DFLog::MissingDataPing] Time since last data ping received for user {}: {} {} ms ({} frames), t";
             }
           }
           if (v_sil_3 != 0) {
             this->field_0x2f98 = 1;
             call_0x746610(&local_0x1b0, SendPingForCnConnectingToDcList);
-            call_0x2dbd340(&local_0x490, &local_0x40, ret_0x2798db0_3 - this->field_0x1ca8, 1);
-            call_0x2dbd340(&local_0x490, &local_0x40, this->field_0x51a8, 1);
-            call_0x2dbd340(&local_0x490, &local_0x40, (int32_t)((local_0x50 - this->field_0x1cb0) * 1000.0), 1);
-            call_0x2dbd340(&local_0x490, &local_0x40, this->field_0x51ac, 1);
+            call_0x2dbd340(&local_0x490, std::string_view("TimeSinceLastPingMs", 19), ret_0x2798db0_3 - this->field_0x1ca8, 1);
+            call_0x2dbd340(&local_0x490, std::string_view("FramesSinceLastPing", 19), this->field_0x51a8, 1);
+            call_0x2dbd340(&local_0x490, std::string_view("TimeSinceLastPongMs", 19), (int32_t)((local_0x50 - this->field_0x1cb0) * 1000.0), 1);
+            call_0x2dbd340(&local_0x490, std::string_view("FramesSinceLastPong", 19), this->field_0x51ac, 1);
             call_0x2db2c00(&local_0x4d8);
             call_0x6f5b70(&local_0x4b0);
             call_0x6f5b70(&local_0x490);
@@ -366,13 +382,13 @@ Operação  : 0x464081a: mov/math reg, [flag] ; fn=0x4640680..0x4640b40
     0x4640b3b | e8 90 05 33 00           | call 0x49710d0
 
 [Strings .rdata na função]
-  * late:
-  * on time:
-  * TimeSinceLastPingMs
-  * FramesSinceLastPing
-  * TimeSinceLastPongMs
-  * FramesSinceLastPong
-  * SecurityViolation
+  * "late:"  [@rdata 0x746846c, ref @0x464084f, literal, 5B]
+  * "on time:"  [@rdata 0x7468478, ref @0x4640856, literal, 8B]
+  * "TimeSinceLastPingMs"  [@rdata 0x72e8948, ref @0x46409da, string_view len=19]
+  * "FramesSinceLastPing"  [@rdata 0x7468440, ref @0x4640a15, string_view len=19]
+  * "TimeSinceLastPongMs"  [@rdata 0x72e8918, ref @0x4640a4c, string_view len=19]
+  * "FramesSinceLastPong"  [@rdata 0x7468458, ref @0x4640a87, string_view len=19]
+  * "SecurityViolation"  [@rdata 0x740b748, ref @0x4640b34, key/identifier]
 
 [Co-Flags na mesma função]
   * DFIntMissingDataPingThresholdMs = 10000 (default)

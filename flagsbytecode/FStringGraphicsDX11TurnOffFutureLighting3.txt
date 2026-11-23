@@ -8,9 +8,8 @@ Operação  : 0x2714af7: cmp dword [flag], imm ; fn=0x2714330..0x2714d64
   === [Resumo do Efeito da FFlag no Engine (RBX::RenderDx11CPUMemory)] ===
     Classe  : RBX::RenderDx11CPUMemory (Inferido)
     Padrão  : FStringGraphicsDX11TurnOffFutureLighting3 = "" (default) [string, mode=1]
-    Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : GraphicsDX11TurnOffFutureLighting3.size() != 0
-    Fórmula : call_0x270d490(&local_0x210, GraphicsDX11TurnOffFutureLighting3)
+    Papel   : Parâmetro de configuração lido diretamente pela rotina
+    Fórmula : GraphicsDX11TurnOffFutureLighting3
   
   === [Decompilacao C++ da Funcao 0x2714330..0x2714d64] ===
     struct RBX::RenderDx11CPUMemory {
@@ -103,7 +102,7 @@ Operação  : 0x2714af7: cmp dword [flag], imm ; fn=0x2714330..0x2714d64
       param_2->field_0x54 = 16;
       param_2->field_0x58 = 65536;
       float fxmm0_6 = (float)(uint64_t)((uint64_t)local_0x350->field_0x110 >> 20);
-      param_2->field_0x5c = std::min<uint32_t>(-1, std::max<uint64_t>(128, (uint64_t)(fxmm0_6 * 0.25)) << 20);
+      param_2->field_0x5c = std::min<uint32_t>(-1, std::max<uint64_t>(128, (uint64_t)(fxmm0_6 * 0.25f)) << 20);
       auto vret_16 = param_3->vfunc_0x128(param_3);
       param_2->field_0x3c = vret_16 >= 0x9200;
       param_2->field_0x3d = vret_16 >= 0x9200;
@@ -135,17 +134,19 @@ Operação  : 0x2714af7: cmp dword [flag], imm ; fn=0x2714330..0x2714d64
       }
       int64_t tmp_1 = (uint64_t)v_rsi_11 >> 20 < RenderDx11CPUMemoryUsedByIntegratedGPUMB ? 0 : ((uint64_t)v_rsi_11 >> 20) - RenderDx11CPUMemoryUsedByIntegratedGPUMB;
       auto ret_0x29cd2c0_21 = call_0x29cd2c0();
+      auto prev_0x40_2 = ret_0x29cd2c0_21->field_0x40;
       auto ret_0x270d490_22 = call_0x270d490(&local_0x1a0, DisableHQShadersDx11List);
       uint8_t v_cl_12;
-      if (ret_0x270d490_22 == 0 && ret_0x29cd2c0_21->field_0x40 > RenderDx11LowEndCoreCount && (uint64_t)v_rsi_11 >> 20 > RenderDx11LowEndCPUMemoryMB) {
+      if ((uint8_t)ret_0x270d490_22 == 0 && prev_0x40_2 > RenderDx11LowEndCoreCount && (uint64_t)v_rsi_11 >> 20 > RenderDx11LowEndCPUMemoryMB) {
         v_cl_12 = 0;
       } else {
         v_cl_12 = 1;
       }
+      auto expr_1 = GraphicsDX11TurnOffFutureLighting3;
       if ((uint64_t)local_0x350->field_0x110 >> 20 <= RenderDx11IGPUDedicatedVideoMemoryThresholdMB) {
         if (tmp_1 <= RenderDx11LowEndCPUMemoryMB) {
           call_0x1d48fe0(&local_0x1c0, &local_0x200, &local_0xc0);
-          if (Graphics >= 6 && (uint64_t)Graphics >> 8 >= 3) {
+          if ((uint8_t)Graphics >= 6 && (uint8_t)((uint64_t)Graphics >> 8) >= 3) {
             FLog::Log("[FLog::Graphics] {}");
             "[FLog::Graphics] {}";
           }
@@ -154,9 +155,9 @@ Operação  : 0x2714af7: cmp dword [flag], imm ; fn=0x2714330..0x2714d64
           if (param_2->field_0x50 >= 16 && param_2->field_0x2 != 0 && param_2->field_0x79 != 0) {
             param_2->field_0x66 = 1;
             if (GraphicsDX11TurnOffFutureLightingDriverVersion.size() == 0) {
-              if (GraphicsDX11TurnOffFutureLighting3.size() != 0) {
+              if (expr_1.size() != 0) {
                 call_0x4973b00(&local_0x1e0, "%x:%x", local_0x350->field_0x100, local_0x350->field_0x104);
-                call_0x270d490(&local_0x1e0, GraphicsDX11TurnOffFutureLighting3);
+                call_0x270d490(&local_0x1e0, expr_1);
                 std::string::_Tidy_deallocate(local_0x1e0);
               }
               L_0x2714cf9:
@@ -166,8 +167,8 @@ Operação  : 0x2714af7: cmp dword [flag], imm ; fn=0x2714330..0x2714d64
               return param_2;
             }
             call_0x4973b00(&local_0x210, "%x:%x:%d.%d.%d.%d", local_0x350->field_0x100, local_0x350->field_0x104);
-            auto ret_0x270d490_27 = call_0x270d490(&local_0x210, GraphicsDX11TurnOffFutureLighting3);
-            if (ret_0x270d490_27 != 0 && Graphics >= 6 && (uint64_t)Graphics >> 8 >= 3) {
+            auto ret_0x270d490_27 = call_0x270d490(&local_0x210, expr_1);
+            if ((uint8_t)ret_0x270d490_27 != 0 && (uint8_t)Graphics >= 6 && (uint8_t)((uint64_t)Graphics >> 8) >= 3) {
               FLog::Log("[FLog::Graphics] D3D11 future rendering is disabled for pattern: {}");
               "[FLog::Graphics] D3D11 future rendering is disabled for pattern: {}";
             }
@@ -192,7 +193,7 @@ Operação  : 0x2714af7: cmp dword [flag], imm ; fn=0x2714330..0x2714d64
       }
       if (v_cl_12 != 0) {
         call_0x1d48fe0(&local_0x1c0, &local_0x200, &local_0xc0);
-        if (Graphics >= 6 && (uint64_t)Graphics >> 8 >= 3) {
+        if ((uint8_t)Graphics >= 6 && (uint8_t)((uint64_t)Graphics >> 8) >= 3) {
           FLog::Log("[FLog::Graphics] {}");
           "[FLog::Graphics] {}";
         }
@@ -202,15 +203,15 @@ Operação  : 0x2714af7: cmp dword [flag], imm ; fn=0x2714330..0x2714d64
       if (param_2->field_0x50 >= 16 && param_2->field_0x2 != 0 && param_2->field_0x79 != 0) {
         param_2->field_0x66 = 1;
         if (GraphicsDX11TurnOffFutureLightingDriverVersion.size() == 0) {
-          if (GraphicsDX11TurnOffFutureLighting3.size() != 0) {
+          if (expr_1.size() != 0) {
             call_0x4973b00(&local_0x1e0, "%x:%x", local_0x350->field_0x100, local_0x350->field_0x104);
-            call_0x270d490(&local_0x1e0, GraphicsDX11TurnOffFutureLighting3);
+            call_0x270d490(&local_0x1e0, expr_1);
             std::string::_Tidy_deallocate(local_0x1e0);
           }
         } else {
           call_0x4973b00(&local_0x210, "%x:%x:%d.%d.%d.%d", local_0x350->field_0x100, local_0x350->field_0x104);
-          auto ret_0x270d490_27 = call_0x270d490(&local_0x210, GraphicsDX11TurnOffFutureLighting3);
-          if (ret_0x270d490_27 != 0 && Graphics >= 6 && (uint64_t)Graphics >> 8 >= 3) {
+          auto ret_0x270d490_27 = call_0x270d490(&local_0x210, expr_1);
+          if ((uint8_t)ret_0x270d490_27 != 0 && (uint8_t)Graphics >= 6 && (uint8_t)((uint64_t)Graphics >> 8) >= 3) {
             FLog::Log("[FLog::Graphics] D3D11 future rendering is disabled for pattern: {}");
             "[FLog::Graphics] D3D11 future rendering is disabled for pattern: {}";
           }
@@ -960,7 +961,7 @@ Operação  : 0x2714af7: cmp dword [flag], imm ; fn=0x2714330..0x2714d64
         auto vret_1 = this->vfunc_0xf0(this, 28, i_esi, &local_0x38);
         int32_t v_rdi_4 = i_edi;
         if (vret_1 < 0 && vret_1 != -0x7ff8fff2) {
-          call_0x1d4bef0(&local_0x110, &local_0x170);
+          call_0x1d4bef0(std::string_view("line: {} from {}", 16), std::string_view("line: {} from {}", 16));
           auto local_0x1a8 = 0;
           call_0x6f7000(&local_0x1a8, &local_0x230, 0);
           if (&local_0x230 != &local_0x230) {
@@ -970,7 +971,7 @@ Operação  : 0x2714af7: cmp dword [flag], imm ; fn=0x2714330..0x2714d64
           global_0x81712e4 = vret_1;
           call_0x5e27c50(&sym_0x81712e8, local_0x1a8.c_str(), 127);
           global_0x8171367 = 0;
-          call_0x1d48fe0(&local_0x60, &local_0x140, &local_0x130);
+          call_0x1d48fe0(&local_0x60, std::string_view("{:x} {}", 7), &local_0x130);
           if (global_0x8628d48 != 0) {
             global_0x8628d48->field_0x8++;
           }
@@ -1262,15 +1263,15 @@ Operação  : 0x2714af7: cmp dword [flag], imm ; fn=0x2714330..0x2714d64
     0x271187e | e8 fd 2c 70 03           | call 0x5e14580
 
 [Strings .rdata na função]
-  * Device
-  * %x:%x:%s
-  * Disabling HQ shaders for DX pattern: {} due to hardware constraints. CPU count: {}, Memory: {} M
-  * [FLog::Graphics] {}
-  * %x:%x
-  * %x:%x:%d.%d.%d.%d
-  * [FLog::Graphics] D3D11 future rendering is disabled for pattern: {}
-  * line: {} from {}
-  * {:x} {}
+  * "Device"  [@rdata 0x72a376c, ref @0x2714444, key/identifier]
+  * "%x:%x:%s"  [@rdata 0x72de660, ref @0x271474f, literal, 8B]
+  * "Disabling HQ shaders for DX pattern: {} due to hardware constraints. CPU count: {}, Memory: {} M"  [@rdata 0x72de670, ref @0x271487a, literal, 96B]
+  * "[FLog::Graphics] {}"  [@rdata 0x72de980, ref @0x2714978, FLog format]
+  * "%x:%x"  [@rdata 0x72de974, ref @0x2714b13, literal, 5B]
+  * "%x:%x:%d.%d.%d.%d"  [@rdata 0x72de998, ref @0x2714bc3, literal, 17B]
+  * "[FLog::Graphics] D3D11 future rendering is disabled for pattern: {}"  [@rdata 0x72de930, ref @0x2714c22, FLog format]
+  * "line: {} from {}"  [@rdata 0x72def80, ref @0x27114c5, string_view len=16]
+  * "{:x} {}"  [@rdata 0x72def98, ref @0x271163d, string_view len=7]
 
 [Co-Flags na mesma função]
   * FFlagGraphicsD3D11FlipDiscard2 = false (default)

@@ -9,7 +9,7 @@ Operação  : 0x39bd6a0: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
     Classe  : RBX::DefaultInitial (Inferido)
     Padrão  : DFIntS2PhysicsSenderRate = 15 (default) [int, mode=2]
     Papel   : Multiplicador / Escala aplicado sobre limites ou métricas da função
-    Fórmula : max((1.0 / (float)S2PhysicsSenderRate > 240 ? 240 : max(S2PhysicsSenderRate, 10)) * (float)AdjustMixedPriorityFairlyMultiplicativeStepLowerBound, (float)fxmm1_4)
+    Fórmula : (1.0f / (float)S2PhysicsSenderRate > 240 ? 240 : max(S2PhysicsSenderRate, 10)) * (float)AdjustMixedPriorityFairlyMultiplicativeStepLowerBound
     Altera  : this->field_0x858, this->field_0x868, this->field_0x878, this->field_0x868[i_edi->field_0x10 * 8], this->field_0x840, this->field_0x844
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
@@ -25,8 +25,7 @@ Operação  : 0x39bd6a0: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
     [XREF #3 @0x472c10d] Fórmula : ((double)PhysicsSenderMaxBandwidthBps / (double)S2PhysicsSenderRate > 240 ? 240 : max(S2PhysicsSenderRate, 10)) * (double)PhysicsSenderMaxBandwidthBpsScaling
     [XREF #3 @0x472c10d] Fórmula : std::clamp(S2PhysicsSenderRate, 10, 240)
     [XREF #3 @0x472c10d] Altera  : this->field_0xc, this->field_0x10, this->field_0x1f0, this->field_0x1f4, this->field_0x1e8, this->field_0x1f8
-    [XREF #4 @0x4731727] Classe  : RBX::S2PhysicsSender (Inferido)
-    [XREF #4 @0x4731727] Fórmula : S2PhysicsSenderRate > 240
+    [XREF #4 @0x4731727] Classe  : RBX::Network::NetworkBandwidthManager (RTTI Resolvido)
     [XREF #4 @0x4731727] Fórmula : std::clamp(S2PhysicsSenderRate, 10, 240)
   
   === [Decompilacao C++ da Funcao 0x39bd580..0x39bd89f] ===
@@ -54,19 +53,24 @@ Operação  : 0x39bd6a0: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
         call_0x39d4560(&this->field_0x8, &this->field_0x850);
         if (this->field_0x850 != this->field_0x858) {
           void* i_edi = this->field_0x850;
+          void* prev_0x858_2;
           do { // L_0x39bd650
             if (SupportISRSubChannels) {
               this->field_0x868[i_edi->field_0x10 * 8]++;
             }
+            float prev_0x8_1 = i_edi->field_0x8;
+            prev_0x858_2 = this->field_0x858;
+            void* prev_0x838_3 = this->field_0x838;
             auto ret_0x2258560_3 = call_0x2258560(&this->field_0x838, i_edi, &local_0xc8);
+            float ftmp_1 = (1.0f / (float)S2PhysicsSenderRate > 240 ? 240 : max(S2PhysicsSenderRate, 10)) * (float)AdjustMixedPriorityFairlyMultiplicativeStepLowerBound;
             float fxmm1_4;
-            if (ret_0x2258560_3 != 0 ? local_0xc8 : this->field_0x838 + (this->field_0x848 + this->field_0x848 * 2) * 8 != this->field_0x838 + (this->field_0x848 + this->field_0x848 * 2) * 8) {
+            if ((uint8_t)ret_0x2258560_3 != 0 ? local_0xc8 : prev_0x838_3 + (this->field_0x848 + this->field_0x848 * 2) * 8 != prev_0x838_3 + (this->field_0x848 + this->field_0x848 * 2) * 8) {
               fxmm1_4 = param_2 - rdx->field_0x8;
             } else {
               call_0x2937a50(&local_0x28);
               auto ret_0x2258560_5 = call_0x2258560(&this->field_0x838, i_edi, &local_0xc0);
               void* v_rdx_3 = local_0xc0;
-              if (ret_0x2258560_5 == 0) {
+              if ((uint8_t)ret_0x2258560_5 == 0) {
                 void* v_rdx_1 = local_0xc0;
                 if ((this->field_0x840 + 1) * 4 >= this->field_0x848 + this->field_0x848 * 2) {
                   call_0x2bbbd50(&this->field_0x838, this->field_0x848 * 2);
@@ -91,11 +95,10 @@ Operação  : 0x39bd6a0: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
               v_rdx_3->field_0x8 = param_2 - DefaultInitialSendPriority;
               fxmm1_4 = DefaultInitialSendPriority;
             }
-            float ftmp_1 = max((1.0 / (float)S2PhysicsSenderRate > 240 ? 240 : max(S2PhysicsSenderRate, 10)) * (float)AdjustMixedPriorityFairlyMultiplicativeStepLowerBound, (float)fxmm1_4);
-            float ftmp_2 = (float)AdjustMixedPriorityFairlyMultiplicativeConstantThousandths / 1000.0 * (float)fxmm1_4;
-            i_edi->field_0x8 = ftmp_2 + ftmp_1 * i_edi->field_0x8;
+            float ftmp_2 = (float)AdjustMixedPriorityFairlyMultiplicativeConstantThousandths / 1000.0f * (float)fxmm1_4;
+            i_edi->field_0x8 = ftmp_2 + max(ftmp_1, (float)fxmm1_4) * prev_0x8_1;
             i_edi += 0x18;
-          } while (i_edi != this->field_0x858); // loop -> L_0x39bd650
+          } while (i_edi != prev_0x858_2); // loop -> L_0x39bd650
         }
         if (SupportISRSubChannels) {
           return tailcall_0x39bdc80(this->field_0x850, this->field_0x858, (rdx >> 2) + ((uint64_t)(rdx >> 2) >> 63), local_0xb0);
@@ -674,9 +677,11 @@ Operação  : 0x39bd6a0: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
         void* i_ebx = &v_rdi_9->field_0x18;
         do { // L_0x39be030
           if (i_ebx->field_0x8 > v_rdi_9->field_0x8) {
+            float prev_0x0_6 = i_ebx->field_0x0;
+            double prev_0x10_7 = i_ebx->field_0x10;
             call_0x5e05370(i_ebx - i_esi + 0x18, v_rdi_9, i_esi);
-            v_rdi_9->field_0x0 = i_ebx->field_0x0;
-            v_rdi_9->field_0x10 = i_ebx->field_0x10;
+            v_rdi_9->field_0x0 = prev_0x0_6;
+            v_rdi_9->field_0x10 = prev_0x10_7;
           } else {
             void* v_rcx_10 = i_ebx;
             if (i_ebx->field_0x8 > v_rdi_9->field_m0x10[i_esi]) {
@@ -1427,7 +1432,7 @@ Operação  : 0x39bd6a0: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
       this->field_0xe8 = param_3->field_0x14;
       this->field_0xf8 = param_3->field_0x0;
       this->field_0xfc = local_0x500;
-      this->field_0x100 = local_0x500 == 1 ? 3 : 0;
+      this->field_0x100 = (uint8_t)(local_0x500 == 1 ? 3 : 0);
       this->field_0x101 = 0;
       this->field_0x108 = local_0x4f8->field_0x0;
       call_0x4612250(&this->field_0x110);
@@ -1643,25 +1648,25 @@ Operação  : 0x39bd6a0: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
       this->field_0x3038 = 0;
       this->field_0x3040 = 0;
       auto local_0xf8 = &sym_0x495a430;
-      call_0x1210450(&this->field_0x3048, (float)RemoteEventGlobalRateLimitMax, (float)RemoteEventGlobalRateLimitMilliseconds / 1000.0, &local_0xf8);
+      call_0x1210450(&this->field_0x3048, (float)RemoteEventGlobalRateLimitMax, (float)RemoteEventGlobalRateLimitMilliseconds / 1000.0f, &local_0xf8);
       auto local_0x118 = &sym_0x495a430;
-      call_0x1210450(&this->field_0x3080, (float)RemoteEventSoundRateLimitMax, (float)RemoteEventSoundRateLimitMilliseconds / 1000.0, &local_0x118);
+      call_0x1210450(&this->field_0x3080, (float)RemoteEventSoundRateLimitMax, (float)RemoteEventSoundRateLimitMilliseconds / 1000.0f, &local_0x118);
       auto local_0x138 = &sym_0x495a430;
-      call_0x1210450(&this->field_0x30b8, (float)RemoteEventSpecialRateLimitMax, (float)RemoteEventSpecialRateLimitMilliseconds / 1000.0, &local_0x138);
+      call_0x1210450(&this->field_0x30b8, (float)RemoteEventSpecialRateLimitMax, (float)RemoteEventSpecialRateLimitMilliseconds / 1000.0f, &local_0x138);
       auto local_0x158 = &sym_0x495a430;
-      call_0x1210450(&this->field_0x30f0, (float)RemoteEventAbuseReportRateLimitMax, (float)RemoteEventAbuseReportRateLimitMilliseconds / 1000.0, &local_0x158);
+      call_0x1210450(&this->field_0x30f0, (float)RemoteEventAbuseReportRateLimitMax, (float)RemoteEventAbuseReportRateLimitMilliseconds / 1000.0f, &local_0x158);
       auto local_0x178 = &sym_0x495a430;
-      call_0x1210450(&this->field_0x3128, (float)UnreliableRemoteEventRateLimitMax, (float)UnreliableRemoteEventRateLimitMilliseconds / 1000.0, &local_0x178);
+      call_0x1210450(&this->field_0x3128, (float)UnreliableRemoteEventRateLimitMax, (float)UnreliableRemoteEventRateLimitMilliseconds / 1000.0f, &local_0x178);
       auto local_0x198 = &sym_0x495a430;
-      call_0x1210450(&this->field_0x3160, (float)RemoteEventReportRateLimitMax, (float)RemoteEventReportRateLimitMilliseconds / 1000.0, &local_0x198);
+      call_0x1210450(&this->field_0x3160, (float)RemoteEventReportRateLimitMax, (float)RemoteEventReportRateLimitMilliseconds / 1000.0f, &local_0x198);
       auto local_0x1b8 = &sym_0x495a430;
-      call_0x1210450(&this->field_0x3198, (float)DiqLimitMax, (float)DiqLimitMilliseconds / 1000.0, &local_0x1b8);
+      call_0x1210450(&this->field_0x3198, (float)DiqLimitMax, (float)DiqLimitMilliseconds / 1000.0f, &local_0x1b8);
       auto local_0x1d8 = &sym_0x495a430;
-      call_0x1210450(&this->field_0x31d0, (float)ReplicatorLegacyChatRateLimitMax, (float)ReplicatorLegacyChatRateLimitMilliseconds / 1000.0, &local_0x1d8);
+      call_0x1210450(&this->field_0x31d0, (float)ReplicatorLegacyChatRateLimitMax, (float)ReplicatorLegacyChatRateLimitMilliseconds / 1000.0f, &local_0x1d8);
       auto local_0x1f8 = &sym_0x495a430;
-      call_0x1210450(&this->field_0x3208, (float)ReplicatorVariantKickRateLimitMax, (float)ReplicatorVariantKickRateLimitMilliseconds / 1000.0, &local_0x1f8);
+      call_0x1210450(&this->field_0x3208, (float)ReplicatorVariantKickRateLimitMax, (float)ReplicatorVariantKickRateLimitMilliseconds / 1000.0f, &local_0x1f8);
       auto local_0x218 = &sym_0x495a430;
-      call_0x1210450(&this->field_0x3240, (float)ReplicatorVariantReportRateLimitMax, (float)ReplicatorVariantReportRateLimitMilliseconds / 1000.0, &local_0x218);
+      call_0x1210450(&this->field_0x3240, (float)ReplicatorVariantReportRateLimitMax, (float)ReplicatorVariantReportRateLimitMilliseconds / 1000.0f, &local_0x218);
       this->replicatorVariantReportRateLimitMax_0x3278 = 0;
       this->field_0x3280 = 0;
       this->field_0x3288 = RxRlEn2;
@@ -1680,7 +1685,7 @@ Operação  : 0x39bd6a0: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
       call_0x461a1c0(&this->field_0x3320);
       this->field_0x33c0 = 0;
       call_0x472b660(&this->field_0x33c8, this);
-      this->field_0x3b20 = param_4;
+      this->field_0x3b20 = (uint8_t)param_4;
       this->field_0x3b21 = 0;
       this->field_0x3b28 = local_0x4f0;
       this->field_0x3b30 = 0;
@@ -1827,7 +1832,7 @@ Operação  : 0x39bd6a0: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
         } else {
           goto L_0x46187ff;
         }
-        this->field_0x3fa1 = v_rax_2;
+        this->field_0x3fa1 = (uint8_t)v_rax_2;
         this->field_0x3fa8 = param_3->field_0x38;
         this->field_0x3fb0 = 0;
         this->field_0x3fb8 = 0;
@@ -2003,13 +2008,13 @@ Operação  : 0x39bd6a0: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
                 v_rax_6 = 1;
                 v_rdx_7 = 4;
                 L_0x4618d8e:
-                this->field_0x100 = local_0x4f0->field_0x200 != 0 ? v_rdx_7 : v_rax_6;
+                this->field_0x100 = (uint8_t)(local_0x4f0->field_0x200 != 0 ? v_rdx_7 : v_rax_6);
               } else {
                 L_0x4618d7e:
                 if (DebugForceSetInspectorMode) {
                   v_rax_6 = 2;
                   v_rdx_7 = 5;
-                  this->field_0x100 = local_0x4f0->field_0x200 != 0 ? v_rdx_7 : v_rax_6;
+                  this->field_0x100 = (uint8_t)(local_0x4f0->field_0x200 != 0 ? v_rdx_7 : v_rax_6);
                 }
               }
             } else if (DebugForceSetInspectorMode) {
@@ -2027,20 +2032,23 @@ Operação  : 0x39bd6a0: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
           if (this->field_0x108 != 0) {
             this->field_0x108->field_0x8a0 = &this->field_0x110;
           }
-          void* v_rdi_8 = this;
+          void* v_rsi_8 = this->field_0x3b28;
+          void* v_rdi_9 = this;
           if (this->field_0x3b28->field_0x7c8 != this->field_0x3b28->field_0x7d0) {
             this->field_0x3b28->field_0x7c8->field_0x0 = this;
             this->field_0x3b28->field_0x7c8 = this->field_0x3b28->field_0x7c8 + 8;
           } else {
+            void* prev_0x3b28_5 = this->field_0x3b28;
             auto local_0x98 = this;
             call_0x99e480(&this->field_0x3b28->field_0x7c0, this->field_0x3b28->field_0x7c8, &local_0x98);
-            v_rdi_8 = local_0x98;
+            v_rsi_8 = prev_0x3b28_5;
+            v_rdi_9 = local_0x98;
           }
-          v_rdi_8->field_0x2ac8 = ((this->field_0x3b28->field_0x7c8 - this->field_0x3b28->field_0x7c0) >> 3) - 1;
-          auto ret_0x46db3e0_82 = call_0x46db3e0(&this->field_0x3b28->field_0x938, &local_0x278, &v_rdi_8->field_0xf8);
-          ret_0x46db3e0_82->field_0x0->field_0x18 = v_rdi_8;
-          if (this->field_0x3b28->field_0x3c8 != 0) {
-            call_0x47f62d0(this->field_0x3b28->field_0x3c8, v_rdi_8);
+          v_rdi_9->field_0x2ac8 = ((this->field_0x3b28->field_0x7c8 - this->field_0x3b28->field_0x7c0) >> 3) - 1;
+          auto ret_0x46db3e0_82 = call_0x46db3e0(&v_rsi_8->field_0x938, &local_0x278, &v_rdi_9->field_0xf8);
+          ret_0x46db3e0_82->field_0x0->field_0x18 = v_rdi_9;
+          if (v_rsi_8->field_0x3c8 != 0) {
+            call_0x47f62d0(v_rsi_8->field_0x3c8, v_rdi_9);
           }
           if (this->field_0x2acf == 0 && param_3->field_0x28 != 0) {
             auto vret_84 = this->field_0xc8->field_0x0->vfunc_0x108(this->field_0xc8->field_0x0, &local_0x240);
@@ -2050,13 +2058,13 @@ Operação  : 0x39bd6a0: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
           }
           if (DebugNetworkProfiler) {
             if (this->field_0xfc == 0) {
-              uint8_t v_al_10;
+              uint8_t v_al_11;
               if (!DebugNetworkProfilerReplicator && !DebugNetworkProfilerDeserialize && !DebugNetworkProfilerRakPeer) {
-                v_al_10 = 0;
+                v_al_11 = 0;
               } else {
-                v_al_10 = 1;
+                v_al_11 = 1;
               }
-              this->field_0x3fb0 = v_al_10;
+              this->field_0x3fb0 = v_al_11;
             }
             if (DebugNetworkProfiler && this->field_0x3fb0 != 0 && DebugNetworkProfilerRakPeer) {
               if (this->field_0x108 != 0) {
@@ -2066,22 +2074,22 @@ Operação  : 0x39bd6a0: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
           }
           auto ret_0x4612860_86 = call_0x4612860();
           call_0x495a220(&local_0xa0);
-          double fxmm0_12 = (double)(uint64_t)ret_0x4612860_86;
-          this->field_0x4c20 = fxmm0_12 / 1000.0 - local_0xa0;
+          double fxmm0_13 = (double)(uint64_t)ret_0x4612860_86;
+          this->field_0x4c20 = fxmm0_13 / 1000.0 - local_0xa0;
           auto ret_0x4975550_88 = call_0x4975550();
           this->field_0x5818 = (ret_0x4975550_88 - ((uint32_t)(((uint32_t)(ret_0x4975550_88 - rdx) >> 1) + rdx) >> 16) * 100000) * 22560 + this;
-          if (Network != 0 && Network >= 6) {
-            if ((uint64_t)Network >> 8 >= 3) {
+          if ((uint8_t)Network != 0 && (uint8_t)Network >= 6) {
+            if ((uint8_t)((uint64_t)Network >> 8) >= 3) {
               auto ret_0x47e6420_89 = call_0x47e6420(&local_0x440, &this->field_0xd8, 1);
-              void* v_rax_13 = ret_0x47e6420_89;
+              void* v_rax_14 = ret_0x47e6420_89;
               if (ret_0x47e6420_89->field_0x18 >= 16) {
-                v_rax_13 = ret_0x47e6420_89->field_0x0;
+                v_rax_14 = ret_0x47e6420_89->field_0x0;
               }
-              call_0x49722e0(&local_0xd0, &0x7ff6fb41f560->field_m0x274e0b8, v_rax_13);
+              call_0x49722e0(&local_0xd0, &0x7ff7451cf560->field_m0x274e0b8, v_rax_14);
               call_0x6f8fb0(&local_0x440);
             }
-            if (Network >= 6) {
-              if ((uint64_t)Network >> 8 >= 3) {
+            if ((uint8_t)Network >= 6) {
+              if ((uint8_t)((uint64_t)Network >> 8) >= 3) {
                 FLog::Log("[FLog::Network] Replicator created: %p");
                 "[FLog::Network] Replicator created: %p";
               }
@@ -2089,75 +2097,75 @@ Operação  : 0x39bd6a0: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
           }
           auto ret_0x4956040_92 = call_0x4956040(8);
           auto ret_0x4612000_93 = call_0x4612000(ret_0x4956040_92, 120);
-          void* prev_0x2ff8_6 = this->field_0x2ff8;
+          void* prev_0x2ff8_8 = this->field_0x2ff8;
           this->field_0x2ff8 = ret_0x4612000_93;
-          if (prev_0x2ff8_6 != 0) {
-            call_0x4668dc0(prev_0x2ff8_6);
-            call_0x4955ac0(prev_0x2ff8_6);
+          if (prev_0x2ff8_8 != 0) {
+            call_0x4668dc0(prev_0x2ff8_8);
+            call_0x4955ac0(prev_0x2ff8_8);
           }
           auto ret_0x4956040_96 = call_0x4956040(8);
           auto ret_0x4612000_97 = call_0x4612000(ret_0x4956040_96, 88);
-          void* prev_0x3000_7 = this->field_0x3000;
+          void* prev_0x3000_9 = this->field_0x3000;
           this->field_0x3000 = ret_0x4612000_97;
-          if (prev_0x3000_7 != 0) {
-            call_0x4668dc0(prev_0x3000_7);
-            call_0x4955ac0(prev_0x3000_7);
+          if (prev_0x3000_9 != 0) {
+            call_0x4668dc0(prev_0x3000_9);
+            call_0x4955ac0(prev_0x3000_9);
           }
           auto ret_0x4956040_100 = call_0x4956040(8);
           auto ret_0x4612000_101 = call_0x4612000(ret_0x4956040_100, 80);
-          void* prev_0x3008_8 = this->field_0x3008;
+          void* prev_0x3008_10 = this->field_0x3008;
           this->field_0x3008 = ret_0x4612000_101;
-          if (prev_0x3008_8 != 0) {
-            call_0x4668dc0(prev_0x3008_8);
-            call_0x4955ac0(prev_0x3008_8);
+          if (prev_0x3008_10 != 0) {
+            call_0x4668dc0(prev_0x3008_10);
+            call_0x4955ac0(prev_0x3008_10);
           }
           auto ret_0x4956040_104 = call_0x4956040(8);
           auto ret_0x4612000_105 = call_0x4612000(ret_0x4956040_104, 104);
-          void* prev_0x3010_9 = this->field_0x3010;
+          void* prev_0x3010_11 = this->field_0x3010;
           this->field_0x3010 = ret_0x4612000_105;
-          if (prev_0x3010_9 != 0) {
-            call_0x4668dc0(prev_0x3010_9);
-            call_0x4955ac0(prev_0x3010_9);
+          if (prev_0x3010_11 != 0) {
+            call_0x4668dc0(prev_0x3010_11);
+            call_0x4955ac0(prev_0x3010_11);
           }
           auto ret_0x4956040_108 = call_0x4956040(8);
           auto ret_0x4612000_109 = call_0x4612000(ret_0x4956040_108, 120);
-          void* prev_0x3018_10 = this->field_0x3018;
+          void* prev_0x3018_12 = this->field_0x3018;
           this->field_0x3018 = ret_0x4612000_109;
-          if (prev_0x3018_10 != 0) {
-            call_0x4668dc0(prev_0x3018_10);
-            call_0x4955ac0(prev_0x3018_10);
+          if (prev_0x3018_12 != 0) {
+            call_0x4668dc0(prev_0x3018_12);
+            call_0x4955ac0(prev_0x3018_12);
           }
           auto ret_0x4956040_112 = call_0x4956040(8);
           auto ret_0x4612000_113 = call_0x4612000(ret_0x4956040_112, 112);
-          void* prev_0x3020_11 = this->field_0x3020;
+          void* prev_0x3020_13 = this->field_0x3020;
           this->field_0x3020 = ret_0x4612000_113;
-          if (prev_0x3020_11 != 0) {
-            call_0x4668dc0(prev_0x3020_11);
-            call_0x4955ac0(prev_0x3020_11);
+          if (prev_0x3020_13 != 0) {
+            call_0x4668dc0(prev_0x3020_13);
+            call_0x4955ac0(prev_0x3020_13);
           }
           auto ret_0x4956040_116 = call_0x4956040(8);
           auto ret_0x4612000_117 = call_0x4612000(ret_0x4956040_116, 104);
-          void* prev_0x3028_12 = this->field_0x3028;
+          void* prev_0x3028_14 = this->field_0x3028;
           this->field_0x3028 = ret_0x4612000_117;
-          if (prev_0x3028_12 != 0) {
-            call_0x4668dc0(prev_0x3028_12);
-            call_0x4955ac0(prev_0x3028_12);
+          if (prev_0x3028_14 != 0) {
+            call_0x4668dc0(prev_0x3028_14);
+            call_0x4955ac0(prev_0x3028_14);
           }
           auto ret_0x4956040_120 = call_0x4956040(8);
           auto ret_0x4612000_121 = call_0x4612000(ret_0x4956040_120, 104);
-          void* prev_0x3030_13 = this->field_0x3030;
+          void* prev_0x3030_15 = this->field_0x3030;
           this->field_0x3030 = ret_0x4612000_121;
-          if (prev_0x3030_13 != 0) {
-            call_0x4668dc0(prev_0x3030_13);
-            call_0x4955ac0(prev_0x3030_13);
+          if (prev_0x3030_15 != 0) {
+            call_0x4668dc0(prev_0x3030_15);
+            call_0x4955ac0(prev_0x3030_15);
           }
           auto ret_0x4956040_124 = call_0x4956040(8);
           auto ret_0x4612000_125 = call_0x4612000(ret_0x4956040_124, 104);
-          void* prev_0x3038_14 = this->field_0x3038;
+          void* prev_0x3038_16 = this->field_0x3038;
           this->field_0x3038 = ret_0x4612000_125;
-          if (prev_0x3038_14 != 0) {
-            call_0x4668dc0(prev_0x3038_14);
-            call_0x4955ac0(prev_0x3038_14);
+          if (prev_0x3038_16 != 0) {
+            call_0x4668dc0(prev_0x3038_16);
+            call_0x4955ac0(prev_0x3038_16);
           }
           if (FixUninitializedStatsForRbxTransport || this->field_0x2acf == 0) {
             call_0x4650ca0(this);
@@ -2169,17 +2177,17 @@ Operação  : 0x39bd6a0: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
           this->field_0x2b98 = local_0xa8;
           call_0x495a220(&local_0x90);
           this->field_0x2ba0 = local_0x90;
-          int32_t v_rbx_18 = SendRakNetStatsThrottle;
+          int32_t v_rbx_19 = SendRakNetStatsThrottle;
           if (OverrideSendRakNetStatsThrottleCountries.size() != 0) {
             auto local_0x420 = 0;
             call_0x6f7000(&local_0x420, &sym_0x6648084, 1);
             auto ret_0x47e64c0_134 = call_0x47e64c0(&sym_0x81766c0, OverrideSendRakNetStatsThrottleCountries, &local_0x420);
             std::string::_Tidy_deallocate(local_0x420);
             int32_t selected_ebx_1 = ret_0x47e64c0_134 != -1 ? ret_0x47e64c0_134 : SendRakNetStatsThrottle;
-            v_rbx_18 = selected_ebx_1;
+            v_rbx_19 = selected_ebx_1;
           }
           auto ret_0x4975550_136 = call_0x4975550();
-          this->field_0x4b71 = ret_0x4975550_136 - ((uint32_t)(ret_0x4975550_136 / 100) >> 5) * 100 < v_rbx_18;
+          this->field_0x4b71 = ret_0x4975550_136 - ((uint32_t)(ret_0x4975550_136 / 100) >> 5) * 100 < v_rbx_19;
           this->field_0x5350 = 0;
           this->field_0x5360 = 0;
           this->field_0x5368 = 0;
@@ -2205,13 +2213,13 @@ Operação  : 0x39bd6a0: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
           ret_0x4956040_143->field_0x68 = &sym_0x7036b08;
           ret_0x4956040_143->field_0xa6 = 1;
           if (&this->field_0x2fe0 != &local_0x90) {
-            void* prev_0x2fe0_15 = this->field_0x2fe0;
+            void* prev_0x2fe0_17 = this->field_0x2fe0;
             this->field_0x2fe0 = ret_0x4956040_143;
-            if (prev_0x2fe0_15 != 0) {
+            if (prev_0x2fe0_17 != 0) {
               call_0x1c2a0f0(&this->field_0x2fe0->field_0x68);
               call_0x4955ac0(this->field_0x2fe0->field_0x50);
-              call_0x4669e20(prev_0x2fe0_15);
-              call_0x4955ac0(prev_0x2fe0_15);
+              call_0x4669e20(prev_0x2fe0_17);
+              call_0x4955ac0(prev_0x2fe0_17);
             }
           } else {
             call_0x1c2a0f0(&ret_0x4956040_143->field_0x68);
@@ -2220,21 +2228,21 @@ Operação  : 0x39bd6a0: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
             call_0x4955ac0(ret_0x4956040_143);
           }
           this->field_0x1790 = local_0x4f0->field_0x978;
-          uint8_t v_al_19;
-          if (((uint64_t)this->field_0x3fa8 >> 22 & 0x1) != 0 && SendsGoThroughConnection4) {
+          uint8_t v_al_20;
+          if (((uint8_t)((uint64_t)this->field_0x3fa8 >> 22) & 0x1) != 0 && SendsGoThroughConnection4) {
             if (DebugForcePacketHashes2) {
-              if (((uint64_t)this->field_0x3fa8 >> 55 & 0x1) == 0) {
-                v_al_19 = 1;
+              if (((uint8_t)((uint64_t)this->field_0x3fa8 >> 55) & 0x1) == 0) {
+                v_al_20 = 1;
               } else {
-                v_al_19 = 0;
+                v_al_20 = 0;
               }
             } else {
-              v_al_19 = 1;
+              v_al_20 = 1;
             }
           } else {
-            v_al_19 = 0;
+            v_al_20 = 0;
           }
-          this->field_0x2fe8 = v_al_19;
+          this->field_0x2fe8 = v_al_20;
           if (param_3->field_0x30 != 0) {
             call_0x6daf40(param_3->field_0x30);
           }
@@ -3863,7 +3871,7 @@ Operação  : 0x39bd6a0: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
     
     // Flag defaults: TrackerDataSenderMaxBandwidthBps = 5850, NetworkBandwidthManagerTrace = 0, ReportBandwidthCapHit = true, BandwidthManagerFeedbackMetricsUpdateEveryXSeconds = 1, BandwidthManagerFeedbackMetricsSendEveryXSecondsV2 = 300, BandwidthManagerGetFeedbackInWindowAndReport2 = false, RakNetCalculateApplicationFeedback2 = false, LargeReplicatorUseDynamicBandwidthTarget2 = false
     void RBX::TrackerData::func_0x472bc70(RBX::TrackerData* this, float param_2) {
-      if (NetworkBandwidthManagerTrace >= 6 && (uint64_t)NetworkBandwidthManagerTrace >> 8 >= 3) {
+      if ((uint8_t)NetworkBandwidthManagerTrace >= 6 && (uint8_t)((uint64_t)NetworkBandwidthManagerTrace >> 8) >= 3) {
         FLog::Log("[DFLog::NetworkBandwidthManagerTrace] NetworkBandwdithManager: Calculate Bandwidth for Replicato");
       }
       auto* f_0 = this->field_0x0;
@@ -3880,8 +3888,8 @@ Operação  : 0x39bd6a0: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
           auto* f_0_2_c8 = f_0_2->field_0xc8;
           auto* f_0_2_c8_0 = f_0_2_c8->field_0x0;
           auto vret_2 = f_0_2_c8_0->vfunc_0x270(f_0_2_c8_0, &local_0xd0, &local_0x40);
-          this->field_0x1f0 = vret_2;
-          if (vret_2 != 0) {
+          this->field_0x1f0 = (uint8_t)vret_2;
+          if ((uint8_t)vret_2 != 0) {
             this->field_0x1f4 = local_0x40;
             call_0x495a220(&local_0x170);
             this->field_0x1e8 = local_0x170;
@@ -3901,34 +3909,34 @@ Operação  : 0x39bd6a0: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
           auto* f_0_3_c8_0 = f_0_3_c8->field_0x0;
           auto vret_8 = f_0_3_c8_0->vfunc_0x80(f_0_3_c8_0, &f_0_3->field_0xd8, f_0_3->field_0x598, param_2);
           if (vret_8 > 0) {
-            this->field_0x1f8 = max((int32_t)((float)vret_8 / max(0.1, param_2)), this->field_0x1f8);
+            this->field_0x1f8 = max((int32_t)((float)vret_8 / max(0.1f, param_2)), this->field_0x1f8);
           }
         }
         auto* f_0_4 = this->field_0x0;
         if (LargeReplicatorUseDynamicBandwidthTarget2 && f_0_4->field_0xfc == 0 && f_0_4->field_0x2acf == 0) {
           auto vret_9 = f_0_4->field_0xc8->field_0x0->vfunc_0x278();
           if ((int32_t)(vret_9 * 125000.0) > 0) {
-            int32_t v_rsi_7;
+            int32_t v_rsi_3;
             if (LargeDataSenderMaxBandwidthBps < (int32_t)(vret_9 * 125000.0)) {
-              v_rsi_7 = LargeDataSenderMaxBandwidthBps;
+              v_rsi_3 = LargeDataSenderMaxBandwidthBps;
             } else {
-              v_rsi_7 = max((int32_t)(vret_9 * 125000.0), LargeDataSenderMinBandwidthBps);
+              v_rsi_3 = max((int32_t)(vret_9 * 125000.0), LargeDataSenderMinBandwidthBps);
             }
             auto* f_0_5 = this->field_0x0;
-            if (v_rsi_7 <= f_0_5->field_0x4bf8) {
+            if (v_rsi_3 <= f_0_5->field_0x4bf8) {
               if (f_0_5->field_0x4bf8 > LargeDataSenderMaxBandwidthBps) {
-                f_0_5->field_0x4bf8 = v_rsi_7;
+                f_0_5->field_0x4bf8 = v_rsi_3;
                 auto vret_10 = f_0_5->vfunc_0x280(f_0_5);
                 if (vret_10 != 0) {
-                  auto local_0x160 = v_rsi_7;
+                  auto local_0x160 = v_rsi_3;
                   call_0x737860(global_0x8515970 + vret_10, &local_0x160);
                   auto local_0x90 = 0;
-                  call_0x3d38720(this, vret_10, v_rsi_7, &local_0x90);
+                  call_0x3d38720(this, vret_10, v_rsi_3, &local_0x90);
                 }
               }
             } else {
               auto* f_0_6 = this->field_0x0;
-              f_0_6->field_0x4bf8 = v_rsi_7;
+              f_0_6->field_0x4bf8 = v_rsi_3;
               auto vret_10 = f_0_6->vfunc_0x280(f_0_6);
               if (vret_10 != 0) {
                 goto L_0x472bf5f;
@@ -3940,13 +3948,13 @@ Operação  : 0x39bd6a0: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
       auto vret_13 = this->field_0x0->vfunc_0x310();
       auto* f_0_7 = this->field_0x0;
       if (f_0_7->field_0x3b30 == 0 && f_0_7->field_0x4bd6 != 0) {
-        void* v_rax_12 = vret_13;
+        void* v_rax_5 = vret_13;
         if (f_0_7->field_0x3b61 == 0) {
-          v_rax_12 = vret_13 == 0;
+          v_rax_5 = (uint8_t)vret_13 == 0;
         }
-        if (!isnan(param_2 / 1000.0)) {
-          if (param_2 / 1000.0 != 0.0) {
-            float ftmp_1 = param_2 / 1000.0 * this->field_0x204;
+        if (!isnan(param_2 / 1000.0f)) {
+          if (param_2 / 1000.0f != 0.0) {
+            float ftmp_1 = param_2 / 1000.0f * this->field_0x204;
             float prev_0x1fc_2 = this->field_0x1fc;
             this->field_0x1fc = this->field_0x1fc - ftmp_1;
             if (0.0 >= prev_0x1fc_2 - ftmp_1) {
@@ -3954,14 +3962,14 @@ Operação  : 0x39bd6a0: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
             }
           }
         } else {
-          float ftmp_1 = param_2 / 1000.0 * this->field_0x204;
+          float ftmp_1 = param_2 / 1000.0f * this->field_0x204;
           float prev_0x1fc_2 = this->field_0x1fc;
           this->field_0x1fc = this->field_0x1fc - ftmp_1;
           if (0.0 >= prev_0x1fc_2 - ftmp_1) {
             this->field_0x1fc = 0;
           }
         }
-        if (v_rax_12 != 0) {
+        if ((uint8_t)v_rax_5 != 0) {
           if (!isnan(this->field_0x204)) {
             if (this->field_0x204 != 0.0) {
               if (!isnan(this->field_0x200)) {
@@ -3970,33 +3978,33 @@ Operação  : 0x39bd6a0: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
                   if (this->field_0x1fc + param_2 <= this->field_0x200) {
                     this->field_0x1fc = this->field_0x1fc + param_2;
                   } else {
-                    float fxmm1_14;
+                    float fxmm1_7;
                     if (f_0_7->field_0x3b61 == 1) {
                     f_0_7->field_0x3b61 = 0;
-                    fxmm1_14 = BandwithUnhealthyTargetPct;
+                    fxmm1_7 = BandwithUnhealthyTargetPct;
                     } else {
                     f_0_7->field_0x3b61 = 1;
-                    fxmm1_14 = BandwithHealthyTargetPct;
+                    fxmm1_7 = BandwithHealthyTargetPct;
                     }
-                    float ftmp_2 = (float)BandwithHealthPeriodMs / 1000.0 * 2;
-                    call_0x4729190(&this->field_0x1fc, (float)fxmm1_14 / 100.0 * (float)BandwithHealthPeriodMs, max(ftmp_2, 1.0));
+                    float ftmp_2 = (float)BandwithHealthPeriodMs / 1000.0f * 2;
+                    call_0x4729190(&this->field_0x1fc, (float)fxmm1_7 / 100.0f * (float)BandwithHealthPeriodMs, max(ftmp_2, 1.0f));
                     rcx->field_0x0 = 0;
                   }
                 }
               } else if (this->field_0x1fc + param_2 <= this->field_0x200) {
                 this->field_0x1fc = this->field_0x1fc + param_2;
               } else {
-                float fxmm1_14;
+                float fxmm1_7;
                 auto* f_0_8 = this->field_0x0;
                 if (f_0_8->field_0x3b61 == 1) {
                   f_0_8->field_0x3b61 = 0;
-                  fxmm1_14 = BandwithUnhealthyTargetPct;
+                  fxmm1_7 = BandwithUnhealthyTargetPct;
                 } else {
                   f_0_8->field_0x3b61 = 1;
-                  fxmm1_14 = BandwithHealthyTargetPct;
+                  fxmm1_7 = BandwithHealthyTargetPct;
                 }
-                float ftmp_2 = (float)BandwithHealthPeriodMs / 1000.0 * 2;
-                call_0x4729190(&this->field_0x1fc, (float)fxmm1_14 / 100.0 * (float)BandwithHealthPeriodMs, max(ftmp_2, 1.0));
+                float ftmp_2 = (float)BandwithHealthPeriodMs / 1000.0f * 2;
+                call_0x4729190(&this->field_0x1fc, (float)fxmm1_7 / 100.0f * (float)BandwithHealthPeriodMs, max(ftmp_2, 1.0f));
                 rcx->field_0x0 = 0;
               }
             }
@@ -4023,54 +4031,56 @@ Operação  : 0x39bd6a0: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
             call_0x47e7de0(&this->field_0x0->field_0x2d20, min((int32_t)((double)PhysicsSenderMaxBandwidthBps * (local_0x178 - this->field_0x20)), (int32_t)ftmp_3));
             call_0x47e8050(&this->field_0x0->field_0x2d30, 1);
           }
-          int32_t v_rsi_16 = std::clamp(S2PhysicsSenderRate, 10, 240);
-          this->field_0xe8 = call_0x4617630(this->field_0x0, (int32_t)((double)TrackerDataSenderMaxBandwidthBps * ((double)PhysicsSenderMaxBandwidthBpsScaling / (double)v_rsi_16)), 1, 1);
+          int32_t v_rsi_9 = std::clamp(S2PhysicsSenderRate, 10, 240);
+          this->field_0xe8 = call_0x4617630(this->field_0x0, (int32_t)((double)TrackerDataSenderMaxBandwidthBps * ((double)PhysicsSenderMaxBandwidthBpsScaling / (double)v_rsi_9)), 1, 1);
         }
-        if (this->field_0x8 < 1.0) {
+        if (1.0f > this->field_0x8) {
           this->field_0x18 = (int32_t)((float)this->field_0x18 * this->field_0x8);
         }
         call_0x472c460(this, local_0x178);
-        int32_t v_rdx_17;
-        float fxmm3_18;
+        uint8_t v_dl_10;
+        float fxmm3_11;
         auto* f_0_9 = this->field_0x0;
         if (f_0_9->field_0x3310 == 0) {
-          v_rdx_17 = 1;
-          fxmm3_18 = ClusterSenderMaxUpdateBandwidthBps;
+          v_dl_10 = 1;
+          fxmm3_11 = ClusterSenderMaxUpdateBandwidthBps;
         } else {
           int32_t selected_eax_1 = f_0_9->field_0x2b84 != 0 ? ClusterSenderMaxUpdateBandwidthBps : ClusterSenderMaxJoinBandwidthBps;
-          v_rdx_17 = f_0_9->field_0x2b84;
-          fxmm3_18 = selected_eax_1;
+          v_dl_10 = f_0_9->field_0x2b84;
+          fxmm3_11 = selected_eax_1;
         }
-        int32_t selected_eax_2 = v_rdx_17 != 0 ? ClusterSenderMaxUpdateBandwidthBpsScaling : ClusterSenderMaxJoinBandwidthBpsScaling;
+        int32_t selected_eax_2 = v_dl_10 != 0 ? ClusterSenderMaxUpdateBandwidthBpsScaling : ClusterSenderMaxJoinBandwidthBpsScaling;
         this->clusterSenderMaxUpdateBandwidthBpsScaling_0x88 = 0;
-        double fxmm0_19;
-        if (max(0, f_0_9->field_0x17c0 - 0xc8) != 0) {
-          if (f_0_9->field_0x3b6c / max(0, f_0_9->field_0x17c0 - 0xc8) >= 0) {
-            fxmm0_19 = (double)(f_0_9->field_0x3b6c / max(0, f_0_9->field_0x17c0 - 0xc8));
+        double fxmm0_12;
+        auto expr_2 = max(0, f_0_9->field_0x17c0 - 0xc8);
+        if (expr_2 != 0) {
+          auto expr_1 = f_0_9->field_0x3b6c / expr_2;
+          if (f_0_9->field_0x3b6c / expr_2 >= 0) {
+            fxmm0_12 = (double)expr_1;
           } else {
-            int64_t tmp_7 = (uint64_t)(f_0_9->field_0x3b6c / max(0, f_0_9->field_0x17c0 - 0xc8)) >> 1 | f_0_9->field_0x3b6c / max(0, f_0_9->field_0x17c0 - 0xc8) & 0x1;
-            fxmm0_19 = (double)tmp_7 * 2;
+            int64_t tmp_7 = (uint64_t)expr_1 >> 1 | f_0_9->field_0x3b6c / expr_2 & 0x1;
+            fxmm0_12 = (double)tmp_7 * 2;
           }
         } else {
-          fxmm0_19 = 1.0;
+          fxmm0_12 = 1.0;
         }
         this->field_0x90 = local_0x178;
-        double ftmp_4 = max(fxmm0_19, 1.0) * (local_0x178 - this->field_0x90);
-        this->clusterSenderMaxUpdateBandwidthBpsScaling_0x88 = (int32_t)(min(ftmp_4, (double)selected_eax_2 / 30.0) * (double)fxmm3_18);
-        if (this->field_0x8 < 1.0) {
-          float ftmp_5 = (float)(int32_t)(min(ftmp_4, (double)selected_eax_2 / 30.0) * (double)fxmm3_18);
+        double ftmp_4 = max(fxmm0_12, 1.0) * (local_0x178 - this->field_0x90);
+        this->clusterSenderMaxUpdateBandwidthBpsScaling_0x88 = (int32_t)(min(ftmp_4, (double)selected_eax_2 / 30.0) * (double)fxmm3_11);
+        if (1.0f > this->field_0x8) {
+          float ftmp_5 = (float)(int32_t)(min(ftmp_4, (double)selected_eax_2 / 30.0) * (double)fxmm3_11);
           this->clusterSenderMaxUpdateBandwidthBpsScaling_0x88 = (int32_t)(ftmp_5 * this->field_0x8);
         }
         this->touchSenderMaxBandwidthBps_0xb8 = 0;
-        int32_t v_rdi_21 = 0;
+        int32_t v_rdi_14 = 0;
         if (local_0x178 - this->touchSenderMaxBandwidthBps_0xc0 > 0.1) {
           this->touchSenderMaxBandwidthBps_0xc0 = local_0x178;
           double ftmp_6 = (double)TouchSenderMaxBandwidthBps * min(local_0x178 - this->touchSenderMaxBandwidthBps_0xc0, (double)TouchSenderMaxBandwidthBpsScaling / 10.0);
           this->touchSenderMaxBandwidthBps_0xb8 = (int32_t)ftmp_6;
-          v_rdi_21 = (int32_t)ftmp_6;
+          v_rdi_14 = (int32_t)ftmp_6;
         }
-        if (this->field_0x8 < 1.0) {
-          this->touchSenderMaxBandwidthBps_0xb8 = (int32_t)((float)v_rdi_21 * this->field_0x8);
+        if (1.0f > this->field_0x8) {
+          this->touchSenderMaxBandwidthBps_0xb8 = (int32_t)((float)v_rdi_14 * this->field_0x8);
         }
         if (SupportISRSubChannels) {
           call_0x472c770(this, local_0x178);
@@ -4592,26 +4602,29 @@ Operação  : 0x39bd6a0: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
     0x472c45a | c3                       | ret
   
   === [Decompilacao C++ do XREF Runtime #4: 0x47316e0..0x4731760 (insn @0x4731727: mov/math reg, [flag])] ===
-    struct RBX::S2PhysicsSender {
+    struct RBX::Network::NetworkBandwidthManager {
       /* +0x20 */ void*   field_0x20;
     };
     
     // Flag defaults: S2PhysicsSenderRate = 15, DebugHashTableMetrics = false, NextGenReplicatorEnabledWrite4 = false, DebugNextGenRepUsePropBlacklist = false, ISRSenderRate = 60
-    auto RBX::S2PhysicsSender::func_0x47316e0(RBX::S2PhysicsSender* this) {
+    auto RBX::Network::NetworkBandwidthManager::func_0x47316e0(RBX::Network::NetworkBandwidthManager* this) {
       auto* f_20 = this->field_0x20;
       auto* f_20_0 = f_20->field_0x0;
       auto* f_20_0_3b28 = f_20_0->field_0x3b28;
       if (!DebugHashTableMetrics && (f_20_0_3b28->field_0x510 >> 3 & 0x1) == 0) {
-        if (!NextGenReplicatorEnabledWrite4 && (f_20_0_3b28->field_0x510 & 0x1) == 0) {
-          if ((f_20_0_3b28->field_0x510 >> 2 & 0x1) == 0) {
+        auto expr_1 = (uint8_t)f_20_0_3b28->field_0x510 >> 2 & 0x1;
+        if (!NextGenReplicatorEnabledWrite4 && ((uint8_t)f_20_0_3b28->field_0x510 & 0x1) == 0) {
+          if (expr_1 == 0) {
             int32_t v_rax_1 = std::clamp(S2PhysicsSenderRate, 10, 240);
             return (int32_t)(double)v_rax_1;
           }
           return (int32_t)(double)ISRSenderRate;
         }
-        if (!DebugNextGenRepUsePropBlacklist && (f_20_0_3b28->field_0x510 >> 2 & 0x1) == 0) {
-          int32_t v_rax_1 = std::clamp(S2PhysicsSenderRate, 10, 240);
-          return (int32_t)(double)v_rax_1;
+        if (!DebugNextGenRepUsePropBlacklist) {
+          if (expr_1 == 0) {
+            int32_t v_rax_1 = std::clamp(S2PhysicsSenderRate, 10, 240);
+            return (int32_t)(double)v_rax_1;
+          }
         }
       }
       return (int32_t)(double)ISRSenderRate;
@@ -4657,18 +4670,498 @@ Operação  : 0x39bd6a0: mov/math reg, [flag] ; fn=0x39bd580..0x39bd89f
     0x4731757 | f3 0f e6 c0              | cvtdq2pd xmm0, xmm0
     0x473175b | f2 0f 2c c0              | cvttsd2si eax, xmm0
     0x473175f | c3                       | ret
+  
+  === [Decompilacao da Rotina Chamadora (Caller): 0x39bc7b0..0x39bd57a em RBX::DefaultInitial] ===
+    struct RBX::DefaultInitial {
+      /* +0x0 */ void*   field_0x0;
+      /* +0x8 */ uint8_t field_0x8;
+      /* +0x28 */ double  field_0x28;
+      /* +0x30 */ uint8_t field_0x30;
+      /* +0x68 */ double  field_0x68;
+      /* +0x70 */ double  field_0x70;
+      /* +0x78 */ double  field_0x78;
+      /* +0x80 */ double  field_0x80;
+      /* +0x88 */ uint8_t field_0x88;
+      /* +0x2f0 */ uint8_t field_0x2f0;
+      /* +0x2f8 */ double  field_0x2f8;
+      /* +0x300 */ double  field_0x300;
+      /* +0x308 */ double  field_0x308;
+      /* +0x310 */ int32_t field_0x310;
+      /* +0x338 */ uint8_t field_0x338;
+      /* +0x340 */ double  field_0x340;
+      /* +0x348 */ double  field_0x348;
+      /* +0x350 */ double  field_0x350;
+      /* +0x358 */ int32_t field_0x358;
+      /* +0x5d8 */ double  field_0x5d8;
+      /* +0x5e0 */ int32_t field_0x5e0;
+      /* +0x5e8 */ void*   field_0x5e8;
+      /* +0x5f0 */ void*   field_0x5f0;
+      /* +0x5f8 */ void*   field_0x5f8;
+      /* +0x600 */ void*   field_0x600;
+      /* +0x608 */ uint8_t field_0x608;
+      /* +0x609 */ int32_t field_0x609;
+      /* +0x60d */ uint16_t field_0x60d;
+      /* +0x60f */ uint8_t field_0x60f;
+      /* +0x610 */ void*   field_0x610;
+      /* +0x618 */ void*   field_0x618;
+      /* +0x620 */ void*   field_0x620;
+      /* +0x628 */ void*   field_0x628;
+      /* +0x630 */ uint8_t field_0x630;
+      /* +0x638 */ void*   field_0x638;
+      /* +0x640 */ void*   field_0x640;
+      /* +0x648 */ void*   field_0x648;
+      /* +0x650 */ void*   field_0x650;
+      /* +0x658 */ uint8_t field_0x658;
+      /* +0x659 */ int32_t field_0x659;
+      /* +0x65d */ uint16_t field_0x65d;
+      /* +0x65f */ uint8_t field_0x65f;
+      /* +0x660 */ void*   field_0x660;
+      /* +0x668 */ void*   field_0x668;
+      /* +0x670 */ void*   field_0x670;
+      /* +0x678 */ void*   field_0x678;
+      /* +0x680 */ uint8_t field_0x680;
+      /* +0x830 */ void*   field_0x830;
+      /* +0x840 */ int32_t field_0x840;
+      /* +0x844 */ int32_t field_0x844;
+      /* +0x848 */ int32_t field_0x848;
+      /* +0x850 */ void*   field_0x850;
+      /* +0x858 */ void*   field_0x858;
+      /* +0x868 */ void*   field_0x868;
+      /* +0x880 */ uint8_t field_0x880;
+      /* +0x881 */ uint16_t field_0x881;
+      /* +0x883 */ uint8_t field_0x883;
+      /* +0x8a8 */ double  field_0x8a8;
+    };
+    
+    // Flag defaults: ReportBandwidthCapHit = true, SupportISRSubChannels = false, ISRSkipRedundantTimestampSend = true, DebugISRDefaultChannelDoesNotUseUnusedBudget = false, ISRTimestampHeartbeat = true, ISRFixBytesLeftInFrameAccounting = false
+    auto RBX::DefaultInitial::func_0x39bc7b0(RBX::DefaultInitial* this, int64_t param_2, void* param_3, void* param_4) {
+      if (ReportBandwidthCapHit) {
+        if (SupportISRSubChannels) {
+          this->field_0x881 = 0;
+          this->field_0x883 = 0;
+        } else {
+          this->field_0x880 = 0;
+        }
+      }
+      call_0x39bd580(this, param_4);
+      if (((this->field_0x858 - this->field_0x850) / 24 >> 2) + ((uint64_t)((this->field_0x858 - this->field_0x850) / 24 >> 2) >> 63) == 0) {
+        return param_2;
+      }
+      void* i_eax = local_0x230;
+      int32_t i_r9d = 0;
+      int32_t i_ecx = SupportISRSubChannels;
+      int32_t i_r10d = 0;
+      int32_t i_edx = 0;
+      void* i_esi = param_3;
+      void* i_edi = &this->field_0x850;
+      int32_t i_r12d = -1;
+      int32_t i_r15d = (SupportISRSubChannels ? -1 : 0) & 0x2;
+      do { // L_0x39bc8c0
+        void* v_rax_45 = i_eax;
+        uint8_t v_cl_46 = i_ecx;
+        int32_t v_rdx_47 = i_edx;
+        void* v_rsi_48 = i_esi;
+        void* v_rdi_49 = i_edi;
+        void* v_r9_50;
+        int32_t v_r12_51 = i_r12d;
+        void* v_r15_52 = i_r15d;
+        void* stk_53;
+        if (i_ecx != 0 && ISRSkipRedundantTimestampSend && i_r15d[i_eax] != 0) {
+          v_r9_50 = i_r9d + this->field_0x868[i_r15d * 8];
+          stk_53 = 0;
+          if (v_r15_52 - 1 < 0) break;
+          i_eax = v_rax_45;
+          i_r9d = v_r9_50;
+          i_ecx = v_cl_46;
+          i_r10d = stk_53;
+          i_edx = v_rdx_47;
+          i_esi = v_rsi_48;
+          i_edi = v_rdi_49;
+          i_r12d = v_r12_51;
+          i_r15d = v_r15_52 - 1;
+        } else {
+          int32_t v_rbx_1 = i_esi[i_r15d * 4];
+          if (i_ecx != 0 && i_r15d == 0 && i_esi[i_r15d * 4] > 0 && i_r10d > 0 && DebugISRDefaultChannelDoesNotUseUnusedBudget == (uint8_t)i_r15d) {
+            v_rbx_1 = i_esi[i_r15d * 4] + i_r10d;
+          }
+          int32_t i_ebx = v_rbx_1;
+          uint64_t i_r8d = i_ecx != 0 ? i_r9d : i_edx;
+          int32_t v_r12_28;
+          void* v_rdi_27;
+          void* fstk_8;
+          float fstk_38;
+          void* stk_35;
+          int32_t v_r12_32;
+          void* v_r8_31;
+          void* v_rdi_30;
+          int32_t v_rsi_29;
+          do { // L_0x39bc970
+            v_rsi_29 = i_esi;
+            v_rdi_30 = i_edi;
+            v_r8_31 = i_r8d;
+            v_r12_32 = i_r12d;
+            if (i_ebx <= 0) {
+              if (i_edx == 0) break;
+            }
+            if (i_r8d >= i_r9d) break;
+            auto vret_2 = this->field_0x830->vfunc_0x8();
+            if (0.0 == 0) {
+              auto vret_3 = this->field_0x830->vfunc_0x8();
+              int32_t v_rax_3 = min(vret_2, vret_3);
+              if (min(vret_2, vret_3) < 0) {
+                v_rax_3 = min(vret_2, vret_3) + 1;
+              }
+              if (ISRTimestampHeartbeat) {
+                auto local_0xc0 = (v_rax_3 >> 1) + min(vret_2, vret_3);
+                call_0x39bdb50(&local_0xe0, &local_0xc0);
+                auto local_0x58 = 161;
+                call_0x1c2a620(local_0xe0, &local_0x58, 1);
+                this->field_0x830->vfunc_0x40();
+                call_0x39d3650(local_0xe0, param_4, local_0xf0);
+                if (0.0 != 0) {
+                  if (atomic_fetch_add(&0.0->field_0x8, i_r12d) == 1) {
+                    0.0->vfunc_0x0(0.0);
+                    if (atomic_fetch_add(&0.0->field_0xc, i_r12d) == 1) {
+                    0.0->vfunc_0x8(0.0);
+                    } else {
+                    atomic_fetch_add(&0.0->field_0xc, i_r12d);
+                    }
+                  } else {
+                    atomic_fetch_add(&0.0->field_0x8, i_r12d);
+                  }
+                }
+                if (0.0 != 0) {
+                  if (atomic_fetch_add(&0.0->field_0x8, i_r12d) == 1) {
+                    0.0->vfunc_0x0(0.0);
+                    if (atomic_fetch_add(&0.0->field_0xc, i_r12d) == 1) {
+                    0.0->vfunc_0x8(0.0);
+                    fstk_8 = local_0xe8;
+                    } else {
+                    atomic_fetch_add(&0.0->field_0xc, i_r12d);
+                    fstk_8 = local_0xe8;
+                    }
+                  } else {
+                    atomic_fetch_add(&0.0->field_0x8, i_r12d);
+                    fstk_8 = local_0xe8;
+                  }
+                } else {
+                  fstk_8 = local_0xe8;
+                }
+              } else {
+                auto local_0xd8 = (v_rax_3 >> 1) + min(vret_2, vret_3);
+                auto ret_0x39bdb50_4 = call_0x39bdb50(&local_0x130, &local_0xd8);
+                void* prev_0x0_1 = ret_0x39bdb50_4->field_0x0;
+                ret_0x39bdb50_4->field_0x0 = i_r15d;
+                void* prev_0x8_2 = ret_0x39bdb50_4->field_0x8;
+                ret_0x39bdb50_4->field_0x8 = i_r15d;
+                if (0.0 != 0 && atomic_fetch_add(&0.0->field_0x8, i_r12d) == 1) {
+                  0.0->vfunc_0x0(0.0);
+                  if (atomic_fetch_add(&0.0->field_0xc, i_r12d) == 1) {
+                    0.0->vfunc_0x8(0.0);
+                  }
+                }
+                if (local_0x138 != 0 && atomic_fetch_add(&local_0x138->field_0x8, i_r12d) == 1) {
+                  local_0x138->vfunc_0x0(local_0x138);
+                  if (atomic_fetch_add(&local_0x138->field_0xc, i_r12d) == 1) {
+                    local_0x138->vfunc_0x8(local_0x138);
+                  }
+                }
+                auto local_0x60 = 161;
+                call_0x1c2a620(prev_0x0_1, &local_0x60, 1);
+                this->field_0x830->vfunc_0x40();
+                call_0x39d3650(prev_0x0_1, param_4, local_0xf0);
+                fstk_8 = prev_0x8_2;
+              }
+            } else {
+              fstk_8 = 0.0;
+            }
+            this->field_0x830->vfunc_0x8();
+            local_0x80->vfunc_0x10(local_0x80);
+            this->vfunc(this, &local_0x90, local_0x80, &this->field_0x850);
+            call_0x39cca70(&this->field_0x830->field_0x3c8);
+            int64_t stk_9;
+            uint8_t stk_10;
+            uint8_t stk_11;
+            if (local_0x90 == 0) {
+              stk_9 = 1;
+              L_0x39bcc72:
+              stk_10 = stk_9;
+              stk_11 = 1;
+            } else if (!ISRFixBytesLeftInFrameAccounting) {
+              if (local_0x68 > 0) {
+                stk_10 = 0;
+                stk_11 = 0;
+              } else {
+                stk_9 = 0;
+                stk_10 = stk_9;
+                stk_11 = 1;
+              }
+            } else if (local_0x92 != 0) {
+              stk_9 = 0;
+              goto L_0x39bcc72;
+            } else {
+              stk_10 = 0;
+              stk_11 = 0;
+            }
+            int32_t v_rsi_12 = local_0x70 + (local_0x98 - (i_ecx != 0 ? i_r9d : i_edx));
+            int32_t stk_13;
+            if (local_0x91 != 0) {
+              v_rsi_12 = local_0x70 + (local_0x98 - (i_ecx != 0 ? i_r9d : i_edx)) + 1;
+              stk_13 = local_0x70 + (local_0x98 - (i_ecx != 0 ? i_r9d : i_edx)) + 1;
+            } else {
+              stk_13 = local_0x70 + (local_0x98 - (i_ecx != 0 ? i_r9d : i_edx));
+            }
+            int64_t idx_1 = (i_ecx != 0 ? i_r9d : i_edx) + (i_ecx != 0 ? i_r9d : i_edx) * 2;
+            int32_t v_rsi_26 = v_rsi_12;
+            v_rdi_27 = &this->field_0x850;
+            v_r12_28 = i_r12d;
+            if (this->field_0x850 + idx_1 * 8 < this->field_0x850 + (local_0x98 + local_0x98 * 2) * 8) {
+              void* v_rdi_24;
+              do { // L_0x39bccc1
+                auto ret_0x2258560_24 = call_0x2258560(&this->field_0x838, i_ebx, &local_0xf8);
+                void* v_rsi_16 = local_0xf8;
+                if ((uint8_t)ret_0x2258560_24 == 0) {
+                  void* v_rsi_14 = local_0xf8;
+                  if ((this->field_0x840 + 1) * 4 >= this->field_0x848 + this->field_0x848 * 2) {
+                    call_0x2bbbd50(&this->field_0x838, this->field_0x848 * 2);
+                    auto local_0xb0 = local_0xf8;
+                    call_0x2258560(&this->field_0x838, i_ebx, &local_0xb0);
+                    v_rsi_14 = local_0xb0;
+                  } else if (this->field_0x848 - this->field_0x844 - (this->field_0x840 + 1) <= (uint32_t)this->field_0x848 >> 3) {
+                    call_0x2bbbd50(&this->field_0x838, this->field_0x848 * 2);
+                    auto local_0xb0 = local_0xf8;
+                    call_0x2258560(&this->field_0x838, i_ebx, &local_0xb0);
+                    v_rsi_14 = local_0xb0;
+                  }
+                  this->field_0x840++;
+                  if (v_rsi_14->field_0x0 != -1) {
+                    this->field_0x844--;
+                  }
+                  v_rsi_14->field_0x0 = i_ebx->field_0x0;
+                  v_rsi_14->field_0x8 = 2147483647;
+                  v_rsi_14->field_0x10 = 0;
+                  v_rsi_16 = v_rsi_14;
+                }
+                v_rdi_24 = i_edi;
+                if (v_rsi_16->field_0x8 != 2147483647) {
+                  if (global_0x8da5d90 > rbp->field_0x58->field_0x0->field_0x0[40]) {
+                    call_0x12e0(&sym_0x8da5d90);
+                    if (global_0x8da5d90 == -1) {
+                    auto ret_0x4956040_28 = call_0x4956040(552);
+                    if (ret_0x4956040_28 == 0) break;
+                    global_0x8da5d98 = call_0x2931010(ret_0x4956040_28);
+                    call_0x14f0(&sym_0x8da5d90);
+                    }
+                  }
+                  double fxmm0_17;
+                  double fxmm6_19;
+                  if (this->field_0x338 != 0) {
+                    this->field_0x340 = global_0x8da5d98->field_0x98 - v_rsi_16->field_0x10;
+                    double ftmp_1 = global_0x8da5d98->field_0x98 - v_rsi_16->field_0x10;
+                    fxmm0_17 = ftmp_1;
+                    fxmm6_19 = ftmp_1;
+                  } else {
+                    this->field_0x340 = min(this->field_0x340, global_0x8da5d98->field_0x98 - v_rsi_16->field_0x10);
+                    fxmm0_17 = min(global_0x8da5d98->field_0x98 - v_rsi_16->field_0x10, this->field_0x348);
+                    fxmm6_19 = global_0x8da5d98->field_0x98 - v_rsi_16->field_0x10;
+                  }
+                  this->field_0x348 = fxmm0_17;
+                  call_0x1143a40(&this->field_0x318, fxmm6_19);
+                  this->field_0x358++;
+                  this->field_0x350 = fxmm6_19 + this->field_0x350;
+                  double fxmm0_20;
+                  double fxmm6_22;
+                  if (this->field_0x2f0 != 0) {
+                    this->field_0x2f8 = (double)(param_4 - v_rsi_16->field_0x8);
+                    double ftmp_2 = (double)(param_4 - v_rsi_16->field_0x8);
+                    fxmm0_20 = ftmp_2;
+                    fxmm6_22 = ftmp_2;
+                  } else {
+                    this->field_0x2f8 = min(this->field_0x2f8, (double)(param_4 - v_rsi_16->field_0x8));
+                    fxmm0_20 = min((double)(param_4 - v_rsi_16->field_0x8), this->field_0x300);
+                    fxmm6_22 = (double)(param_4 - v_rsi_16->field_0x8);
+                  }
+                  this->field_0x300 = fxmm0_20;
+                  call_0x1143a40(&this->field_0x2d0, fxmm6_22);
+                  this->field_0x310++;
+                  this->field_0x308 = fxmm6_22 + this->field_0x308;
+                  if (global_0x8da5d90 > rbp->field_0x58->field_0x0->field_0x0[40]) {
+                    call_0x12e0(&sym_0x8da5d90);
+                    if (global_0x8da5d90 == -1) {
+                    auto ret_0x4956040_34 = call_0x4956040(552);
+                    global_0x8da5d98 = call_0x2931010(ret_0x4956040_34);
+                    call_0x14f0(&sym_0x8da5d90);
+                    }
+                  }
+                  if (this->field_0x8 != 0) {
+                    do { // L_0x39bcf42
+                    if (i_ecx->field_0x5d0[this] != 0) {
+                    if (i_ecx->field_0x5c8[this] == i_ebx->field_0x0) break;
+                    i_edx++;
+                    i_r8d++;
+                    i_ecx += 0xd0;
+                    if (i_edx >= 3) break;
+                    } else {
+                    i_edx++;
+                    i_r8d++;
+                    i_ecx += 0xd0;
+                    if (i_edx >= 3) break;
+                    }
+                    } while (true); // loop -> L_0x39bcf42
+                  }
+                  v_rdi_24 = &this->field_0x850;
+                }
+                if (global_0x8da5d90 > rbp->field_0x58->field_0x0->field_0x0[40]) {
+                  call_0x12e0(&sym_0x8da5d90);
+                  if (global_0x8da5d90 == -1) {
+                    auto ret_0x4956040_40 = call_0x4956040(552);
+                    if (ret_0x4956040_40 == 0) break;
+                    global_0x8da5d98 = call_0x2931010(ret_0x4956040_40);
+                    call_0x14f0(&sym_0x8da5d90);
+                  }
+                }
+                v_rsi_16->field_0x8 = param_4;
+                i_ebx += 0x18;
+                i_edi = v_rdi_24;
+              } while (i_ebx < v_rdi_24->field_0x0 + (local_0x98 + local_0x98 * 2) * 8); // loop -> L_0x39bccc1
+              v_rsi_26 = stk_13;
+              v_rdi_27 = v_rdi_24;
+              v_r12_28 = -1;
+            }
+            if (stk_11 == 0) {
+              L_0x39bd1a9:
+              auto local_0x84 = 0.0;
+              auto local_0x88 = fstk_8;
+              auto local_0x8c = 0.0;
+              auto ret_0x39bd990_53 = call_0x39bd990(this, &local_0x80, param_4, v_rsi_26);
+              if (ret_0x39bd990_53 == 0) {
+                i_edx = stk_10;
+                i_ebx = local_0x68;
+                i_esi = local_0x6c;
+                i_r15d = 0;
+                i_edi = &this->field_0x850;
+                i_r8d = local_0x98;
+                i_r9d = local_0x78;
+                i_r12d = v_r12_28;
+                continue;
+              } else {
+                if (local_0x88 != 0 && atomic_fetch_add(&local_0x88->field_0x8, v_r12_28) == 1) {
+                  local_0x88->vfunc_0x0(local_0x88);
+                  if (atomic_fetch_add(&local_0x88->field_0xc, v_r12_28) == 1) {
+                    local_0x88->vfunc_0x8(local_0x88);
+                  }
+                }
+                if (this->field_0x30 != 0) {
+                  if (global_0x813ca18 <= 1) {
+                    this->field_0x28 = call_0x4959ee0();
+                    this->field_0x30 = 0;
+                  } else {
+                    call_0x495a220(&local_0x108);
+                    this->field_0x28 = local_0x108;
+                    this->field_0x30 = 0;
+                  }
+                } else {
+                  double fxmm0_42;
+                  if (global_0x813ca18 <= 1) {
+                    fxmm0_42 = call_0x4959ee0();
+                  } else {
+                    call_0x495a220(&local_0xd0);
+                    fxmm0_42 = local_0xd0;
+                  }
+                  this->field_0x28 = fxmm0_42;
+                  call_0x1143a40(&this->field_0x38, fxmm0_42 - this->field_0x28);
+                }
+                auto ret_0x5e20b98_61 = call_0x5e20b98((double)ret_0x39bd990_53);
+                if (ret_0x5e20b98_61 <= 0) {
+                  double fxmm2_44;
+                  if (this->field_0x88 != 0) {
+                    fxmm2_44 = (double)ret_0x39bd990_53;
+                  } else {
+                    double ftmp_3 = (1.0 - this->field_0x68) * this->field_0x78;
+                    fxmm2_44 = ftmp_3 + (double)ret_0x39bd990_53 * this->field_0x68;
+                  }
+                  this->field_0x78 = fxmm2_44;
+                  this->field_0x70 = (double)ret_0x39bd990_53;
+                  this->field_0x88 = 0;
+                  double ftmp_4 = (double)ret_0x39bd990_53 - fxmm2_44;
+                  double ftmp_5 = ftmp_4 * ftmp_4 * this->field_0x68;
+                  double ftmp_6 = (1.0 - this->field_0x68) * this->field_0x80;
+                  this->field_0x80 = ftmp_5 + ftmp_6;
+                }
+                i_edx = stk_10;
+                i_ebx = local_0x68 - ret_0x39bd990_53;
+                i_esi = local_0x6c + ret_0x39bd990_53;
+                i_r15d = 0;
+                i_edi = &this->field_0x850;
+                i_r8d = local_0x98;
+                i_r9d = local_0x78;
+                i_r12d = v_r12_28;
+              }
+            }
+            if (v_rsi_26 == 0) break;
+            goto L_0x39bd1a9;
+          } while (true); // loop -> L_0x39bc970
+          if (fstk_8 != 0) {
+            if (atomic_fetch_add(&fstk_8->field_0x8, v_r12_28) == 1) {
+              fstk_8->vfunc_0x0(fstk_8);
+              if (atomic_fetch_add(&fstk_8->field_0xc, v_r12_28) == 1) {
+                fstk_8->vfunc_0x8(fstk_8);
+              }
+            }
+          }
+          v_rsi_29 = local_0x6c;
+          v_rdi_30 = v_rdi_27;
+          v_r8_31 = local_0x98;
+          v_r12_32 = v_r12_28;
+          stk_35 = local_0x78;
+          fstk_38 = 0;
+          if (ReportBandwidthCapHit && !SupportISRSubChannels) {
+            this->field_0x880 = v_r8_31 < stk_35;
+          }
+          if (!SupportISRSubChannels) break;
+          if (fstk_38 != 0) {
+            if (atomic_fetch_add(&fstk_38->field_0x8, v_r12_32) == 1) {
+              fstk_38->vfunc_0x0(fstk_38);
+              if (atomic_fetch_add(&fstk_38->field_0xc, v_r12_32) == 1) {
+                fstk_38->vfunc_0x8();
+              }
+            }
+          }
+          v_rax_45 = local_0x230;
+          v_cl_46 = SupportISRSubChannels;
+          v_rdx_47 = 0;
+          v_rsi_48 = local_0xb8;
+          v_rdi_49 = v_rdi_30;
+          v_r9_50 = stk_35;
+          v_r12_51 = v_r12_32;
+          v_r15_52 = local_0xa8;
+          stk_53 = local_0xa0 + (local_0xb8->field_0x0[local_0xa8 * 4] - v_rsi_29);
+          if (v_r15_52 - 1 < 0) break;
+          i_eax = v_rax_45;
+          i_r9d = v_r9_50;
+          i_ecx = v_cl_46;
+          i_r10d = stk_53;
+          i_edx = v_rdx_47;
+          i_esi = v_rsi_48;
+          i_edi = v_rdi_49;
+          i_r12d = v_r12_51;
+          i_r15d = v_r15_52 - 1;
+        }
+      } while (true); // loop -> L_0x39bc8c0
+      return local_0x110;
+    }
 
 [Strings .rdata na função]
-  * Instance
-  * processing
-  * StuckOnOnePacket
-  * deserializing
-  * CannotPopQueue
-  * DataSender
-  * PhysicsSender
-  * [DFLog::NetworkBandwidthManagerTrace] NetworkBandwdithManager: Calculate Bandwidth for Replicato
-  * IsrPartialSortMetrics
-  * Network
+  * "Instance"  [@rdata 0x7191800, ref @0x4617877, key/identifier]
+  * "processing"  [@rdata 0x7481538, ref @0x4617c88, literal, 10B]
+  * "StuckOnOnePacket"  [@rdata 0x7481558, ref @0x4617cad, key/identifier]
+  * "deserializing"  [@rdata 0x74815a0, ref @0x4617d08, literal, 13B]
+  * "CannotPopQueue"  [@rdata 0x7481528, ref @0x4617d41, key/identifier]
+  * "DataSender"  [@rdata 0x7465c58, ref @0x4617d8e, key/identifier]
+  * "PhysicsSender"  [@rdata 0x7465c10, ref @0x4617e1d, key/identifier]
+  * "[DFLog::NetworkBandwidthManagerTrace] NetworkBandwdithManager: Calculate Bandwidth for Replicato"  [@rdata 0x7475a50, ref @0x472bccc, FLog format]
+  * "IsrPartialSortMetrics"  [@rdata 0x73ddfa0, ref @0x39d48d0, key/identifier]
+  * "Network"  [@rdata 0x71d8eb8, ref @0x39d48e6, key/identifier]
 
 [Co-Flags na mesma função]
   * FFlagSupportISRSubChannels = false (default)

@@ -9,14 +9,14 @@ Operação  : 0x13c3a16: cmp [flag], reg ; fn=0x13c3870..0x13c3c0b
     Classe  : RBX::EnableForce (Inferido)
     Padrão  : FFlagEnableForceOTAAnalytics = true (default) [bool, mode=1]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
-    Fórmula : !EnableForceOTAAnalytics
+    Fórmula : EnableForceOTAAnalytics
     Wasm    : .data=0x7da088 [via FFlagDataModelPatcherForceLocal]
     [Wasm]  : DataModelPatcherForceLocal
     [Wasm]  : (DataModelPatcherForceLocal >> 8)
     [Wasm]  : ((DataModelPatcherForceLocal >> 8) & 255)
     [Wasm]  : (((DataModelPatcherForceLocal >> 8) & 255) < 3)
     [XREF #2 @0x151e44f] Classe  : RBX::EnableForce (Inferido)
-    [XREF #2 @0x151e44f] Fórmula : !EnableForceOTAAnalytics
+    [XREF #2 @0x151e44f] Fórmula : EnableForceOTAAnalytics && param_2 != 0
   
   === [Decompilacao C++ da Funcao 0x13c3870..0x13c3c0b] ===
     struct RBX::EnableForce {
@@ -25,24 +25,30 @@ Operação  : 0x13c3a16: cmp [flag], reg ; fn=0x13c3870..0x13c3c0b
     
     // Flag defaults: EnableForceOTAAnalytics = true, SingleSurfaceApp = 6
     void RBX::EnableForce::func_0x13c3870(RBX::EnableForce* this, int64_t param_2) {
-      if (SingleSurfaceApp != 6 && (uint64_t)SingleSurfaceApp >> 8 >= 3) {
-        FLog::Log("[FLog::SingleSurfaceApp] forceOTAUpdateAvailableSignal stage = {}");
+      if ((uint8_t)SingleSurfaceApp != 6 && (uint8_t)((uint64_t)SingleSurfaceApp >> 8) >= 3) {
+        FLog::Log("[FLog::SingleSurfaceApp] forceOTAUpdateAvailableSignal stage = {}", this->field_0x0->field_0x360);
       }
       if (param_2->field_0x0->field_0x60 == 0) {
-        if (SingleSurfaceApp >= 6 && (uint64_t)SingleSurfaceApp >> 8 >= 3) {
+        if ((uint8_t)SingleSurfaceApp >= 6 && (uint8_t)((uint64_t)SingleSurfaceApp >> 8) >= 3) {
           FLog::Log("[FLog::SingleSurfaceApp] Error: forceOTAUpdateAvailableSignal but update is not a force update. ");
         }
       } else {
         if (EnableForceOTAAnalytics) {
           auto ret_0x14ffd90_1 = call_0x14ffd90(&local_0xd0, 1, 1);
+          void* v_rbx_1 = ret_0x14ffd90_1->field_0x8;
+          void* v_rsi_2 = ret_0x14ffd90_1->field_0x0;
           if (local_0xd8 != 0) {
+            void* prev_0x8_1 = ret_0x14ffd90_1->field_0x8;
+            void* prev_0x0_2 = ret_0x14ffd90_1->field_0x0;
             call_0x6daf40(local_0xd8);
+            v_rbx_1 = prev_0x8_1;
+            v_rsi_2 = prev_0x0_2;
           }
-          ret_0x14ffd90_1->field_0x0->vfunc_0x8(ret_0x14ffd90_1->field_0x0, &local_0xe0);
-          if (ret_0x14ffd90_1->field_0x8 != 0) {
-            call_0x6daf40(ret_0x14ffd90_1->field_0x8);
+          v_rsi_2->vfunc_0x8(v_rsi_2, &local_0xe0);
+          if (v_rbx_1 != 0) {
+            call_0x6daf40(v_rbx_1);
           }
-          call_0x1d48fe0(&local_0x110, &local_0x30, &local_0x50);
+          call_0x1d48fe0(&local_0x110, std::string_view("Force OTA update triggered. AssetVersion {}", 43), &local_0x50);
           call_0x152d300(local_0xe0, &local_0x110);
           std::string::_Tidy_deallocate(local_0x110);
           if (local_0xe8 != 0) {
@@ -53,7 +59,7 @@ Operação  : 0x13c3a16: cmp [flag], reg ; fn=0x13c3870..0x13c3c0b
         auto local_0xf0 = f_0;
         call_0x4c5a9e0(f_0->field_0x38, &local_0xf0, 0);
         if ((local_0x108 & 0xfffffffc & 0xfffffff8) != 0) {
-          if ((local_0x108 >> 1 & 0x1) != 0) {
+          if (((uint8_t)local_0x108 >> 1 & 0x1) != 0) {
             if ((~((local_0x108 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x108 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
               ((~((local_0x108 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x108 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0xf0);
             }
@@ -348,13 +354,15 @@ Operação  : 0x13c3a16: cmp [flag], reg ; fn=0x13c3870..0x13c3c0b
       if (global_0x8d7c9d8->field_0x30->field_0x8[(global_0x8d7c9d8->field_0x48 & v_rdx_1) * 2 * 8] != global_0x8d7c9d8->field_0x20) {
         void* i_ebx = global_0x8d7c9d8->field_0x30->field_0x8[(global_0x8d7c9d8->field_0x48 & v_rdx_1) * 2 * 8];
         do { // L_0x14ffeb0
+          uint64_t v_r15_2 = global_0x8d7c9d8->field_0x30->field_0x0[(global_0x8d7c9d8->field_0x48 & v_rdx_1) * 2 * 8];
           if (local_0x70 == (i_ebx + 0x10)->field_0x10) {
+            uint64_t prev_0x48 & v_rdx_1) * 2 * 8]_1 = global_0x8d7c9d8->field_0x30->field_0x0[(global_0x8d7c9d8->field_0x48 & v_rdx_1) * 2 * 8];
             auto ret_0x5e06820_7 = memcmp(local_0x60, i_ebx + 0x10, local_0x70);
             if (ret_0x5e06820_7 == 0) break;
-            if (i_ebx == global_0x8d7c9d8->field_0x30->field_0x0[(global_0x8d7c9d8->field_0x48 & v_rdx_1) * 2 * 8]) break;
+            if (i_ebx == v_r15_2) break;
             i_ebx = i_ebx->field_0x8;
           } else {
-            if (i_ebx == global_0x8d7c9d8->field_0x30->field_0x0[(global_0x8d7c9d8->field_0x48 & v_rdx_1) * 2 * 8]) break;
+            if (i_ebx == v_r15_2) break;
             i_ebx = i_ebx->field_0x8;
           }
           if (global_0x8d7c9e0 == 0) break;
@@ -376,14 +384,14 @@ Operação  : 0x13c3a16: cmp [flag], reg ; fn=0x13c3870..0x13c3c0b
       if (global_0x8d7c9e0 != 0) {
         call_0x6daf40(global_0x8d7c9e0);
       }
-      if (this->field_0x0 == 0 && param_3 != 0) {
+      if (this->field_0x0 == 0 && (uint8_t)param_3 != 0) {
         auto ret_0x1516c20_11 = call_0x1516c20(&local_0x48);
         auto ret_0x1517940_12 = call_0x1517940(ret_0x1516c20_11->field_0x0, &local_0x38, &local_0x60);
         this->field_0x0 = ret_0x1517940_12->field_0x0;
-        void* prev_0x8_1 = this->field_0x8;
+        void* prev_0x8_2 = this->field_0x8;
         this->field_0x8 = ret_0x1517940_12->field_0x8;
-        if (prev_0x8_1 != 0) {
-          call_0x6daf40(prev_0x8_1);
+        if (prev_0x8_2 != 0) {
+          call_0x6daf40(prev_0x8_2);
         }
         if (local_0x40 != 0) {
           call_0x6daf40(local_0x40);
@@ -628,12 +636,13 @@ Operação  : 0x13c3a16: cmp [flag], reg ; fn=0x13c3870..0x13c3c0b
         if ((param_3->field_0x18 >> 1 & 0x1) == 0) {
           v_r15_7 = param_3->field_0x0;
         }
-        ((param_3->field_0x18 & 0xfffffff8))->vfunc_0x0(v_r15_7, this->field_0xe8);
+        (param_3->field_0x18 & 0xfffffff8)->vfunc_0x0(v_r15_7, this->field_0xe8);
         return;
       }
-      if (DataModelPatchConfigurer >= 6 && (uint64_t)DataModelPatchConfigurer >> 8 >= 3) {
+      if ((uint8_t)DataModelPatchConfigurer >= 6 && (uint8_t)((uint64_t)DataModelPatchConfigurer >> 8) >= 3) {
         FLog::Log("[FLog::DataModelPatchConfigurer] [%s] Update OTA config");
       }
+      void* prev_0xd8_1 = this->field_0xd8;
       call_0x151ea50(this);
       auto local_0x30 = 0;
       call_0x11519e0(&local_0x38, &local_0x30);
@@ -654,16 +663,16 @@ Operação  : 0x13c3a16: cmp [flag], reg ; fn=0x13c3870..0x13c3c0b
       auto local_0x19c = 0.0;
       auto local_0x1a0 = fstk_4;
       auto local_0x1a4 = 0.0;
-      auto local_0x1a8 = this->field_0xd8;
+      auto local_0x1a8 = prev_0xd8_1;
       call_0x707ef0(&local_0x118, 80, param_3, &local_0x198);
-      if (AppConfiguration >= 6 && (uint64_t)AppConfiguration >> 8 >= 3) {
+      if ((uint8_t)AppConfiguration >= 6 && (uint8_t)((uint64_t)AppConfiguration >> 8) >= 3) {
         FLog::Log("[FLog::AppConfiguration] AppConfiguration::updateConfigurationByBehavior(): behavior = %s, userI");
       }
-      int32_t v_r12_5;
+      uint8_t v_r12b_5;
       if (this->field_0x50 == 0) {
-        v_r12_5 = 0;
+        v_r12b_5 = 0;
       } else {
-        void* sel_r14_1 = this->field_0xd8 <= 0 ? -1 : this->field_0xd8;
+        void* sel_r14_1 = prev_0xd8_1 <= 0 ? -1 : prev_0xd8_1;
         call_0x2e12fd0(&sym_0x815d188);
         call_0x114d980(&local_0x70, &this->field_0x40, sel_r14_1);
         if (param_2 != 0) {
@@ -678,17 +687,17 @@ Operação  : 0x13c3a16: cmp [flag], reg ; fn=0x13c3870..0x13c3c0b
         if (global_0x815d188 == 3) {
           if (atomic_cas(&global_0x815d188, global_0x815d188, 1) != 0) {
             call_0xdac0(&sym_0x815d188);
-            v_r12_5 = ret_0x114ec80_11;
+            v_r12b_5 = ret_0x114ec80_11;
           } else {
-            v_r12_5 = ret_0x114ec80_11;
+            v_r12b_5 = ret_0x114ec80_11;
           }
         } else {
           call_0xdac0(&sym_0x815d188);
-          v_r12_5 = ret_0x114ec80_11;
+          v_r12b_5 = ret_0x114ec80_11;
         }
       }
       if ((local_0x130 & 0xfffffffc & 0xfffffff8) != 0) {
-        if ((local_0x130 >> 1 & 0x1) != 0) {
+        if (((uint8_t)local_0x130 >> 1 & 0x1) != 0) {
           if ((~((local_0x130 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x130 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
             ((~((local_0x130 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x130 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0x118);
           }
@@ -703,7 +712,7 @@ Operação  : 0x13c3a16: cmp [flag], reg ; fn=0x13c3870..0x13c3c0b
         call_0x6daf40(local_0x40);
       }
       if ((local_0x1d0 & 0xfffffffc & 0xfffffff8) != 0) {
-        if ((local_0x1d0 >> 1 & 0x1) != 0) {
+        if (((uint8_t)local_0x1d0 >> 1 & 0x1) != 0) {
           if ((~((local_0x1d0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x1d0 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
             ((~((local_0x1d0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x1d0 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0x1b8);
           }
@@ -718,7 +727,7 @@ Operação  : 0x13c3a16: cmp [flag], reg ; fn=0x13c3870..0x13c3c0b
         local_0x1a0->vfunc_0x8();
       }
       if ((local_0x150 & 0xfffffffc & 0xfffffff8) != 0) {
-        if ((local_0x150 >> 1 & 0x1) != 0) {
+        if (((uint8_t)local_0x150 >> 1 & 0x1) != 0) {
           if ((~((local_0x150 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x150 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
             ((~((local_0x150 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x150 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0x138);
           }
@@ -733,7 +742,7 @@ Operação  : 0x13c3a16: cmp [flag], reg ; fn=0x13c3870..0x13c3c0b
         call_0x6daf40(local_0x40);
       }
       if ((local_0x180 & 0xfffffffc & 0xfffffff8) != 0) {
-        if ((local_0x180 >> 1 & 0x1) != 0) {
+        if (((uint8_t)local_0x180 >> 1 & 0x1) != 0) {
           if ((~((local_0x180 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x180 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
             ((~((local_0x180 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x180 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0x168);
           }
@@ -747,11 +756,12 @@ Operação  : 0x13c3a16: cmp [flag], reg ; fn=0x13c3870..0x13c3c0b
       if (local_0x160 != 0 && atomic_fetch_sub(&local_0x160->field_0xc, 1) == 1) {
         local_0x160->vfunc_0x8();
       }
-      if (v_r12_5 != 0) {
+      if (v_r12b_5 != 0) {
         call_0x151d3e0(this, 2);
         if (EnableForceOTAAnalytics && param_2 != 0) {
-          call_0x1d48fe0(&local_0x200, &local_0xe0, &local_0xd0);
-          call_0x152d170(this->field_0x98, &local_0x200);
+          void* prev_0x98_2 = this->field_0x98;
+          call_0x1d48fe0(&local_0x200, std::string_view("OTA polling triggered. Interval {} ms", 37), &local_0xd0);
+          call_0x152d170(prev_0x98_2, &local_0x200);
           std::string::_Tidy_deallocate(local_0x200);
         }
       } else {
@@ -1290,12 +1300,12 @@ Operação  : 0x13c3a16: cmp [flag], reg ; fn=0x13c3870..0x13c3c0b
     }
 
 [Strings .rdata na função]
-  * [FLog::SingleSurfaceApp] forceOTAUpdateAvailableSignal stage = {}
-  * [FLog::SingleSurfaceApp] Error: forceOTAUpdateAvailableSignal but update is not a force update. 
-  * Force OTA update triggered. AssetVersion {}
-  * [FLog::DataModelPatchConfigurer] [%s] Update OTA config
-  * [FLog::AppConfiguration] AppConfiguration::updateConfigurationByBehavior(): behavior = %s, userI
-  * OTA polling triggered. Interval {} ms
+  * "[FLog::SingleSurfaceApp] forceOTAUpdateAvailableSignal stage = {}"  [@rdata 0x72287b0, ref @0x13c38d6, FLog format]
+  * "[FLog::SingleSurfaceApp] Error: forceOTAUpdateAvailableSignal but update is not a force update. "  [@rdata 0x72286e0, ref @0x13c398e, FLog format]
+  * "Force OTA update triggered. AssetVersion {}"  [@rdata 0x72286a8, ref @0x13c3a83, string_view len=43]
+  * "[FLog::DataModelPatchConfigurer] [%s] Update OTA config"  [@rdata 0x7234fc8, ref @0x151df5f, FLog format]
+  * "[FLog::AppConfiguration] AppConfiguration::updateConfigurationByBehavior(): behavior = %s, userI"  [@rdata 0x7204f20, ref @0x151e12c, FLog format]
+  * "OTA polling triggered. Interval {} ms"  [@rdata 0x7234fa0, ref @0x151e46c, string_view len=37]
 
 [Co-Flags na mesma função]
   * FLogSingleSurfaceApp = 6 (default)

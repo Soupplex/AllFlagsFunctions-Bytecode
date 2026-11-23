@@ -9,7 +9,7 @@ Operação  : 0x472c518: mov/math reg, [flag] ; fn=0x472c460..0x472c768
     Classe  : RBX::DataSender (Inferido)
     Padrão  : DFIntDataSenderMaxBandwidthBpsMultiplier = 5 (default) [int, mode=2]
     Papel   : Parâmetro de configuração lido diretamente pela rotina
-    Fórmula : vret_3 == 0 ? DataSenderMaxJoinBandwidthBpsMultiplier : DataSenderMaxBandwidthBpsMultiplier
+    Fórmula : (uint8_t)vret_3 == 0 ? DataSenderMaxJoinBandwidthBpsMultiplier : DataSenderMaxBandwidthBpsMultiplier
     Altera  : this->field_0x48, this->largeDataSenderMinBandwidthBps_0x78, this->largeDataSenderMaxBandwidthBps_0x7c, this->field_0x50
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
@@ -36,17 +36,20 @@ Operação  : 0x472c518: mov/math reg, [flag] ; fn=0x472c460..0x472c768
         auto* f_0 = this->field_0x0;
         call_0x47e6fa0(&f_0->field_0x2cf0, f_0->field_0x3b28->field_0x870 - f_0->field_0x3fc0 + f_0->field_0x3be8 + f_0->field_0x3bb8);
       }
+      double prev_0x50_1 = this->field_0x50;
       auto vret_2 = this->field_0x0->vfunc_0x2e0();
-      int32_t selected_ebx_1 = vret_2 == 0 ? DataSenderMaxJoinBandwidthBps : DataSenderMaxBandwidthBps;
+      int32_t selected_ebx_1 = (uint8_t)vret_2 == 0 ? DataSenderMaxJoinBandwidthBps : DataSenderMaxBandwidthBps;
       auto vret_3 = this->field_0x0->vfunc_0x2e0();
-      int32_t selected_r9d_2 = vret_3 == 0 ? DataSenderMaxJoinBandwidthBpsMultiplier : DataSenderMaxBandwidthBpsMultiplier;
-      double ftmp_1 = min((double)((float)BandwidthManagerDataSenderMaxWorkCatchupMs / 1000.0), param_2 - this->field_0x50);
-      this->field_0x48 = min(selected_ebx_1 / DataSenderRate * selected_r9d_2, (int32_t)((double)selected_ebx_1 * max(1.0 / (double)DataSenderRate, ftmp_1)));
-      this->largeDataSenderMinBandwidthBps_0x78 = (int32_t)((double)LargeDataSenderMinBandwidthBps * max(1.0 / (double)DataSenderRate, ftmp_1));
-      int32_t v_rax_1 = (int32_t)((double)LargeDataSenderMinBandwidthBps * max(1.0 / (double)DataSenderRate, ftmp_1));
+      int32_t selected_r9d_2 = (uint8_t)vret_3 == 0 ? DataSenderMaxJoinBandwidthBpsMultiplier : DataSenderMaxBandwidthBpsMultiplier;
+      double ftmp_1 = min((double)((float)BandwidthManagerDataSenderMaxWorkCatchupMs / 1000.0f), param_2 - prev_0x50_1);
+      auto expr_2 = max(1.0 / (double)DataSenderRate, ftmp_1);
+      this->field_0x48 = min(selected_ebx_1 / DataSenderRate * selected_r9d_2, (int32_t)((double)selected_ebx_1 * expr_2));
+      auto expr_1 = (double)LargeDataSenderMinBandwidthBps * expr_2;
+      this->largeDataSenderMinBandwidthBps_0x78 = (int32_t)expr_1;
+      int32_t v_rax_1 = (int32_t)expr_1;
       auto* f_0_2 = this->field_0x0;
       if (f_0_2->field_0x3b61 == 0) {
-        v_rax_1 = (int32_t)((double)LargeDataSenderMaxBandwidthBps * max(1.0 / (double)DataSenderRate, ftmp_1));
+        v_rax_1 = (int32_t)((double)LargeDataSenderMaxBandwidthBps * expr_2);
       }
       this->largeDataSenderMaxBandwidthBps_0x7c = v_rax_1;
       if (LargeReplicatorUseDynamicBandwidthTarget2) {
@@ -55,19 +58,19 @@ Operação  : 0x472c518: mov/math reg, [flag] ; fn=0x472c460..0x472c768
         auto* f_0_3_108 = f_0_3->field_0x108;
         if (f_0_3_108->field_0x868 != 0) {
           float fxmm1_2 = (float)(uint64_t)f_0_3_108->field_0x868;
-          float ftmp_3 = (float)LargeReplicatorDynamicBandwidthIncreasePercent / 100.0 + 1.0;
+          float ftmp_3 = (float)LargeReplicatorDynamicBandwidthIncreasePercent / 100.0f + 1.0f;
           uint64_t v_rcx_8 = (uint64_t)(ftmp_3 * fxmm1_2);
           if (LargeReplicatorUseMaxClientBandwidth && f_0_3->field_0x4bf8 > 0) {
             int32_t v_rcx_5 = std::clamp(f_0_3->field_0x4bf8, LargeDataSenderMinBandwidthBps, LargeDataSenderMaxBandwidthBps);
-            float ftmp_5 = (float)LargeReplicatorMaxBandwidthUsageAllowedPercent / 100.0 * (float)v_rcx_5;
-            v_rcx_8 = std::min<uint64_t>((uint64_t)(ftmp_3 * fxmm1_2), (uint64_t)ftmp_5);
+            float ftmp_5 = (float)LargeReplicatorMaxBandwidthUsageAllowedPercent / 100.0f * (float)v_rcx_5;
+            v_rcx_8 = std::min<uint64_t>(v_rcx_8, (uint64_t)ftmp_5);
           }
           double fxmm0_9 = (double)(uint64_t)v_rcx_8;
-          this->largeDataSenderMaxBandwidthBps_0x7c = std::clamp((int32_t)(fxmm0_9 * max(1.0 / (double)DataSenderRate, ftmp_1)), this->largeDataSenderMinBandwidthBps_0x78, this->largeDataSenderMaxBandwidthBps_0x7c);
+          this->largeDataSenderMaxBandwidthBps_0x7c = std::clamp((int32_t)(fxmm0_9 * expr_2), this->largeDataSenderMinBandwidthBps_0x78, this->largeDataSenderMaxBandwidthBps_0x7c);
         }
       }
       this->field_0x50 = param_2;
-      if (this->field_0x8 < 1.0) {
+      if (1.0f > this->field_0x8) {
         this->field_0x48 = (int32_t)((float)this->field_0x48 * this->field_0x8);
       }
     }
@@ -283,19 +286,19 @@ Operação  : 0x472c518: mov/math reg, [flag] ; fn=0x472c460..0x472c768
         this->field_0x0 = 0;
       } else {
         this->field_0x0++;
-        if (this->field_0x4 == 0 && this->field_0x0 > this->field_0x8->field_0x0) {
-          if (TrackDPJProgress && PPJProgressHalt >= 6 && (uint64_t)PPJProgressHalt >> 8 >= 2) {
-            FLog::Log("[DFLog::PPJProgressHalt] {}: {} queue has been empty for {} frames");
+        auto* f_8 = this->field_0x8;
+        if (this->field_0x4 == 0 && this->field_0x0 > f_8->field_0x0) {
+          if (TrackDPJProgress && (uint8_t)PPJProgressHalt >= 6 && (uint8_t)((uint64_t)PPJProgressHalt >> 8) >= 2) {
+            FLog::Log("[DFLog::PPJProgressHalt] {}: {} queue has been empty for {} frames", "QueueEmpty", f_8->field_0x18, this->field_0x0);
           }
           auto ret_0x295e5e0_1 = call_0x295e5e0(this->field_0x8->field_0x10);
-          if (ret_0x295e5e0_1 != 0) {
+          if ((uint8_t)ret_0x295e5e0_1 != 0) {
             call_0x746610(&local_0xf0, this->field_0x8->field_0x8);
             call_0x2dc1640(&local_0x3d0);
             auto ret_0x4954e70_4 = call_0x4954e70(global_0x84bc6dc);
-            auto local_0xa0 = "QueueEmpty";
-            (((local_0x160->field_0x4 + &local_0x160)->field_0x0))->vfunc_0x10(local_0x160->field_0x4 + &local_0x160, &local_0x30, &local_0xa0, 1);
+            (*(void***)((uint8_t*)&local_0x160 + local_0x160->field_0x4))->vfunc_0x10((uint8_t*)&local_0x160 + local_0x160->field_0x4, std::string_view("Reason", 6), std::string_view("QueueEmpty", 10), 1);
             call_0x4954e70(ret_0x4954e70_4);
-            call_0x2dbd340(&local_0x3d0, &local_0x30, this->field_0x0, 1);
+            call_0x2dbd340(&local_0x3d0, std::string_view("NumFramesStuck", 14), this->field_0x0, 1);
             call_0x2db2c00(&local_0x418);
             call_0x6f5b70(&local_0x3f0);
             call_0x6f5b70(&local_0x3d0);
@@ -450,12 +453,258 @@ Operação  : 0x472c518: mov/math reg, [flag] ; fn=0x472c460..0x472c768
     0x47e7217 | 49 8b e3                 | mov rsp, r11
     0x47e721a | 5d                       | pop rbp
     0x47e721b | c3                       | ret
+  
+  === [Decompilacao da Rotina Chamadora (Caller): 0x472bc70..0x472c45b em RBX::DataSender] ===
+    struct RBX::DataSender {
+      /* +0x0 */ void*   field_0x0;
+      /* +0x8 */ float   field_0x8;
+      /* +0xc */ int32_t field_0xc;
+      /* +0x10 */ int32_t field_0x10;
+      /* +0x18 */ int32_t field_0x18;
+      /* +0x20 */ double  field_0x20;
+      /* +0x88 */ int32_t clusterSenderMaxUpdateBandwidthBpsScaling_0x88;
+      /* +0x90 */ double  field_0x90;
+      /* +0xb8 */ int32_t touchSenderMaxBandwidthBps_0xb8;
+      /* +0xc0 */ double  touchSenderMaxBandwidthBps_0xc0;
+      /* +0xe8 */ int32_t field_0xe8;
+      /* +0x1e8 */ double  field_0x1e8;
+      /* +0x1f0 */ uint8_t field_0x1f0;
+      /* +0x1f4 */ int32_t field_0x1f4;
+      /* +0x1f8 */ int32_t field_0x1f8;
+      /* +0x1fc */ float   field_0x1fc;
+      /* +0x200 */ float   field_0x200;
+      /* +0x204 */ float   field_0x204;
+      /* +0x268 */ double  field_0x268;
+      /* +0x270 */ double  field_0x270;
+    };
+    
+    // Flag defaults: NetworkBandwidthManagerTrace = 0, ReportBandwidthCapHit = true, BandwidthManagerFeedbackMetricsUpdateEveryXSeconds = 1, BandwidthManagerFeedbackMetricsSendEveryXSecondsV2 = 300, BandwidthManagerGetFeedbackInWindowAndReport2 = false, RakNetCalculateApplicationFeedback2 = false, LargeReplicatorUseDynamicBandwidthTarget2 = false, LargeDataSenderMaxBandwidthBps = 62500000
+    void RBX::DataSender::func_0x472bc70(RBX::DataSender* this, float param_2) {
+      if ((uint8_t)NetworkBandwidthManagerTrace >= 6 && (uint8_t)((uint64_t)NetworkBandwidthManagerTrace >> 8) >= 3) {
+        FLog::Log("[DFLog::NetworkBandwidthManagerTrace] NetworkBandwdithManager: Calculate Bandwidth for Replicato");
+      }
+      auto* f_0 = this->field_0x0;
+      auto* f_0_3b28 = f_0->field_0x3b28;
+      if (ReportBandwidthCapHit && this->field_0x10 != f_0_3b28->field_0x978) {
+        this->field_0xc++;
+        this->field_0x10 = f_0_3b28->field_0x978;
+      }
+      if (f_0->field_0x2acf == 0) {
+        auto ret_0x495a220_1 = call_0x495a220(&local_0xa0);
+        if (ret_0x495a220_1->field_0x0 - this->field_0x1e8 > 1.0 || this->field_0x1f0 == 0) {
+          auto local_0x40 = 0;
+          auto* f_0_2 = this->field_0x0;
+          auto* f_0_2_c8 = f_0_2->field_0xc8;
+          auto* f_0_2_c8_0 = f_0_2_c8->field_0x0;
+          auto vret_2 = f_0_2_c8_0->vfunc_0x270(f_0_2_c8_0, &local_0xd0, &local_0x40);
+          this->field_0x1f0 = (uint8_t)vret_2;
+          if ((uint8_t)vret_2 != 0) {
+            this->field_0x1f4 = local_0x40;
+            call_0x495a220(&local_0x170);
+            this->field_0x1e8 = local_0x170;
+          }
+        }
+        auto ret_0x495a220_4 = call_0x495a220(&local_0xa8);
+        if (ret_0x495a220_4->field_0x0 - this->field_0x268 > (double)BandwidthManagerFeedbackMetricsUpdateEveryXSeconds) {
+          call_0x472e4b0(this);
+        }
+        auto ret_0x495a220_6 = call_0x495a220(&local_0xb0);
+        if (ret_0x495a220_6->field_0x0 - this->field_0x270 > (double)BandwidthManagerFeedbackMetricsSendEveryXSecondsV2) {
+          call_0x472ec10(this);
+        }
+        if (BandwidthManagerGetFeedbackInWindowAndReport2 && RakNetCalculateApplicationFeedback2) {
+          auto* f_0_3 = this->field_0x0;
+          auto* f_0_3_c8 = f_0_3->field_0xc8;
+          auto* f_0_3_c8_0 = f_0_3_c8->field_0x0;
+          auto vret_8 = f_0_3_c8_0->vfunc_0x80(f_0_3_c8_0, &f_0_3->field_0xd8, f_0_3->field_0x598, param_2);
+          if (vret_8 > 0) {
+            this->field_0x1f8 = max((int32_t)((float)vret_8 / max(0.1f, param_2)), this->field_0x1f8);
+          }
+        }
+        auto* f_0_4 = this->field_0x0;
+        if (LargeReplicatorUseDynamicBandwidthTarget2 && f_0_4->field_0xfc == 0 && f_0_4->field_0x2acf == 0) {
+          auto vret_9 = f_0_4->field_0xc8->field_0x0->vfunc_0x278();
+          if ((int32_t)(vret_9 * 125000.0) > 0) {
+            int32_t v_rsi_3;
+            if (LargeDataSenderMaxBandwidthBps < (int32_t)(vret_9 * 125000.0)) {
+              v_rsi_3 = LargeDataSenderMaxBandwidthBps;
+            } else {
+              v_rsi_3 = max((int32_t)(vret_9 * 125000.0), LargeDataSenderMinBandwidthBps);
+            }
+            auto* f_0_5 = this->field_0x0;
+            if (v_rsi_3 <= f_0_5->field_0x4bf8) {
+              if (f_0_5->field_0x4bf8 > LargeDataSenderMaxBandwidthBps) {
+                f_0_5->field_0x4bf8 = v_rsi_3;
+                auto vret_10 = f_0_5->vfunc_0x280(f_0_5);
+                if (vret_10 != 0) {
+                  auto local_0x160 = v_rsi_3;
+                  call_0x737860(global_0x8515970 + vret_10, &local_0x160);
+                  auto local_0x90 = 0;
+                  call_0x3d38720(this, vret_10, v_rsi_3, &local_0x90);
+                }
+              }
+            } else {
+              auto* f_0_6 = this->field_0x0;
+              f_0_6->field_0x4bf8 = v_rsi_3;
+              auto vret_10 = f_0_6->vfunc_0x280(f_0_6);
+              if (vret_10 != 0) {
+                goto L_0x472bf5f;
+              }
+            }
+          }
+        }
+      }
+      auto vret_13 = this->field_0x0->vfunc_0x310();
+      auto* f_0_7 = this->field_0x0;
+      if (f_0_7->field_0x3b30 == 0 && f_0_7->field_0x4bd6 != 0) {
+        void* v_rax_5 = vret_13;
+        if (f_0_7->field_0x3b61 == 0) {
+          v_rax_5 = (uint8_t)vret_13 == 0;
+        }
+        if (!isnan(param_2 / 1000.0f)) {
+          if (param_2 / 1000.0f != 0.0) {
+            float ftmp_1 = param_2 / 1000.0f * this->field_0x204;
+            float prev_0x1fc_2 = this->field_0x1fc;
+            this->field_0x1fc = this->field_0x1fc - ftmp_1;
+            if (0.0 >= prev_0x1fc_2 - ftmp_1) {
+              this->field_0x1fc = 0;
+            }
+          }
+        } else {
+          float ftmp_1 = param_2 / 1000.0f * this->field_0x204;
+          float prev_0x1fc_2 = this->field_0x1fc;
+          this->field_0x1fc = this->field_0x1fc - ftmp_1;
+          if (0.0 >= prev_0x1fc_2 - ftmp_1) {
+            this->field_0x1fc = 0;
+          }
+        }
+        if ((uint8_t)v_rax_5 != 0) {
+          if (!isnan(this->field_0x204)) {
+            if (this->field_0x204 != 0.0) {
+              if (!isnan(this->field_0x200)) {
+                if (this->field_0x200 != 0.0) {
+                  L_0x472c038:
+                  if (this->field_0x1fc + param_2 <= this->field_0x200) {
+                    this->field_0x1fc = this->field_0x1fc + param_2;
+                  } else {
+                    float fxmm1_7;
+                    if (f_0_7->field_0x3b61 == 1) {
+                    f_0_7->field_0x3b61 = 0;
+                    fxmm1_7 = BandwithUnhealthyTargetPct;
+                    } else {
+                    f_0_7->field_0x3b61 = 1;
+                    fxmm1_7 = BandwithHealthyTargetPct;
+                    }
+                    float ftmp_2 = (float)BandwithHealthPeriodMs / 1000.0f * 2;
+                    call_0x4729190(&this->field_0x1fc, (float)fxmm1_7 / 100.0f * (float)BandwithHealthPeriodMs, max(ftmp_2, 1.0f));
+                    rcx->field_0x0 = 0;
+                  }
+                }
+              } else if (this->field_0x1fc + param_2 <= this->field_0x200) {
+                this->field_0x1fc = this->field_0x1fc + param_2;
+              } else {
+                float fxmm1_7;
+                auto* f_0_8 = this->field_0x0;
+                if (f_0_8->field_0x3b61 == 1) {
+                  f_0_8->field_0x3b61 = 0;
+                  fxmm1_7 = BandwithUnhealthyTargetPct;
+                } else {
+                  f_0_8->field_0x3b61 = 1;
+                  fxmm1_7 = BandwithHealthyTargetPct;
+                }
+                float ftmp_2 = (float)BandwithHealthPeriodMs / 1000.0f * 2;
+                call_0x4729190(&this->field_0x1fc, (float)fxmm1_7 / 100.0f * (float)BandwithHealthPeriodMs, max(ftmp_2, 1.0f));
+                rcx->field_0x0 = 0;
+              }
+            }
+          } else if (!isnan(this->field_0x200)) {
+            if (this->field_0x200 != 0.0) {
+              goto L_0x472c038;
+            }
+          } else {
+            goto L_0x472c038;
+          }
+        }
+      }
+      auto vret_15 = this->field_0x0->vfunc_0x4e8();
+      this->field_0x8 = vret_15;
+      if (vret_13 != 0 && this->field_0x0->field_0x3b30 == 0) {
+        call_0x495a220(&local_0x178);
+        this->field_0x18 = 0;
+        this->field_0xe8 = 0;
+        if (local_0x178 - this->field_0x20 > (1.0 / (double)S2PhysicsSenderRate > 240 ? 240 : max(S2PhysicsSenderRate, 10))) {
+          this->field_0x20 = local_0x178;
+          double ftmp_3 = ((double)PhysicsSenderMaxBandwidthBps / (double)S2PhysicsSenderRate > 240 ? 240 : max(S2PhysicsSenderRate, 10)) * (double)PhysicsSenderMaxBandwidthBpsScaling;
+          this->field_0x18 = call_0x4617630(this->field_0x0, min((int32_t)((double)PhysicsSenderMaxBandwidthBps * (local_0x178 - this->field_0x20)), (int32_t)ftmp_3), 1, 1);
+          if (TrackNetworkSenderStall) {
+            call_0x47e7de0(&this->field_0x0->field_0x2d20, min((int32_t)((double)PhysicsSenderMaxBandwidthBps * (local_0x178 - this->field_0x20)), (int32_t)ftmp_3));
+            call_0x47e8050(&this->field_0x0->field_0x2d30, 1);
+          }
+          int32_t v_rsi_9 = std::clamp(S2PhysicsSenderRate, 10, 240);
+          this->field_0xe8 = call_0x4617630(this->field_0x0, (int32_t)((double)TrackerDataSenderMaxBandwidthBps * ((double)PhysicsSenderMaxBandwidthBpsScaling / (double)v_rsi_9)), 1, 1);
+        }
+        if (1.0f > this->field_0x8) {
+          this->field_0x18 = (int32_t)((float)this->field_0x18 * this->field_0x8);
+        }
+        call_0x472c460(this, local_0x178);
+        uint8_t v_dl_10;
+        float fxmm3_11;
+        auto* f_0_9 = this->field_0x0;
+        if (f_0_9->field_0x3310 == 0) {
+          v_dl_10 = 1;
+          fxmm3_11 = ClusterSenderMaxUpdateBandwidthBps;
+        } else {
+          int32_t selected_eax_1 = f_0_9->field_0x2b84 != 0 ? ClusterSenderMaxUpdateBandwidthBps : ClusterSenderMaxJoinBandwidthBps;
+          v_dl_10 = f_0_9->field_0x2b84;
+          fxmm3_11 = selected_eax_1;
+        }
+        int32_t selected_eax_2 = v_dl_10 != 0 ? ClusterSenderMaxUpdateBandwidthBpsScaling : ClusterSenderMaxJoinBandwidthBpsScaling;
+        this->clusterSenderMaxUpdateBandwidthBpsScaling_0x88 = 0;
+        double fxmm0_12;
+        auto expr_2 = max(0, f_0_9->field_0x17c0 - 0xc8);
+        if (expr_2 != 0) {
+          auto expr_1 = f_0_9->field_0x3b6c / expr_2;
+          if (f_0_9->field_0x3b6c / expr_2 >= 0) {
+            fxmm0_12 = (double)expr_1;
+          } else {
+            int64_t tmp_7 = (uint64_t)expr_1 >> 1 | f_0_9->field_0x3b6c / expr_2 & 0x1;
+            fxmm0_12 = (double)tmp_7 * 2;
+          }
+        } else {
+          fxmm0_12 = 1.0;
+        }
+        this->field_0x90 = local_0x178;
+        double ftmp_4 = max(fxmm0_12, 1.0) * (local_0x178 - this->field_0x90);
+        this->clusterSenderMaxUpdateBandwidthBpsScaling_0x88 = (int32_t)(min(ftmp_4, (double)selected_eax_2 / 30.0) * (double)fxmm3_11);
+        if (1.0f > this->field_0x8) {
+          float ftmp_5 = (float)(int32_t)(min(ftmp_4, (double)selected_eax_2 / 30.0) * (double)fxmm3_11);
+          this->clusterSenderMaxUpdateBandwidthBpsScaling_0x88 = (int32_t)(ftmp_5 * this->field_0x8);
+        }
+        this->touchSenderMaxBandwidthBps_0xb8 = 0;
+        int32_t v_rdi_14 = 0;
+        if (local_0x178 - this->touchSenderMaxBandwidthBps_0xc0 > 0.1) {
+          this->touchSenderMaxBandwidthBps_0xc0 = local_0x178;
+          double ftmp_6 = (double)TouchSenderMaxBandwidthBps * min(local_0x178 - this->touchSenderMaxBandwidthBps_0xc0, (double)TouchSenderMaxBandwidthBpsScaling / 10.0);
+          this->touchSenderMaxBandwidthBps_0xb8 = (int32_t)ftmp_6;
+          v_rdi_14 = (int32_t)ftmp_6;
+        }
+        if (1.0f > this->field_0x8) {
+          this->touchSenderMaxBandwidthBps_0xb8 = (int32_t)((float)v_rdi_14 * this->field_0x8);
+        }
+        if (SupportISRSubChannels) {
+          call_0x472c770(this, local_0x178);
+        } else {
+          call_0x472cd20(this, local_0x178, this->field_0x8);
+        }
+      }
+    }
 
 [Strings .rdata na função]
-  * QueueEmpty
-  * [DFLog::PPJProgressHalt] {}: {} queue has been empty for {} frames
-  * Reason
-  * NumFramesStuck
+  * "QueueEmpty"  [@rdata 0x7481548, ref @0x47e6fff, key/identifier]
+  * "[DFLog::PPJProgressHalt] {}: {} queue has been empty for {} frames"  [@rdata 0x7481660, ref @0x47e703f, FLog format]
+  * "Reason"  [@rdata 0x71ee4c8, ref @0x47e7111, string_view len=6]
+  * "NumFramesStuck"  [@rdata 0x74816a8, ref @0x47e7182, string_view len=14]
+  * "[DFLog::NetworkBandwidthManagerTrace] NetworkBandwdithManager: Calculate Bandwidth for Replicato"  [@rdata 0x7475a50, ref @0x472bccc, FLog format]
 
 [Co-Flags na mesma função]
   * DFFlagTrackNetworkSenderStall = true (default)
@@ -472,5 +721,13 @@ Operação  : 0x472c518: mov/math reg, [flag] ; fn=0x472c460..0x472c768
   * DFIntLargeReplicatorMaxBandwidthUsageAllowedPercent = 80 (default)
   * DFFlagTrackDPJProgress = false (default)
   * DFLogPPJProgressHalt = 6 (default)
-  * DFIntClusterSenderMaxJoinBandwidthBps = 6144000 (default) [vizinha em .data]
-  * DFIntClusterSenderMaxUpdateBandwidthBpsScaling = 20 (default) [vizinha em .data]
+  * DFLogNetworkBandwidthManagerTrace = 0 (default)
+  * FFlagReportBandwidthCapHit = true (default)
+  * DFIntBandwidthManagerFeedbackMetricsUpdateEveryXSeconds = 1 (default)
+  * DFIntBandwidthManagerFeedbackMetricsSendEveryXSecondsV2 = 300 (default)
+  * DFFlagBandwidthManagerGetFeedbackInWindowAndReport2 = false (default)
+  * DFFlagRakNetCalculateApplicationFeedback2 = false (default)
+  * DFIntBandwithUnhealthyTargetPct = 5 (default)
+  * DFIntBandwithHealthyTargetPct = 95 (default)
+  * DFIntBandwithHealthPeriodMs = 1000 (default)
+  * DFIntS2PhysicsSenderRate = 15 (default)

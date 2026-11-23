@@ -9,15 +9,12 @@ Operação  : 0x32d0c88: mov/math reg, [flag] ; fn=0x32d0970..0x32d0f1d
     Classe  : RBX::AssetPreloading (Inferido)
     Padrão  : DFLogAssetPreloading = 0 (default) [log, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : AssetPreloading < 6
-    Fórmula : (uint64_t)AssetPreloading >> 8 < 3
+    Fórmula : (uint8_t)AssetPreloading >= 6 && (uint8_t)((uint64_t)AssetPreloading >> 8) >= 3
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x32d0800 (in fn_0x32d07b0): call 0x32d0970  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
     [XREF #2 @0x32d1614] Classe  : RBX::AssetPreloading (Inferido)
-    [XREF #2 @0x32d1614] Fórmula : AssetPreloading < 6
-    [XREF #2 @0x32d1614] Fórmula : (uint64_t)AssetPreloading >> 8 < 3
-    [XREF #2 @0x32d1614] Fórmula : "[DFLog::AssetPreloading] signal fired {}"[0] != 0
+    [XREF #2 @0x32d1614] Fórmula : (uint8_t)AssetPreloading >= 6 && (uint8_t)((uint64_t)AssetPreloading >> 8) >= 3
   
   === [Decompilacao C++ da Funcao 0x32d0970..0x32d0f1d] ===
     // Flag defaults: AssetPreloading = 0
@@ -104,8 +101,8 @@ Operação  : 0x32d0c88: mov/math reg, [flag] ; fn=0x32d0970..0x32d0f1d
         call_0x6e45a0(&local_0xaa0, &sym_0x817bc30);
         call_0x2db1560(&local_0xdc0, fxmm10_1);
         call_0x2db1900(&local_0xda0);
-        if (AssetPreloading >= 6 && (uint64_t)AssetPreloading >> 8 >= 3) {
-          FLog::Log("[DFLog::AssetPreloading] Stats: cacheHitCounter:{}, notFetchedCounter:{}, fetchedCacheMissCounte");
+        if ((uint8_t)AssetPreloading >= 6 && (uint8_t)((uint64_t)AssetPreloading >> 8) >= 3) {
+          FLog::Log("[DFLog::AssetPreloading] Stats: cacheHitCounter:{}, notFetchedCounter:{}, fetchedCacheMissCounte", fxmm7_5, fxmm8_6);
         }
         if (local_0xd88 != 0) {
           call_0x6f7bf0(&local_0xd80, local_0xd88);
@@ -502,8 +499,8 @@ Operação  : 0x32d0c88: mov/math reg, [flag] ; fn=0x32d0970..0x32d0f1d
       void* v_rcx_5 = v_rcx_1;
       if (v_rbx_2 != 0) {
         call_0x2e12fd0(&v_rbx_2->field_0x188);
-        if (AssetPreloading >= 6 && (uint64_t)AssetPreloading >> 8 >= 3) {
-          FLog::Log("[DFLog::AssetPreloading] signal fired {}");
+        if ((uint8_t)AssetPreloading >= 6 && (uint8_t)((uint64_t)AssetPreloading >> 8) >= 3) {
+          FLog::Log("[DFLog::AssetPreloading] signal fired {}", v_rbx_2->field_0x180);
         }
         if (&v_rbx_2->field_0x188->field_0x0 != 3 || atomic_cas(&&v_rbx_2->field_0x188->field_0x0, 3, 1) != 0) {
           call_0xdac0(&v_rbx_2->field_0x188);
@@ -635,11 +632,80 @@ Operação  : 0x32d0c88: mov/math reg, [flag] ; fn=0x32d0970..0x32d0f1d
     0x32d1722 | 49 8b e3                 | mov rsp, r11
     0x32d1725 | 5d                       | pop rbp
     0x32d1726 | c3                       | ret
+  
+  === [Decompilacao da Rotina Chamadora (Caller): 0x32d07b0..0x32d0969 em RBX::AssetPreloading] ===
+    struct RBX::AssetPreloading {
+      /* +0x0 */ void*   field_0x0;
+      /* +0x8 */ void*   field_0x8;
+    };
+    
+    void RBX::AssetPreloading::func_0x32d07b0(RBX::AssetPreloading* this) {
+      void* v_rdi_3;
+      void* stk_4;
+      auto* f_8 = this->field_0x8;
+      if (f_8 != 0 && f_8->field_0x8 != 0) {
+        do { // L_0x32d07e0
+          if (atomic_cas(&f_8->field_0x8, f_8->field_0x8, f_8->field_0x8 + 1) == 0) break;
+        } while (this->field_0x8->field_0x8 != 0); // loop -> L_0x32d07e0
+        v_rdi_3 = 0.0;
+        stk_4 = 0.0;
+      } else {
+        v_rdi_3 = 0.0;
+        stk_4 = 0.0;
+      }
+      if (v_rdi_3 != 0) {
+        call_0x32d0970();
+        call_0x2e12fd0(global_0x84c16b8);
+        call_0x32d0f20(global_0x84c1788);
+        call_0x2e12fd0(&v_rdi_3->field_0xf0);
+        if (global_0x84c1788 != &v_rdi_3->field_0xf8) {
+          if (global_0x84c1788->field_0x10 != 0) {
+            call_0x10939e0(this, global_0x84c1788->field_0x8);
+            global_0x84c1788->field_0x8->field_0x0 = global_0x84c1788->field_0x8;
+            global_0x84c1788->field_0x8->field_0x8 = global_0x84c1788->field_0x8;
+            global_0x84c1788->field_0x10 = 0;
+            auto local_0x50 = global_0x84c1788->field_0x8;
+            call_0x6fda20(global_0x84c1788->field_0x18, global_0x84c1788->field_0x20, &local_0x50);
+          }
+          global_0x84c1788->field_0x0 = v_rdi_3->field_0xf8;
+          void* prev_0x8_2 = global_0x84c1788->field_0x8;
+          global_0x84c1788->field_0x8 = v_rdi_3->field_0x100;
+          v_rdi_3->field_0x100 = prev_0x8_2;
+          void* prev_0x10_4 = global_0x84c1788->field_0x10;
+          global_0x84c1788->field_0x10 = v_rdi_3->field_0x108;
+          v_rdi_3->field_0x108 = prev_0x10_4;
+          void* prev_0x18_6 = global_0x84c1788->field_0x18;
+          global_0x84c1788->field_0x18 = v_rdi_3->field_0x110;
+          v_rdi_3->field_0x110 = prev_0x18_6;
+          void* prev_0x20_8 = global_0x84c1788->field_0x20;
+          global_0x84c1788->field_0x20 = v_rdi_3->field_0x118;
+          v_rdi_3->field_0x118 = prev_0x20_8;
+          void* prev_0x28_10 = global_0x84c1788->field_0x28;
+          global_0x84c1788->field_0x28 = v_rdi_3->field_0x120;
+          v_rdi_3->field_0x120 = prev_0x28_10;
+          void* prev_0x30_12 = global_0x84c1788->field_0x30;
+          global_0x84c1788->field_0x30 = v_rdi_3->field_0x128;
+          v_rdi_3->field_0x128 = prev_0x30_12;
+          void* prev_0x38_14 = global_0x84c1788->field_0x38;
+          global_0x84c1788->field_0x38 = v_rdi_3->field_0x130;
+          v_rdi_3->field_0x130 = prev_0x38_14;
+        }
+        if (v_rdi_3->field_0xf0 != 3 || atomic_cas(&v_rdi_3->field_0xf0, v_rdi_3->field_0xf0, 1) != 0) {
+          call_0xdac0(&v_rdi_3->field_0xf0);
+        }
+        if (global_0x84c16b8->field_0x0 != 3 || atomic_cas(&global_0x84c16b8->field_0x0, global_0x84c16b8->field_0x0, 1) != 0) {
+          call_0xdac0(global_0x84c16b8);
+        }
+      }
+      if (stk_4 != 0) {
+        call_0x6daf40(stk_4);
+      }
+    }
 
 [Strings .rdata na função]
-  * \r4}
-  * [DFLog::AssetPreloading] Stats: cacheHitCounter:{}, notFetchedCounter:{}, fetchedCacheMissCounte
-  * [DFLog::AssetPreloading] signal fired {}
+  * "\r4}"  [@rdata 0x7e35068, ref @0x32d0ca3, literal, 4B]
+  * "[DFLog::AssetPreloading] Stats: cacheHitCounter:{}, notFetchedCounter:{}, fetchedCacheMissCounte"  [@rdata 0x7394ab0, ref @0x32d0cb4, FLog format]
+  * "[DFLog::AssetPreloading] signal fired {}"  [@rdata 0x7394898, ref @0x32d1640, FLog format]
 
 [Co-Flags na mesma função]
   * FLogAssetCounter = 0 (default) [vizinha em .data]

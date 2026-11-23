@@ -13,7 +13,6 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
     Altera  : this->field_0x8->field_0x0, this->field_0x8->field_0x8, this->field_0x8->field_0x10, this->field_0x8, this->field_0x8->field_m0x18, this->field_0x8->field_m0x10
     [XREF #2 @0x2be13dd] Classe  : RBX::HttpRetry (Inferido)
     [XREF #2 @0x2be13dd] Fórmula : (double)(rax % HttpRetryAndLocalThrottleJitterMaxPercent) * 0.01 + 1.0
-    [XREF #2 @0x2be13dd] Fórmula : (double)(rax % HttpRetryAndLocalThrottleJitterMaxPercent) * 0.01 + min(ret_0x5e26be0_19, (double)HttpMaxRetryAfterSec) + param_4
   
   === [Decompilacao C++ da Funcao 0x2bdd000..0x2bdda5d] ===
     struct RBX::HttpResponse {
@@ -25,16 +24,16 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
     
     // Flag defaults: HttpMaxRetries = 1, HttpRetryOnExplicitHeader = false, HttpClientResolveInvalidRangeResponse = true, HttpTrace = 0, HttpMaxRetryAfterSec = 60, HttpRetryAndLocalThrottleJitterMaxPercent = 10, HttpUseSharedRetryHeader = true, HttpTraceLight = 0
     void RBX::HttpResponse::func_0x2bdd000(RBX::HttpResponse* this, int64_t param_2, void* param_3) {
-      if (global_0x84a44d6 != 0 && atomic_exchange(&this->field_0x98, 1) == 0) {
+      if (global_0x84a44d6 != 0 && (uint8_t)(atomic_exchange(&this->field_0x98, 1)) == 0) {
         call_0x2bdc110(&this->field_0x20);
       }
       if (param_2->field_0x0->field_0xd0->field_0x1fc == 0) {
         auto ret_0x2ba26a0_2 = call_0x2ba26a0(param_3);
-        if (ret_0x2ba26a0_2 == 0) {
+        if ((uint8_t)ret_0x2ba26a0_2 == 0) {
           uint8_t v_r15b_2;
           if (global_0x84a44d6 != 0 && HttpRetryOnExplicitHeader) {
             call_0x746c10(&param_2->field_0x0->field_0x40, &local_0x270);
-            call_0x2bb3c10(&local_0xd0, &local_0x190, &local_0x180);
+            call_0x2bb3c10(&local_0xd0, &local_0x190, std::string_view("x-upstream-retry", 16));
             if (local_0xd8 == 4) {
               int32_t i_ecx = 0;
               int32_t v_rax_1;
@@ -61,43 +60,45 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
             v_sil_4 = 1;
             L_0x2bdd1a1:
             call_0x2bdc4d0(&this->field_0x20, &local_0x60, param_2->field_0x0->field_0x18, expr_2);
-            void* v_rbx_5;
-            void* stk_6;
-            void* v_rbx_7;
-            void* stk_8;
+            void* v_rbx_6;
+            void* stk_7;
+            void* v_rbx_8;
+            void* stk_9;
             if (v_r15b_2 == 0 && v_sil_4 == 0) {
-              v_rbx_5 = local_0x60;
-              stk_6 = local_0x60;
+              v_rbx_6 = local_0x60;
+              stk_7 = local_0x60;
               L_0x2bdd252:
-              if (v_rbx_5 != 0) {
-                v_rbx_7 = v_rbx_5;
-                stk_8 = stk_6;
+              if (v_rbx_6 != 0) {
+                v_rbx_8 = v_rbx_6;
+                stk_9 = stk_7;
                 L_0x2bdd25b:
-                void* v_rbx_9 = v_rbx_7;
-                if (HttpTrace >= 6 && (uint64_t)HttpTrace >> 8 >= 3) {
+                void* v_rbx_10 = v_rbx_8;
+                if ((uint8_t)HttpTrace >= 6 && (uint8_t)((uint64_t)HttpTrace >> 8) >= 3) {
                   FLog::Log("[DFLog::HttpTrace] HttpRequest(#%u %p) retry policy applied on errorCode: %d");
-                  v_rbx_9 = stk_8;
+                  v_rbx_10 = stk_9;
                 }
-                int32_t selected_ecx_1 = v_rbx_9->field_0x18 == -1 ? HttpMaxRetries : v_rbx_9->field_0x18;
+                int32_t selected_ecx_1 = v_rbx_10->field_0x18 == -1 ? HttpMaxRetries : v_rbx_10->field_0x18;
                 if (param_2->field_0x0->field_0xd0->field_0x47c < selected_ecx_1) {
                   param_2->field_0x0->field_0xd0->field_0x47c++;
                   call_0x746c10(&param_2->field_0x0->field_0x40, &local_0x1c0);
-                  call_0x2bb3c10(&local_0x100, &local_0x1e0, &local_0x1d0);
+                  call_0x2bb3c10(&local_0x100, &local_0x1e0, std::string_view("Retry-After", 11));
                   auto ret_0x4959ee0_11 = call_0x4959ee0();
-                  double fxmm6_15;
+                  double fxmm6_16;
                   if (v_sil_4 != 0) {
-                    fxmm6_15 = 0.0;
+                    fxmm6_16 = 0.0;
                     L_0x2bdd439:
-                    double ftmp_2 = ret_0x4959ee0_11 + fxmm6_15 - param_2->field_0x0->field_0xd0->field_0x2b8;
+                    double ftmp_2 = ret_0x4959ee0_11 + fxmm6_16 - param_2->field_0x0->field_0xd0->field_0x2b8;
                     if ((int32_t)(ftmp_2 * 1000.0) < param_2->field_0x0->field_0xd0->field_0x1f8) {
                     if (global_0x84a44d6 != 0 && HttpUseSharedRetryHeader) {
+                    void* prev_0xd0_4 = param_2->field_0x0->field_0xd0;
                     call_0x1d48fe0(&local_0x2e0, &local_0x200, &local_0x1f0);
-                    call_0x2ba9aa0(param_2->field_0x0->field_0xd0, &local_0x220, &local_0x210);
+                    call_0x2ba9aa0(prev_0xd0_4, &local_0x220, &local_0x210);
                     std::string::_Tidy_deallocate(local_0x2e0);
                     L_0x2bdd6e6:
+                    void* prev_0x0_5 = param_2->field_0x0;
                     auto ret_0x4956040_22 = call_0x4956040(376);
                     if (ret_0x4956040_22 != 0) {
-                    auto ret_0x2baeeb0_25 = call_0x2baeeb0(ret_0x4956040_22, param_2->field_0x0);
+                    auto ret_0x2baeeb0_25 = call_0x2baeeb0(ret_0x4956040_22, prev_0x0_5);
                     auto ret_0x4956040_26 = call_0x4956040(24);
                     ret_0x4956040_26->field_0x8 = 1;
                     ret_0x4956040_26->field_0xc = 1;
@@ -107,9 +108,9 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
                     ret_0x4956040_26->field_0x8++;
                     ret_0x4956040_26->field_0xc++;
                     ret_0x2baeeb0_25->field_0x8 = ret_0x2baeeb0_25;
-                    void* prev_0x10_2 = ret_0x2baeeb0_25->field_0x10;
+                    void* prev_0x10_6 = ret_0x2baeeb0_25->field_0x10;
                     ret_0x2baeeb0_25->field_0x10 = ret_0x4956040_26;
-                    if (prev_0x10_2 != 0 && atomic_fetch_sub(&ret_0x2baeeb0_25->field_0x10->field_0xc, 1) == 1) {
+                    if (prev_0x10_6 != 0 && atomic_fetch_sub(&ret_0x2baeeb0_25->field_0x10->field_0xc, 1) == 1) {
                     ret_0x2baeeb0_25->field_0x10->vfunc_0x8();
                     }
                     call_0x6daf40(ret_0x4956040_26);
@@ -120,7 +121,7 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
                     call_0x6daf40(local_0x98);
                     }
                     param_2->field_0x0->field_0xd0->field_0x480 = param_2->field_0x0->field_0x18;
-                    if (HttpTraceLight >= 6 && (uint64_t)HttpTraceLight >> 8 >= 3) {
+                    if ((uint8_t)HttpTraceLight >= 6 && (uint8_t)((uint64_t)HttpTraceLight >> 8) >= 3) {
                     FLog::Log("[DFLog::HttpTraceLight] HttpRequest(#%u %p) queued for retry on errorCode: %d, will be retried a");
                     "[DFLog::HttpTraceLight] HttpRequest(#%u %p) queued for retry on errorCode: %d, will be retried a";
                     }
@@ -133,21 +134,21 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
                     if (atomic_cas(expr_1, param_2->field_0x0->field_0xd0->field_0x10->field_0x8, param_2->field_0x0->field_0xd0->field_0x10->field_0x8 + 1) == 0) break;
                     if (param_2->field_0x0->field_0xd0->field_0x10->field_0x8 == 0) break;
                     } while (true); // loop -> L_0x2bdd890
-                    void* v_rbx_22;
+                    void* v_rbx_23;
                     if (this->field_0x8 != this->field_0x10) {
                     this->field_0x8->field_0x0 = param_2->field_0x0->field_0xd0->field_0x8;
                     this->field_0x8->field_0x8 = param_2->field_0x0->field_0xd0->field_0x10;
-                    this->field_0x8->field_0x10 = ret_0x4959ee0_11 + fxmm6_15;
+                    this->field_0x8->field_0x10 = ret_0x4959ee0_11 + fxmm6_16;
                     this->field_0x8 = this->field_0x8 + 0x18;
-                    v_rbx_22 = 0;
+                    v_rbx_23 = 0;
                     } else {
                     auto local_0x70 = param_2->field_0x0->field_0xd0->field_0x8;
                     call_0x2bdf1e0(this, this->field_0x8, &local_0x70);
-                    v_rbx_22 = local_0x78;
+                    v_rbx_23 = local_0x78;
                     }
                     if (((this->field_0x8 - this->field_0x0) / 24 >> 2) + ((uint64_t)((this->field_0x8 - this->field_0x0) / 24 >> 2) >> 63) >= 2) {
                     this->field_0x8->field_m0x18 = 0;
-                    void* prev_0x8->field_m0x10_4 = this->field_0x8->field_m0x10;
+                    void* prev_0x8->field_m0x10_8 = this->field_0x8->field_m0x10;
                     this->field_0x8->field_m0x10 = 0;
                     auto local_0xa0 = this->field_0x8->field_m0x18;
                     call_0x2bdf460(this->field_0x0, ((this->field_0x8 - this->field_0x0) / 24 >> 2) + ((uint64_t)((this->field_0x8 - this->field_0x0) / 24 >> 2) >> 63) - 1, this->field_0x8, &local_0xa0);
@@ -155,8 +156,8 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
                     call_0x6daf40(local_0xa8);
                     }
                     }
-                    if (v_rbx_22 != 0) {
-                    call_0x6daf40(v_rbx_22);
+                    if (v_rbx_23 != 0) {
+                    call_0x6daf40(v_rbx_23);
                     }
                     if ((local_0x2d8 & 1) != 0) {
                     if ((local_0x2d8 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x2d8 & 0xfffffffe)->field_0x0, (local_0x2d8 & 0xfffffffe)->field_0x0, 1) != 0) {
@@ -178,12 +179,14 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
                     call_0x7431a0();
                     }
                     } else {
+                    void* prev_0xd0_3 = param_2->field_0x0->field_0xd0;
                     call_0x1d48fe0(&local_0x300, &local_0x280, &local_0x230);
-                    call_0x2ba9aa0(param_2->field_0x0->field_0xd0, &local_0x250, &local_0x240);
+                    call_0x2ba9aa0(prev_0xd0_3, &local_0x250, &local_0x240);
                     std::string::_Tidy_deallocate(local_0x300);
+                    void* prev_0x0_5 = param_2->field_0x0;
                     auto ret_0x4956040_22 = call_0x4956040(376);
                     if (ret_0x4956040_22 != 0) {
-                    auto ret_0x2baeeb0_25 = call_0x2baeeb0(ret_0x4956040_22, param_2->field_0x0);
+                    auto ret_0x2baeeb0_25 = call_0x2baeeb0(ret_0x4956040_22, prev_0x0_5);
                     auto ret_0x4956040_26 = call_0x4956040(24);
                     goto L_0x2bdd729;
                     } else {
@@ -194,64 +197,66 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
                     }
                     }
                   } else if (param_2->field_0x0->field_0xca == 0) {
-                    double fxmm6_14;
+                    double fxmm6_15;
                     if (local_0x108 != 0) {
                     auto local_0x48 = 0;
                     auto ret_0xe26310_12 = call_0xe26310(&local_0x100, param_2, &local_0x48);
-                    if (ret_0xe26310_12 != 0 && local_0x48 > 0) {
+                    if ((uint8_t)ret_0xe26310_12 != 0 && local_0x48 > 0) {
                     call_0x4975550(ret_0xe26310_12);
                     double ftmp_1 = (double)(rax % HttpRetryAndLocalThrottleJitterMaxPercent) * 0.01 + 1.0;
-                    fxmm6_14 = ftmp_1 * (double)min(local_0x48, HttpMaxRetryAfterSec);
+                    fxmm6_15 = ftmp_1 * (double)min(local_0x48, HttpMaxRetryAfterSec);
                     L_0x2bdd42d:
-                    if (!isnan(fxmm6_14) && !isnan(-1.0)) {
-                    if (fxmm6_14 != -1.0) {
-                    fxmm6_15 = fxmm6_14;
-                    double ftmp_2 = ret_0x4959ee0_11 + fxmm6_15 - param_2->field_0x0->field_0xd0->field_0x2b8;
+                    if (!isnan(fxmm6_15) && !isnan(-1.0)) {
+                    if (fxmm6_15 != -1.0) {
+                    fxmm6_16 = fxmm6_15;
+                    double ftmp_2 = ret_0x4959ee0_11 + fxmm6_16 - param_2->field_0x0->field_0xd0->field_0x2b8;
                     if ((int32_t)(ftmp_2 * 1000.0) < param_2->field_0x0->field_0xd0->field_0x1f8) {
                     if (global_0x84a44d6 != 0 && HttpUseSharedRetryHeader) {
+                    void* prev_0xd0_4 = param_2->field_0x0->field_0xd0;
                     call_0x1d48fe0(&local_0x2e0, &local_0x200, &local_0x1f0);
-                    call_0x2ba9aa0(param_2->field_0x0->field_0xd0, &local_0x220, &local_0x210);
+                    call_0x2ba9aa0(prev_0xd0_4, &local_0x220, &local_0x210);
                     std::string::_Tidy_deallocate(local_0x2e0);
                     goto L_0x2bdd6e6;
                     } else {
+                    void* prev_0xd0_3 = param_2->field_0x0->field_0xd0;
                     call_0x1d48fe0(&local_0x300, &local_0x280, &local_0x230);
-                    call_0x2ba9aa0(param_2->field_0x0->field_0xd0, &local_0x250, &local_0x240);
+                    call_0x2ba9aa0(prev_0xd0_3, &local_0x250, &local_0x240);
                     std::string::_Tidy_deallocate(local_0x300);
                     goto L_0x2bdd6e6;
                     }
                     }
                     }
                     } else {
-                    fxmm6_15 = fxmm6_14;
+                    fxmm6_16 = fxmm6_15;
                     goto L_0x2bdd439;
                     }
                     } else {
                     if (v_r15b_2 == 0) {
-                    void* v_rbx_12 = &v_rbx_9->field_0x20;
-                    if ((v_rbx_9->field_0x38 >> 1 & 0x1) == 0) {
-                    v_rbx_12 = v_rbx_9->field_0x20;
+                    void* v_rbx_13 = &v_rbx_10->field_0x20;
+                    if ((v_rbx_10->field_0x38 >> 1 & 0x1) == 0) {
+                    v_rbx_13 = v_rbx_10->field_0x20;
                     }
-                    auto vret_13 = ((v_rbx_9->field_0x38 & 0xfffffff8))->vfunc_0x0(v_rbx_12);
-                    fxmm6_14 = vret_13;
-                    if (!isnan(fxmm6_14) && !isnan(-1.0)) {
-                    if (fxmm6_14 != -1.0) {
-                    fxmm6_15 = fxmm6_14;
+                    auto vret_13 = (v_rbx_10->field_0x38 & 0xfffffff8)->vfunc_0x0(v_rbx_13);
+                    fxmm6_15 = vret_13;
+                    if (!isnan(fxmm6_15) && !isnan(-1.0)) {
+                    if (fxmm6_15 != -1.0) {
+                    fxmm6_16 = fxmm6_15;
                     goto L_0x2bdd439;
                     }
                     } else {
-                    fxmm6_15 = fxmm6_14;
+                    fxmm6_16 = fxmm6_15;
                     goto L_0x2bdd439;
                     }
                     }
                     }
                     } else {
                     if (v_r15b_2 == 0) {
-                    void* v_rbx_12 = &v_rbx_9->field_0x20;
-                    if ((v_rbx_9->field_0x38 >> 1 & 0x1) == 0) {
-                    v_rbx_12 = v_rbx_9->field_0x20;
+                    void* v_rbx_13 = &v_rbx_10->field_0x20;
+                    if ((v_rbx_10->field_0x38 >> 1 & 0x1) == 0) {
+                    v_rbx_13 = v_rbx_10->field_0x20;
                     }
-                    auto vret_13 = ((v_rbx_9->field_0x38 & 0xfffffff8))->vfunc_0x0(v_rbx_12);
-                    fxmm6_14 = vret_13;
+                    auto vret_13 = (v_rbx_10->field_0x38 & 0xfffffff8)->vfunc_0x0(v_rbx_13);
+                    fxmm6_15 = vret_13;
                     goto L_0x2bdd42d;
                     }
                     }
@@ -265,31 +270,33 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
               return;
             }
             if (local_0x60 == 0) {
-              auto local_0xe0 = "exponential";
-              auto ret_0x2be9f10_6 = call_0x2be9f10(&local_0x1a0, &local_0xe0, -1.0, -1);
+              auto ret_0x2be9f10_6 = call_0x2be9f10(&local_0x1a0, std::string_view("exponential", 11), -1.0, -1);
+              void* v_rbx_5 = ret_0x2be9f10_6->field_0x0;
               if (local_0x68 != 0) {
+                void* prev_0x0_1 = ret_0x2be9f10_6->field_0x0;
                 call_0x6daf40(local_0x68);
+                v_rbx_5 = prev_0x0_1;
               }
               if (local_0x1a8 != 0) {
                 call_0x6daf40(local_0x1a8);
-                v_rbx_5 = ret_0x2be9f10_6->field_0x0;
-                stk_6 = ret_0x2be9f10_6->field_0x0;
+                v_rbx_6 = v_rbx_5;
+                stk_7 = ret_0x2be9f10_6->field_0x0;
               } else {
-                v_rbx_5 = ret_0x2be9f10_6->field_0x0;
-                stk_6 = ret_0x2be9f10_6->field_0x0;
+                v_rbx_6 = v_rbx_5;
+                stk_7 = ret_0x2be9f10_6->field_0x0;
               }
-              if (v_rbx_5 == 0) {
+              if (v_rbx_6 == 0) {
                 goto L_0x2bdd99d;
               }
             }
-            v_rbx_7 = local_0x60;
-            stk_8 = local_0x60;
-            void* v_rbx_9 = v_rbx_7;
-            if (HttpTrace >= 6 && (uint64_t)HttpTrace >> 8 >= 3) {
+            v_rbx_8 = local_0x60;
+            stk_9 = local_0x60;
+            void* v_rbx_10 = v_rbx_8;
+            if ((uint8_t)HttpTrace >= 6 && (uint8_t)((uint64_t)HttpTrace >> 8) >= 3) {
               FLog::Log("[DFLog::HttpTrace] HttpRequest(#%u %p) retry policy applied on errorCode: %d");
-              v_rbx_9 = stk_8;
+              v_rbx_10 = stk_9;
             }
-            int32_t selected_ecx_1 = v_rbx_9->field_0x18 == -1 ? HttpMaxRetries : v_rbx_9->field_0x18;
+            int32_t selected_ecx_1 = v_rbx_10->field_0x18 == -1 ? HttpMaxRetries : v_rbx_10->field_0x18;
             if (param_2->field_0x0->field_0xd0->field_0x47c < selected_ecx_1) {
               goto L_0x2bdd2ee;
             }
@@ -300,33 +307,35 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
                 if (param_2->field_0x0->field_0x18 == 0x1f7) {
                   v_sil_4 = 0;
                   call_0x2bdc4d0(&this->field_0x20, &local_0x60, param_2->field_0x0->field_0x18, expr_2);
-                  void* v_rbx_5;
-                  void* stk_6;
-                  void* v_rbx_7;
-                  void* stk_8;
+                  void* v_rbx_6;
+                  void* stk_7;
+                  void* v_rbx_8;
+                  void* stk_9;
                   if (v_r15b_2 == 0 && v_sil_4 == 0) {
-                    v_rbx_5 = local_0x60;
-                    stk_6 = local_0x60;
+                    v_rbx_6 = local_0x60;
+                    stk_7 = local_0x60;
                     goto L_0x2bdd252;
                   } else {
                     if (local_0x60 == 0) {
-                    auto local_0xe0 = "exponential";
-                    auto ret_0x2be9f10_6 = call_0x2be9f10(&local_0x1a0, &local_0xe0, -1.0, -1);
+                    auto ret_0x2be9f10_6 = call_0x2be9f10(&local_0x1a0, std::string_view("exponential", 11), -1.0, -1);
+                    void* v_rbx_5 = ret_0x2be9f10_6->field_0x0;
                     if (local_0x68 != 0) {
+                    void* prev_0x0_1 = ret_0x2be9f10_6->field_0x0;
                     call_0x6daf40(local_0x68);
+                    v_rbx_5 = prev_0x0_1;
                     }
                     if (local_0x1a8 != 0) {
                     call_0x6daf40(local_0x1a8);
-                    v_rbx_5 = ret_0x2be9f10_6->field_0x0;
-                    stk_6 = ret_0x2be9f10_6->field_0x0;
+                    v_rbx_6 = v_rbx_5;
+                    stk_7 = ret_0x2be9f10_6->field_0x0;
                     } else {
-                    v_rbx_5 = ret_0x2be9f10_6->field_0x0;
-                    stk_6 = ret_0x2be9f10_6->field_0x0;
+                    v_rbx_6 = v_rbx_5;
+                    stk_7 = ret_0x2be9f10_6->field_0x0;
                     }
                     goto L_0x2bdd252;
                     }
-                    v_rbx_7 = local_0x60;
-                    stk_8 = local_0x60;
+                    v_rbx_8 = local_0x60;
+                    stk_9 = local_0x60;
                     goto L_0x2bdd25b;
                   }
                 }
@@ -1010,11 +1019,12 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
           L_0x2bdc1b3:
           call_0x2bde420(this);
           auto* f_40 = this->field_0x40;
+          void* prev_0x40_1 = f_40;
           call_0x27c4f30(&f_40, &f_40, f_40->field_0x8);
           auto* f_40_2 = this->field_0x40;
-          f_40_2->field_0x8 = f_40_2;
-          f_40_2->field_0x0 = f_40_2;
-          f_40_2->field_0x10 = f_40_2;
+          f_40_2->field_0x8 = prev_0x40_1;
+          f_40_2->field_0x0 = prev_0x40_1;
+          f_40_2->field_0x10 = prev_0x40_1;
           this->field_0x48 = 0;
           auto local_0x150 = 0.0;
           call_0x819aa0(&local_0xb0, &local_0x150);
@@ -1073,7 +1083,9 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
             do { // L_0x2bdc3c0
               if (i_ebx->field_0x10 <= i_ebx->field_0x14) {
                 int64_t local_0x158;
+                int64_t prev_0x14_2;
                 do { // L_0x2bdc3d0
+                  prev_0x14_2 = i_ebx->field_0x14;
                   local_0x158 = i_ebx->field_0x10;
                   auto ret_0x2bdef00_11 = call_0x2bdef00(this, &local_0xf0, &local_0x158);
                   if (ret_0x2bdef00_11->field_0x0->field_0x20 != ret_0x2bdef00_11->field_0x0->field_0x28) {
@@ -1086,7 +1098,7 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
                   } else {
                     call_0x81a6b0(&ret_0x2bdef00_11->field_0x0->field_0x18, ret_0x2bdef00_11->field_0x0->field_0x20, i_ebx + 0x18);
                   }
-                } while (local_0x158 + 1 <= i_ebx->field_0x14); // loop -> L_0x2bdc3d0
+                } while (local_0x158 + 1 <= prev_0x14_2); // loop -> L_0x2bdc3d0
               }
               i_ebx = i_ebx->field_0x0;
             } while (i_ebx->field_0x0 != local_0xb8); // loop -> L_0x2bdc3c0
@@ -1456,23 +1468,27 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
     };
     
     void SubObj_0x2bb3c10::func_0x2bb3c10(SubObj_0x2bb3c10* this, int64_t param_2, void* param_3) {
-      int64_t v_rax_1;
+      int64_t v_rax_2;
       if (param_2->field_0x8 != 0 && param_3->field_0x8 != 0 && param_2->field_0x8 > param_3->field_0x8) {
+        void* prev_0x8_1;
         do { // L_0x2bb3c60
+          prev_0x8_1 = param_3->field_0x8;
           auto ret_0x496a980_1 = call_0x496a980(param_2, &local_0x30, 0);
           if (ret_0x496a980_1 == -1) break;
+          void* v_rbx_1 = param_2->field_0x0;
           if (param_3->field_0x8->field_0x0[param_2->field_0x0] == 58) {
-            auto ret_0x2bb34e0_2 = call_0x2bb34e0(param_2->field_0x0, param_3->field_0x0, param_3->field_0x8);
-            if (ret_0x2bb34e0_2 != 0) break;
+            void* prev_0x0_2 = param_2->field_0x0;
+            auto ret_0x2bb34e0_2 = call_0x2bb34e0(prev_0x0_2, param_3->field_0x0, prev_0x8_1);
+            if ((uint8_t)ret_0x2bb34e0_2 != 0) break;
           }
           void* sel_rdx_1 = param_2->field_0x8 < &ret_0x496a980_1->field_0x2 ? param_2->field_0x8 : ret_0x496a980_1->field_0x2;
-          param_2->field_0x0 = sel_rdx_1 + param_2->field_0x0;
+          param_2->field_0x0 = sel_rdx_1 + v_rbx_1;
           param_2->field_0x8 = std::min<uint64_t>(-1, param_2->field_0x8 - sel_rdx_1);
-        } while (param_2->field_0x8 > param_3->field_0x8); // loop -> L_0x2bb3c60
+        } while (param_2->field_0x8 > prev_0x8_1); // loop -> L_0x2bb3c60
       }
       this->field_0x8 = 0;
-      v_rax_1 = 0;
-      this->field_0x0 = v_rax_1;
+      v_rax_2 = 0;
+      this->field_0x0 = v_rax_2;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x2bb3c10..0x2bb3d3b)] ===
@@ -1582,17 +1598,18 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
       call_0x6f7510(&local_0x110, &local_0x170);
       call_0x6f7510(&local_0xf0, &local_0x190);
       uint64_t hash_rdx = fnv1a_hash64(key);
-      if ((((this->field_0x30 & hash_rdx) << 4) + this->field_0x18)->field_0x8 != this->field_0x8) {
-        uint64_t v_rax_2 = (((this->field_0x30 & hash_rdx) << 4) + this->field_0x18)->field_0x8;
-        if (param_3 != ((((this->field_0x30 & hash_rdx) << 4) + this->field_0x18)->field_0x8)->field_0x10) {
-          void* i_eax = (((this->field_0x30 & hash_rdx) << 4) + this->field_0x18)->field_0x8;
+      auto expr_1 = ((this->field_0x30 & hash_rdx) << 4) + this->field_0x18;
+      if (expr_1->field_0x8 != this->field_0x8) {
+        uint64_t v_rax_2 = expr_1->field_0x8;
+        if (param_3 != (expr_1->field_0x8)->field_0x10) {
+          void* i_eax = expr_1->field_0x8;
           do { // L_0x2bdc610
-            if (i_eax == (((this->field_0x30 & hash_rdx) << 4) + this->field_0x18)->field_0x0) break;
+            if (i_eax == expr_1->field_0x0) break;
             i_eax = i_eax->field_0x8;
           } while (param_3 != i_eax->field_0x8->field_0x10); // loop -> L_0x2bdc610
           void* sel_rax_1 = v_rax_2 == 0 ? this->field_0x8 : v_rax_2;
           if (sel_rax_1 != this->field_0x8) {
-            void* v_r15_74 = 0.0;
+            void* v_r15_78 = 0.0;
             if (sel_rax_1->field_0x18 != sel_rax_1->field_0x20) {
               uint64_t i_r9d = 0;
               void* i_ecx = sel_rax_1->field_0x18;
@@ -1601,8 +1618,8 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
               void* i_r12d = local_0x120;
               void* i_r14d = param_4;
               L_0x2bdc670:
-              void* v_r15_70;
-              void* v_rax_68;
+              void* v_r15_74;
+              void* v_rax_72;
               do { // L_0x2bdc670
                 void* v_rdx_3 = i_r14d;
                 if (i_r14d->field_0x18 >= 16) {
@@ -1614,7 +1631,8 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
                     i_r9d = (i_r9d ^ i_ecx[v_rdx_3]) * r10;
                   } while (i_ecx < i_r14d->field_0x10); // loop -> L_0x2bdc690
                 }
-                auto ret_0x6fcb50_5 = call_0x6fcb50(i_ecx->field_0x0, &local_0xe0, i_r14d);
+                void* prev_0x0_1 = i_ecx->field_0x0;
+                auto ret_0x6fcb50_5 = call_0x6fcb50(prev_0x0_1, &local_0xe0, i_r14d);
                 void* v_r13_4 = ret_0x6fcb50_5->field_0x8;
                 void* stk_5;
                 if (ret_0x6fcb50_5->field_0x8 == 0) {
@@ -1623,204 +1641,217 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
                 } else {
                   stk_5 = ret_0x6fcb50_5->field_0x8;
                 }
-                void* v_r12_38 = i_r12d;
-                void* v_r15_39 = i_r15d;
-                float fstk_40;
-                float fstk_41;
-                int64_t stk_42;
-                void* v_r12_69;
+                void* v_r12_41 = i_r12d;
+                void* v_r15_42 = i_r15d;
+                float fstk_43;
+                float fstk_44;
+                int64_t stk_45;
+                void* v_r12_73;
                 int64_t local_0x130;
                 if (v_r13_4 != i_ecx->field_0x0->field_0x8) {
-                  uint64_t v_rsi_9 = v_r13_4->field_0x30;
-                  void* v_rdi_10 = i_edi;
-                  void* v_r13_11 = v_r13_4;
-                  void* v_r14_12 = v_r13_4->field_0x30;
+                  uint64_t v_rsi_10 = v_r13_4->field_0x30;
+                  void* v_rdi_11 = i_edi;
+                  void* v_r13_12 = v_r13_4;
+                  void* v_r14_13 = v_r13_4->field_0x30;
                   if (v_r13_4->field_0x30->field_0x8->field_0x19 == 0) {
                     void* v_rcx_6 = &v_r13_4->field_0x30->field_0x8->field_0x20;
                     if (v_r13_4->field_0x30->field_0x8->field_0x38 >= 16) {
                     v_rcx_6 = v_r13_4->field_0x30->field_0x8->field_0x20;
                     }
+                    L_0x2bdc70e:
                     void* sel_r8_2 = min(v_r13_4->field_0x30->field_0x8->field_0x30, i_r12d);
+                    void* prev_0x8_2 = v_r13_4->field_0x30->field_0x8;
+                    void* prev_0x30_3 = v_r13_4->field_0x30;
+                    void* prev_0x30_4 = v_r13_4->field_0x30->field_0x8->field_0x30;
                     auto ret_0x5e06820_6 = memcmp(v_rcx_6, local_0x110, sel_r8_2);
                     uint64_t v_rax_7 = ret_0x5e06820_6;
                     if (ret_0x5e06820_6 == 0) {
-                    if (v_r13_4->field_0x30->field_0x8->field_0x30 < i_r12d) {
+                    if (prev_0x30_4 < i_r12d) {
                     v_rax_7 = -1;
                     } else {
-                    v_rax_7 = v_r13_4->field_0x30->field_0x8->field_0x30 > i_r12d;
+                    v_rax_7 = prev_0x30_4 > i_r12d;
                     }
                     }
-                    if (rbx->field_0x19 == 0) {
+                    void* v_rbx_8;
+                    if ((uint8_t)((uint32_t)v_rax_7 >> 31) != 0) {
+                    v_rbx_8 = v_r13_4->field_0x30->field_0x8->field_0x10;
+                    } else {
+                    v_rbx_8 = v_r13_4->field_0x30->field_0x8->field_0x0;
+                    }
+                    if (v_rbx_8->field_0x19 == 0) {
                     void* v_rcx_6 = &v_r13_4->field_0x30->field_0x8->field_0x20;
                     if (v_r13_4->field_0x30->field_0x8->field_0x38 >= 16) {
                     v_rcx_6 = v_r13_4->field_0x30->field_0x8->field_0x20;
                     }
-                    void* sel_r8_2 = min(v_r13_4->field_0x30->field_0x8->field_0x30, i_r12d);
-                    auto ret_0x5e06820_6 = memcmp(v_rcx_6, local_0x110, sel_r8_2);
-                    uint64_t v_rax_7 = ret_0x5e06820_6;
-                    if (ret_0x5e06820_6 == 0) {
-                    if (v_r13_4->field_0x30->field_0x8->field_0x30 < i_r12d) {
-                    v_rax_7 = -1;
-                    } else {
-                    v_rax_7 = v_r13_4->field_0x30->field_0x8->field_0x30 > i_r12d;
+                    goto L_0x2bdc70e;
                     }
-                    }
-                    }
-                    v_rsi_9 = (uint32_t)v_rax_7 >> 31 != 0 ? v_r13_4->field_0x30 : v_r13_4->field_0x30->field_0x8;
-                    v_rdi_10 = local_0x110;
-                    v_r13_11 = stk_5;
-                    v_r14_12 = stk_5->field_0x30;
+                    v_rsi_10 = (uint8_t)((uint32_t)v_rax_7 >> 31) != 0 ? prev_0x30_3 : prev_0x8_2;
+                    v_rdi_11 = local_0x110;
+                    v_r13_12 = stk_5;
+                    v_r14_13 = stk_5->field_0x30;
                   }
-                  void* v_rsi_16 = v_rsi_9;
-                  if (v_rsi_9->field_0x19 == 0) {
-                    void* sel_rcx_3 = local_0x128 >= 16 ? v_rdi_10 : local_0x110;
-                    void* sel_r8_4 = min(i_r12d, (v_rsi_9 + 0x20)->field_0x10);
-                    auto ret_0x5e06820_7 = memcmp(sel_rcx_3, v_rsi_9 + 0x20, sel_r8_4);
-                    uint64_t v_rax_13 = ret_0x5e06820_7;
+                  void* v_rsi_17 = v_rsi_10;
+                  if (v_rsi_10->field_0x19 == 0) {
+                    void* sel_rcx_3 = local_0x128 >= 16 ? v_rdi_11 : local_0x110;
+                    void* sel_r8_4 = min(i_r12d, (v_rsi_10 + 0x20)->field_0x10);
+                    void* prev_0x10_5 = (v_rsi_10 + 0x20)->field_0x10;
+                    auto ret_0x5e06820_7 = memcmp(sel_rcx_3, v_rsi_10 + 0x20, sel_r8_4);
+                    uint64_t v_rax_14 = ret_0x5e06820_7;
                     if (ret_0x5e06820_7 == 0) {
-                    if (i_r12d < (v_rsi_9 + 0x20)->field_0x10) {
-                    v_rax_13 = -1;
+                    if (i_r12d < prev_0x10_5) {
+                    v_rax_14 = -1;
                     } else {
-                    v_rax_13 = i_r12d > (v_rsi_9 + 0x20)->field_0x10;
+                    v_rax_14 = i_r12d > prev_0x10_5;
                     }
                     }
-                    if ((uint32_t)v_rax_13 >> 31 != 0) {
-                    v_rsi_16 = v_r14_12;
+                    if ((uint8_t)((uint32_t)v_rax_14 >> 31) != 0) {
+                    v_rsi_17 = v_r14_13;
                     }
                   } else {
-                    v_rsi_16 = v_r14_12;
+                    v_rsi_17 = v_r14_13;
                   }
-                  void* v_r12_28 = i_r12d;
-                  void* v_r15_29 = i_r15d;
-                  float fstk_30;
-                  float fstk_31;
-                  int64_t stk_32;
+                  void* v_r12_30 = i_r12d;
+                  void* v_r15_31 = i_r15d;
+                  float fstk_32;
+                  float fstk_33;
+                  int64_t stk_34;
                   void* i_ebx;
-                  if (v_rsi_16 != v_r13_11->field_0x30 && v_rsi_16->field_0x40 != v_rsi_16->field_0x48) {
-                    i_ebx = &v_rsi_16->field_0x40->field_0x28;
-                    int64_t stk_26;
-                    void* fstk_25;
-                    void* fstk_24;
-                    void* v_r15_23;
+                  if (v_rsi_17 != v_r13_12->field_0x30 && v_rsi_17->field_0x40 != v_rsi_17->field_0x48) {
+                    i_ebx = &v_rsi_17->field_0x40->field_0x28;
+                    int64_t stk_28;
+                    void* fstk_27;
+                    void* v_r15_25;
+                    void* v_rsi_24;
+                    void* fstk_26;
                     do { // L_0x2bdc7d0
-                    void* v_rax_22 = i_eax;
-                    v_r15_23 = i_r15d;
+                    void* v_rax_23 = i_eax;
+                    v_rsi_24 = v_rsi_17->field_0x48;
+                    v_r15_25 = i_r15d;
                     if (i_ebx->field_m0x18 == 0) {
                     if (1) {
-                    void* v_r15_21 = i_r15d;
+                    void* v_r15_22 = i_r15d;
                     if (i_ebx->field_0x0 != 0) {
                     i_ebx->field_0x0->field_0x8++;
-                    v_r15_21 = 0.0;
+                    v_r15_22 = 0.0;
                     }
-                    if (v_r15_21 != 0) {
-                    v_rax_22 = call_0x6daf40(v_r15_21);
-                    v_r15_23 = i_ebx->field_0x0;
-                    fstk_24 = i_ebx->field_m0x8;
-                    fstk_25 = i_ebx->field_0x0;
-                    stk_26 = 6;
+                    if (v_r15_22 != 0) {
+                    void* prev_0x48_7 = v_rsi_17->field_0x48;
+                    void* prev_0x0_8 = i_ebx->field_0x0;
+                    v_rax_23 = call_0x6daf40(v_r15_22);
+                    v_rsi_24 = prev_0x48_7;
+                    v_r15_25 = prev_0x0_8;
+                    fstk_26 = i_ebx->field_m0x8;
+                    fstk_27 = i_ebx->field_0x0;
+                    stk_28 = 6;
                     } else {
-                    v_rax_22 = i_ebx->field_m0x8;
-                    v_r15_23 = i_ebx->field_0x0;
-                    fstk_24 = i_ebx->field_m0x8;
-                    fstk_25 = i_ebx->field_0x0;
-                    stk_26 = 6;
+                    v_rax_23 = i_ebx->field_m0x8;
+                    v_r15_25 = i_ebx->field_0x0;
+                    fstk_26 = i_ebx->field_m0x8;
+                    fstk_27 = i_ebx->field_0x0;
+                    stk_28 = 6;
                     }
                     } else {
-                    fstk_24 = 0.0;
-                    fstk_25 = 0.0;
-                    stk_26 = -1;
+                    fstk_26 = 0.0;
+                    fstk_27 = 0.0;
+                    stk_28 = -1;
                     }
                     i_edi += 0x30;
                     i_ebx += 0x30;
-                    i_eax = v_rax_22;
-                    i_r15d = v_r15_23;
+                    i_eax = v_rax_23;
+                    i_r15d = v_r15_25;
                     } else {
                     auto ret_0x2be1e40_8 = call_0x2be1e40(&local_0xd0, &local_0xc0);
-                    if (ret_0x2be1e40_8 != 0) break;
+                    if ((uint8_t)ret_0x2be1e40_8 != 0) break;
                     i_edi += 0x30;
                     i_ebx += 0x30;
-                    i_eax = v_rax_22;
-                    i_r15d = v_r15_23;
+                    i_eax = v_rax_23;
+                    i_r15d = v_r15_25;
                     }
-                    } while (i_edi != v_rsi_16->field_0x48); // loop -> L_0x2bdc7d0
-                    v_r12_28 = local_0x120;
-                    v_r15_29 = v_r15_23;
-                    fstk_30 = fstk_24;
-                    fstk_31 = fstk_25;
-                    stk_32 = stk_26;
+                    } while (i_edi != v_rsi_24); // loop -> L_0x2bdc7d0
+                    v_r12_30 = local_0x120;
+                    v_r15_31 = v_r15_25;
+                    fstk_32 = fstk_26;
+                    fstk_33 = fstk_27;
+                    stk_34 = stk_28;
                   }
-                  fstk_30 = 0.0;
-                  fstk_31 = 0.0;
-                  stk_32 = -1;
-                  uint64_t v_rsi_36 = v_r13_11->field_0x30;
-                  void* v_r12_37 = v_r12_28;
+                  fstk_32 = 0.0;
+                  fstk_33 = 0.0;
+                  stk_34 = -1;
+                  uint64_t v_rsi_38 = v_r13_12->field_0x30;
+                  void* v_r12_39 = v_r12_30;
+                  void* v_r14_40 = v_r13_12->field_0x30;
                   uint64_t i_esi;
-                  if (v_r13_11->field_0x30->field_0x8->field_0x19 == 0) {
-                    i_esi = v_r13_11->field_0x30;
-                    uint64_t v_rax_34;
+                  if (v_r13_12->field_0x30->field_0x8->field_0x19 == 0) {
+                    i_esi = v_r13_12->field_0x30;
+                    uint64_t v_rax_36;
+                    void* prev_0x30_9;
                     do { // L_0x2bdc8c0
-                    void* v_rcx_33 = i_ebx + 0x20;
+                    void* v_rcx_35 = i_ebx + 0x20;
                     if ((i_ebx + 0x20)->field_0x18 >= 16) {
-                    v_rcx_33 = (i_ebx + 0x20)->field_0x0;
+                    v_rcx_35 = (i_ebx + 0x20)->field_0x0;
                     }
                     void* sel_r8_5 = (i_ebx + 0x20)->field_0x10 != 0 ? 0 : (i_ebx + 0x20)->field_0x10;
+                    prev_0x30_9 = v_r13_12->field_0x30;
+                    void* prev_0x10_10 = (i_ebx + 0x20)->field_0x10;
                     auto local_0x200 = 0;
-                    auto ret_0x5e06820_19 = memcmp(v_rcx_33, &local_0x200, sel_r8_5);
-                    v_rax_34 = ret_0x5e06820_19;
+                    auto ret_0x5e06820_19 = memcmp(v_rcx_35, &local_0x200, sel_r8_5);
+                    v_rax_36 = ret_0x5e06820_19;
                     if (ret_0x5e06820_19 == 0) {
-                    v_rax_34 = (i_ebx + 0x20)->field_0x10 != 0;
+                    v_rax_36 = prev_0x10_10 != 0;
                     }
-                    i_ebx = (uint32_t)v_rax_34 >> 31 != 0 ? i_ebx->field_0x10 : i_ebx->field_0x0;
-                    i_esi = (uint32_t)v_rax_34 >> 31 != 0 ? i_esi : i_ebx;
-                    } while (((uint32_t)v_rax_34 >> 31 != 0 ? i_ebx->field_0x10 : i_ebx->field_0x0)->field_0x19 == 0); // loop -> L_0x2bdc8c0
-                    v_rsi_36 = (uint32_t)v_rax_34 >> 31 != 0 ? i_esi : i_ebx;
-                    v_r12_37 = local_0x120;
+                    i_ebx = (uint8_t)((uint32_t)v_rax_36 >> 31) != 0 ? i_ebx->field_0x10 : i_ebx->field_0x0;
+                    i_esi = (uint8_t)((uint32_t)v_rax_36 >> 31) != 0 ? i_esi : i_ebx;
+                    } while (rbx->field_0x19 == 0); // loop -> L_0x2bdc8c0
+                    v_rsi_38 = (uint8_t)((uint32_t)v_rax_36 >> 31) != 0 ? i_esi : i_ebx;
+                    v_r12_39 = local_0x120;
+                    v_r14_40 = prev_0x30_9;
                   }
-                  if (v_rsi_36->field_0x19 == 0 ? v_rsi_36 : v_r13_11->field_0x30 != v_r13_11->field_0x30) {
-                    void* v_r12_57 = v_r12_37;
-                    void* v_r15_58 = v_r15_29;
-                    void* stk_59;
-                    void* v_rax_62;
-                    void* v_r12_63;
-                    void* v_r15_64;
-                    if (stk_32 < 4) {
-                    void* v_r12_55 = v_r12_37;
-                    void* v_r15_56 = v_r15_29;
-                    if (rdx->field_0x28 != 0) {
-                    rdx->field_0x28->field_0x8++;
-                    v_r12_55 = local_0x120;
-                    v_r15_56 = fstk_31;
+                  if (v_rsi_38->field_0x19 == 0 ? v_rsi_38 : v_r14_40 != v_r14_40) {
+                    void* v_r12_61 = v_r12_39;
+                    void* v_r15_62 = v_r15_31;
+                    void* stk_63;
+                    void* v_rax_66;
+                    void* v_r12_67;
+                    void* v_r15_68;
+                    if (stk_34 < 4) {
+                    void* v_r12_59 = v_r12_39;
+                    void* v_r15_60 = v_r15_31;
+                    if (((v_rsi_38->field_0x19 == 0 ? v_rsi_38 : v_r14_40)->field_0x40)->field_0x28 != 0) {
+                    rax->field_0x8++;
+                    v_r12_59 = local_0x120;
+                    v_r15_60 = fstk_33;
                     }
-                    if (v_r15_56 != 0) {
-                    call_0x6daf40(v_r15_56);
-                    v_r12_57 = v_r12_55;
-                    v_r15_58 = rdx->field_0x28;
-                    stk_59 = rdx->field_0x20;
-                    v_rax_62 = stk_59;
-                    v_r12_63 = v_r12_57;
-                    v_r15_64 = v_r15_58;
+                    if (v_r15_60 != 0) {
+                    void* prev_0x28_14 = ((v_rsi_38->field_0x19 == 0 ? v_rsi_38 : v_r14_40)->field_0x40)->field_0x28;
+                    call_0x6daf40(v_r15_60);
+                    v_r12_61 = v_r12_59;
+                    v_r15_62 = prev_0x28_14;
+                    stk_63 = ((v_rsi_38->field_0x19 == 0 ? v_rsi_38 : v_r14_40)->field_0x40)->field_0x20;
+                    v_rax_66 = stk_63;
+                    v_r12_67 = v_r12_61;
+                    v_r15_68 = v_r15_62;
                     } else {
-                    v_rax_62 = rdx->field_0x20;
-                    v_r12_63 = v_r12_55;
-                    v_r15_64 = rdx->field_0x28;
+                    v_rax_66 = ((v_rsi_38->field_0x19 == 0 ? v_rsi_38 : v_r14_40)->field_0x40)->field_0x20;
+                    v_r12_67 = v_r12_59;
+                    v_r15_68 = ((v_rsi_38->field_0x19 == 0 ? v_rsi_38 : v_r14_40)->field_0x40)->field_0x28;
                     }
                     } else {
-                    stk_59 = fstk_30;
-                    v_rax_62 = stk_59;
-                    v_r12_63 = v_r12_57;
-                    v_r15_64 = v_r15_58;
+                    stk_63 = fstk_32;
+                    v_rax_66 = stk_63;
+                    v_r12_67 = v_r12_61;
+                    v_r15_68 = v_r15_62;
                     }
-                    v_rax_68 = v_rax_62;
-                    v_r12_69 = v_r12_63;
-                    v_r15_70 = v_r15_64;
+                    v_rax_72 = v_rax_66;
+                    v_r12_73 = v_r12_67;
+                    v_r15_74 = v_r15_68;
                   } else {
-                    v_r12_38 = v_r12_37;
-                    v_r15_39 = v_r15_29;
-                    fstk_40 = fstk_30;
-                    fstk_41 = fstk_31;
-                    stk_42 = stk_32;
+                    v_r12_41 = v_r12_39;
+                    v_r15_42 = v_r15_31;
+                    fstk_43 = fstk_32;
+                    fstk_44 = fstk_33;
+                    stk_45 = stk_34;
                     int64_t idx_6 = (sel_rax_1->field_0x18->field_0x0->field_0x30 & 0xcbf29ce484222325) * 2;
-                    void* v_rcx_43;
+                    void* v_rcx_46;
                     if (sel_rax_1->field_0x18->field_0x0->field_0x18->field_0x8[idx_6 * 8] != sel_rax_1->field_0x18->field_0x0->field_0x8) {
                     L_0x2bdca10:
                     while (i_ecx->field_0x20 != 0) {
@@ -1829,156 +1860,160 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
                     }
                     if (i_ecx == 0) {
                     L_0x2bdca26:
-                    v_rcx_43 = sel_rax_1->field_0x18->field_0x0->field_0x8;
+                    v_rcx_46 = sel_rax_1->field_0x18->field_0x0->field_0x8;
                     } else {
-                    v_rcx_43 = i_ecx;
+                    v_rcx_46 = i_ecx;
                     }
                     } else {
-                    v_rcx_43 = sel_rax_1->field_0x18->field_0x0->field_0x8;
+                    v_rcx_46 = sel_rax_1->field_0x18->field_0x0->field_0x8;
                     }
-                    void* v_r12_50 = v_r12_38;
-                    void* v_r15_51 = v_r15_39;
-                    void* stk_52;
-                    if (v_rcx_43 != sel_rax_1->field_0x18->field_0x0->field_0x8) {
-                    uint64_t v_rsi_46 = v_rcx_43->field_0x30;
-                    if (v_rcx_43->field_0x30->field_0x8->field_0x19 == 0) {
+                    void* v_r12_54 = v_r12_41;
+                    void* v_r15_55 = v_r15_42;
+                    void* stk_56;
+                    if (v_rcx_46 != sel_rax_1->field_0x18->field_0x0->field_0x8) {
+                    uint64_t v_rsi_49 = v_rcx_46->field_0x30;
+                    void* v_r14_50 = v_rcx_46->field_0x30;
+                    if (v_rcx_46->field_0x30->field_0x8->field_0x19 == 0) {
                     L_0x2bdca60:
-                    uint64_t v_rax_45;
                     do { // L_0x2bdca60
-                    void* v_rcx_44 = i_ebx + 0x20;
+                    void* v_rcx_47 = i_ebx + 0x20;
                     if ((i_ebx + 0x20)->field_0x18 >= 16) {
-                    v_rcx_44 = (i_ebx + 0x20)->field_0x0;
+                    v_rcx_47 = (i_ebx + 0x20)->field_0x0;
                     }
                     void* sel_r8_7 = (i_ebx + 0x20)->field_0x10 != 0 ? 0 : (i_ebx + 0x20)->field_0x10;
+                    void* prev_0x10_12 = (i_ebx + 0x20)->field_0x10;
                     local_0x130 = 0;
-                    auto ret_0x5e06820_20 = memcmp(v_rcx_44, &local_0x130, sel_r8_7);
-                    v_rax_45 = ret_0x5e06820_20;
+                    auto ret_0x5e06820_20 = memcmp(v_rcx_47, &local_0x130, sel_r8_7);
+                    uint64_t v_rax_48 = ret_0x5e06820_20;
                     if (ret_0x5e06820_20 == 0) {
-                    v_rax_45 = (i_ebx + 0x20)->field_0x10 != 0;
+                    v_rax_48 = prev_0x10_12 != 0;
                     }
-                    i_ebx = (uint32_t)v_rax_45 >> 31 != 0 ? i_ebx->field_0x10 : i_ebx->field_0x0;
-                    i_esi = (uint32_t)v_rax_45 >> 31 != 0 ? i_esi : i_ebx;
-                    } while (((uint32_t)v_rax_45 >> 31 != 0 ? i_ebx->field_0x10 : i_ebx->field_0x0)->field_0x19 == 0); // loop -> L_0x2bdca60
+                    i_ebx = (uint8_t)((uint32_t)v_rax_48 >> 31) != 0 ? i_ebx->field_0x10 : i_ebx->field_0x0;
+                    i_esi = (uint8_t)((uint32_t)v_rax_48 >> 31) != 0 ? i_esi : i_ebx;
+                    } while (rbx->field_0x19 == 0); // loop -> L_0x2bdca60
                     }
-                    void* v_rsi_47 = v_rsi_46;
-                    if (v_rsi_46->field_0x19 == 0) {
-                    auto ret_0x738950_21 = call_0x738950(&local_0x130, 0, v_rsi_46 + 0x20, (v_rsi_46 + 0x20)->field_0x10);
-                    if ((uint32_t)ret_0x738950_21 >> 31 != 0) {
+                    void* v_rsi_51 = v_rsi_49;
+                    if (v_rsi_49->field_0x19 == 0) {
+                    auto ret_0x738950_21 = call_0x738950(&local_0x130, 0, v_rsi_49 + 0x20, (v_rsi_49 + 0x20)->field_0x10);
+                    if ((uint8_t)((uint32_t)ret_0x738950_21 >> 31) != 0) {
                     L_0x2bdcad5:
-                    v_rsi_47 = v_rcx_43->field_0x30;
+                    v_rsi_51 = v_r14_50;
                     }
                     } else {
-                    v_rsi_47 = v_rcx_43->field_0x30;
+                    v_rsi_51 = v_r14_50;
                     }
-                    if (stk_42 < 0) {
-                    void* v_r12_48 = v_r12_38;
-                    void* v_r15_49 = v_r15_39;
-                    if (v_rsi_47->field_0x40->field_0x28 != 0) {
-                    v_rsi_47->field_0x40->field_0x28->field_0x8++;
-                    v_r12_48 = local_0x120;
-                    v_r15_49 = fstk_41;
+                    if (stk_45 < 0) {
+                    void* v_r12_52 = v_r12_41;
+                    void* v_r15_53 = v_r15_42;
+                    if (v_rsi_51->field_0x40->field_0x28 != 0) {
+                    v_rsi_51->field_0x40->field_0x28->field_0x8++;
+                    v_r12_52 = local_0x120;
+                    v_r15_53 = fstk_44;
                     }
-                    if (v_r15_49 != 0) {
-                    call_0x6daf40(v_r15_49);
-                    v_r12_50 = v_r12_48;
-                    v_r15_51 = v_rsi_47->field_0x40->field_0x28;
-                    stk_52 = v_rsi_47->field_0x40->field_0x20;
+                    if (v_r15_53 != 0) {
+                    void* prev_0x28_13 = v_rsi_51->field_0x40->field_0x28;
+                    call_0x6daf40(v_r15_53);
+                    v_r12_54 = v_r12_52;
+                    v_r15_55 = prev_0x28_13;
+                    stk_56 = v_rsi_51->field_0x40->field_0x20;
                     L_0x2bdcb21:
-                    v_rax_68 = stk_52;
-                    v_r12_69 = v_r12_50;
-                    v_r15_70 = v_r15_51;
+                    v_rax_72 = stk_56;
+                    v_r12_73 = v_r12_54;
+                    v_r15_74 = v_r15_55;
                     } else {
-                    v_rax_68 = v_rsi_47->field_0x40->field_0x20;
-                    v_r12_69 = v_r12_48;
-                    v_r15_70 = v_rsi_47->field_0x40->field_0x28;
+                    v_rax_72 = v_rsi_51->field_0x40->field_0x20;
+                    v_r12_73 = v_r12_52;
+                    v_r15_74 = v_rsi_51->field_0x40->field_0x28;
                     }
                     } else {
-                    stk_52 = fstk_40;
-                    v_rax_68 = stk_52;
-                    v_r12_69 = v_r12_50;
-                    v_r15_70 = v_r15_51;
+                    stk_56 = fstk_43;
+                    v_rax_72 = stk_56;
+                    v_r12_73 = v_r12_54;
+                    v_r15_74 = v_r15_55;
                     }
                     } else {
-                    stk_52 = fstk_40;
+                    stk_56 = fstk_43;
                     goto L_0x2bdcb21;
                     }
                   }
                   if (&sel_rax_1->field_0x18->field_0x10 == sel_rax_1->field_0x20) break;
-                  i_eax = v_rax_68;
+                  i_eax = v_rax_72;
                   i_r9d = 0xcbf29ce484222325;
                   i_ecx = &sel_rax_1->field_0x18->field_0x10;
-                  i_r15d = v_r15_70;
+                  i_r15d = v_r15_74;
                   i_edi = local_0x110;
-                  i_r12d = v_r12_69;
+                  i_r12d = v_r12_73;
                   i_r14d = param_4;
                 } else {
-                  fstk_40 = 0.0;
-                  fstk_41 = 0.0;
-                  stk_42 = -1;
+                  fstk_43 = 0.0;
+                  fstk_44 = 0.0;
+                  stk_45 = -1;
                   int64_t idx_6 = (sel_rax_1->field_0x18->field_0x0->field_0x30 & 0xcbf29ce484222325) * 2;
-                  void* v_rcx_43;
+                  void* v_rcx_46;
                   if (sel_rax_1->field_0x18->field_0x0->field_0x18->field_0x8[idx_6 * 8] != sel_rax_1->field_0x18->field_0x0->field_0x8) {
                     goto L_0x2bdca10;
                   } else {
                     goto L_0x2bdca26;
                   }
-                  void* v_r12_50 = v_r12_38;
-                  void* v_r15_51 = v_r15_39;
-                  void* stk_52;
-                  if (v_rcx_43 != sel_rax_1->field_0x18->field_0x0->field_0x8) {
-                    uint64_t v_rsi_46 = v_rcx_43->field_0x30;
-                    if (v_rcx_43->field_0x30->field_0x8->field_0x19 == 0) {
+                  void* v_r12_54 = v_r12_41;
+                  void* v_r15_55 = v_r15_42;
+                  void* stk_56;
+                  if (v_rcx_46 != sel_rax_1->field_0x18->field_0x0->field_0x8) {
+                    uint64_t v_rsi_49 = v_rcx_46->field_0x30;
+                    void* v_r14_50 = v_rcx_46->field_0x30;
+                    if (v_rcx_46->field_0x30->field_0x8->field_0x19 == 0) {
                     goto L_0x2bdca60;
                     }
-                    void* v_rsi_47 = v_rsi_46;
-                    if (v_rsi_46->field_0x19 == 0) {
-                    auto ret_0x738950_21 = call_0x738950(&local_0x130, 0, v_rsi_46 + 0x20, (v_rsi_46 + 0x20)->field_0x10);
-                    if ((uint32_t)ret_0x738950_21 >> 31 != 0) {
+                    void* v_rsi_51 = v_rsi_49;
+                    if (v_rsi_49->field_0x19 == 0) {
+                    auto ret_0x738950_21 = call_0x738950(&local_0x130, 0, v_rsi_49 + 0x20, (v_rsi_49 + 0x20)->field_0x10);
+                    if ((uint8_t)((uint32_t)ret_0x738950_21 >> 31) != 0) {
                     goto L_0x2bdcad5;
                     }
                     } else {
                     goto L_0x2bdcad5;
                     }
-                    if (stk_42 < 0) {
-                    void* v_r12_48 = v_r12_38;
-                    void* v_r15_49 = v_r15_39;
-                    if (v_rsi_47->field_0x40->field_0x28 != 0) {
-                    v_rsi_47->field_0x40->field_0x28->field_0x8++;
-                    v_r12_48 = local_0x120;
-                    v_r15_49 = fstk_41;
+                    if (stk_45 < 0) {
+                    void* v_r12_52 = v_r12_41;
+                    void* v_r15_53 = v_r15_42;
+                    if (v_rsi_51->field_0x40->field_0x28 != 0) {
+                    v_rsi_51->field_0x40->field_0x28->field_0x8++;
+                    v_r12_52 = local_0x120;
+                    v_r15_53 = fstk_44;
                     }
-                    if (v_r15_49 != 0) {
-                    call_0x6daf40(v_r15_49);
-                    v_r12_50 = v_r12_48;
-                    v_r15_51 = v_rsi_47->field_0x40->field_0x28;
-                    stk_52 = v_rsi_47->field_0x40->field_0x20;
+                    if (v_r15_53 != 0) {
+                    void* prev_0x28_13 = v_rsi_51->field_0x40->field_0x28;
+                    call_0x6daf40(v_r15_53);
+                    v_r12_54 = v_r12_52;
+                    v_r15_55 = prev_0x28_13;
+                    stk_56 = v_rsi_51->field_0x40->field_0x20;
                     goto L_0x2bdcb21;
                     } else {
-                    v_rax_68 = v_rsi_47->field_0x40->field_0x20;
-                    v_r12_69 = v_r12_48;
-                    v_r15_70 = v_rsi_47->field_0x40->field_0x28;
+                    v_rax_72 = v_rsi_51->field_0x40->field_0x20;
+                    v_r12_73 = v_r12_52;
+                    v_r15_74 = v_rsi_51->field_0x40->field_0x28;
                     }
                     } else {
-                    stk_52 = fstk_40;
+                    stk_56 = fstk_43;
                     goto L_0x2bdcb21;
                     }
                   } else {
-                    stk_52 = fstk_40;
+                    stk_56 = fstk_43;
                     goto L_0x2bdcb21;
                   }
                   if (&sel_rax_1->field_0x18->field_0x10 == sel_rax_1->field_0x20) break;
-                  i_eax = v_rax_68;
+                  i_eax = v_rax_72;
                   i_r9d = 0xcbf29ce484222325;
                   i_ecx = &sel_rax_1->field_0x18->field_0x10;
-                  i_r15d = v_r15_70;
+                  i_r15d = v_r15_74;
                   i_edi = local_0x110;
-                  i_r12d = v_r12_69;
+                  i_r12d = v_r12_73;
                   i_r14d = param_4;
                 }
               } while (true); // loop -> L_0x2bdc670
-              if (v_rax_68 != 0) {
-                param_2->field_0x0 = v_rax_68;
-                param_2->field_0x8 = v_r15_70;
+              if (v_rax_72 != 0) {
+                param_2->field_0x0 = v_rax_72;
+                param_2->field_0x8 = v_r15_74;
                 std::string::_Tidy_deallocate(local_0xf0);
                 std::string::_Tidy_deallocate(local_0x110);
                 call_0x6f8fb0(&local_0x1d0);
@@ -1988,40 +2023,39 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
                 call_0x6f8fb0(&local_0x150);
                 call_0xe3f0(&this->field_0x70, 1);
                 return;
-              } else {
-                v_r15_74 = v_r15_70;
               }
+              v_r15_78 = v_r15_74;
             }
-            if (v_r15_74 != 0) {
-              call_0x6daf40(v_r15_74);
+            if (v_r15_78 != 0) {
+              call_0x6daf40(v_r15_78);
             }
             L_0x2bdcd44:
             auto* f_40 = this->field_0x40;
-            void* v_rcx_81 = f_40;
+            void* v_rcx_85 = f_40;
             auto* f_40_8 = f_40->field_0x8;
             if (f_40_8->field_0x19 == 0) {
               L_0x2bdcd55:
-              void* v_rax_80;
+              void* v_rax_84;
               if (f_40_8->field_0x20 < param_3) {
-                v_rax_80 = f_40_8->field_0x10;
+                v_rax_84 = f_40_8->field_0x10;
               } else {
-                v_rax_80 = f_40_8->field_0x0;
+                v_rax_84 = f_40_8->field_0x0;
               }
-              if (v_rax_80->field_0x19 == 0) {
-                void* v_rax_80;
+              if (v_rax_84->field_0x19 == 0) {
+                void* v_rax_84;
                 if (f_40_8->field_0x20 < param_3) {
-                  v_rax_80 = f_40_8->field_0x10;
+                  v_rax_84 = f_40_8->field_0x10;
                 } else {
-                  v_rax_80 = f_40_8->field_0x0;
+                  v_rax_84 = f_40_8->field_0x0;
                 }
               }
             }
-            if (v_rcx_81->field_0x19 == 0 && param_3 >= v_rcx_81->field_0x20 && v_rcx_81 != f_40) {
-              if (v_rcx_81->field_0x30 != 0) {
-                v_rcx_81->field_0x30->field_0x8++;
+            if (v_rcx_85->field_0x19 == 0 && param_3 >= v_rcx_85->field_0x20 && v_rcx_85 != f_40) {
+              if (v_rcx_85->field_0x30 != 0) {
+                v_rcx_85->field_0x30->field_0x8++;
               }
-              param_2->field_0x0 = v_rcx_81->field_0x28;
-              param_2->field_0x8 = v_rcx_81->field_0x30;
+              param_2->field_0x0 = v_rcx_85->field_0x28;
+              param_2->field_0x8 = v_rcx_85->field_0x30;
               std::string::_Tidy_deallocate(local_0xf0);
               std::string::_Tidy_deallocate(local_0x110);
               L_0x2bdce39:
@@ -2032,24 +2066,23 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
               call_0x6f8fb0(&local_0x150);
               call_0xe3f0(&this->field_0x70, 1);
               return;
-            } else {
-              param_2->field_0x0 = 0.0;
-              std::string::_Tidy_deallocate(local_0xf0);
-              std::string::_Tidy_deallocate(local_0x110);
-              L_0x2bdcf09:
-              call_0x6f8fb0(&local_0x1d0);
-              call_0x6f8fb0(&local_0x1b0);
-              call_0x6f8fb0(&local_0x190);
-              call_0x6f8fb0(&local_0x170);
-              call_0x6f8fb0(&local_0x150);
-              call_0xe3f0(&this->field_0x70, 1);
-              return;
             }
+            param_2->field_0x0 = 0.0;
+            std::string::_Tidy_deallocate(local_0xf0);
+            std::string::_Tidy_deallocate(local_0x110);
+            L_0x2bdcf09:
+            call_0x6f8fb0(&local_0x1d0);
+            call_0x6f8fb0(&local_0x1b0);
+            call_0x6f8fb0(&local_0x190);
+            call_0x6f8fb0(&local_0x170);
+            call_0x6f8fb0(&local_0x150);
+            call_0xe3f0(&this->field_0x70, 1);
+            return;
           }
         } else {
           void* sel_rax_1 = v_rax_2 == 0 ? this->field_0x8 : v_rax_2;
           if (sel_rax_1 != this->field_0x8) {
-            void* v_r15_74 = 0.0;
+            void* v_r15_78 = 0.0;
             if (sel_rax_1->field_0x18 != sel_rax_1->field_0x20) {
               uint64_t i_r9d = 0;
               void* i_ecx = sel_rax_1->field_0x18;
@@ -2059,20 +2092,20 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
               void* i_r14d = param_4;
               goto L_0x2bdc670;
             }
-            if (v_r15_74 != 0) {
-              call_0x6daf40(v_r15_74);
+            if (v_r15_78 != 0) {
+              call_0x6daf40(v_r15_78);
             }
             auto* f_40_2 = this->field_0x40;
-            void* v_rcx_81 = f_40_2;
+            void* v_rcx_85 = f_40_2;
             if (f_40_2->field_0x8->field_0x19 == 0) {
               goto L_0x2bdcd55;
             }
-            if (v_rcx_81->field_0x19 == 0 && param_3 >= v_rcx_81->field_0x20 && v_rcx_81 != f_40_2) {
-              if (v_rcx_81->field_0x30 != 0) {
-                v_rcx_81->field_0x30->field_0x8++;
+            if (v_rcx_85->field_0x19 == 0 && param_3 >= v_rcx_85->field_0x20 && v_rcx_85 != f_40_2) {
+              if (v_rcx_85->field_0x30 != 0) {
+                v_rcx_85->field_0x30->field_0x8++;
               }
-              param_2->field_0x0 = v_rcx_81->field_0x28;
-              param_2->field_0x8 = v_rcx_81->field_0x30;
+              param_2->field_0x0 = v_rcx_85->field_0x28;
+              param_2->field_0x8 = v_rcx_85->field_0x30;
               std::string::_Tidy_deallocate(local_0xf0);
               std::string::_Tidy_deallocate(local_0x110);
               goto L_0x2bdce39;
@@ -2898,7 +2931,7 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
       auto local_0x2f0 = 0;
       call_0x6f7000(&local_0x2f0, local_0x3d0.c_str(), local_0x3e0);
       call_0x746c10(param_3 + 0x40, &local_0x1a0);
-      call_0x2bb3c10(&local_0x100, &local_0x1c0, &local_0x1b0);
+      call_0x2bb3c10(&local_0x100, &local_0x1c0, std::string_view("X-Retry-After-Coverage", 22));
       int64_t local_0x350;
       if (local_0x100 != 0) {
         local_0x350 = 0;
@@ -2911,7 +2944,7 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
       float fstk_62;
       if (local_0x360 == 0) {
         call_0x746c10(param_3 + 0x40, &local_0x1d0);
-        call_0x2bb3c10(&local_0x200, &local_0x1f0, &local_0x1e0);
+        call_0x2bb3c10(&local_0x200, &local_0x1f0, std::string_view("x-roblox-gen-retry-after-coverage", 33));
         float fstk_48;
         float fstk_49;
         float fstk_50;
@@ -2924,7 +2957,7 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
           if (local_0x200->field_0x0 == 45) {
             auto local_0xc0 = std::min<uint64_t>(1, local_0x208) + local_0x200;
             auto ret_0x496b550_10 = call_0x496b550(&local_0xc0, 10, &local_0x60);
-            if (ret_0x496b550_10 != 0 && -local_0x60 <= 0) {
+            if ((uint8_t)ret_0x496b550_10 != 0 && -local_0x60 <= 0) {
               v_r9_9 = -local_0x60;
               fstk_12 = local_0xc8;
               if (fstk_12 == 0 && v_r9_9 == v_r9_9 && v_r9_9 == 1) {
@@ -2989,7 +3022,7 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
               v_rbx_3 = i_ebx;
               v_r9_4 = i_r9d;
               v_r10_5 = i_r10d;
-              if (i_r11d->field_0x0 >= 48 && i_r11d->field_0x0 <= 57) {
+              if ((uint8_t)i_r11d->field_0x0 >= 48 && (uint8_t)i_r11d->field_0x0 <= 57) {
                 v_rax_2 = i_r11d->field_0x0 - 0x30;
                 L_0x2be0ef9:
                 if (v_rax_2 >= 10) break;
@@ -3001,7 +3034,7 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
                 i_ebx = v_rax_2 + (i_ebx + i_ebx * 4) * 2;
                 i_r9d = v_rax_2 + (i_ebx + i_ebx * 4) * 2;
               } else {
-                if (i_r11d->field_0x0 >= 97 && i_r11d->field_0x0 <= 122) {
+                if ((uint8_t)i_r11d->field_0x0 >= 97 && (uint8_t)i_r11d->field_0x0 <= 122) {
                   v_rax_2 = i_r11d->field_0x0 - 0x57;
                   if (v_rax_2 >= 10) break;
                   if ((uint64_t)i_edx >> 3 < i_ebx) break;
@@ -3012,8 +3045,8 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
                   i_ebx = v_rax_2 + (i_ebx + i_ebx * 4) * 2;
                   i_r9d = v_rax_2 + (i_ebx + i_ebx * 4) * 2;
                 } else {
-                  if (i_r11d->field_0x0 < 65) break;
-                  if (i_r11d->field_0x0 > 90) break;
+                  if ((uint8_t)i_r11d->field_0x0 < 65) break;
+                  if ((uint8_t)i_r11d->field_0x0 > 90) break;
                   v_rax_2 = i_r11d->field_0x0 - 0x37;
                   goto L_0x2be0ef9;
                 }
@@ -3108,7 +3141,7 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
         fstk_62 = local_0x350;
       }
       call_0x746c10(param_3 + 0x40, &local_0x220);
-      call_0x2bb3c10(&local_0x140, &local_0x240, &local_0x230);
+      call_0x2bb3c10(&local_0x140, &local_0x240, std::string_view("Retry-After", 11));
       int64_t local_0x68;
       if (local_0x148 != 0) {
         int64_t local_0x330;
@@ -3137,21 +3170,23 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
             double ftmp_2 = ftmp_1 * min(ret_0x5e26be0_19, (double)HttpMaxRetryAfterSec);
             if (ftmp_2 > 0.0) {
               auto ret_0x6f5f60_27 = call_0x6f5f60(&local_0xb8);
+              void* prev_0x18_1 = ret_0x6f5f60_27->field_0x0->field_0x18;
+              void* prev_0x0_2 = ret_0x6f5f60_27->field_0x0;
               call_0x2e12fd0(rbx + 0xb8);
-              if (rbx->field_0xc8 != 0) {
-                rbx->field_0xc8->field_0x8++;
+              if ((ret_0x6f5f60_27->field_0x0 != 0 ? prev_0x18_1 : 0)->field_0xc8 != 0) {
+                ((ret_0x6f5f60_27->field_0x0 != 0 ? prev_0x18_1 : 0)->field_0xc8)->field_0x8++;
               }
-              if (rbx->field_0xb8 != 3 || atomic_cas(&rbx->field_0xb8, rbx->field_0xb8, 1) != 0) {
-                call_0xdac0(rbx + 0xb8);
+              if ((ret_0x6f5f60_27->field_0x0 != 0 ? prev_0x18_1 : 0)->field_0xb8 != 3 || atomic_cas(&(ret_0x6f5f60_27->field_0x0 != 0 ? prev_0x18_1 : 0)->field_0xb8, (ret_0x6f5f60_27->field_0x0 != 0 ? prev_0x18_1 : 0)->field_0xb8, 1) != 0) {
+                call_0xdac0(ret_0x6f5f60_27->field_0x0 != 0 ? prev_0x18_1 : 184);
               }
-              if (ret_0x6f5f60_27->field_0x0 != 0) {
-                ret_0x6f5f60_27->field_0x0->vfunc_0x10(ret_0x6f5f60_27->field_0x0);
+              if (prev_0x0_2 != 0) {
+                ret_0x6f5f60_27->field_0x0->vfunc_0x10(prev_0x0_2);
               }
-              if (rbx->field_0xc0 != 0) {
-                rbx->field_0xc0->vfunc_0x40(rbx->field_0xc0, &local_0x280, &local_0x270, &local_0x260);
+              if ((ret_0x6f5f60_27->field_0x0 != 0 ? prev_0x18_1 : 0)->field_0xc0 != 0) {
+                rax->vfunc_0x40((ret_0x6f5f60_27->field_0x0 != 0 ? prev_0x18_1 : 0)->field_0xc0, &local_0x280, &local_0x270, &local_0x260);
               }
-              if (rbx->field_0xc8 != 0) {
-                call_0x6daf40(rbx->field_0xc8);
+              if ((ret_0x6f5f60_27->field_0x0 != 0 ? prev_0x18_1 : 0)->field_0xc8 != 0) {
+                call_0x6daf40((ret_0x6f5f60_27->field_0x0 != 0 ? prev_0x18_1 : 0)->field_0xc8);
               }
               call_0x2e12fd0(this);
               auto ret_0x2be32c0_34 = call_0x2be32c0(&this->field_0x8, &local_0x2b0, &local_0x310);
@@ -3163,7 +3198,7 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
               ret_0x2be3030_35->field_0x0->field_0x3c = v_r12_58->field_0x18;
               ret_0x2be3030_35->field_0x0->field_0x40 = ftmp_2 + param_4;
               ret_0x2be3030_35->field_0x0->field_0x88 = local_0x70;
-              if (HttpTraceLight >= 6 && (uint64_t)HttpTraceLight >> 8 >= 3) {
+              if ((uint8_t)HttpTraceLight >= 6 && (uint8_t)((uint64_t)HttpTraceLight >> 8) >= 3) {
                 FLog::Log("[DFLog::HttpTraceLight] Fixed backoff processing: Endpoint: %s, Retry Time from header: %f, Ret");
               }
               if (this->field_0x0 != 3 || atomic_cas(&this->field_0x0, this->field_0x0, 1) != 0) {
@@ -4026,20 +4061,36 @@ Operação  : 0x2bdd3a7: mov/math reg, [flag] ; fn=0x2bdd000..0x2bdda5d
     0x2be1b18 | 90                       | nop
     L_0x2be1b19:
     0x2be1b19 | e8 62 2a 23 03           | call 0x5e14580
+  
+  === [Estrutura RTTI & VTable da Classe (RBX::HttpResponse)] ===
+    VTable  : 0x7056e68 (offset +0x0, 1 slots virtuais)
+    +0x0 -> fn_0x2baee80
+  
+  === [Decompilacao de Metodo da Classe RBX::HttpResponse: 0x2baee80..0x2baeeb0 (vfunc_0x0)] ===
+    auto RBX::HttpResponse::func_0x2baee80(RBX::HttpResponse* this, int64_t param_2) {
+      call_0x2babe70(this);
+      if (((uint8_t)param_2 & 0x1) != 0) {
+        call_0x4955ac0(this);
+      }
+      return this;
+    }
 
 [Strings .rdata na função]
-  * x-upstream-retry
-  * True
-  * exponential
-  * [DFLog::HttpTrace] HttpRequest(#%u %p) retry policy applied on errorCode: %d
-  * Retry-After
-  * X-Retry-Attempt
-  * [DFLog::HttpTraceLight] HttpRequest(#%u %p) queued for retry on errorCode: %d, will be retried a
-  * DirectHeader
-  * X-Retry-After-Coverage
-  * x-roblox-gen-retry-after-coverage
-  * LocalGen
-  * FixedBackoff
+  * "x-upstream-retry"  [@rdata 0x7347e90, ref @0x2bdd0af, string_view len=16]
+  * "True"  [@rdata 0x7200e1c, ref @0x2bdd112, key/identifier]
+  * "exponential"  [@rdata 0x7347f90, ref @0x2bdd1f1, string_view len=11]
+  * "[DFLog::HttpTrace] HttpRequest(#%u %p) retry policy applied on errorCode: %d"  [@rdata 0x7347e40, ref @0x2bdd27f, FLog format]
+  * "Retry-After"  [@rdata 0x7347e30, ref @0x2bdd2f9, string_view len=11]
+  * "X-Retry-Attempt"  [@rdata 0x6815550, ref @0x2bdd644, key/identifier]
+  * "[DFLog::HttpTraceLight] HttpRequest(#%u %p) queued for retry on errorCode: %d, will be retried a"  [@rdata 0x7347dc0, ref @0x2bdd7f8, FLog format]
+  * "DirectHeader"  [@rdata 0x7348460, ref @0x2be0c00, string_view len=12]
+  * "X-Retry-After-Coverage"  [@rdata 0x7348448, ref @0x2be0c73, string_view len=22]
+  * "x-roblox-gen-retry-after-coverage"  [@rdata 0x7348420, ref @0x2be0d81, string_view len=33]
+  * "LocalGen"  [@rdata 0x7348410, ref @0x2be10f8, string_view len=8]
+  * "FixedBackoff"  [@rdata 0x7348400, ref @0x2be14d3, string_view len=12]
+  * "[DFLog::HttpTraceLight] Fixed backoff processing: Endpoint: %s,  Retry Time from header: %f, Ret"  [@rdata 0x7348390, ref @0x2be16e9, FLog format]
+  * "invalid stod argument"  [@rdata 0x72fdcd8, ref @0x2be1aee, literal, 21B]
+  * "\r\n"  [@rdata 0x725e25c, ref @0x2bb3c58, literal, 4B]
 
 [Co-Flags na mesma função]
   * DFFlagHttpRetryOnExplicitHeader = false (default)

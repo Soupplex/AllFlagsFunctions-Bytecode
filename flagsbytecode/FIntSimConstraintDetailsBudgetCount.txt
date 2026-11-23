@@ -8,9 +8,10 @@ Operação  : 0x9a835b: mov/math reg, [flag] ; fn=0x9a81a0..0x9a8a5b
   === [Resumo do Efeito da FFlag no Engine (RBX::SimConstraint)] ===
     Classe  : RBX::SimConstraint (Inferido)
     Padrão  : FIntSimConstraintDetailsBudgetCount = 250 (default) [int, mode=1]
-    Papel   : Parâmetro de configuração lido diretamente pela rotina
-    Fórmula : call_0x9ac830(this->field_0x128, (min((this->field_0x130 - this->field_0x128) >> 4, SimConstraintDetailsBudgetCount) << 4) + this->field_0x128, this->field_0x130)
-    Fórmula : min(expr_1, SimConstraintDetailsBudgetCount)
+    Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
+    Fórmula : this->field_0x130 - this->field_0x128 >> 4, SimConstraintDetailsBudgetCount
+    Fórmula : std::min<uint64_t>expr_2 >> 4, SimConstraintDetailsBudgetCount < this->field_0x130 - this->field_0x128 >> 4
+    Fórmula : std::min<uint64_t>expr_2 >> 4, SimConstraintDetailsBudgetCount != 0
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x9a9b78 (in fn_0x9a90b0): call 0x9a81a0  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
@@ -44,10 +45,10 @@ Operação  : 0x9a835b: mov/math reg, [flag] ; fn=0x9a81a0..0x9a8a5b
           call_0x14f0(&sym_0x8cfc990);
         }
       }
-      auto expr_1 = (this->field_0x130 - this->field_0x128) >> 4;
-      call_0x2925220(global_0x8cfc998, "Gizmo Count: %d", expr_1);
-      uint64_t sel_r15_1 = min(expr_1, SimConstraintDetailsBudgetCount);
-      if (sel_r15_1 < expr_1) {
+      auto expr_2 = this->field_0x130 - this->field_0x128;
+      call_0x2925220(global_0x8cfc998, "Gizmo Count: %d", expr_2 >> 4);
+      auto expr_1 = expr_2 >> 4, SimConstraintDetailsBudgetCount;
+      if (std::min<uint64_t>expr_1 < expr_2 >> 4) {
         if (global_0x8cfc9a0 > rbp->field_0x58->field_0x0->field_0x0[40]) {
           call_0x12e0(&sym_0x8cfc9a0);
           if (global_0x8cfc9a0 == -1) {
@@ -60,7 +61,7 @@ Operação  : 0x9a835b: mov/math reg, [flag] ; fn=0x9a81a0..0x9a8a5b
           }
         }
         call_0x2924c40(&local_0x30, global_0x8cfc9a8, -1, 0);
-        call_0x9ac830(this->field_0x128, (sel_r15_1 << 4) + this->field_0x128, this->field_0x130);
+        call_0x9ac830(this->field_0x128, (std::min<uint64_t>expr_1 << 4) + this->field_0x128, this->field_0x130);
         if (global_0x75b2c80 != -1) {
           if (0) {
             call_0x29a42e0(33, ((0) + 2) << 48, 0, 0);
@@ -97,23 +98,26 @@ Operação  : 0x9a835b: mov/math reg, [flag] ; fn=0x9a81a0..0x9a8a5b
             auto ret_0x29a1bc0_17 = call_0x29a1bc0();
             if (ret_0x29a1bc0_17->field_0x0 != 0) {
               uint64_t tsc_0x9a862d = rdtsc();
-              void* v_rcx_10;
+              void* v_rcx_11;
               if ((global_0x816d648->field_0xb8 & (uint64_t)local_0x40 >> 14) != 0) {
                 if (ret_0x29a1bc0_17->field_0x0->field_0x565 != 0) {
                   void* v_rax_9;
+                  void* v_rbx_10 = ret_0x29a1bc0_17->field_0x0;
                   if (global_0x816d648->field_0x26d5a0 == 0) {
                     v_rax_9 = -1;
                   } else {
+                    void* prev_0x0_1 = ret_0x29a1bc0_17->field_0x0;
                     auto vret_18 = global_0x816d648->vfunc_0x26d5a0(ret_0x29a1bc0_17->field_0x0->field_0x30);
                     v_rax_9 = vret_18;
+                    v_rbx_10 = prev_0x0_1;
                   }
                   call_0x29a3900(local_0x40, v_rax_9, 0, global_0x8479b18);
-                  v_rcx_10 = ret_0x29a1bc0_17->field_0x0->field_0x44;
-                  call_0x29a3900(v_rcx_10, tsc_0x9a862d - global_0x8cda630, 4, global_0x8479b18);
+                  v_rcx_11 = v_rbx_10->field_0x44;
+                  call_0x29a3900(v_rcx_11, tsc_0x9a862d - global_0x8cda630, 4, global_0x8479b18);
                 }
               } else {
-                v_rcx_10 = local_0x40;
-                call_0x29a3900(v_rcx_10, tsc_0x9a862d - global_0x8cda630, 4, global_0x8479b18);
+                v_rcx_11 = local_0x40;
+                call_0x29a3900(v_rcx_11, tsc_0x9a862d - global_0x8cda630, 4, global_0x8479b18);
               }
             }
           }
@@ -124,33 +128,29 @@ Operação  : 0x9a835b: mov/math reg, [flag] ; fn=0x9a81a0..0x9a8a5b
         auto ret_0x29243d0_22 = call_0x29243d0();
         ret_0x29243d0_22->field_0x0 = local_0x38;
       }
-      if (sel_r15_1 != 0) {
+      if (std::min<uint64_t>expr_1 != 0) {
         int32_t i_r14d = 0;
-        void* i_r15d = sel_r15_1;
+        uint64_t i_r15d = std::min<uint64_t>expr_1;
         do { // L_0x9a8701
           auto ret_0xe038b0_23 = call_0xe038b0();
-          auto* f_128 = this->field_0x128;
-          void* sel_rdx_2 = f_128->field_0x0[i_r14d]->field_0x18->field_0x1c0 - ret_0xe038b0_23->field_0x1c0 <= ret_0xe038b0_23->field_0x1c2 ? f_128->field_0x0[i_r14d] : 0;
-          if (sel_rdx_2 != 0) {
-            call_0x9a7f90(this, sel_rdx_2);
+          void* sel_rdx_1 = this->field_0x128->field_0x0[i_r14d]->field_0x18->field_0x1c0 - ret_0xe038b0_23->field_0x1c0 <= ret_0xe038b0_23->field_0x1c2 ? prev_0x0[i_r14d]_3 : 0;
+          if (sel_rdx_1 != 0) {
+            call_0x9a7f90(this, sel_rdx_1);
           } else {
-            auto ret_0xde8970_24 = call_0xde8970(ret_0xe038b0_23->field_0x1c0, sel_rdx_2);
-            auto* f_128_2 = this->field_0x128;
-            void* sel_rdx_3 = f_128_2->field_0x0[i_r14d]->field_0x18->field_0x1c0 - ret_0xde8970_24->field_0x1c0 <= ret_0xde8970_24->field_0x1c2 ? f_128_2->field_0x0[i_r14d] : 0;
-            if (sel_rdx_3 != 0) {
-              call_0x9a8bd0(this, sel_rdx_3);
+            auto ret_0xde8970_24 = call_0xde8970(ret_0xe038b0_23->field_0x1c0, sel_rdx_1);
+            void* sel_rdx_2 = this->field_0x128->field_0x0[i_r14d]->field_0x18->field_0x1c0 - ret_0xde8970_24->field_0x1c0 <= ret_0xde8970_24->field_0x1c2 ? prev_0x0[i_r14d]_3 : 0;
+            if (sel_rdx_2 != 0) {
+              call_0x9a8bd0(this, sel_rdx_2);
             } else {
-              auto ret_0xd9e9a0_25 = call_0xd9e9a0(ret_0xde8970_24->field_0x1c0, sel_rdx_3);
-              auto* f_128_3 = this->field_0x128;
-              void* sel_rdx_4 = f_128_3->field_0x0[i_r14d]->field_0x18->field_0x1c0 - ret_0xd9e9a0_25->field_0x1c0 <= ret_0xd9e9a0_25->field_0x1c2 ? f_128_3->field_0x0[i_r14d] : 0;
-              if (sel_rdx_4 != 0) {
-                call_0x9a8e80(this, sel_rdx_4);
+              auto ret_0xd9e9a0_25 = call_0xd9e9a0(ret_0xde8970_24->field_0x1c0, sel_rdx_2);
+              void* sel_rdx_3 = this->field_0x128->field_0x0[i_r14d]->field_0x18->field_0x1c0 - ret_0xd9e9a0_25->field_0x1c0 <= ret_0xd9e9a0_25->field_0x1c2 ? prev_0x0[i_r14d]_3 : 0;
+              if (sel_rdx_3 != 0) {
+                call_0x9a8e80(this, sel_rdx_3);
               } else {
-                auto ret_0xdc8a90_26 = call_0xdc8a90(ret_0xd9e9a0_25->field_0x1c0, sel_rdx_4);
-                auto* f_128_4 = this->field_0x128;
-                void* sel_rdx_5 = f_128_4->field_0x0[i_r14d]->field_0x18->field_0x1c0 - ret_0xdc8a90_26->field_0x1c0 <= ret_0xdc8a90_26->field_0x1c2 ? f_128_4->field_0x0[i_r14d] : 0;
-                if (sel_rdx_5 != 0) {
-                  call_0x9a8e80(this, sel_rdx_5);
+                auto ret_0xdc8a90_26 = call_0xdc8a90(ret_0xd9e9a0_25->field_0x1c0, sel_rdx_3);
+                void* sel_rdx_4 = this->field_0x128->field_0x0[i_r14d]->field_0x18->field_0x1c0 - ret_0xdc8a90_26->field_0x1c0 <= ret_0xdc8a90_26->field_0x1c2 ? prev_0x0[i_r14d]_3 : 0;
+                if (sel_rdx_4 != 0) {
+                  call_0x9a8e80(this, sel_rdx_4);
                 }
               }
             }
@@ -165,51 +165,54 @@ Operação  : 0x9a835b: mov/math reg, [flag] ; fn=0x9a81a0..0x9a8a5b
         }
         if (global_0x84a44d6 != 0 && MicroProfilerMemoryScope) {
           auto ret_0x497fea0_32 = call_0x497fea0();
-          void* v_rcx_17 = ret_0x497fea0_32->field_0x0;
+          void* v_rcx_18 = ret_0x497fea0_32->field_0x0;
           if (ret_0x497fea0_32->field_0x0 == 0) {
-            v_rcx_17 = &ret_0x497fea0_32->field_0x8;
+            v_rcx_18 = &ret_0x497fea0_32->field_0x8;
           }
-          uint64_t stk_18;
           uint64_t stk_19;
-          void* stk_20;
+          uint64_t stk_20;
+          void* stk_21;
           if (0) {
-            stk_18 = local_0xf0 + (v_rcx_17->field_0x0);
-            stk_19 = local_0xe0 + (v_rcx_17->field_0x8);
-            stk_20 = local_0xe8 + (v_rcx_17->field_0x10);
+            stk_19 = local_0xf0 + (v_rcx_18->field_0x0);
+            stk_20 = local_0xe0 + (v_rcx_18->field_0x8);
+            stk_21 = local_0xe8 + (v_rcx_18->field_0x10);
           } else {
-            stk_18 = 0;
-            stk_19 = 0.0;
+            stk_19 = 0;
             stk_20 = 0.0;
+            stk_21 = 0.0;
           }
-          if (((stk_18 & 0xffffff) << 24 | local_0xf4 & 0xffffff) == 0) {
-            if ((stk_19 << 32 | stk_20) != 0) {
-              local_0x180 = stk_19 << 32 | stk_20;
-              call_0x29a42e0(20, (stk_18 & 0xffffff) << 24 | local_0xf4 & 0xffffff, &local_0x180, 8);
+          if (((stk_19 & 0xffffff) << 24 | local_0xf4 & 0xffffff) == 0) {
+            if ((stk_20 << 32 | stk_21) != 0) {
+              local_0x180 = stk_20 << 32 | stk_21;
+              call_0x29a42e0(20, (stk_19 & 0xffffff) << 24 | local_0xf4 & 0xffffff, &local_0x180, 8);
             }
           } else {
-            local_0x180 = stk_19 << 32 | stk_20;
-            call_0x29a42e0(20, (stk_18 & 0xffffff) << 24 | local_0xf4 & 0xffffff, &local_0x180, 8);
+            local_0x180 = stk_20 << 32 | stk_21;
+            call_0x29a42e0(20, (stk_19 & 0xffffff) << 24 | local_0xf4 & 0xffffff, &local_0x180, 8);
           }
         }
         if (global_0x75b2c80 != -1) {
           auto ret_0x29a1bc0_34 = call_0x29a1bc0();
           if (ret_0x29a1bc0_34->field_0x0 != 0) {
             uint64_t tsc_0x9a8981 = rdtsc();
-            void* v_rcx_26;
+            void* v_rcx_28;
             if ((global_0x816d648->field_0xb8 & (uint64_t)local_0xc0 >> 14) != 0) {
               if (ret_0x29a1bc0_34->field_0x0->field_0x565 != 0) {
-                int32_t v_r12_25 = -1;
+                void* v_rbx_26 = ret_0x29a1bc0_34->field_0x0;
+                int32_t v_r12_27 = -1;
                 if (global_0x816d648->field_0x26d5a0 != 0) {
+                  void* prev_0x0_7 = ret_0x29a1bc0_34->field_0x0;
                   auto vret_35 = global_0x816d648->vfunc_0x26d5a0(ret_0x29a1bc0_34->field_0x0->field_0x30);
-                  v_r12_25 = vret_35;
+                  v_rbx_26 = prev_0x0_7;
+                  v_r12_27 = vret_35;
                 }
-                call_0x29a3900(local_0xc0, v_r12_25, 0, global_0x8479b18);
-                v_rcx_26 = ret_0x29a1bc0_34->field_0x0->field_0x44;
-                call_0x29a3900(v_rcx_26, tsc_0x9a8981 - global_0x8cda630, 4, global_0x8479b18);
+                call_0x29a3900(local_0xc0, v_r12_27, 0, global_0x8479b18);
+                v_rcx_28 = v_rbx_26->field_0x44;
+                call_0x29a3900(v_rcx_28, tsc_0x9a8981 - global_0x8cda630, 4, global_0x8479b18);
               }
             } else {
-              v_rcx_26 = local_0xc0;
-              call_0x29a3900(v_rcx_26, tsc_0x9a8981 - global_0x8cda630, 4, global_0x8479b18);
+              v_rcx_28 = local_0xc0;
+              call_0x29a3900(v_rcx_28, tsc_0x9a8981 - global_0x8cda630, 4, global_0x8479b18);
             }
           }
         }
@@ -791,21 +794,573 @@ Operação  : 0x9a835b: mov/math reg, [flag] ; fn=0x9a81a0..0x9a8a5b
     0x9a8a58 | 5e                       | pop rsi
     0x9a8a59 | 5d                       | pop rbp
     0x9a8a5a | c3                       | ret
+  
+  === [Decompilacao da Rotina Chamadora (Caller): 0x9a90b0..0x9aa05c em RBX::SimConstraint] ===
+    struct RBX::SimConstraint {
+      /* +0x8 */ void*   field_0x8;
+      /* +0x48 */ void*   field_0x48;
+      /* +0x88 */ void*   field_0x88;
+      /* +0xc8 */ void*   field_0xc8;
+      /* +0x168 */ void*   field_0x168;
+      /* +0x170 */ uint8_t field_0x170;
+      /* +0x171 */ uint8_t field_0x171;
+      /* +0x1518 */ void*   field_0x1518;
+    };
+    
+    // Flag defaults: SimConstraintDetailsBudget = false, MicroProfilerMemoryScope = true
+    void RBX::SimConstraint::func_0x9a90b0(RBX::SimConstraint* this, int64_t param_2, void* param_4) {
+      int32_t i_eax;
+      if (global_0x8cfc9b0 > rbp->field_0x58->field_0x0->field_0x0[40]) {
+        call_0x12e0(&sym_0x8cfc9b0);
+        if (global_0x8cfc9b0 == -1) {
+          i_eax = 0;
+          do { // L_0x9a9180
+            i_eax++;
+            if ("GizmoManager"[i_eax] != "GPU"->field_m0x1[i_eax]) break;
+          } while (i_eax != 4); // loop -> L_0x9a9180
+          global_0x8cfc9b8 = call_0x29a3390("GizmoManager", "processGizmos", -1, "GizmoManager"[i_eax] == "GPU"->field_m0x1[i_eax]);
+          call_0x14f0(&sym_0x8cfc9b0);
+        }
+      }
+      call_0x2924c40(&local_0x60, global_0x8cfc9b8, -1, 0);
+      auto prev_0xc_1 = param_2->field_0xc;
+      call_0x9a77a0(&local_0x1d0, param_2->field_0xc == 0, param_3, this->field_0x168);
+      auto ret_0x4954e70_6 = call_0x4954e70(global_0x84a86e8);
+      float fxmm0_3 = (float)(uint64_t)local_0x288;
+      auto ret_0x5e3b150_7 = call_0x5e3b150(fxmm0_3 / local_0x278);
+      if (std::max<uint64_t>((uint64_t)ret_0x5e3b150_7, (uint64_t)(128.0f / local_0x278 + 0.5f)) > local_0x2b0) {
+        call_0x9ab470(&local_0x278, std::max<uint64_t>((uint64_t)ret_0x5e3b150_7, (uint64_t)(128.0f / local_0x278 + 0.5f)));
+      }
+      call_0x4954e70(ret_0x4954e70_6);
+      void* i_ebx;
+      if (this->field_0x170 != 0) {
+        if (global_0x8cfc9c0 > rbp->field_0x58->field_0x0->field_0x0[40]) {
+          call_0x12e0(&sym_0x8cfc9c0);
+          if (global_0x8cfc9c0 == -1) {
+            do { // L_0x9a93d0
+              i_eax++;
+              if ("GizmoManager"[i_eax] != "GPU"->field_m0x1[i_eax]) break;
+            } while (i_eax != 4); // loop -> L_0x9a93d0
+            global_0x8cfc9c8 = call_0x29a3390("GizmoManager", "collectGizmos", -1, "GizmoManager"[i_eax] == "GPU"->field_m0x1[i_eax]);
+            call_0x14f0(&sym_0x8cfc9c0);
+          }
+        }
+        call_0x2924c40(&local_0xe0, global_0x8cfc9c8, -1, 0);
+        auto* f_8 = this->field_0x8;
+        if (f_8->field_0x0 != f_8) {
+          void* v_rsi_14;
+          do { // L_0x9a9480
+            if (SimConstraintDetailsBudget) {
+              void* prev_0x8_11 = f_8;
+              void* prev_0x10_12 = i_ebx->field_0x10;
+              auto ret_0x9a7a20_23 = call_0x9a7a20(&local_0x1d0, prev_0x10_12);
+              if (local_0x300 != local_0x308) {
+                v_rsi_14 = prev_0x8_11;
+              } else {
+                auto local_0x48 = ret_0x9a7a20_23;
+                call_0x9ae1c0(&local_0x2f8, local_0x300, prev_0x10_12, &local_0x48);
+                v_rsi_14 = prev_0x8_11;
+              }
+            } else {
+              void* prev_0x8_10 = this->field_0x8;
+              call_0x9a7f90(&local_0x1d0, i_ebx->field_0x10);
+              v_rsi_14 = prev_0x8_10;
+            }
+            i_ebx = i_ebx->field_0x0;
+          } while (i_ebx->field_0x0 != v_rsi_14); // loop -> L_0x9a9480
+        }
+        auto* f_48 = this->field_0x48;
+        if (f_48->field_0x0 != f_48) {
+          void* v_rsi_16;
+          do { // L_0x9a9500
+            if (SimConstraintDetailsBudget) {
+              void* prev_0x48_14 = f_48;
+              void* prev_0x10_15 = i_ebx->field_0x10;
+              auto ret_0x9a7bd0_26 = call_0x9a7bd0(&local_0x1d0, prev_0x10_15);
+              if (local_0x300 != local_0x308) {
+                v_rsi_16 = prev_0x48_14;
+              } else {
+                auto local_0x4c = ret_0x9a7bd0_26;
+                call_0x9ae1c0(&local_0x2f8, local_0x300, prev_0x10_15, &local_0x4c);
+                v_rsi_16 = prev_0x48_14;
+              }
+            } else {
+              void* prev_0x48_13 = this->field_0x48;
+              call_0x9a8bd0(&local_0x1d0, i_ebx->field_0x10);
+              v_rsi_16 = prev_0x48_13;
+            }
+            i_ebx = i_ebx->field_0x0;
+          } while (i_ebx->field_0x0 != v_rsi_16); // loop -> L_0x9a9500
+        }
+        if (global_0x75b2c80 != -1) {
+          if (0) {
+            call_0x29a42e0(33, ((0) + 2) << 48, 0, 0);
+          }
+          if (global_0x84a44d6 != 0 && MicroProfilerMemoryScope) {
+            auto ret_0x497fea0_29 = call_0x497fea0();
+            void* v_rcx_17 = ret_0x497fea0_29->field_0x0;
+            if (ret_0x497fea0_29->field_0x0 == 0) {
+              v_rcx_17 = &ret_0x497fea0_29->field_0x8;
+            }
+            uint64_t stk_18;
+            uint64_t stk_19;
+            void* stk_20;
+            if (0) {
+              stk_18 = local_0x120 + (v_rcx_17->field_0x0);
+              stk_19 = local_0x110 + (v_rcx_17->field_0x8);
+              stk_20 = local_0x118 + (v_rcx_17->field_0x10);
+            } else {
+              stk_18 = 0;
+              stk_19 = 0.0;
+              stk_20 = 0.0;
+            }
+            if (((stk_18 & 0xffffff) << 24 | local_0x124 & 0xffffff) == 0) {
+              if ((stk_19 << 32 | stk_20) != 0) {
+                auto local_0x180 = stk_19 << 32 | stk_20;
+                call_0x29a42e0(20, (stk_18 & 0xffffff) << 24 | local_0x124 & 0xffffff, &local_0x180, 8);
+              }
+            } else {
+              auto local_0x180 = stk_19 << 32 | stk_20;
+              call_0x29a42e0(20, (stk_18 & 0xffffff) << 24 | local_0x124 & 0xffffff, &local_0x180, 8);
+            }
+          }
+          if (global_0x75b2c80 != -1) {
+            auto ret_0x29a1bc0_31 = call_0x29a1bc0();
+            if (ret_0x29a1bc0_31->field_0x0 != 0) {
+              uint64_t tsc_0x9a96e5 = rdtsc();
+              void* v_rcx_26;
+              if ((global_0x816d648->field_0xb8 & (uint64_t)local_0xf0 >> 14) != 0) {
+                if (ret_0x29a1bc0_31->field_0x0->field_0x565 != 0) {
+                  void* v_rax_24;
+                  void* v_rbx_25 = ret_0x29a1bc0_31->field_0x0;
+                  if (global_0x816d648->field_0x26d5a0 == 0) {
+                    v_rax_24 = -1;
+                  } else {
+                    void* prev_0x0_17 = ret_0x29a1bc0_31->field_0x0;
+                    auto vret_32 = global_0x816d648->vfunc_0x26d5a0(ret_0x29a1bc0_31->field_0x0->field_0x30);
+                    v_rax_24 = vret_32;
+                    v_rbx_25 = prev_0x0_17;
+                  }
+                  call_0x29a3900(local_0xf0, v_rax_24, 0, global_0x8479b18);
+                  v_rcx_26 = v_rbx_25->field_0x44;
+                  call_0x29a3900(v_rcx_26, tsc_0x9a96e5 - global_0x8cda630, 4, global_0x8479b18);
+                }
+              } else {
+                v_rcx_26 = local_0xf0;
+                call_0x29a3900(v_rcx_26, tsc_0x9a96e5 - global_0x8cda630, 4, global_0x8479b18);
+              }
+            }
+          }
+          if ((global_0x8629678 & (uint64_t)local_0xf0 >> 14 & global_0x86295f8) != 0 && global_0x84dcf68 != 0) {
+            (*global_0x84dcf68)();
+          }
+        }
+        auto ret_0x29243d0_36 = call_0x29243d0();
+        ret_0x29243d0_36->field_0x0 = local_0xe8;
+        if (param_2->field_0x19 == 0) {
+          if (this->field_0x171 != 0) {
+            auto* f_88 = this->field_0x88;
+            if (f_88->field_0x0 != f_88) {
+              L_0x9a9920:
+              void* v_rsi_37;
+              do { // L_0x9a9920
+                if (SimConstraintDetailsBudget) {
+                  void* prev_0x88_23 = f_88;
+                  void* prev_0x10_24 = i_ebx->field_0x10;
+                  auto ret_0x9ae7e0_42 = call_0x9ae7e0(&local_0x1d0, prev_0x10_24);
+                  if (local_0x300 != local_0x308) {
+                    v_rsi_37 = prev_0x88_23;
+                  } else {
+                    auto local_0x50 = ret_0x9ae7e0_42;
+                    call_0x9ae1c0(&local_0x2f8, local_0x300, prev_0x10_24, &local_0x50);
+                    v_rsi_37 = prev_0x88_23;
+                  }
+                } else {
+                  void* prev_0x88_22 = this->field_0x88;
+                  call_0x9a8e80(&local_0x1d0, i_ebx->field_0x10);
+                  v_rsi_37 = prev_0x88_22;
+                }
+                i_ebx = i_ebx->field_0x0;
+              } while (i_ebx->field_0x0 != v_rsi_37); // loop -> L_0x9a9920
+            }
+          } else {
+            void* v_rax_36;
+            auto* f_168 = this->field_0x168;
+            if (f_168 != 0) {
+              void* v_rax_34 = f_168;
+              auto* f_168_60 = f_168->field_0x60;
+              if (f_168_60 != 0 && f_168_60->field_0x60 != 0) {
+                auto ret_0x7571b0_37 = call_0x7571b0(f_168_60->field_0x60);
+                v_rax_34 = ret_0x7571b0_37;
+                L_0x9a99b2:
+              }
+              auto* f_168_2 = this->field_0x168;
+              if (f_168_2->field_0x60 != 0 ? f_168_2->field_0x60 : v_rax_34 != 0) {
+                void* prev_0x60_19 = f_168_2->field_0x60;
+                auto ret_0x27c5150_38 = call_0x27c5150();
+                void* sel_rcx_3 = rdi->field_0x18->field_0x1c0 - ret_0x27c5150_38->field_0x1c0 <= ret_0x27c5150_38->field_0x1c2 ? prev_0x60_19 != 0 ? prev_0x60_19 : v_rax_34 : 0;
+                if (sel_rcx_3 != 0) {
+                  v_rax_36 = call_0x9ae9b0(sel_rcx_3);
+                } else {
+                  L_0x9a99ee:
+                  v_rax_36 = 0;
+                }
+              } else {
+                v_rax_36 = 0;
+              }
+            } else {
+              goto L_0x9a99ee;
+            }
+            if (v_rax_36->field_0xc0 != v_rax_36->field_0xc8) {
+              L_0x9a9a10:
+              void* prev_0xc8_21;
+              do { // L_0x9a9a10
+                prev_0xc8_21 = v_rax_36->field_0xc8;
+                call_0x9a8e80(&local_0x1d0, i_ebx->field_0x0);
+                i_ebx += 8;
+              } while (i_ebx != prev_0xc8_21); // loop -> L_0x9a9a10
+            }
+          }
+          if (param_2->field_0x19 == 0) {
+            if (this->field_0x170 != 0) {
+              auto* f_c8 = this->field_0xc8;
+              if (f_c8->field_0x0 != f_c8) {
+                L_0x9a9a60:
+                void* v_rsi_42;
+                do { // L_0x9a9a60
+                  if (SimConstraintDetailsBudget) {
+                    void* prev_0xc8_30 = f_c8;
+                    void* prev_0x10_31 = i_ebx->field_0x10;
+                    auto ret_0x9ae7e0_49 = call_0x9ae7e0(&local_0x1d0, prev_0x10_31);
+                    if (local_0x300 != local_0x308) {
+                    v_rsi_42 = prev_0xc8_30;
+                    } else {
+                    auto local_0x54 = ret_0x9ae7e0_49;
+                    call_0x9ae1c0(&local_0x2f8, local_0x300, prev_0x10_31, &local_0x54);
+                    v_rsi_42 = prev_0xc8_30;
+                    }
+                  } else {
+                    void* prev_0xc8_29 = this->field_0xc8;
+                    call_0x9a8e80(&local_0x1d0, i_ebx->field_0x10);
+                    v_rsi_42 = prev_0xc8_29;
+                  }
+                  i_ebx = i_ebx->field_0x0;
+                } while (i_ebx->field_0x0 != v_rsi_42); // loop -> L_0x9a9a60
+              }
+            } else {
+              void* v_rax_41;
+              auto* f_168_3 = this->field_0x168;
+              if (f_168_3 != 0) {
+                void* v_rax_40 = f_168_3;
+                if (f_168_3->field_0x60 != 0 && f_168_3->field_0x60->field_0x60 != 0) {
+                  auto ret_0x7571b0_44 = call_0x7571b0(f_168_3->field_0x60->field_0x60);
+                  v_rax_40 = ret_0x7571b0_44;
+                  L_0x9a9af2:
+                }
+                auto* f_168_4 = this->field_0x168;
+                if (f_168_4->field_0x60 != 0 ? f_168_4->field_0x60 : v_rax_40 != 0) {
+                  void* prev_0x60_26 = f_168_4->field_0x60;
+                  auto ret_0x27c5150_45 = call_0x27c5150();
+                  void* sel_rcx_4 = rdi->field_0x18->field_0x1c0 - ret_0x27c5150_45->field_0x1c0 <= ret_0x27c5150_45->field_0x1c2 ? prev_0x60_26 != 0 ? prev_0x60_26 : v_rax_40 : 0;
+                  if (sel_rcx_4 != 0) {
+                    v_rax_41 = call_0x9aec10(sel_rcx_4);
+                  } else {
+                    L_0x9a9b2e:
+                    v_rax_41 = 0;
+                  }
+                } else {
+                  v_rax_41 = 0;
+                }
+              } else {
+                goto L_0x9a9b2e;
+              }
+              if (v_rax_41->field_0xc0 != v_rax_41->field_0xc8) {
+                L_0x9a9b50:
+                void* prev_0xc8_28;
+                do { // L_0x9a9b50
+                  prev_0xc8_28 = v_rax_41->field_0xc8;
+                  call_0x9a8e80(&local_0x1d0, i_ebx->field_0x0);
+                  i_ebx += 8;
+                } while (i_ebx != prev_0xc8_28); // loop -> L_0x9a9b50
+              }
+            }
+          }
+        }
+      } else {
+        void* v_rax_8;
+        auto* f_168_5 = this->field_0x168;
+        if (f_168_5 != 0) {
+          void* v_rax_6 = f_168_5;
+          if (f_168_5->field_0x60 != 0 && f_168_5->field_0x60->field_0x60 != 0) {
+            v_rax_6 = call_0x7571b0(f_168_5->field_0x60->field_0x60);
+          }
+          auto* f_168_6 = this->field_0x168;
+          if (f_168_6->field_0x60 != 0 ? f_168_6->field_0x60 : v_rax_6 != 0) {
+            void* prev_0x60_3 = f_168_6->field_0x60;
+            auto ret_0x27c5150_11 = call_0x27c5150();
+            void* sel_rcx_1 = rdi->field_0x18->field_0x1c0 - ret_0x27c5150_11->field_0x1c0 <= ret_0x27c5150_11->field_0x1c2 ? prev_0x60_3 != 0 ? prev_0x60_3 : v_rax_6 : 0;
+            if (sel_rcx_1 != 0) {
+              v_rax_8 = call_0x9ae320(sel_rcx_1);
+            } else {
+              L_0x9a980f:
+              v_rax_8 = 0;
+            }
+          } else {
+            v_rax_8 = 0;
+          }
+        } else {
+          goto L_0x9a980f;
+        }
+        if (v_rax_8->field_0xc0 != v_rax_8->field_0xc8) {
+          i_ebx = v_rax_8->field_0xc0;
+          void* prev_0xc8_5;
+          do { // L_0x9a9830
+            prev_0xc8_5 = v_rax_8->field_0xc8;
+            call_0x9a7f90(&local_0x1d0, i_ebx->field_0x0);
+            i_ebx += 8;
+          } while (i_ebx != prev_0xc8_5); // loop -> L_0x9a9830
+        }
+        if (param_2->field_0x19 == 0) {
+          void* v_rax_12;
+          auto* f_168_7 = this->field_0x168;
+          if (f_168_7 != 0) {
+            void* v_rax_10 = f_168_7;
+            if (f_168_7->field_0x60 != 0 && f_168_7->field_0x60->field_0x60 != 0) {
+              v_rax_10 = call_0x7571b0(f_168_7->field_0x60->field_0x60);
+            }
+            auto* f_168_8 = this->field_0x168;
+            if (f_168_8->field_0x60 != 0 ? f_168_8->field_0x60 : v_rax_10 != 0) {
+              void* prev_0x60_7 = f_168_8->field_0x60;
+              auto ret_0x27c5150_15 = call_0x27c5150();
+              void* sel_rcx_2 = rdi->field_0x18->field_0x1c0 - ret_0x27c5150_15->field_0x1c0 <= ret_0x27c5150_15->field_0x1c2 ? prev_0x60_7 != 0 ? prev_0x60_7 : v_rax_10 : 0;
+              if (sel_rcx_2 != 0) {
+                v_rax_12 = call_0x9ae580(sel_rcx_2);
+              } else {
+                L_0x9a98b3:
+                v_rax_12 = 0;
+              }
+            } else {
+              v_rax_12 = 0;
+            }
+          } else {
+            goto L_0x9a98b3;
+          }
+          if (v_rax_12->field_0xc0 != v_rax_12->field_0xc8) {
+            void* prev_0xc8_9;
+            do { // L_0x9a98d0
+              prev_0xc8_9 = v_rax_12->field_0xc8;
+              call_0x9a8bd0(&local_0x1d0, i_ebx->field_0x0);
+              i_ebx += 8;
+            } while (i_ebx != prev_0xc8_9); // loop -> L_0x9a98d0
+          }
+          if (param_2->field_0x19 == 0) {
+            if (this->field_0x171 != 0) {
+              auto* f_88_2 = this->field_0x88;
+              if (f_88_2->field_0x0 != f_88_2) {
+                goto L_0x9a9920;
+              }
+            } else {
+              void* v_rax_36;
+              auto* f_168_9 = this->field_0x168;
+              if (f_168_9 != 0) {
+                void* v_rax_34 = f_168_9;
+                if (f_168_9->field_0x60 != 0) {
+                  if (f_168_9->field_0x60->field_0x60 != 0) {
+                    auto ret_0x7571b0_37 = call_0x7571b0(f_168_9->field_0x60->field_0x60);
+                    v_rax_34 = ret_0x7571b0_37;
+                    goto L_0x9a99b2;
+                  }
+                } else {
+                  goto L_0x9a99b2;
+                }
+                if (this->field_0x168->field_0x60 != 0 ? this->field_0x168->field_0x60 : v_rax_34 != 0) {
+                  goto L_0x9a99ba;
+                } else {
+                  goto L_0x9a99ee;
+                }
+              } else {
+                goto L_0x9a99ee;
+              }
+              if (v_rax_36->field_0xc0 != v_rax_36->field_0xc8) {
+                goto L_0x9a9a10;
+              }
+            }
+            if (param_2->field_0x19 == 0) {
+              if (this->field_0x170 != 0) {
+                auto* f_c8_2 = this->field_0xc8;
+                if (f_c8_2->field_0x0 != f_c8_2) {
+                  goto L_0x9a9a60;
+                }
+              } else {
+                void* v_rax_41;
+                if (this->field_0x168 != 0) {
+                  void* v_rax_40 = this->field_0x168;
+                  if (this->field_0x168->field_0x60 != 0) {
+                    if (this->field_0x168->field_0x60->field_0x60 != 0) {
+                    auto ret_0x7571b0_44 = call_0x7571b0(this->field_0x168->field_0x60->field_0x60);
+                    v_rax_40 = ret_0x7571b0_44;
+                    goto L_0x9a9af2;
+                    }
+                  } else {
+                    goto L_0x9a9af2;
+                  }
+                  auto* f_168_10 = this->field_0x168;
+                  if (f_168_10->field_0x60 != 0 ? f_168_10->field_0x60 : v_rax_40 != 0) {
+                    goto L_0x9a9afa;
+                  } else {
+                    goto L_0x9a9b2e;
+                  }
+                } else {
+                  goto L_0x9a9b2e;
+                }
+                if (v_rax_41->field_0xc0 != v_rax_41->field_0xc8) {
+                  goto L_0x9a9b50;
+                }
+              }
+            }
+          }
+        }
+      }
+      if (SimConstraintDetailsBudget) {
+        call_0x9a81a0(&local_0x1d0);
+      }
+      if (local_0x2c0->field_0x0 != local_0x2c0) {
+        do { // L_0x9a9b90
+          auto local_0x1b8 = param_2;
+          auto local_0x30 = i_eax;
+          call_0x9aa060(&local_0x1b8, i_ebx->field_0x10, &local_0x30);
+          i_eax = i_ebx->field_0x0;
+          i_ebx = i_ebx->field_0x0;
+        } while (i_ebx->field_0x0 != local_0x2c0); // loop -> L_0x9a9b90
+      }
+      if (prev_0xc_1 == 0) {
+        if (global_0x8cfc9d0 > rbp->field_0x58->field_0x0->field_0x0[40]) {
+          call_0x12e0(&sym_0x8cfc9d0);
+          if (global_0x8cfc9d0 == -1) {
+            global_0x8cfc9d8 = global_0x81a8a78;
+            global_0x8cfc9dc = global_0x81a8a7c;
+            global_0x8cfc9e0 = global_0x81a8a80;
+            call_0x14f0(&sym_0x8cfc9d0);
+          }
+        }
+        param_2->vfunc_0x20(param_2, 2);
+        param_2->field_0x1c = 1.0f;
+        if (local_0x280->field_0x0 != local_0x280) {
+          do { // L_0x9a9c80
+            void* prev_0x10_35 = i_ebx->field_0x10;
+            auto ret_0xdf5f50_56 = call_0xdf5f50();
+            void* sel_r14_5 = i_ebx->field_0x10->field_0x18->field_0x1c0 - ret_0xdf5f50_56->field_0x1c0 <= ret_0xdf5f50_56->field_0x1c2 ? prev_0x10_35 : 0;
+            if (sel_r14_5 != 0 && sel_r14_5->field_0x178->field_0x1bf != 5) {
+              auto ret_0xd5f9e0_57 = call_0xd5f9e0(sel_r14_5, &local_0x310);
+              auto ret_0xd5f9e0_58 = call_0xd5f9e0(sel_r14_5, &local_0x380);
+              auto local_0x160 = global_0x8cfc9d8;
+              auto local_0x164 = global_0x8cfc9dc;
+              auto local_0x168 = global_0x8cfc9e0;
+              auto local_0x16c = 1.0f;
+              param_2->vfunc(param_2, &ret_0xd5f9e0_58->field_0x38, &ret_0xd5f9e0_57->field_0x4, &local_0x160);
+            }
+            i_ebx = i_ebx->field_0x0;
+          } while (i_ebx->field_0x0 != local_0x280); // loop -> L_0x9a9c80
+        }
+      }
+      call_0x6f8380(&local_0x2f8);
+      call_0x6f46d0(&local_0x2b8);
+      call_0x6f46d0(&local_0x278);
+      if (local_0x208 != &local_0x218) {
+        call_0x4955ac0(local_0x208);
+      }
+      if (global_0x75b2c80 != -1) {
+        if (0) {
+          call_0x29a42e0(33, ((0) + 2) << 48, 0, 0);
+        }
+        if (global_0x84a44d6 != 0 && MicroProfilerMemoryScope) {
+          auto ret_0x497fea0_65 = call_0x497fea0();
+          void* v_rcx_49 = ret_0x497fea0_65->field_0x0;
+          if (ret_0x497fea0_65->field_0x0 == 0) {
+            v_rcx_49 = &ret_0x497fea0_65->field_0x8;
+          }
+          uint64_t stk_50;
+          uint64_t stk_51;
+          void* stk_52;
+          if (0) {
+            stk_50 = local_0xa0 + (v_rcx_49->field_0x0);
+            stk_51 = local_0x90 + (v_rcx_49->field_0x8);
+            stk_52 = local_0x98 + (v_rcx_49->field_0x10);
+          } else {
+            stk_50 = 0;
+            stk_51 = 0.0;
+            stk_52 = 0.0;
+          }
+          if (((stk_50 & 0xffffff) << 24 | local_0xa4 & 0xffffff) == 0) {
+            if ((stk_51 << 32 | stk_52) != 0) {
+              auto local_0x198 = stk_51 << 32 | stk_52;
+              call_0x29a42e0(20, (stk_50 & 0xffffff) << 24 | local_0xa4 & 0xffffff, &local_0x198, 8);
+            }
+          } else {
+            auto local_0x198 = stk_51 << 32 | stk_52;
+            call_0x29a42e0(20, (stk_50 & 0xffffff) << 24 | local_0xa4 & 0xffffff, &local_0x198, 8);
+          }
+        }
+        if (global_0x75b2c80 != -1) {
+          auto ret_0x29a1bc0_67 = call_0x29a1bc0();
+          if (ret_0x29a1bc0_67->field_0x0 != 0) {
+            uint64_t tsc_0x9a9f10 = rdtsc();
+            void* v_rcx_60;
+            if ((global_0x816d648->field_0xb8 & (uint64_t)local_0x70 >> 14) != 0) {
+              if (ret_0x29a1bc0_67->field_0x0->field_0x565 != 0) {
+                void* v_rax_58;
+                void* v_rbx_59 = ret_0x29a1bc0_67->field_0x0;
+                if (global_0x816d648->field_0x26d5a0 == 0) {
+                  v_rax_58 = -1;
+                } else {
+                  void* prev_0x0_39 = ret_0x29a1bc0_67->field_0x0;
+                  auto vret_68 = global_0x816d648->vfunc_0x26d5a0(ret_0x29a1bc0_67->field_0x0->field_0x30);
+                  v_rax_58 = vret_68;
+                  v_rbx_59 = prev_0x0_39;
+                }
+                call_0x29a3900(local_0x70, v_rax_58, 0, global_0x8479b18);
+                v_rcx_60 = v_rbx_59->field_0x44;
+                call_0x29a3900(v_rcx_60, tsc_0x9a9f10 - global_0x8cda630, 4, global_0x8479b18);
+              }
+            } else {
+              v_rcx_60 = local_0x70;
+              call_0x29a3900(v_rcx_60, tsc_0x9a9f10 - global_0x8cda630, 4, global_0x8479b18);
+            }
+          }
+        }
+        if ((global_0x8629678 & (uint64_t)local_0x70 >> 14 & global_0x86295f8) != 0 && global_0x84dcf68 != 0) {
+          (*global_0x84dcf68)();
+        }
+      }
+      auto ret_0x29243d0_72 = call_0x29243d0();
+      ret_0x29243d0_72->field_0x0 = local_0x68;
+      if (local_0x1a0->field_0x8 != 0 && atomic_fetch_sub(&local_0x1a0->field_0x8->field_0x8, 1) == 1) {
+        void* prev_0x8_40 = local_0x1a0->field_0x8;
+        local_0x1a0->field_0x8->vfunc_0x0(prev_0x8_40);
+        if (atomic_fetch_sub(&local_0x1a0->field_0x8->field_0xc, 1) == 1) {
+          local_0x1a0->field_0x8->vfunc_0x8(prev_0x8_40);
+          return;
+        }
+      }
+    }
 
 [Strings .rdata na função]
-  * GPU
-  * preprocessBudgetedGizmos
-  * GizmoManager
-  * Gizmo Count: %d
-  * sort
+  * "GPU"  [@rdata 0x72f68c4, ref @0x9a81d3, literal, 3B]
+  * "preprocessBudgetedGizmos"  [@rdata 0x71a4938, ref @0x9a8213, literal, 24B]
+  * "GizmoManager"  [@rdata 0x71a4958, ref @0x9a8229, key/identifier]
+  * "Gizmo Count: %d"  [@rdata 0x71a4968, ref @0x9a8348, literal, 15B]
+  * "sort"  [@rdata 0x71a4978, ref @0x9a83d0, literal, 4B]
+  * "processGizmos"  [@rdata 0x71a4980, ref @0x9a9154, literal, 13B]
+  * "[DFLog::RbxTransportRnaExpConnection] {}. processPayload. streamId {}. Channel stream parse erro"  [@rdata 0x72a4440, ref @0x9a9390, FLog format]
+  * "collectGizmos"  [@rdata 0x71a4990, ref @0x9a93a1, literal, 13B]
 
 [Co-Flags na mesma função]
   * DFFlagMicroProfilerMemoryScope = true (default)
+  * FFlagSimConstraintDetailsBudget = false (default)
   * FFlagCDVisShowAsyncIndicator = false (default) [vizinha em .data]
   * DFFlagCDVisFixQueryable = true (default) [vizinha em .data]
   * DFIntCDVisMaxPreviewSelectionSize = 256 (default) [vizinha em .data]
   * DFFlagVisualizeLevitationForces = false (default) [vizinha em .data]
-  * FFlagSimConstraintDetailsBudget = false (default) [vizinha em .data]
   * FFlagGizmoRaycastHitAdornment = false (default) [vizinha em .data]
   * DFIntSimConstraintTorqueVisSpiralMaxWindings2 = 2 (default) [vizinha em .data]
   * DFIntSimConstraintTorqueVisSpiralRadiusTimes10_2 = 10 (default) [vizinha em .data]

@@ -10,9 +10,8 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9 [via DFL
     Classe  : RBX::DynamicTranslationSender::ServerToClientState (RTTI Resolvido)
     Padrão  : DFLogDynamicTranslation = 0 (default) [log, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : DynamicTranslation < 6
-    Fórmula : (uint64_t)DynamicTranslation >> 8 < 6
-    Fórmula : (uint64_t)DynamicTranslation >> 8 < 3
+    Fórmula : (uint8_t)DynamicTranslation >= 6 && (uint8_t)(uint64_t)DynamicTranslation >> 8 >= 3
+    Fórmula : (uint8_t)DynamicTranslation < 6 || (uint8_t)(uint64_t)DynamicTranslation >> 8 < 6
     Altera  : this->field_0x28, this->field_0xc8, this->field_0xd0, this->field_0xe8, this->field_0xf0, this->field_0xf0->field_0xc
     [Child @0x12d04f7] Papel   : Parâmetro de configuração lido diretamente pela rotina
     [Child @0x12d83d0] Fórmula : "DynamicTranslationSender"
@@ -31,18 +30,21 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9 [via DFL
     
     // Flag defaults: DynamicTranslation = 0
     void RBX::DynamicTranslationSender::ServerToClientState::func_0x12cfe80(RBX::DynamicTranslationSender::ServerToClientState* this, int64_t param_2) {
+      auto expr_1 = (uint64_t)DynamicTranslation >> 8;
       if (param_2 == 0) {
-        if (DynamicTranslation >= 6 && (uint64_t)DynamicTranslation >> 8 >= 3) {
+        if ((uint8_t)DynamicTranslation >= 6 && (uint8_t)expr_1 >= 3) {
           FLog::Log("[DFLog::DynamicTranslation] Sender::tryStart: received nullptr dm");
         }
       } else {
         if (param_2->field_0x200 != 0 && param_2->field_0x200->field_0x8 != 0) {
+          auto expr_2 = &param_2->field_0x200->field_0x8;
           do { // L_0x12cffa0
-            atomic_try_incref(&param_2->field_0x200->field_0x8);
-            if (atomic_cas(&param_2->field_0x200->field_0x8, param_2->field_0x200->field_0x8, param_2->field_0x200->field_0x8 + 1) == 0) break;
+            atomic_try_incref(expr_2);
+            if (atomic_cas(expr_2, param_2->field_0x200->field_0x8, param_2->field_0x200->field_0x8 + 1) == 0) break;
             if (param_2->field_0x200->field_0x8 == 0) break;
           } while (true); // loop -> L_0x12cffa0
           void* sel_rsi_1 = param_2->field_0x1f8 == 0 ? 0 : param_2->field_0x1f8->field_m0x1f0;
+          void* v_rbx_1 = param_2->field_0x200;
           int64_t local_0x70;
           if (param_2->field_0x970 == 1) {
             auto ret_0x40625d0_1 = call_0x40625d0(&param_2->field_0x1f0);
@@ -66,13 +68,13 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9 [via DFL
               if (local_0xc8 != 0 && atomic_fetch_sub(&local_0xc8->field_0xc, 1) == 1) {
                 local_0xc8->vfunc_0x8();
               }
-              if (DynamicTranslation < 6 || (uint64_t)DynamicTranslation >> 8 < 6) {
+              if ((uint8_t)DynamicTranslation < 6 || (uint8_t)expr_1 < 6) {
                 L_0x12d0503:
                 if (param_2->field_0x200 != 0 && param_2->field_0x200->field_0x8 != 0) {
                   L_0x12d0525:
                   do { // L_0x12d0525
-                    atomic_try_incref(&param_2->field_0x200->field_0x8);
-                    if (atomic_cas(&param_2->field_0x200->field_0x8, param_2->field_0x200->field_0x8, param_2->field_0x200->field_0x8 + 1) == 0) break;
+                    atomic_try_incref(expr_2);
+                    if (atomic_cas(expr_2, param_2->field_0x200->field_0x8, param_2->field_0x200->field_0x8 + 1) == 0) break;
                     if (param_2->field_0x200->field_0x8 == 0) break;
                   } while (true); // loop -> L_0x12d0525
                   void* sel_rdx_2 = param_2->field_0x1f8 == 0 ? 0 : param_2->field_0x1f8->field_m0x1f0;
@@ -97,8 +99,8 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9 [via DFL
             }
             if (param_2->field_0x970 == 2) {
               this->field_0x28 = 0;
-              if (param_2->field_0x200 != 0) {
-                param_2->field_0x200->field_0xc++;
+              if (v_rbx_1 != 0) {
+                v_rbx_1->field_0xc++;
               }
               auto ret_0x4956040_11 = call_0x4956040(360);
               if (ret_0x4956040_11 != 0) {
@@ -116,25 +118,25 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9 [via DFL
                   ret_0x12c3480_14->field_0x8->vfunc_0x8();
                 }
                 this->field_0xe8 = ret_0x12c3480_14;
-                void* prev_0xf0_2 = this->field_0xf0;
+                void* prev_0xf0_4 = this->field_0xf0;
                 this->field_0xf0 = ret_0x4956040_15;
-                if (prev_0xf0_2 != 0) {
-                  call_0x6daf40(prev_0xf0_2);
+                if (prev_0xf0_4 != 0) {
+                  call_0x6daf40(prev_0xf0_4);
                 }
                 call_0x12c3070(this->field_0xe8);
-                void* stk_3;
                 void* stk_4;
+                void* stk_5;
                 if (this->field_0xf0 != 0) {
                   this->field_0xf0->field_0xc++;
-                  stk_3 = this->field_0xe8;
-                  stk_4 = this->field_0xf0;
+                  stk_4 = this->field_0xe8;
+                  stk_5 = this->field_0xf0;
                 } else {
-                  stk_3 = 0.0;
                   stk_4 = 0.0;
+                  stk_5 = 0.0;
                 }
-                auto local_0x40 = stk_3;
+                auto local_0x40 = stk_4;
                 auto local_0x44 = 0.0;
-                auto local_0x48 = stk_4;
+                auto local_0x48 = stk_5;
                 auto local_0x4c = 0.0;
                 auto ret_0x12d83d0_18 = call_0x12d83d0(&local_0xa0, &this->field_0x8, &local_0x40);
                 call_0x12d85b0(&this->field_0xf8, ret_0x12d83d0_18);
@@ -148,20 +150,20 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9 [via DFL
                 if (local_0x48 != 0 && atomic_fetch_sub(&local_0x48->field_0xc, 1) == 1) {
                   local_0x48->vfunc_0x8();
                 }
-                void* stk_5;
                 void* stk_6;
+                void* stk_7;
                 if (this->field_0xf0 != 0) {
                   this->field_0xf0->field_0xc++;
-                  stk_5 = this->field_0xe8;
-                  stk_6 = this->field_0xf0;
+                  stk_6 = this->field_0xe8;
+                  stk_7 = this->field_0xf0;
                 } else {
-                  stk_5 = 0.0;
                   stk_6 = 0.0;
+                  stk_7 = 0.0;
                 }
                 local_0x70 = sel_rsi_1;
-                auto local_0x50 = stk_5;
+                auto local_0x50 = stk_6;
                 auto local_0x54 = 0.0;
-                auto local_0x58 = stk_6;
+                auto local_0x58 = stk_7;
                 auto local_0x5c = 0.0;
                 auto ret_0x12d8650_24 = call_0x12d8650(&local_0x140, &this->field_0x8, &local_0x70, &local_0x50);
                 this->field_0xd8 = ret_0x12d8650_24->field_0x0;
@@ -177,7 +179,7 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9 [via DFL
                 }
                 auto local_0xb0 = this->field_0xd8;
                 call_0x2937390(&local_0xb0);
-                if (DynamicTranslation < 6 || (uint64_t)DynamicTranslation >> 8 < 6) {
+                if ((uint8_t)DynamicTranslation < 6 || (uint8_t)expr_1 < 6) {
                   if (param_2->field_0x200 != 0 && param_2->field_0x200->field_0x8 != 0) {
                     goto L_0x12d0525;
                   }
@@ -902,6 +904,10 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9 [via DFL
     0x12d8597 | 48 8d 4d c7              | lea rcx, [rbp - 0x39]
     0x12d859b | e8 50 e1 b2 04           | call 0x5e066f0
   
+  === [Estrutura RTTI & VTable da Classe (RBX::DynamicTranslationSender::ServerToClientState)] ===
+    VTable  : 0x6ffe3f0 (offset +0x0, 1 slots virtuais)
+    +0x0 -> fn_0x12db4c0
+  
   === [Decompilacao C++ Cross-Engine (WebClient.wasm)] ===
     int32_t w2c_WebClient_f50226(void* this_ptr, int32_t param_1) {
       if ((local_5 == 0)) break; // br_if 0
@@ -919,10 +925,10 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9 [via DFL
     }
 
 [Strings .rdata na função]
-  * [DFLog::DynamicTranslation] Sender::tryStart: received nullptr dm
-  * [DFLog::DynamicTranslation] Sender::tryStart: server path complete
-  * SelectorGroupCount
-  * [DFLog::DynamicTranslation] Sender::tryStart: client path complete
+  * "[DFLog::DynamicTranslation] Sender::tryStart: received nullptr dm"  [@rdata 0x721b790, ref @0x12cfeed, FLog format]
+  * "[DFLog::DynamicTranslation] Sender::tryStart: server path complete"  [@rdata 0x721bcd0, ref @0x12d0322, FLog format]
+  * "SelectorGroupCount"  [@rdata 0x7384058, ref @0x12d0484, key/identifier]
+  * "[DFLog::DynamicTranslation] Sender::tryStart: client path complete"  [@rdata 0x721b7e0, ref @0x12d0495, FLog format]
 
 [Co-Flags na mesma função]
   * DFLogDynamicTranslation = 0 (default)

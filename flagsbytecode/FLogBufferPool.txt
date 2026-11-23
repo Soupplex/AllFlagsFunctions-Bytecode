@@ -9,16 +9,13 @@ Operação  : 0x3685c23: mov/math reg, [flag] ; fn=0x3685ad0..0x3685e08
     Classe  : RBX::BufferPool (Inferido)
     Padrão  : FLogBufferPool = 0 (default) [log, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : BufferPool < 6
-    Fórmula : (uint64_t)BufferPool >> 8 < 3
+    Fórmula : (uint8_t)BufferPool >= 6 && (uint8_t)((uint64_t)BufferPool >> 8) >= 3
     Altera  : this->field_0x0, this->field_0x4, this->field_0x38->field_0x0[((rax + idx_1 * 2) * 8)], this->field_0x38->field_0x8[((rax + idx_1 * 2) * 8)], this->field_0x8, this->field_0xc
     [XREF #2 @0x3685e9a] Classe  : RBX::BufferPool (Inferido)
-    [XREF #2 @0x3685e9a] Fórmula : BufferPool < 6
-    [XREF #2 @0x3685e9a] Fórmula : (uint64_t)BufferPool >> 8 < 3
+    [XREF #2 @0x3685e9a] Fórmula : (uint8_t)BufferPool >= 6 && (uint8_t)((uint64_t)BufferPool >> 8) >= 3
     [XREF #2 @0x3685e9a] Altera  : this->field_0x28->field_0x0, this->field_0x28->field_0x8, this->field_0x28->field_0x10, this->field_0x28->field_0x14, this->field_0x28, this->field_0x0
     [XREF #3 @0x3686090] Classe  : RBX::BufferPool (Inferido)
-    [XREF #3 @0x3686090] Fórmula : BufferPool < 6
-    [XREF #3 @0x3686090] Fórmula : (uint64_t)BufferPool >> 8 < 3
+    [XREF #3 @0x3686090] Fórmula : (uint8_t)BufferPool >= 6 && (uint8_t)((uint64_t)BufferPool >> 8) >= 3
     [XREF #3 @0x3686090] Altera  : this->field_0x8, this->field_0xc, this->field_0x40, this->field_0x40->field_0x0, this->field_0x40->field_0x8, this->field_0x40->field_0x10
   
   === [Decompilacao C++ da Funcao 0x3685ad0..0x3685e08] ===
@@ -63,7 +60,7 @@ Operação  : 0x3685c23: mov/math reg, [flag] ; fn=0x3685ad0..0x3685e08
           this->field_0xc = this->field_0xc - f_38->field_0x10[(rax + idx_1 * 2) * 8];
           this->field_0x0++;
           this->field_0x4 = this->field_0x4 + f_38->field_0x10[(rax + idx_1 * 2) * 8];
-          if (BufferPool >= 6 && (uint64_t)BufferPool >> 8 >= 3) {
+          if ((uint8_t)BufferPool >= 6 && (uint8_t)((uint64_t)BufferPool >> 8) >= 3) {
             FLog::Log("[FLog::BufferPool] buffer 0x%p : request for %u, found a match, size %u");
           }
           call_0x3686390(this->field_0x38 + (rax + idx_1 * 2) * 8 + 0x18, this->field_0x40, this->field_0x38 + (rax + idx_1 * 2) * 8);
@@ -91,7 +88,7 @@ Operação  : 0x3685c23: mov/math reg, [flag] ; fn=0x3685ad0..0x3685e08
           std::string::_Tidy_deallocate(local_0x60);
           this->field_0x0++;
           this->field_0x4 = this->field_0x4 + (param_3 + 0xfff & 0xfffff000);
-          if (BufferPool >= 6 && (uint64_t)BufferPool >> 8 >= 3) {
+          if ((uint8_t)BufferPool >= 6 && (uint8_t)((uint64_t)BufferPool >> 8) >= 3) {
             FLog::Log("[FLog::BufferPool] buffer 0x%p : request for %u, created new for %u");
           }
         }
@@ -440,7 +437,7 @@ Operação  : 0x3685c23: mov/math reg, [flag] ; fn=0x3685ad0..0x3685e08
       }
       this->field_0x0--;
       this->field_0x4 = this->field_0x4 - local_0x40;
-      if (BufferPool >= 6 && (uint64_t)BufferPool >> 8 >= 3) {
+      if ((uint8_t)BufferPool >= 6 && (uint8_t)((uint64_t)BufferPool >> 8) >= 3) {
         FLog::Log("[FLog::BufferPool] buffer 0x%p : recycled");
       }
       if (local_0x38 != 0) {
@@ -558,15 +555,22 @@ Operação  : 0x3685c23: mov/math reg, [flag] ; fn=0x3685ad0..0x3685e08
             i_esi->field_0x0 = prev_0x0_13;
             void* prev_0x8_15 = i_esi->field_0x8;
             i_esi->field_0x8 = prev_0x8_14;
+            int32_t v_rdi_8 = i_esi->field_0x14;
+            int32_t v_r13_9 = i_esi->field_0x10;
             if (prev_0x8_15 != 0 && atomic_fetch_sub(&i_esi->field_0x8->field_0x8, 1) == 1) {
+              auto prev_0x14_16 = i_esi->field_0x14;
+              auto prev_0x10_17 = i_esi->field_0x10;
               i_esi->field_0x8->vfunc_0x0(prev_0x8_15);
               if (atomic_fetch_sub(&i_esi->field_0x8->field_0xc, 1) == 1) {
                 i_esi->field_0x8->vfunc_0x8(prev_0x8_15);
+                v_rdi_8 = prev_0x14_16;
+                v_r13_9 = prev_0x10_17;
+              } else {
+                v_rdi_8 = prev_0x14_16;
+                v_r13_9 = prev_0x10_17;
               }
             }
-            auto prev_0x10_16 = i_esi->field_0x10;
             i_esi->field_0x10 = i_ebx->field_0x10;
-            auto prev_0x14_17 = i_esi->field_0x14;
             i_esi->field_0x14 = i_ebx->field_0x14;
             i_ebx->field_0x0 = prev_0x0_11;
             void* prev_0x8_18 = i_ebx->field_0x8;
@@ -584,14 +588,14 @@ Operação  : 0x3685c23: mov/math reg, [flag] ; fn=0x3685ad0..0x3685e08
               }
             }
             i_esi += 0x18;
-            i_ebx->field_0x10 = prev_0x10_16;
-            i_ebx->field_0x14 = prev_0x14_17;
+            i_ebx->field_0x10 = v_r13_9;
+            i_ebx->field_0x14 = v_rdi_8;
             i_r14d = 0;
           }
         }
         if (i_esi != this->field_0x40) {
           do { // L_0x3686090
-            if (BufferPool >= 6 && (uint64_t)BufferPool >> 8 >= 3) {
+            if ((uint8_t)BufferPool >= 6 && (uint8_t)((uint64_t)BufferPool >> 8) >= 3) {
               FLog::Log("[FLog::BufferPool] buffer 0x%p : destroyed");
             }
             this->field_0x8--;
@@ -634,15 +638,22 @@ Operação  : 0x3685c23: mov/math reg, [flag] ; fn=0x3685ad0..0x3685e08
           i_edi->field_0x0 = prev_0x0_5;
           void* prev_0x8_7 = i_edi->field_0x8;
           i_edi->field_0x8 = prev_0x8_6;
+          int32_t v_rsi_5 = i_edi->field_0x14;
+          int32_t v_r13_6 = i_edi->field_0x10;
           if (prev_0x8_7 != 0 && atomic_fetch_sub(&i_edi->field_0x8->field_0x8, 1) == 1) {
+            auto prev_0x14_8 = i_edi->field_0x14;
+            auto prev_0x10_9 = i_edi->field_0x10;
             i_edi->field_0x8->vfunc_0x0(prev_0x8_7);
             if (atomic_fetch_sub(&i_edi->field_0x8->field_0xc, 1) == 1) {
               i_edi->field_0x8->vfunc_0x8(prev_0x8_7);
+              v_rsi_5 = prev_0x14_8;
+              v_r13_6 = prev_0x10_9;
+            } else {
+              v_rsi_5 = prev_0x14_8;
+              v_r13_6 = prev_0x10_9;
             }
           }
-          auto prev_0x10_8 = i_edi->field_0x10;
           i_edi->field_0x10 = i_ebx->field_0x10;
-          auto prev_0x14_9 = i_edi->field_0x14;
           i_edi->field_0x14 = i_ebx->field_0x14;
           i_ebx->field_0x0 = prev_0x0_3;
           void* prev_0x8_10 = i_ebx->field_0x8;
@@ -660,8 +671,8 @@ Operação  : 0x3685c23: mov/math reg, [flag] ; fn=0x3685ad0..0x3685e08
             }
           }
           i_edi += 0x18;
-          i_ebx->field_0x10 = prev_0x10_8;
-          i_ebx->field_0x14 = prev_0x14_9;
+          i_ebx->field_0x10 = v_r13_6;
+          i_ebx->field_0x14 = v_rsi_5;
           i_r14d = 0;
         }
       }
@@ -683,7 +694,7 @@ Operação  : 0x3685c23: mov/math reg, [flag] ; fn=0x3685ad0..0x3685e08
           }
           this->field_0x8++;
           this->field_0xc = this->field_0xc + i_esi->field_0x8;
-          if (BufferPool >= 6 && (uint64_t)BufferPool >> 8 >= 3) {
+          if ((uint8_t)BufferPool >= 6 && (uint8_t)((uint64_t)BufferPool >> 8) >= 3) {
             FLog::Log("[FLog::BufferPool] buffer 0x%p : moved off cooldown");
           }
           i_esi += 0x18;
@@ -1039,11 +1050,11 @@ Operação  : 0x3685c23: mov/math reg, [flag] ; fn=0x3685ad0..0x3685e08
     0x3686387 | c3                       | ret
 
 [Strings .rdata na função]
-  * [FLog::BufferPool] buffer 0x%p : request for %u, found a match, size %u
-  * [FLog::BufferPool] buffer 0x%p : request for %u, created new for %u
-  * [FLog::BufferPool] buffer 0x%p : recycled
-  * [FLog::BufferPool] buffer 0x%p : destroyed
-  * [FLog::BufferPool] buffer 0x%p : moved off cooldown
+  * "[FLog::BufferPool] buffer 0x%p : request for %u, found a match, size %u"  [@rdata 0x73c5a50, ref @0x3685c47, FLog format]
+  * "[FLog::BufferPool] buffer 0x%p : request for %u, created new for %u"  [@rdata 0x73c5aa0, ref @0x3685db2, FLog format]
+  * "[FLog::BufferPool] buffer 0x%p : recycled"  [@rdata 0x73c5ae8, ref @0x3685ebe, FLog format]
+  * "[FLog::BufferPool] buffer 0x%p : destroyed"  [@rdata 0x73c59d0, ref @0x36860bc, FLog format]
+  * "[FLog::BufferPool] buffer 0x%p : moved off cooldown"  [@rdata 0x73c5a00, ref @0x36862e6, FLog format]
 
 [Co-Flags na mesma função]
   * FFlagEnableResponsiveUnitInStudioEmulator = false (default) [vizinha em .data]

@@ -1,21 +1,22 @@
 FFlag     : DFFlagVideoEnableVp9SpeedSettings
 RVA .data : 0x80f7fd8
-XREFs     : 1 total (1 em runtime)
+XREFs     : 2 total (2 em runtime)
 Insn RVA  : 0x1dcfa4f
-Operação  : 0x1dcfa4f: cmp byte [flag], imm8 ; fn=0x1dcf4c0..0x1dcfffd
+Operação  : 0x1dcfa4f: cmp byte [flag], imm8 ; fn=0x1dcf4c0..0x1dd023f
 
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::VideoEnable)] ===
     Classe  : RBX::VideoEnable (Inferido)
     Padrão  : DFFlagVideoEnableVp9SpeedSettings = false (default) [bool, mode=2]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
-    Fórmula : VideoEnableVp9SpeedSettings && param_2->field_0x0->field_0xc == 130 && Vp9EncodeThreads > 0 && RVideoTrace >= 6 && (uint64_t)RVideoTrace >> 8 >= 4
+    Fórmula : VideoEnableVp9SpeedSettings && param_2->field_0x0->field_0xc == 130 && Vp9EncodeThreads > 0 && (uint8_t)RVideoTrace >= 6 && (uint8_t)((uint64_t)RVideoTrace >> 8) >= 4
+    Fórmula : VideoEnableVp9SpeedSettings && param_2->field_0x0->field_0xc == 130 && Vp9EncodeCpuUsed <= 9
     Altera  : this->field_0x348, this->field_0xb8, this->field_0xb0, this->field_0xe0, this->field_0xd0, this->field_0xd8
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x1dcf248 (in fn_0x1dcf150): call 0x1dcf4c0  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
   
-  === [Decompilacao C++ da Funcao 0x1dcf4c0..0x1dcfffd] ===
+  === [Decompilacao C++ da Funcao 0x1dcf4c0..0x1dd023f] ===
     struct RBX::VideoEnable {
       /* +0xb0 */ uint8_t field_0xb0;
       /* +0xb8 */ uint8_t field_0xb8;
@@ -39,6 +40,8 @@ Operação  : 0x1dcfa4f: cmp byte [flag], imm8 ; fn=0x1dcf4c0..0x1dcfffd
     // Flag defaults: VideoEnableVp8SpeedSettings2 = true, VideoCapturePlaystation = false, RVideoTrace = 0, VideoVpxEncodeLowLatency2 = false, VideoEncoderBitrate = 4000000, VideoGopSize = 180, VideoFixVpxGopSize = false, Vp8EncodeThreads = 0
     auto RBX::VideoEnable::func_0x1dcf4c0(RBX::VideoEnable* this, int64_t param_2) {
       void* v_r14_1;
+      auto expr_2 = VideoEncoderBitrate / 1000 >> 6;
+      auto expr_1 = (uint32_t)expr_2 >> 31;
       switch (param_2->field_0x0->field_0xc) {
         case 129:
           v_r14_1 = &sym_0x66bae20;
@@ -49,148 +52,355 @@ Operação  : 0x1dcfa4f: cmp byte [flag], imm8 ; fn=0x1dcf4c0..0x1dcfffd
         case 1:
           v_r14_1 = &sym_0x66baf40;
           break;
-        default:
+        case 2:
           v_r14_1 = &sym_0x66c64c0;
-      }
-      if (VideoCapturePlaystation) {
-        if (param_2->field_0x0->field_0x10 == 0 || param_2->field_0x0->field_0x14 == 0) {
-          if (RVideoTrace >= 6 && (uint64_t)RVideoTrace >> 8 >= 3) {
-            FLog::Log("[DFLog::RVideoTrace] Invalid timebase provided to VPX encoder. Defaulting to 30fps.");
-          }
-          param_2->field_0x0->field_0x10 = 1;
-          param_2->field_0x0->field_0x14 = 30;
-        }
-        double ftmp_1 = (double)param_2->field_0x0->field_0x14 / (double)param_2->field_0x0->field_0x10;
-        this->field_0x348 = std::max<uint32_t>((int64_t)(ftmp_1 / (double)param_2->field_0x0->field_0x84), 1);
-      }
-      call_0x5e051b0(&local_0x460, 0, 504);
-      int32_t i_edx;
-      void* i_ecx;
-      void* i_eax;
-      if ((v_r14_1->field_0xc & 0x2) != 0) {
-        i_eax = &v_r14_1->field_0x58->field_0x8;
-        i_ecx = &local_0x460;
-        i_edx = 3;
-        do { // L_0x1dcf6a0
-          i_edx--;
-          i_eax = i_eax + 0x80;
-          i_ecx = &local_0x4e0;
-        } while (i_edx != 0); // loop -> L_0x1dcf6a0
-      }
-      uint64_t v_rdx_3;
-      if (!VideoCapturePlaystation && VideoVpxEncodeLowLatency2 == VideoCapturePlaystation) {
-        v_rdx_3 = (VideoEncoderBitrate / 1000 >> 6) + ((uint32_t)(VideoEncoderBitrate / 1000 >> 6) >> 31);
-      } else {
-        void* v_rcx_2 = param_2->field_0x0->field_0x60;
-        if (param_2->field_0x0->field_0x60 <= 0) {
-          v_rcx_2 = VideoEncoderBitrate;
-        }
-        v_rdx_3 = (v_rcx_2 / 1000 >> 7) + ((uint64_t)(v_rcx_2 / 1000 >> 7) >> 63);
-      }
-      if (VideoCapturePlaystation && RVideoTrace >= 6 && (uint64_t)RVideoTrace >> 8 >= 4) {
-        FLog::Log("[DFLog::RVideoTrace] Opening VPX encoder with width: {}, height: {}, bitrate: {}, lag in frames:");
-      }
-      if (VideoEnableVp8SpeedSettings2 && param_2->field_0x0->field_0xc == 129 && Vp8EncodeThreads > 0 && RVideoTrace >= 6 && (uint64_t)RVideoTrace >> 8 >= 4) {
-        FLog::Log("[DFLog::RVideoTrace] Overriding VP8 encoder thread count to {}");
-      }
-      if (VideoEnableVp9SpeedSettings && param_2->field_0x0->field_0xc == 130 && Vp9EncodeThreads > 0 && RVideoTrace >= 6 && (uint64_t)RVideoTrace >> 8 >= 4) {
-        FLog::Log("[DFLog::RVideoTrace] Overriding VP9 encoder thread count to {}");
-      }
-      if (this != 0) {
-        int32_t v_rbx_6;
-        if (v_r14_1->field_0x8 != 5) {
-          v_rbx_6 = 3;
-        } else if ((v_r14_1->field_0xc & 0x2) == 0) {
-          v_rbx_6 = 4;
-        } else {
-          this->field_0xb8 = v_r14_1;
-          this->field_0xb0 = v_r14_1->field_0x0;
-          this->field_0xe0 = 0;
-          this->field_0xd0 = 0;
-          this->field_0xd8 = &local_0x460;
-          auto vret_2 = v_r14_1->vfunc_0x10(&this->field_0xb0, 0);
-          if (vret_2 != 0) {
-            this->field_0xc8 = this->field_0xe0 != 0 ? this->field_0xe0->field_0x0 : 0;
-            if (this->field_0xb8 != 0 && this->field_0xe0 != 0) {
-              this->field_0xb8->vfunc_0x18();
-              this->field_0xb8 = 0;
-              this->field_0xb0 = 0;
-              this->field_0xe0 = 0;
+          void* v_rsi_4 = param_2->field_0x0;
+          if (VideoCapturePlaystation) {
+            void* v_rsi_3 = param_2->field_0x0;
+            if (param_2->field_0x0->field_0x10 == 0 || param_2->field_0x0->field_0x14 == 0) {
+              void* v_rsi_2 = param_2->field_0x0;
+              if ((uint8_t)RVideoTrace >= 6 && (uint8_t)((uint64_t)RVideoTrace >> 8) >= 3) {
+                void* prev_0x0_1 = param_2->field_0x0;
+                FLog::Log("[DFLog::RVideoTrace] Invalid timebase provided to VPX encoder. Defaulting to 30fps.");
+                v_rsi_2 = prev_0x0_1;
+              }
+              param_2->field_0x0->field_0x10 = 1;
+              param_2->field_0x0->field_0x14 = 30;
+              v_rsi_3 = v_rsi_2;
             }
+            double ftmp_1 = (double)param_2->field_0x0->field_0x14 / (double)param_2->field_0x0->field_0x10;
+            this->field_0x348 = std::max<uint32_t>((int64_t)(ftmp_1 / (double)v_rsi_3->field_0x84), 1);
+            v_rsi_4 = v_rsi_3;
           }
-          v_rbx_6 = vret_2;
-        }
-        this->field_0xc0 = v_rbx_6;
-        if (v_rbx_6 == 0) {
-          if (param_2->field_0x0->field_0x78 != v_rbx_6) {
-            this->field_0x318 = 1;
-            if (this != 0) {
-              int32_t v_rbx_7;
-              if (v_r14_1->field_0x8 != 5) {
-                v_rbx_7 = 3;
-              } else if ((v_r14_1->field_0xc & 0x2) == 0) {
-                v_rbx_7 = 4;
-              } else {
-                this->field_0xf0 = v_r14_1;
-                this->field_0xe8 = v_r14_1->field_0x0;
-                this->field_0x118 = v_rbx_6;
-                this->field_0x108 = v_rbx_6;
-                this->field_0x110 = &local_0x460;
-                auto vret_4 = v_r14_1->vfunc_0x10(&this->field_0xe8, 0);
-                if (vret_4 != 0) {
-                  this->field_0x100 = this->field_0x118 != 0 ? this->field_0x118->field_0x0 : 0;
-                  if (this->field_0xf0 != 0 && this->field_0x118 != 0) {
+          call_0x5e051b0(&local_0x460, 0, 504);
+          if ((v_r14_1->field_0xc & 0x2) != 0) {
+            void* i_eax = &v_r14_1->field_0x58->field_0x8;
+            void* i_ecx = &local_0x460;
+            int32_t i_edx = 3;
+            L_0x1dcf6a0:
+            do { // L_0x1dcf6a0
+              i_edx--;
+              i_eax = i_eax + 0x80;
+              i_ecx = &local_0x4e0;
+            } while (i_edx != 0); // loop -> L_0x1dcf6a0
+          }
+          uint64_t v_rdx_6;
+          if (!VideoCapturePlaystation && VideoVpxEncodeLowLatency2 == VideoCapturePlaystation) {
+            v_rdx_6 = expr_2 + expr_1;
+          } else {
+            void* v_rcx_5 = v_rsi_4->field_0x60;
+            if (v_rsi_4->field_0x60 <= 0) {
+              v_rcx_5 = VideoEncoderBitrate;
+            }
+            v_rdx_6 = (v_rcx_5 / 1000 >> 7) + ((uint64_t)(v_rcx_5 / 1000 >> 7) >> 63);
+          }
+          if (VideoCapturePlaystation && (uint8_t)RVideoTrace >= 6 && (uint8_t)((uint64_t)RVideoTrace >> 8) >= 4) {
+            FLog::Log("[DFLog::RVideoTrace] Opening VPX encoder with width: {}, height: {}, bitrate: {}, lag in frames:", v_rsi_4->field_0x68, v_rsi_4->field_0x6c, v_rdx_6);
+          }
+          if (VideoEnableVp8SpeedSettings2 && param_2->field_0x0->field_0xc == 129 && Vp8EncodeThreads > 0 && (uint8_t)RVideoTrace >= 6 && (uint8_t)((uint64_t)RVideoTrace >> 8) >= 4) {
+            FLog::Log("[DFLog::RVideoTrace] Overriding VP8 encoder thread count to {}", Vp8EncodeThreads);
+          }
+          if (VideoEnableVp9SpeedSettings && param_2->field_0x0->field_0xc == 130 && Vp9EncodeThreads > 0 && (uint8_t)RVideoTrace >= 6 && (uint8_t)((uint64_t)RVideoTrace >> 8) >= 4) {
+            FLog::Log("[DFLog::RVideoTrace] Overriding VP9 encoder thread count to {}", Vp9EncodeThreads);
+          }
+          int32_t v_rbx_13;
+          if (this != 0) {
+            int32_t v_rbx_9;
+            if (v_r14_1->field_0x8 != 5) {
+              v_rbx_9 = 3;
+            } else if ((v_r14_1->field_0xc & 0x2) == 0) {
+              v_rbx_9 = 4;
+            } else {
+              this->field_0xb8 = v_r14_1;
+              this->field_0xb0 = v_r14_1->field_0x0;
+              this->field_0xe0 = 0;
+              this->field_0xd0 = 0;
+              this->field_0xd8 = &local_0x460;
+              auto vret_3 = v_r14_1->vfunc_0x10(&this->field_0xb0, 0);
+              if (vret_3 != 0) {
+                this->field_0xc8 = this->field_0xe0 != 0 ? this->field_0xe0->field_0x0 : 0;
+                if (this->field_0xb8 != 0 && this->field_0xe0 != 0) {
+                  this->field_0xb8->vfunc_0x18();
+                  this->field_0xb8 = 0;
+                  this->field_0xb0 = 0;
+                  this->field_0xe0 = 0;
+                }
+              }
+              v_rbx_9 = vret_3;
+            }
+            this->field_0xc0 = v_rbx_9;
+            int32_t v_rbx_12 = v_rbx_9;
+            if (v_rbx_9 == 0) {
+              int32_t v_rbx_11 = v_rbx_9;
+              if (v_rsi_4->field_0x78 != (uint8_t)v_rbx_9) {
+                this->field_0x318 = 1;
+                if (this != 0) {
+                  int32_t v_rbx_10;
+                  if (v_r14_1->field_0x8 != 5) {
+                    v_rbx_10 = 3;
+                  } else {
+                    if ((v_r14_1->field_0xc & 0x2) == 0) {
+                    v_rbx_10 = 4;
+                    } else {
+                    this->field_0xf0 = v_r14_1;
+                    this->field_0xe8 = v_r14_1->field_0x0;
+                    this->field_0x118 = v_rbx_9;
+                    this->field_0x108 = v_rbx_9;
+                    this->field_0x110 = &local_0x460;
+                    auto vret_5 = v_r14_1->vfunc_0x10(&this->field_0xe8, 0);
+                    if (vret_5 != 0) {
+                    this->field_0x100 = this->field_0x118 != 0 ? this->field_0x118->field_0x0 : 0;
+                    if (this->field_0xf0 != 0 && this->field_0x118 != 0) {
                     this->field_0xf0->vfunc_0x18();
                     this->field_0xf0 = 0;
                     this->field_0xe8 = 0;
                     this->field_0x118 = 0;
+                    }
+                    }
+                    v_rbx_10 = vret_5;
+                    }
                   }
+                  this->field_0xf8 = v_rbx_10;
+                  if (v_rbx_10 == 0) {
+                    v_rbx_11 = v_rbx_10;
+                    L_0x1dcfcaf:
+                    this->field_0x319 = 1;
+                    L_0x1dcfcd0:
+                    do { // L_0x1dcfcd0
+                    i_ecx->field_0x0 = local_0x460;
+                    i_ecx->field_0x10 = v_rsi_4->field_0x6c;
+                    i_ecx->field_0x20 = param_2->field_0x0->field_0x14;
+                    i_ecx->field_0x30 = local_0x490;
+                    i_ecx->field_0x40 = local_0x4a0;
+                    i_ecx->field_0x50 = local_0x4b0;
+                    i_ecx->field_0x60 = local_0x4c0;
+                    (i_ecx + 0x80)->field_m0x10 = v_rdx_6;
+                    i_edx--;
+                    i_eax = &local_0x4e0;
+                    i_ecx = i_ecx + 0x80;
+                    } while (i_edx != 0); // loop -> L_0x1dcfcd0
+                    (i_ecx + 0x80)->field_0x0 = local_0x4e0;
+                    (i_ecx + 0x80)->field_0x10 = local_0x4f0;
+                    (i_ecx + 0x80)->field_0x20 = 1;
+                    (i_ecx + 0x80)->field_0x30 = local_0x510;
+                    (i_ecx + 0x80)->field_0x40 = local_0x520;
+                    (i_ecx + 0x80)->field_0x50 = local_0x530;
+                    (i_ecx + 0x80)->field_0x60 = local_0x540;
+                    (i_ecx + 0x80)->field_0x70 = local_0x550;
+                    v_rbx_12 = v_rbx_11;
+                  } else {
+                    v_rbx_12 = v_rbx_10;
+                  }
+                  L_0x1dcfd60:
+                  v_rbx_13 = v_rbx_12;
+                } else {
+                  L_0x1dcfd70:
+                  v_rbx_13 = 8;
                 }
-                v_rbx_7 = vret_4;
-              }
-              this->field_0xf8 = v_rbx_7;
-              if (v_rbx_7 == 0) {
+              } else {
                 this->field_0x319 = 1;
-                L_0x1dcfcd0:
-                do { // L_0x1dcfcd0
-                  i_ecx->field_0x0 = local_0x460;
-                  i_ecx->field_0x10 = param_2->field_0x0->field_0x6c;
-                  i_ecx->field_0x20 = param_2->field_0x0->field_0x14;
-                  i_ecx->field_0x30 = local_0x490;
-                  i_ecx->field_0x40 = local_0x4a0;
-                  i_ecx->field_0x50 = local_0x4b0;
-                  i_ecx->field_0x60 = local_0x4c0;
-                  (i_ecx + 0x80)->field_m0x10 = v_rdx_3;
-                  i_edx--;
-                  i_eax = &local_0x4e0;
-                  i_ecx = i_ecx + 0x80;
-                } while (i_edx != 0); // loop -> L_0x1dcfcd0
-                (i_ecx + 0x80)->field_0x0 = local_0x4e0;
-                (i_ecx + 0x80)->field_0x10 = local_0x4f0;
-                (i_ecx + 0x80)->field_0x20 = 1;
-                (i_ecx + 0x80)->field_0x30 = local_0x510;
-                (i_ecx + 0x80)->field_0x40 = local_0x520;
-                (i_ecx + 0x80)->field_0x50 = local_0x530;
-                (i_ecx + 0x80)->field_0x60 = local_0x540;
-                (i_ecx + 0x80)->field_0x70 = local_0x550;
+                goto L_0x1dcfcd0;
               }
+            } else {
+              v_rbx_13 = v_rbx_12;
             }
           } else {
-            this->field_0x319 = 1;
-            goto L_0x1dcfcd0;
+            v_rbx_13 = 8;
+          }
+          if (VideoEnableVp8SpeedSettings2 && param_2->field_0x0->field_0xc == 129) {
+            if (Vp8EncodeCpuUsedPlus17 - 1 <= 32) {
+              call_0x1f2b090(&this->field_0xb0, 13, Vp8EncodeCpuUsedPlus17 - 0x11);
+              if ((uint8_t)RVideoTrace >= 6 && (uint8_t)((uint64_t)RVideoTrace >> 8) >= 4) {
+                FLog::Log("[DFLog::RVideoTrace] Overriding VP8 encoder CPUUSED setting to {}", Vp8EncodeCpuUsedPlus17 - 0x11);
+              }
+            }
+            if (Vp8EncodePartitions > 0) {
+              int32_t v_r13_15 = 3;
+              if (Vp8EncodePartitions != 1) {
+                if (Vp8EncodePartitions != 2) {
+                  if (Vp8EncodePartitions != 3) {
+                    if (Vp8EncodePartitions != 4) {
+                    if (Vp8EncodePartitions != 8 && (uint8_t)RVideoTrace >= 6 && (uint8_t)((uint64_t)RVideoTrace >> 8) >= 3) {
+                    FLog::Log("[DFLog::RVideoTrace] Invalid VP8 encoder token partition setting {}, using 8", Vp8EncodePartitions);
+                    }
+                    } else {
+                    L_0x1dd0020:
+                    v_r13_15 = 2;
+                    }
+                  } else {
+                    if ((uint8_t)RVideoTrace >= 6 && (uint8_t)((uint64_t)RVideoTrace >> 8) >= 3) {
+                    FLog::Log("[DFLog::RVideoTrace] Invalid VP8 encoder token partition setting {}, using 4", 3);
+                    }
+                    v_r13_15 = 2;
+                  }
+                } else {
+                  v_r13_15 = 1;
+                }
+              } else {
+                v_r13_15 = 0;
+              }
+              call_0x1f2b090(&this->field_0xb0, 18, v_r13_15);
+              if ((uint8_t)RVideoTrace >= 6 && (uint8_t)((uint64_t)RVideoTrace >> 8) >= 4) {
+                FLog::Log("[DFLog::RVideoTrace] Overriding VP8 encoder token partition setting to {}", v_r13_15);
+              }
+            }
+          }
+          if (VideoEnableVp9SpeedSettings && param_2->field_0x0->field_0xc == 130 && Vp9EncodeCpuUsed <= 9) {
+            call_0x1f2b090(&this->field_0xb0, 13, Vp9EncodeCpuUsed);
+            if ((uint8_t)RVideoTrace >= 6 && (uint8_t)((uint64_t)RVideoTrace >> 8) >= 4) {
+              FLog::Log("[DFLog::RVideoTrace] Overriding VP9 encoder CPUUSED setting to {}", Vp9EncodeCpuUsed);
+            }
+          }
+          if (param_2->field_0x8 != 0) {
+            call_0x6daf40(param_2->field_0x8);
+          }
+          return (v_rbx_13 != 0 ? -1 : 0) & 0x80000005;
+        default:
+          if (param_2->field_0x8 != 0) {
+            call_0x6daf40(param_2->field_0x8);
+          }
+          return -2147483645;
+      }
+      void* v_rsi_4 = param_2->field_0x0;
+      if (VideoCapturePlaystation) {
+        void* v_rsi_3 = param_2->field_0x0;
+        if (param_2->field_0x0->field_0x10 == 0 || param_2->field_0x0->field_0x14 == 0) {
+          void* v_rsi_2 = param_2->field_0x0;
+          if ((uint8_t)RVideoTrace >= 6 && (uint8_t)((uint64_t)RVideoTrace >> 8) >= 3) {
+            void* prev_0x0_1 = param_2->field_0x0;
+            FLog::Log("[DFLog::RVideoTrace] Invalid timebase provided to VPX encoder. Defaulting to 30fps.");
+            v_rsi_2 = prev_0x0_1;
+          }
+          param_2->field_0x0->field_0x10 = 1;
+          param_2->field_0x0->field_0x14 = 30;
+          v_rsi_3 = v_rsi_2;
+        }
+        double ftmp_1 = (double)param_2->field_0x0->field_0x14 / (double)param_2->field_0x0->field_0x10;
+        this->field_0x348 = std::max<uint32_t>((int64_t)(ftmp_1 / (double)v_rsi_3->field_0x84), 1);
+        v_rsi_4 = v_rsi_3;
+      }
+      call_0x5e051b0(&local_0x460, 0, 504);
+      if ((v_r14_1->field_0xc & 0x2) != 0) {
+        void* i_eax = &v_r14_1->field_0x58->field_0x8;
+        void* i_ecx = &local_0x460;
+        int32_t i_edx = 3;
+        goto L_0x1dcf6a0;
+      }
+      uint64_t v_rdx_6;
+      if (!VideoCapturePlaystation && VideoVpxEncodeLowLatency2 == VideoCapturePlaystation) {
+        v_rdx_6 = expr_2 + expr_1;
+      } else {
+        void* v_rcx_5 = v_rsi_4->field_0x60;
+        if (v_rsi_4->field_0x60 <= 0) {
+          v_rcx_5 = VideoEncoderBitrate;
+        }
+        v_rdx_6 = (v_rcx_5 / 1000 >> 7) + ((uint64_t)(v_rcx_5 / 1000 >> 7) >> 63);
+      }
+      if (VideoCapturePlaystation && (uint8_t)RVideoTrace >= 6 && (uint8_t)((uint64_t)RVideoTrace >> 8) >= 4) {
+        FLog::Log("[DFLog::RVideoTrace] Opening VPX encoder with width: {}, height: {}, bitrate: {}, lag in frames:", v_rsi_4->field_0x68, v_rsi_4->field_0x6c, v_rdx_6);
+      }
+      if (VideoEnableVp8SpeedSettings2 && param_2->field_0x0->field_0xc == 129 && Vp8EncodeThreads > 0 && (uint8_t)RVideoTrace >= 6 && (uint8_t)((uint64_t)RVideoTrace >> 8) >= 4) {
+        FLog::Log("[DFLog::RVideoTrace] Overriding VP8 encoder thread count to {}", Vp8EncodeThreads);
+      }
+      if (VideoEnableVp9SpeedSettings && param_2->field_0x0->field_0xc == 130 && Vp9EncodeThreads > 0 && (uint8_t)RVideoTrace >= 6 && (uint8_t)((uint64_t)RVideoTrace >> 8) >= 4) {
+        FLog::Log("[DFLog::RVideoTrace] Overriding VP9 encoder thread count to {}", Vp9EncodeThreads);
+      }
+      int32_t v_rbx_13;
+      if (this != 0) {
+        int32_t v_rbx_9;
+        if (v_r14_1->field_0x8 != 5) {
+          v_rbx_9 = 3;
+        } else {
+          if ((v_r14_1->field_0xc & 0x2) == 0) {
+            v_rbx_9 = 4;
+          } else {
+            goto L_0x1dcfb71;
+          }
+        }
+        this->field_0xc0 = v_rbx_9;
+        int32_t v_rbx_12 = v_rbx_9;
+        if (v_rbx_9 == 0) {
+          int32_t v_rbx_11 = v_rbx_9;
+          if (v_rsi_4->field_0x78 != (uint8_t)v_rbx_9) {
+            this->field_0x318 = 1;
+            if (this != 0) {
+              int32_t v_rbx_10;
+              if (v_r14_1->field_0x8 != 5) {
+                v_rbx_10 = 3;
+              } else {
+                if ((v_r14_1->field_0xc & 0x2) == 0) {
+                  v_rbx_10 = 4;
+                } else {
+                  goto L_0x1dcfc33;
+                }
+              }
+              this->field_0xf8 = v_rbx_10;
+              if (v_rbx_10 == 0) {
+                v_rbx_11 = v_rbx_10;
+                goto L_0x1dcfcaf;
+              } else {
+                v_rbx_12 = v_rbx_10;
+              }
+              goto L_0x1dcfd60;
+            } else {
+              goto L_0x1dcfd70;
+            }
+          } else {
+            goto L_0x1dcfcaf;
+          }
+        } else {
+          goto L_0x1dcfd60;
+        }
+      } else {
+        goto L_0x1dcfd70;
+      }
+      if (VideoEnableVp8SpeedSettings2 && param_2->field_0x0->field_0xc == 129) {
+        if (Vp8EncodeCpuUsedPlus17 - 1 <= 32) {
+          call_0x1f2b090(&this->field_0xb0, 13, Vp8EncodeCpuUsedPlus17 - 0x11);
+          if ((uint8_t)RVideoTrace >= 6 && (uint8_t)((uint64_t)RVideoTrace >> 8) >= 4) {
+            FLog::Log("[DFLog::RVideoTrace] Overriding VP8 encoder CPUUSED setting to {}", Vp8EncodeCpuUsedPlus17 - 0x11);
+          }
+        }
+        if (Vp8EncodePartitions > 0) {
+          int32_t v_r13_15 = 3;
+          if (Vp8EncodePartitions != 1) {
+            if (Vp8EncodePartitions != 2) {
+              if (Vp8EncodePartitions != 3) {
+                if (Vp8EncodePartitions != 4) {
+                  if (Vp8EncodePartitions != 8 && (uint8_t)RVideoTrace >= 6 && (uint8_t)((uint64_t)RVideoTrace >> 8) >= 3) {
+                    FLog::Log("[DFLog::RVideoTrace] Invalid VP8 encoder token partition setting {}, using 8", Vp8EncodePartitions);
+                  }
+                } else {
+                  goto L_0x1dd0020;
+                }
+              } else {
+                if ((uint8_t)RVideoTrace >= 6 && (uint8_t)((uint64_t)RVideoTrace >> 8) >= 3) {
+                  FLog::Log("[DFLog::RVideoTrace] Invalid VP8 encoder token partition setting {}, using 4", 3);
+                }
+                goto L_0x1dd0020;
+              }
+            } else {
+              v_r13_15 = 1;
+            }
+          } else {
+            v_r13_15 = 0;
+          }
+          call_0x1f2b090(&this->field_0xb0, 18, v_r13_15);
+          if ((uint8_t)RVideoTrace >= 6 && (uint8_t)((uint64_t)RVideoTrace >> 8) >= 4) {
+            FLog::Log("[DFLog::RVideoTrace] Overriding VP8 encoder token partition setting to {}", v_r13_15);
           }
         }
       }
-      if (Vp8EncodeCpuUsedPlus17 - 1 <= 32) {
-        call_0x1f2b090(&this->field_0xb0, 13, Vp8EncodeCpuUsedPlus17 - 0x11);
-        if (RVideoTrace >= 6 && (uint64_t)RVideoTrace >> 8 >= 4) {
-          FLog::Log("[DFLog::RVideoTrace] Overriding VP8 encoder CPUUSED setting to {}");
+      if (VideoEnableVp9SpeedSettings && param_2->field_0x0->field_0xc == 130 && Vp9EncodeCpuUsed <= 9) {
+        call_0x1f2b090(&this->field_0xb0, 13, Vp9EncodeCpuUsed);
+        if ((uint8_t)RVideoTrace >= 6 && (uint8_t)((uint64_t)RVideoTrace >> 8) >= 4) {
+          FLog::Log("[DFLog::RVideoTrace] Overriding VP9 encoder CPUUSED setting to {}", Vp9EncodeCpuUsed);
         }
       }
-      if (Vp8EncodePartitions != 3) {
-        FLog::Log("[DFLog::RVideoTrace] Invalid VP8 encoder token partition setting {}, using 8");
-        return tailcall_0x1dd0033(&local_0x2f0, 3, &local_0x2e0, &local_0x2d0);
+      if (param_2->field_0x8 != 0) {
+        call_0x6daf40(param_2->field_0x8);
       }
+      return (v_rbx_13 != 0 ? -1 : 0) & 0x80000005;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -846,15 +1056,257 @@ Operação  : 0x1dcfa4f: cmp byte [flag], imm8 ; fn=0x1dcf4c0..0x1dcfffd
     0x1dcffe7 | 66 0f 7f 8d 10 02 00 00  | movdqa xmmword ptr [rbp + 0x210], xmm1
     0x1dcffef | 0f 10 05 fa 73 32 06     | movups xmm0, xmmword ptr [rip + 0x63273fa] ; DFLogRVideoTrace
     0x1dcfff6 | 0f 29 85 20 02 00 00     | movaps xmmword ptr [rbp + 0x220], xmm0
+    0x1dcfffd | c6 44 24 20 01           | mov byte ptr [rsp + 0x20], 0x1
+    0x1dd0002 | 4c 8d 8d 00 02 00 00     | lea r9, [rbp + 0x200]
+    0x1dd0009 | 4c 8d 85 10 02 00 00     | lea r8, [rbp + 0x210]
+    0x1dd0010 | 41 0f b6 d5              | movzx edx, r13b
+    0x1dd0014 | 48 8d 8d 20 02 00 00     | lea rcx, [rbp + 0x220]
+    0x1dd001b | e8 b0 1c ba 02           | call 0x4971cd0
+    L_0x1dd0020:
+    0x1dd0020 | 41 bd 02 00 00 00        | mov r13d, 0x2
+    0x1dd0026 | eb 0b                    | jmp 0x1dd0033
+    L_0x1dd0028:
+    0x1dd0028 | 41 bd 01 00 00 00        | mov r13d, 0x1
+    0x1dd002e | eb 03                    | jmp 0x1dd0033
+    L_0x1dd0030:
+    0x1dd0030 | 45 33 ed                 | xor r13d, r13d
+    L_0x1dd0033:
+    0x1dd0033 | 45 8b c5                 | mov r8d, r13d
+    0x1dd0036 | ba 12 00 00 00           | mov edx, 0x12
+    0x1dd003b | 49 8b cf                 | mov rcx, r15
+    0x1dd003e | e8 4d b0 15 00           | call 0x1f2b090
+    0x1dd0043 | 48 8b 05 a6 73 32 06     | mov rax, qword ptr [rip + 0x63273a6] ; DFLogRVideoTrace
+    0x1dd004a | 3c 06                    | cmp al, 0x6
+    0x1dd004c | 0f 82 a3 00 00 00        | jb 0x1dd00f5
+    0x1dd0052 | 48 c1 e8 08              | shr rax, 0x8
+    0x1dd0056 | 3c 04                    | cmp al, 0x4
+    0x1dd0058 | 0f 82 97 00 00 00        | jb 0x1dd00f5
+    0x1dd005e | 48 8d 05 06 0a b0 05     | lea rax, [rip + 0x5b00a06] ; "[DFLog::RVideoTrace] Overriding VP8 encoder token partition setting to {}"
+    0x1dd0065 | 48 89 44 24 30           | mov qword ptr [rsp + 0x30], rax
+    0x1dd006a | 48 8b 4c 24 30           | mov rcx, qword ptr [rsp + 0x30]
+    0x1dd006f | 48 81 c1 a5 e1 9b ff     | add rcx, 0xff9be1a5
+    0x1dd0076 | 48 89 4d 60              | mov qword ptr [rbp + 0x60], rcx
+    0x1dd007a | 48 8b c7                 | mov rax, rdi
+    0x1dd007d | 0f 1f 00                 | nop
+    L_0x1dd0080:
+    0x1dd0080 | 48 ff c0                 | inc rax
+    0x1dd0083 | 80 3c 01 00              | cmp byte ptr [rcx + rax], 0x0
+    0x1dd0087 | 75 f7                    | jne 0x1dd0080
+    0x1dd0089 | 48 89 45 68              | mov qword ptr [rbp + 0x68], rax
+    0x1dd008d | 44 89 6c 24 30           | mov dword ptr [rsp + 0x30], r13d
+    0x1dd0092 | 0f 28 44 24 30           | movaps xmm0, xmmword ptr [rsp + 0x30]
+    0x1dd0097 | 66 0f 7f 85 80 02 00 00  | movdqa xmmword ptr [rbp + 0x280], xmm0
+    0x1dd009f | 48 c7 45 50 01 00 00 00  | mov qword ptr [rbp + 0x50], 0x1
+    0x1dd00a7 | 48 8d 85 80 02 00 00     | lea rax, [rbp + 0x280]
+    0x1dd00ae | 48 89 45 58              | mov qword ptr [rbp + 0x58], rax
+    0x1dd00b2 | 0f 28 45 50              | movaps xmm0, xmmword ptr [rbp + 0x50]
+    0x1dd00b6 | 66 0f 7f 85 30 02 00 00  | movdqa xmmword ptr [rbp + 0x230], xmm0
+    0x1dd00be | 0f 28 4d 60              | movaps xmm1, xmmword ptr [rbp + 0x60]
+    0x1dd00c2 | 66 0f 7f 8d 40 02 00 00  | movdqa xmmword ptr [rbp + 0x240], xmm1
+    0x1dd00ca | 0f 10 05 1f 73 32 06     | movups xmm0, xmmword ptr [rip + 0x632731f] ; DFLogRVideoTrace
+    0x1dd00d1 | 0f 29 44 24 70           | movaps xmmword ptr [rsp + 0x70], xmm0
+    0x1dd00d6 | c6 44 24 20 01           | mov byte ptr [rsp + 0x20], 0x1
+    0x1dd00db | 4c 8d 8d 30 02 00 00     | lea r9, [rbp + 0x230]
+    0x1dd00e2 | 4c 8d 85 40 02 00 00     | lea r8, [rbp + 0x240]
+    0x1dd00e9 | b2 04                    | mov dl, 0x4
+    0x1dd00eb | 48 8d 4c 24 70           | lea rcx, [rsp + 0x70]
+    0x1dd00f0 | e8 db 1b ba 02           | call 0x4971cd0
+    L_0x1dd00f5:
+    0x1dd00f5 | 80 3d dc 7e 32 06 00     | cmp byte ptr [rip + 0x6327edc], 0x0 ; DFFlagVideoEnableVp9SpeedSettings
+    0x1dd00fc | 0f 84 e3 00 00 00        | je 0x1dd01e5
+    0x1dd0102 | 49 8b 04 24              | mov rax, qword ptr [r12]
+    0x1dd0106 | 81 78 0c 82 00 00 00     | cmp dword ptr [rax + 0xc], 0x82
+    0x1dd010d | 0f 85 d2 00 00 00        | jne 0x1dd01e5
+    0x1dd0113 | 8b 35 a7 7e 32 06        | mov esi, dword ptr [rip + 0x6327ea7] ; DFIntVp9EncodeCpuUsed
+    0x1dd0119 | 83 fe 09                 | cmp esi, 0x9
+    0x1dd011c | 0f 87 c3 00 00 00        | ja 0x1dd01e5
+    0x1dd0122 | 44 8b c6                 | mov r8d, esi
+    0x1dd0125 | ba 0d 00 00 00           | mov edx, 0xd
+    0x1dd012a | 49 8b cf                 | mov rcx, r15
+    0x1dd012d | e8 5e af 15 00           | call 0x1f2b090
+    0x1dd0132 | 48 8b 05 b7 72 32 06     | mov rax, qword ptr [rip + 0x63272b7] ; DFLogRVideoTrace
+    0x1dd0139 | 3c 06                    | cmp al, 0x6
+    0x1dd013b | 0f 82 a4 00 00 00        | jb 0x1dd01e5
+    0x1dd0141 | 48 c1 e8 08              | shr rax, 0x8
+    0x1dd0145 | 3c 04                    | cmp al, 0x4
+    0x1dd0147 | 0f 82 98 00 00 00        | jb 0x1dd01e5
+    0x1dd014d | 48 8d 05 3c 53 b2 05     | lea rax, [rip + 0x5b2533c] ; "[DFLog::RVideoTrace] Overriding VP9 encoder CPUUSED setting to {}"
+    0x1dd0154 | 48 89 44 24 30           | mov qword ptr [rsp + 0x30], rax
+    0x1dd0159 | 48 8b 44 24 30           | mov rax, qword ptr [rsp + 0x30]
+    0x1dd015e | 48 05 b0 93 99 ff        | add rax, 0xff9993b0
+    0x1dd0164 | 48 89 44 24 50           | mov qword ptr [rsp + 0x50], rax
+    0x1dd0169 | 0f 1f 80 00 00 00 00     | nop
+    L_0x1dd0170:
+    0x1dd0170 | 48 ff c7                 | inc rdi
+    0x1dd0173 | 80 3c 38 00              | cmp byte ptr [rax + rdi], 0x0
+    0x1dd0177 | 75 f7                    | jne 0x1dd0170
+    0x1dd0179 | 48 89 7c 24 58           | mov qword ptr [rsp + 0x58], rdi
+    0x1dd017e | 89 74 24 70              | mov dword ptr [rsp + 0x70], esi
+    0x1dd0182 | 0f 28 44 24 70           | movaps xmm0, xmmword ptr [rsp + 0x70]
+    0x1dd0187 | 66 0f 7f 85 c0 02 00 00  | movdqa xmmword ptr [rbp + 0x2c0], xmm0
+    0x1dd018f | 48 c7 44 24 60 01 00 00.. | mov qword ptr [rsp + 0x60], 0x1
+    0x1dd0198 | 48 8d 85 c0 02 00 00     | lea rax, [rbp + 0x2c0]
+    0x1dd019f | 48 89 44 24 68           | mov qword ptr [rsp + 0x68], rax
+    0x1dd01a4 | 0f 28 44 24 60           | movaps xmm0, xmmword ptr [rsp + 0x60]
+    0x1dd01a9 | 66 0f 7f 44 24 60        | movdqa xmmword ptr [rsp + 0x60], xmm0
+    0x1dd01af | 0f 28 4c 24 50           | movaps xmm1, xmmword ptr [rsp + 0x50]
+    0x1dd01b4 | 66 0f 7f 4c 24 50        | movdqa xmmword ptr [rsp + 0x50], xmm1
+    0x1dd01ba | 0f 10 05 2f 72 32 06     | movups xmm0, xmmword ptr [rip + 0x632722f] ; DFLogRVideoTrace
+    0x1dd01c1 | 0f 29 85 60 02 00 00     | movaps xmmword ptr [rbp + 0x260], xmm0
+    0x1dd01c8 | c6 44 24 20 01           | mov byte ptr [rsp + 0x20], 0x1
+    0x1dd01cd | 4c 8d 4c 24 60           | lea r9, [rsp + 0x60]
+    0x1dd01d2 | 4c 8d 44 24 50           | lea r8, [rsp + 0x50]
+    0x1dd01d7 | b2 04                    | mov dl, 0x4
+    0x1dd01d9 | 48 8d 8d 60 02 00 00     | lea rcx, [rbp + 0x260]
+    0x1dd01e0 | e8 eb 1a ba 02           | call 0x4971cd0
+    L_0x1dd01e5:
+    0x1dd01e5 | f7 db                    | neg ebx
+    0x1dd01e7 | 1b db                    | sbb ebx, ebx
+    0x1dd01e9 | 81 e3 05 00 00 80        | and ebx, 0x80000005
+    0x1dd01ef | 49 8b 4c 24 08           | mov rcx, qword ptr [r12 + 0x8]
+    0x1dd01f4 | 48 85 c9                 | test rcx, rcx
+    0x1dd01f7 | 74 05                    | je 0x1dd01fe
+    0x1dd01f9 | e8 42 ad 90 fe           | call 0x6daf40
+    L_0x1dd01fe:
+    0x1dd01fe | 8b c3                    | mov eax, ebx
+    0x1dd0200 | eb 13                    | jmp 0x1dd0215
+    L_0x1dd0202:
+    0x1dd0202 | 48 8b 4a 08              | mov rcx, qword ptr [rdx + 0x8]
+    0x1dd0206 | 48 85 c9                 | test rcx, rcx
+    0x1dd0209 | 74 05                    | je 0x1dd0210
+    0x1dd020b | e8 30 ad 90 fe           | call 0x6daf40
+    L_0x1dd0210:
+    0x1dd0210 | b8 03 00 00 80           | mov eax, 0x80000003
+    L_0x1dd0215:
+    0x1dd0215 | 48 8b 8d 60 05 00 00     | mov rcx, qword ptr [rbp + 0x560]
+    0x1dd021c | 48 33 cc                 | xor rcx, rsp
+    0x1dd021f | e8 7c 46 01 04           | call 0x5de48a0
+    0x1dd0224 | 48 8b 9c 24 c0 06 00 00  | mov rbx, qword ptr [rsp + 0x6c0]
+    0x1dd022c | 48 81 c4 70 06 00 00     | add rsp, 0x670
+    0x1dd0233 | 41 5f                    | pop r15
+    0x1dd0235 | 41 5e                    | pop r14
+    0x1dd0237 | 41 5d                    | pop r13
+    0x1dd0239 | 41 5c                    | pop r12
+    0x1dd023b | 5f                       | pop rdi
+    0x1dd023c | 5e                       | pop rsi
+    0x1dd023d | 5d                       | pop rbp
+    0x1dd023e | c3                       | ret
+  
+  === [Estrutura RTTI & VTable da Classe (RBX::RVideoInternal::VpxSoftwareCodec)] ===
+    VTable  : 0x70394d0 (offset +0x0, 18 slots virtuais)
+    Herança : RBX::RVideo::RvCodec, RBX::RVideo::RvCodec (+0x8)
+    +0x0 -> fn_0x1d9f9b0
+    +0x8 -> fn_0x1dd3630
+    +0x10 -> fn_0x1398090
+    +0x18 -> fn_0x1d9f9d0
+    +0x20 -> fn_0x1398090
+    +0x28 -> fn_0x1d9f9f0
+    +0x30 -> fn_0x1398090
+    +0x40 -> fn_0x1dcefa0
+    +0x58 -> fn_0x1dd0390
+    +0x60 -> fn_0x1dcf150
+    +0x68 -> fn_0x1dd0240
+    +0x70 -> fn_0x1dd0520
+    +0x78 -> fn_0x1dd1ee0
+    +0x80 -> fn_0x1dd0e10
+    +0x88 -> fn_0x1dd34c0
+    +0x90 -> fn_0x1dd3700
+  
+  === [Decompilacao de Metodo da Classe RBX::RVideoInternal::VpxSoftwareCodec: 0x1dd3630..0x1dd36f9 (vfunc_0x8)] ===
+    bool RBX::RVideoInternal::VpxSoftwareCodec::func_0x1dd3630(RBX::RVideoInternal::VpxSoftwareCodec* this, int64_t param_2) {
+      auto ret_0x4954e70_1 = call_0x4954e70(global_0x84b4348);
+      call_0x1d9fc90(this, &param_2->field_0x78);
+      if (param_2->field_0x8 != (param_2->field_0x10 << 4) + param_2->field_0x8) {
+        void* i_edi = param_2->field_0x8;
+        do { // L_0x1dd3680
+          call_0x1d9fdc0(this, i_edi);
+          i_edi += 0x10;
+        } while (i_edi != (param_2->field_0x10 << 4) + param_2->field_0x8); // loop -> L_0x1dd3680
+      }
+      void* prev_0x8_2 = param_2->field_0x8;
+      call_0xcb4170(prev_0x8_2, (param_2->field_0x10 << 4) + param_2->field_0x8);
+      if (ret_0x4954e70_1 >= 1024) {
+        call_0x494e780();
+      } else {
+        auto ret_0x4954c10_5 = call_0x4954c10();
+        if (ret_0x4954c10_5 != 0) {
+          ret_0x4954c10_5->field_0x0 = ret_0x4954c10_5->field_0x0 ^ (ret_0x4954c10_5->field_0x0 ^ ret_0x4954e70_1) & 0x3ff;
+        } else {
+          call_0x4954d30(ret_0x4954e70_1, 1023);
+        }
+      }
+      return false;
+    }
+  
+  === [Decompilacao de Metodo da Classe RBX::RVideoInternal::VpxSoftwareCodec: 0x1dcefa0..0x1dcefc2 (vfunc_0x40)] ===
+    struct RBX::RVideoInternal::VpxSoftwareCodec {
+      /* +0x40 */ void*   field_0x40;
+    };
+    
+    // Flag defaults: VideoCapturePlaystation = false
+    bool RBX::RVideoInternal::VpxSoftwareCodec::func_0x1dcefa0(RBX::RVideoInternal::VpxSoftwareCodec* this) {
+      auto* f_40 = this->field_0x40;
+      return !VideoCapturePlaystation && f_40->field_0x8 == 0 && f_40->field_0xc >= 128;
+    }
+  
+  === [Decompilacao de Metodo da Classe RBX::RVideoInternal::VpxSoftwareCodec: 0x1dd0390..0x1dd0512 (vfunc_0x58)] ===
+    struct RBX::RVideoInternal::VpxSoftwareCodec {
+      /* +0xb8 */ void*   field_0xb8;
+      /* +0xc0 */ int32_t field_0xc0;
+      /* +0xe0 */ void*   field_0xe0;
+      /* +0x190 */ int32_t field_0x190;
+      /* +0x319 */ uint8_t field_0x319;
+    };
+    
+    // Flag defaults: RVideoTrace = 0
+    void RBX::RVideoInternal::VpxSoftwareCodec::func_0x1dd0390(RBX::RVideoInternal::VpxSoftwareCodec* this, int64_t param_2) {
+      if (this->field_0x319 != 0 && (param_2 / 1000 >> 7) + ((uint64_t)(param_2 / 1000 >> 7) >> 63) != this->field_0x190) {
+        this->field_0x190 = (param_2 / 1000 >> 7) + ((uint64_t)(param_2 / 1000 >> 7) >> 63);
+        int32_t v_rcx_1;
+        auto* f_b8 = this->field_0xb8;
+        if (this != 0 && f_b8 != 0 && this->field_0xe0 != 0 && this != 0) {
+          if ((f_b8->field_0xc & 0x2) == 0) {
+            v_rcx_1 = 4;
+          } else {
+            auto vret_1 = f_b8->vfunc_0x70(this->field_0xe0, &this->field_0x120);
+            v_rcx_1 = vret_1;
+          }
+          this->field_0xc0 = v_rcx_1;
+          if (v_rcx_1 != 0) {
+            L_0x1dd0442:
+            if ((uint8_t)RVideoTrace >= 6 && (uint8_t)((uint64_t)RVideoTrace >> 8) >= 3) {
+              FLog::Log("[DFLog::RVideoTrace] vpx_codec_enc_config_set failed: {}");
+              call_0x4971cd0(&local_0x50, 3, &local_0x40, &local_0x30);
+            }
+          }
+        } else {
+          if (this != 0) {
+            v_rcx_1 = 8;
+            this->field_0xc0 = v_rcx_1;
+            if (v_rcx_1 != 0) {
+              if ((uint8_t)RVideoTrace >= 6 && (uint8_t)((uint64_t)RVideoTrace >> 8) >= 3) {
+                FLog::Log("[DFLog::RVideoTrace] vpx_codec_enc_config_set failed: {}");
+                call_0x4971cd0(&local_0x50, 3, &local_0x40, &local_0x30);
+              }
+            }
+          } else {
+            goto L_0x1dd0442;
+          }
+        }
+      }
+    }
 
 [Strings .rdata na função]
-  * [DFLog::RVideoTrace] Invalid timebase provided to VPX encoder. Defaulting to 30fps.
-  * [DFLog::RVideoTrace] Opening VPX encoder with width: {}, height: {}, bitrate: {}, lag in frames:
-  * [DFLog::RVideoTrace] Overriding VP8 encoder thread count to {}
-  * [DFLog::RVideoTrace] Overriding VP9 encoder thread count to {}
-  * [DFLog::RVideoTrace] Overriding VP8 encoder CPUUSED setting to {}
-  * [DFLog::RVideoTrace] Invalid VP8 encoder token partition setting {}, using 8
-  * [DFLog::RVideoTrace] Invalid VP8 encoder token partition setting {}, using 4
+  * "[DFLog::RVideoTrace] Invalid timebase provided to VPX encoder. Defaulting to 30fps."  [@rdata 0x728ea90, ref @0x1dcf59c, FLog format]
+  * "[DFLog::RVideoTrace] Opening VPX encoder with width: {}, height: {}, bitrate: {}, lag in frames:"  [@rdata 0x728e9f0, ref @0x1dcf82e, FLog format]
+  * "[DFLog::RVideoTrace] Overriding VP8 encoder thread count to {}"  [@rdata 0x728eb28, ref @0x1dcf9c0, FLog format]
+  * "[DFLog::RVideoTrace] Overriding VP9 encoder thread count to {}"  [@rdata 0x728eae8, ref @0x1dcfaaa, FLog format]
+  * "[DFLog::RVideoTrace] Overriding VP8 encoder CPUUSED setting to {}"  [@rdata 0x728ebc0, ref @0x1dcfde8, FLog format]
+  * "[DFLog::RVideoTrace] Invalid VP8 encoder token partition setting {}, using 8"  [@rdata 0x728ec60, ref @0x1dcfedf, FLog format]
+  * "[DFLog::RVideoTrace] Invalid VP8 encoder token partition setting {}, using 4"  [@rdata 0x728eb70, ref @0x1dcff97, FLog format]
+  * "[DFLog::RVideoTrace] Overriding VP8 encoder token partition setting to {}"  [@rdata 0x728ec10, ref @0x1dd006f, FLog format]
+  * "[DFLog::RVideoTrace] Overriding VP9 encoder CPUUSED setting to {}"  [@rdata 0x728e840, ref @0x1dd015e, FLog format]
+  * "[DFLog::RVideoTrace] VpxSoftwareCodec::close"  [@rdata 0x728e808, ref @0x1dd0287, FLog format]
 
 [Co-Flags na mesma função]
   * FFlagVideoCapturePlaystation = false (default)
@@ -868,5 +1320,5 @@ Operação  : 0x1dcfa4f: cmp byte [flag], imm8 ; fn=0x1dcf4c0..0x1dcfffd
   * DFIntVp9EncodeThreads = 0 (default)
   * DFIntVp8EncodeCpuUsedPlus17 = 0 (default)
   * DFIntVp8EncodePartitions = 0 (default)
-  * DFIntVp9EncodeCpuUsed = 0 (default) [vizinha em .data]
+  * DFIntVp9EncodeCpuUsed = 0 (default)
   * FIntVideoFramePoolSizeAdjustment = 2 (default) [vizinha em .data]

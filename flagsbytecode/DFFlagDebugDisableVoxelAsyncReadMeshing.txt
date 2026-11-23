@@ -13,7 +13,7 @@ Operação  : 0x380e032: cmp byte [flag], imm8 ; fn=0x380e000..0x380e415
   === [Decompilacao C++ da Funcao 0x380e000..0x380e415] ===
     // Flag defaults: DebugDisableVoxelAsyncReadMeshing = false
     void RBX::DebugDisable::func_0x380e000(RBX::DebugDisable* this, int64_t param_2) {
-      (rax & 0x48)->field_0x0 = param_2;
+      ((uint8_t)rax & 0x48)->field_0x0 = param_2;
       call_0x371d9e0(r15);
       if (rsi->field_0x8 != 0) {
         call_0x6daf40(rsi->field_0x8);

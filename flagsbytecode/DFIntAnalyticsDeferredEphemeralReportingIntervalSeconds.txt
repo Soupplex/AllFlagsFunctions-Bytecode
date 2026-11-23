@@ -9,7 +9,7 @@ Operação  : 0x2ac16e7: mov/math reg, [flag] ; fn=0x2ac16c0..0x2ac175a
     Classe  : RBX::AnalyticsDeferred (Inferido)
     Padrão  : DFIntAnalyticsDeferredEphemeralReportingIntervalSeconds = 30 (default) [int, mode=2]
     Papel   : Parâmetro de configuração lido diretamente pela rotina
-    Fórmula : call_0xd150(&this->field_0x0->field_0x20, AnalyticsDeferredEphemeralReportingIntervalSeconds * 1000000000 + v_rax_1)
+    Fórmula : AnalyticsDeferredEphemeralReportingIntervalSeconds * 1000000000 + v_rax_1
     Altera  : this->field_0x0->field_0x18
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
@@ -98,7 +98,7 @@ Operação  : 0x2ac16e7: mov/math reg, [flag] ; fn=0x2ac16c0..0x2ac175a
       if (f_0->field_0x8 == 0) {
         auto ret_0x2abd890_1 = call_0x2abd890(&f_0->field_0x10, &local_0xc8);
         if (ret_0x2abd890_1->field_0x0 == 0) {
-          if (AnalyticsDeferredEphemeralReportingDiagnostic >= 6 && (uint64_t)AnalyticsDeferredEphemeralReportingDiagnostic >> 8 >= 3) {
+          if ((uint8_t)AnalyticsDeferredEphemeralReportingDiagnostic >= 6 && (uint8_t)((uint64_t)AnalyticsDeferredEphemeralReportingDiagnostic >> 8) >= 3) {
             FLog::Log("[DFLog::AnalyticsDeferredEphemeralReportingDiagnostic] Starting DeferredEphemeral timer thread");
           }
           auto* f_8 = this->field_0x8;
@@ -266,12 +266,56 @@ Operação  : 0x2ac16e7: mov/math reg, [flag] ; fn=0x2ac16c0..0x2ac175a
     0x2ac08da | 5b                       | pop rbx
     0x2ac08db | 5d                       | pop rbp
     0x2ac08dc | c3                       | ret
+  
+  === [Decompilacao da Rotina Chamadora (Caller): 0x2abfc90..0x2abfe3d em RBX::AnalyticsDeferred] ===
+    struct RBX::AnalyticsDeferred {
+      /* +0x0 */ void*   field_0x0;
+    };
+    
+    // Flag defaults: AnalyticsDeferredEphemeralReportingDiagnostic = 0, AnalyticsMaxDeferredStats = 50
+    void RBX::AnalyticsDeferred::func_0x2abfc90(RBX::AnalyticsDeferred* this, int64_t param_2, double param_3, void* param_4) {
+      if (global_0x84a356d == 0) {
+        call_0x2e12fd0(this->field_0x0);
+        call_0x2ac16c0(this);
+        if ((uint8_t)AnalyticsDeferredEphemeralReportingDiagnostic >= 6 && (uint8_t)((uint64_t)AnalyticsDeferredEphemeralReportingDiagnostic >> 8) >= 3) {
+          FLog::Log("[DFLog::AnalyticsDeferredEphemeralReportingDiagnostic] Adding stat %s = %f");
+        }
+        auto* f_0 = this->field_0x0;
+        if (f_0->field_0x30 != f_0->field_0x38) {
+          void* prev_0x30_1 = f_0->field_0x30;
+          call_0x6f7510(prev_0x30_1, param_2);
+          this->field_0x0->field_0x30->field_0x20 = param_3;
+          this->field_0x0->field_0x30 = this->field_0x0->field_0x30 + 0x28;
+        } else {
+          auto local_0x18 = param_3;
+          call_0x2ac3fe0(&this->field_0x0->field_0x28, this->field_0x0->field_0x30, param_2, &local_0xa0);
+        }
+        auto* f_0_2 = this->field_0x0;
+        int64_t tmp_2 = ((uint64_t)((f_0_2->field_0x30 - f_0_2->field_0x28) / 40 >> 4) >> 63) + ((f_0_2->field_0x30 - f_0_2->field_0x28) / 40 >> 4);
+        int64_t local_0x30;
+        if (tmp_2 + f_0_2->field_0x50 >= AnalyticsMaxDeferredStats || param_4 != 0) {
+          local_0x30 = f_0_2;
+          call_0x2abf8f0(&local_0x40, &local_0x30, this, param_4);
+          if (local_0x58 != 0) {
+            call_0x6daf40(local_0x58);
+          }
+          if (local_0x48 != 0) {
+            call_0x6daf40(local_0x48);
+          }
+        }
+        if (local_0x38 != 0 && (local_0x30->field_0x0 != 3 || atomic_cas(&local_0x30->field_0x0, 3, 1) != 0)) {
+          call_0xdac0(local_0x30);
+        }
+      }
+    }
 
 [Strings .rdata na função]
-  * [DFLog::AnalyticsDeferredEphemeralReportingDiagnostic] Starting DeferredEphemeral timer thread
+  * "[DFLog::AnalyticsDeferredEphemeralReportingDiagnostic] Starting DeferredEphemeral timer thread"  [@rdata 0x7338cc0, ref @0x2ac079c, FLog format]
+  * "[DFLog::AnalyticsDeferredEphemeralReportingDiagnostic] Adding stat %s = %f"  [@rdata 0x7338960, ref @0x2abfd06, FLog format]
 
 [Co-Flags na mesma função]
   * DFLogAnalyticsDeferredEphemeralReportingDiagnostic = 0 (default)
+  * DFIntAnalyticsMaxDeferredStats = 50 (default)
   * FFlagEphemeralCounterReadDenyListsWithoutCopy = false (default) [vizinha em .data]
   * DFIntMeasurementsMaxPendingReports = 100 (default) [vizinha em .data]
   * DFIntSessionCountIntervalSeconds = 60 (default) [vizinha em .data]

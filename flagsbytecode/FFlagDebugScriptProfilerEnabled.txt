@@ -9,21 +9,23 @@ Operação  : 0x429171e: movzx reg, byte [flag] ; fn=0x4291680..0x4291c8b
     Classe  : RBX::TelemetryScriptProfiler (RTTI Resolvido)
     Padrão  : FFlagDebugScriptProfilerEnabled = false (default) [bool, mode=1]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
-    Fórmula : !DebugScriptProfilerEnabled
+    Fórmula : DebugScriptProfilerEnabled
     Altera  : this->field_0x0, this->field_0x8, this->field_0x10, this->field_0x20, this->field_0x30, this->field_0x38
     [XREF #2 @0x4291cf4] Classe  : RBX::DebugScript (Inferido)
-    [XREF #2 @0x4291cf4] Fórmula : !DebugScriptProfilerEnabled
+    [XREF #2 @0x4291cf4] Fórmula : DebugScriptProfilerEnabled
     [XREF #3 @0x429354b] Classe  : RBX::DebugScript (Inferido)
-    [XREF #3 @0x429354b] Fórmula : DebugScriptProfilerEnabled
+    [XREF #3 @0x429354b] Fórmula : this->field_0x78 >= 0 && !DebugScriptProfilerEnabled && this->field_0x7c == 0
+    [XREF #3 @0x429354b] Fórmula : !DebugScriptProfilerEnabled && this->field_0x18 == 0
     [XREF #3 @0x429354b] Altera  : this->field_0x60->field_0x8, this->field_0x60->field_0x10, this->field_0x7c, this->field_0x60, this->field_0x68, this->field_0x10
     [XREF #4 @0x429379f] Classe  : RBX::DebugScript (Inferido)
-    [XREF #4 @0x429379f] Fórmula : !DebugScriptProfilerEnabled
+    [XREF #4 @0x429379f] Fórmula : this->field_0x78 > 0 || DebugScriptProfilerEnabled
+    [XREF #4 @0x429379f] Fórmula : this->field_0x7c == 0 && (DebugScriptProfilerEnabled || this->field_0x78 != 0)
     [XREF #4 @0x429379f] Altera  : this->field_0x60->field_0x10, this->field_0x78
     [XREF #5 @0x4293851] Classe  : RBX::DebugScript (Inferido)
-    [XREF #5 @0x4293851] Fórmula : DebugScriptProfilerEnabled
+    [XREF #5 @0x4293851] Fórmula : this->field_0x7c != 0 && !DebugScriptProfilerEnabled
     [XREF #5 @0x4293851] Altera  : this->field_0x68, this->field_0x10
     [XREF #6 @0x429418a] Classe  : RBX::DebugScript (Inferido)
-    [XREF #6 @0x429418a] Fórmula : !DebugScriptProfilerEnabled
+    [XREF #6 @0x429418a] Fórmula : DebugScriptProfilerEnabled && f_70 != 0
   
   === [Decompilacao C++ da Funcao 0x4291680..0x4291c8b] ===
     struct RBX::TelemetryScriptProfiler {
@@ -141,12 +143,13 @@ Operação  : 0x429171e: movzx reg, byte [flag] ; fn=0x4291680..0x4291c8b
             if (this->field_0xa0->field_0x0 != 0) {
               if (atomic_cas(&this->field_0xa0->field_0x0, this->field_0xa0->field_0x0, this->field_0xa0->field_0x0 + 1) == 0) {
                 if (this->field_0xa0 != 0 && atomic_fetch_sub(&this->field_0xa0->field_0x0, 1) == 1) {
-                  call_0x4969520(this->field_0xa0);
+                  void* prev_0xa0_5 = this->field_0xa0;
+                  call_0x4969520(prev_0xa0_5);
                   if (atomic_fetch_sub(&this->field_0xa0->field_0x4, 1) == 1) {
-                    call_0x496a4e0(this->field_0xa0);
-                    v_r15_8 = this->field_0xa0;
+                    call_0x496a4e0(prev_0xa0_5);
+                    v_r15_8 = prev_0xa0_5;
                   } else {
-                    v_r15_8 = this->field_0xa0;
+                    v_r15_8 = prev_0xa0_5;
                   }
                 } else {
                   v_r15_8 = this->field_0xa0;
@@ -1013,17 +1016,18 @@ Operação  : 0x429171e: movzx reg, byte [flag] ; fn=0x4291680..0x4291c8b
         f_70->vfunc_0x0(f_70, 1);
       }
       if (this->field_0x68 != 0) {
-        call_0x4267fd0(this->field_0x68);
-        call_0x4955ac0(this->field_0x68);
+        void* prev_0x68_1 = this->field_0x68;
+        call_0x4267fd0(prev_0x68_1);
+        call_0x4955ac0(prev_0x68_1);
       }
       auto* f_60 = this->field_0x60;
       if (f_60 != 0) {
         f_60->vfunc_0x10(f_60, 1);
       }
-      if ((this->field_0x8 & 0x1) == 0) {
+      if (((uint8_t)this->field_0x8 & 0x1) == 0) {
         call_0xcca0(&this->field_0x8);
       }
-      if ((this->field_0x0 & 0x1) == 0) {
+      if (((uint8_t)this->field_0x0 & 0x1) == 0) {
         call_0xcca0(this);
       }
       call_0x5e051b0(this, 221, 168);
@@ -1706,8 +1710,12 @@ Operação  : 0x429171e: movzx reg, byte [flag] ; fn=0x4291680..0x4291c8b
     
     // Flag defaults: DebugScriptProfilerEnabled = false
     void RBX::DebugScript::func_0x42940a0(RBX::DebugScript* this, int64_t param_2, void* param_3, void* param_4) {
+      void* prev_0x38_1 = this->field_0x38;
+      void* prev_0x30_2 = ((param_2 != 0 ? param_2->field_0x48 : 0)->field_0x18)->field_0x30;
       call_0x2e12fd0(this);
+      void* v_rbx_4 = prev_0x38_1;
       if (this->field_0x58 == 0) {
+        void* v_rbx_3 = prev_0x38_1;
         if (this->field_0x60 != 0) {
           if (global_0x8ded8b0 > rbp->field_0x58->field_0x0->field_0x0[40]) {
             call_0x12e0(&sym_0x8ded8b0);
@@ -1725,14 +1733,16 @@ Operação  : 0x429171e: movzx reg, byte [flag] ; fn=0x4291680..0x4291c8b
           auto* f_70 = this->field_0x70;
           if (DebugScriptProfilerEnabled && f_70 != 0) {
             auto vret_6 = f_70->vfunc_0x8();
-            if (vret_6 != 0) {
+            if ((uint8_t)vret_6 != 0) {
               void* i_ebx = ret_0xc700_5->field_0x0;
               if (ret_0xc700_5->field_0x0 != ret_0xc700_5->field_0x8) {
+                void* prev_0x8_4;
                 do { // L_0x42941c1
+                  prev_0x8_4 = ret_0xc700_5->field_0x8;
                   call_0x6f8fb0(i_ebx + 0x20);
                   call_0x6f8fb0(i_ebx);
                   i_ebx += 0x48;
-                } while (i_ebx != ret_0xc700_5->field_0x8); // loop -> L_0x42941c1
+                } while (i_ebx != prev_0x8_4); // loop -> L_0x42941c1
               }
               ret_0xc700_5->field_0x8 = ret_0xc700_5->field_0x0;
               stk_2 = 1;
@@ -1743,17 +1753,21 @@ Operação  : 0x429171e: movzx reg, byte [flag] ; fn=0x4291680..0x4291c8b
             stk_2 = 0;
           }
           auto* f_60 = this->field_0x60;
-          f_60->vfunc_0x0(f_60, param_2, param_3, param_4);
+          f_60->vfunc_0x0(f_60, param_2, param_3, (uint8_t)param_4);
           if (stk_2 != 0 && ret_0xc700_5->field_0x0 != ret_0xc700_5->field_0x8) {
             auto* f_70_2 = this->field_0x70;
             f_70_2->vfunc_0x10(f_70_2, ret_0xc700_5);
           }
+          v_rbx_3 = this->field_0x38;
         }
         if (this->field_0x68 != 0) {
           call_0x4268040(this->field_0x68, param_2);
+          v_rbx_4 = v_rbx_3;
+        } else {
+          v_rbx_4 = v_rbx_3;
         }
       }
-      (((param_2 != 0 ? param_2->field_0x48 : 0)->field_0x18)->field_0x30)->field_0xf0 = this->field_0x38;
+      prev_0x30_2->field_0xf0 = v_rbx_4;
       if (this->field_0x0 != 3 || atomic_cas(&this->field_0x0, this->field_0x0, 1) != 0) {
         call_0xdac0(this);
       }
@@ -1942,15 +1956,24 @@ Operação  : 0x429171e: movzx reg, byte [flag] ; fn=0x4291680..0x4291c8b
     0x4294356 | 48 8d 0d 53 95 b5 04     | lea rcx, [rip + 0x4b59553]
     0x429435d | e8 8e d1 d6 fb           | call 0x14f0
     0x4294362 | e9 12 fe ff ff           | jmp 0x4294179
+  
+  === [Estrutura RTTI & VTable da Classe (RBX::TelemetryScriptProfiler)] ===
+    VTable  : 0x7120580 (offset +0x0, 5 slots virtuais)
+    Herança : RBX::BaseScriptProfiler
+    +0x0 -> fn_0x42660b0
+    +0x8 -> fn_0x4267160
+    +0x10 -> fn_0x4265ac0
+    +0x20 -> fn_0x4265af0
+    +0x28 -> fn_0x4267ef0
 
 [Strings .rdata na função]
-  * profile-client.out
-  * profile-server.out
-  * profile.out
-  * Invalid Facet Access
-  * Uncategorized
-  * Script Time
-  * Script Allocs
+  * "profile-client.out"  [@rdata 0x743b168, ref @0x4291d51, literal, 18B]
+  * "profile-server.out"  [@rdata 0x743b358, ref @0x4291d5a, literal, 18B]
+  * "profile.out"  [@rdata 0x743b370, ref @0x4291d61, literal, 11B]
+  * "Invalid Facet Access"  [@rdata 0x7225a28, ref @0x4291f08, literal, 20B]
+  * "Uncategorized"  [@rdata 0x719c798, ref @0x42940f6, key/identifier]
+  * "Script Time"  [@rdata 0x743b418, ref @0x4291f44, literal, 11B]
+  * "Script Allocs"  [@rdata 0x743b250, ref @0x4292727, literal, 13B]
 
 [Co-Flags na mesma função]
   * DFIntTelemetryProfilerHundredthsPercentage = 1 (default)

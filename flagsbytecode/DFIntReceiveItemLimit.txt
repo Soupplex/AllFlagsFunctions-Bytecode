@@ -9,8 +9,7 @@ Operação  : 0x463ba9a: mov/math reg, [flag] ; fn=0x463ba70..0x463bbab
     Classe  : RBX::ReceiveItem (Inferido)
     Padrão  : DFIntReceiveItemLimit = 0 (default) [int, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : ReceiveItemLimit <= 0
-    Fórmula : param_3 <= ReceiveItemLimit
+    Fórmula : (uint8_t)(this == 0 ? param_2 : 1) != 0 && ReceiveItemLimit > 0 && param_3 > ReceiveItemLimit
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x463c0c5 (in fn_0x463bbb0): call 0x463ba70  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
@@ -19,8 +18,8 @@ Operação  : 0x463ba9a: mov/math reg, [flag] ; fn=0x463ba70..0x463bbab
   === [Decompilacao C++ da Funcao 0x463ba70..0x463bbab] ===
     // Flag defaults: ReceiveItemLimit = 0
     void RBX::ReceiveItem::func_0x463ba70(RBX::ReceiveItem* this, int64_t param_2, void* param_3, void* param_4) {
-      if ((this == 0 ? param_2 : 1) != 0 && ReceiveItemLimit > 0 && param_3 > ReceiveItemLimit) {
-        call_0x1d48fe0(&local_0x60, &local_0x40, &local_0x30);
+      if ((uint8_t)(this == 0 ? param_2 : 1) != 0 && ReceiveItemLimit > 0 && param_3 > ReceiveItemLimit) {
+        call_0x1d48fe0(&local_0x60, std::string_view("ItemType: {}", 12), &local_0x30);
         call_0x480f080(1, this, 0, param_3);
         std::string::_Tidy_deallocate(local_0x60);
       }
@@ -106,35 +105,57 @@ Operação  : 0x463ba9a: mov/math reg, [flag] ; fn=0x463ba70..0x463bbab
   === [Sub-Rotina Chamada: 0x480f080..0x480f422 via call @0x463bb46 (Direct Engine Sub-Call)] ===
     // Flag defaults: Network = 7, EnableSendItemLimitDisconnect = false
     void SubObj_0x480f080::func_0x480f080(SubObj_0x480f080* this, int64_t param_2, void* param_3, void* param_4) {
+      void* sel_rsi_1 = this >= 2 && this <= 3 ? "Remote event" : "Item";
+      void* stk_2;
+      float fxmm0_5;
+      void* stk_14;
       if ((this & 0xfffffffd) != 0) {
-        if (Network >= 6 && (uint64_t)Network >> 8 >= 3) {
+        stk_2 = "receive";
+        if ((uint8_t)Network >= 6 && (uint8_t)((uint64_t)Network >> 8) >= 3) {
+          void* v_rcx_3 = local_0x2b8;
+          if (local_0x2b8->field_0x18 >= 16) {
+            v_rcx_3 = local_0x2b8->field_0x0;
+          }
+          fxmm0_5 = v_rcx_3;
           "[FLog::Network] {} exceeds maximum {} size ({} > {} bytes). {}";
+          stk_14 = stk_2;
           L_0x480f1b4:
-          FLog::Log("[FLog::Network] {} exceeds maximum {} size ({} > {} bytes). {}");
+          FLog::Log("[FLog::Network] {} exceeds maximum {} size ({} > {} bytes). {}", sel_rsi_1, stk_14, param_4, fxmm0_5);
         }
       } else if ((this & 0xfffffffd) == 0) {
-        if (Network >= 6 && (uint64_t)Network >> 8 >= 2) {
+        if ((uint8_t)Network >= 6 && (uint8_t)((uint64_t)Network >> 8) >= 2) {
+          void* v_rcx_1 = local_0x2b8;
           if (local_0x2b8->field_0x18 >= 16) {
-            FLog::Log("[FLog::Network] {} exceeds maximum {} size ({} > {} bytes). {}");
+            v_rcx_1 = local_0x2b8->field_0x0;
+            FLog::Log("[FLog::Network] {} exceeds maximum {} size ({} > {} bytes). {}", sel_rsi_1, stk_14, param_4, fxmm0_5);
             if (param_3 != 0) {
-              call_0x1bf4900(3, &local_0xe0, &local_0xb0);
+              call_0x1bf4900(3, std::string_view("{} exceeds maximum {} size ({} > {} bytes). {}", 46), &local_0xb0);
             }
-            call_0x480ec70(this, param_2, EnableSendItemLimitDisconnect, param_4);
+            call_0x480ec70(this, (uint8_t)param_2, EnableSendItemLimitDisconnect, param_4);
             return;
           }
+          fxmm0_5 = v_rcx_1;
+          stk_14 = "send";
           "[FLog::Network] {} exceeds maximum {} size ({} > {} bytes). {}";
           goto L_0x480f1b4;
         }
       } else {
-        if (Network >= 6 && (uint64_t)Network >> 8 >= 3) {
+        stk_2 = "send";
+        if ((uint8_t)Network >= 6 && (uint8_t)((uint64_t)Network >> 8) >= 3) {
+          void* v_rcx_3 = local_0x2b8;
+          if (local_0x2b8->field_0x18 >= 16) {
+            v_rcx_3 = local_0x2b8->field_0x0;
+          }
+          fxmm0_5 = v_rcx_3;
           "[FLog::Network] {} exceeds maximum {} size ({} > {} bytes). {}";
+          stk_14 = stk_2;
           goto L_0x480f1b4;
         }
       }
       if (param_3 != 0) {
-        call_0x1bf4900(3, &local_0xe0, &local_0xb0);
+        call_0x1bf4900(3, std::string_view("{} exceeds maximum {} size ({} > {} bytes). {}", 46), &local_0xb0);
       }
-      call_0x480ec70(this, param_2, EnableSendItemLimitDisconnect, param_4);
+      call_0x480ec70(this, (uint8_t)param_2, EnableSendItemLimitDisconnect, param_4);
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x480f080..0x480f422)] ===
@@ -351,20 +372,171 @@ Operação  : 0x463ba9a: mov/math reg, [flag] ; fn=0x463ba70..0x463bbab
     0x480f40f | 48 8d 15 9a e6 8b 03     | lea rdx, [rip + 0x38be69a]
     0x480f416 | 48 8d 8d 10 01 00 00     | lea rcx, [rbp + 0x110]
     0x480f41d | e8 ce 72 5f 01           | call 0x5e066f0
+  
+  === [Decompilacao da Rotina Chamadora (Caller): 0x463bbb0..0x463c3f7 em RBX::ReceiveItem] ===
+    struct RBX::Network::DeserializedISRTimestampItem {
+      /* +0x0 */ void*   field_0x0;
+      /* +0xfc */ int32_t field_0xfc;
+    };
+    
+    // Flag defaults: EnableReplicationSizeLimits = false, MicroProfilerMemoryScope = true
+    void RBX::Network::DeserializedISRTimestampItem::func_0x463bbb0(RBX::Network::DeserializedISRTimestampItem* this, int64_t param_2, void* param_3, void* param_4) {
+      int32_t i_esi = 0;
+      if (global_0x8defa48 > rbp->field_0x58->field_0x0->field_0x0[40]) {
+        call_0x12e0(&sym_0x8defa48);
+      }
+      L_0x463bc09:
+      do { // L_0x463bc09
+        call_0x2924c40(&local_0x40, global_0x8defa50, -1, 0);
+        param_2->field_0x0 = i_esi;
+        if (param_4 - 13 > 230) break;
+        uint8_t v_cl_3;
+        uint8_t v_dil_5 = 0;
+        int32_t v_r13_6;
+        switch (__ImageBase->field_0x463c424[(param_4 - 13)]) {
+          case 7:
+            auto ret_0x480fa80_32 = call_0x480fa80(&local_0xc0, this, param_3);
+            if (param_2 == ret_0x480fa80_32) break;
+            void* prev_0x0_25 = ret_0x480fa80_32->field_0x0;
+            ret_0x480fa80_32->field_0x0 = i_esi;
+            void* prev_0x0_26 = param_2->field_0x0;
+            param_2->field_0x0 = prev_0x0_25;
+            if (prev_0x0_26 == 0) break;
+            param_2->field_0x0->vfunc_0x0(prev_0x0_26, 1);
+            break;
+            break;
+          case 9:
+            auto ret_0x47e0d90_29 = call_0x47e0d90(&local_0xc8, this, param_3);
+            if (param_2 == ret_0x47e0d90_29) break;
+            void* prev_0x0_22 = ret_0x47e0d90_29->field_0x0;
+            ret_0x47e0d90_29->field_0x0 = i_esi;
+            void* prev_0x0_23 = param_2->field_0x0;
+            param_2->field_0x0 = prev_0x0_22;
+            if (prev_0x0_23 == 0) break;
+            param_2->field_0x0->vfunc_0x0(prev_0x0_23, 1);
+            break;
+            break;
+          case 0:
+            auto ret_0x4807ad0_26 = call_0x4807ad0(&local_0xd0, this, param_3);
+            if (param_2 == ret_0x4807ad0_26) break;
+            void* prev_0x0_19 = ret_0x4807ad0_26->field_0x0;
+            ret_0x4807ad0_26->field_0x0 = i_esi;
+            void* prev_0x0_20 = param_2->field_0x0;
+            param_2->field_0x0 = prev_0x0_19;
+            if (prev_0x0_20 == 0) break;
+            param_2->field_0x0->vfunc_0x0(prev_0x0_20, 1);
+            break;
+            break;
+          case 5:
+            auto ret_0x48107e0_23 = call_0x48107e0(&local_0xd8, this, param_3);
+            if (param_2 == ret_0x48107e0_23) break;
+            void* prev_0x0_16 = ret_0x48107e0_23->field_0x0;
+            ret_0x48107e0_23->field_0x0 = i_esi;
+            void* prev_0x0_17 = param_2->field_0x0;
+            param_2->field_0x0 = prev_0x0_16;
+            if (prev_0x0_17 == 0) break;
+            param_2->field_0x0->vfunc_0x0(prev_0x0_17, 1);
+            break;
+            break;
+          case 4:
+            auto ret_0x48112c0_20 = call_0x48112c0(&local_0xe0, __ImageBase, param_3);
+            if (param_2 == ret_0x48112c0_20) break;
+            void* prev_0x0_13 = ret_0x48112c0_20->field_0x0;
+            ret_0x48112c0_20->field_0x0 = i_esi;
+            void* prev_0x0_14 = param_2->field_0x0;
+            param_2->field_0x0 = prev_0x0_13;
+            if (prev_0x0_14 == 0) break;
+            param_2->field_0x0->vfunc_0x0(prev_0x0_14, 1);
+            break;
+            break;
+          case 8:
+            auto ret_0x4811f10_17 = call_0x4811f10(&local_0xe8, this, param_3, local_0x180);
+            if (param_2 == ret_0x4811f10_17) break;
+            void* prev_0x0_10 = ret_0x4811f10_17->field_0x0;
+            ret_0x4811f10_17->field_0x0 = i_esi;
+            void* prev_0x0_11 = param_2->field_0x0;
+            param_2->field_0x0 = prev_0x0_10;
+            if (prev_0x0_11 == 0) break;
+            param_2->field_0x0->vfunc_0x0(prev_0x0_11, 1);
+            break;
+            break;
+          case 3:
+            auto ret_0x4805ae0_14 = call_0x4805ae0(&local_0xf0, this, param_3);
+            if (param_2 == ret_0x4805ae0_14) break;
+            void* prev_0x0_7 = ret_0x4805ae0_14->field_0x0;
+            ret_0x4805ae0_14->field_0x0 = i_esi;
+            void* prev_0x0_8 = param_2->field_0x0;
+            param_2->field_0x0 = prev_0x0_7;
+            if (prev_0x0_8 == 0) break;
+            param_2->field_0x0->vfunc_0x0(prev_0x0_8, 1);
+            break;
+            break;
+          case 6:
+            auto ret_0x47dbec0_11 = call_0x47dbec0(&local_0xf8, this, param_3);
+            if (param_2 == ret_0x47dbec0_11) break;
+            void* prev_0x0_4 = ret_0x47dbec0_11->field_0x0;
+            ret_0x47dbec0_11->field_0x0 = i_esi;
+            void* prev_0x0_5 = param_2->field_0x0;
+            param_2->field_0x0 = prev_0x0_4;
+            if (prev_0x0_5 == 0) break;
+            param_2->field_0x0->vfunc_0x0(prev_0x0_5, 1);
+            break;
+            break;
+          case 2:
+            auto ret_0x1c2ac70_4 = call_0x1c2ac70(param_3);
+            auto ret_0x4956040_5 = call_0x4956040(40);
+            if (ret_0x4956040_5 != 0) {
+              ret_0x4956040_5->field_0x8 = 35;
+              ret_0x4956040_5->field_0xc = 1;
+              ret_0x4956040_5->field_0x0 = &sym_0x7141868;
+              ret_0x4956040_5->field_0x20 = ret_0x1c2ac70_4;
+              if (param_2 == &local_0x170) break;
+              void* prev_0x0_2 = param_2->field_0x0;
+              param_2->field_0x0 = ret_0x4956040_5;
+              if (prev_0x0_2 == 0) break;
+              break;
+            } else {
+              call_0x6ca7d0(&local_0x100);
+              auto ret_0x5e066f0_7 = call_0x5e066f0(&local_0x100, &sym_0x80cbbc0);
+              global_0x8defa50 = call_0x29a3390(this, param_2, -1, (uint8_t)r8 == ret_0x5e066f0_7->field_m0x1[r10]);
+              call_0x14f0(&sym_0x8defa48);
+            }
+            break;
+          case 1:
+            call_0x4973aa0("Error while deserializing item");
+            break;
+            break;
+        }
+        if (global_0x86295f8 == 0) break;
+        if (global_0x8897e38 != 2) break;
+        if (v_dil_5 == 0) break;
+        call_0x29a42e0(3, v_cl_3 << 40 | param_3->field_0x38 - v_r13_6 | 0x200000000, 0, 0);
+        break;
+      } while (true); // loop -> L_0x463bc09
+      call_0x4973aa0("Error while deserializing item");
+      call_0x12e0(&sym_0x8defa48);
+      goto L_0x463bc09;
+    }
 
 [Strings .rdata na função]
-  * ItemType: {}
-  * Item
-  * Remote event
-  * receive
-  * [FLog::Network] {} exceeds maximum {} size ({} > {} bytes). {}
-  * {} exceeds maximum {} size ({} > {} bytes). {}
-  * JoinBlobBytes
-  * send
+  * "ItemType: {}"  [@rdata 0x7464778, ref @0x463bac7, string_view len=12]
+  * "Item"  [@rdata 0x71e9f00, ref @0x480f0c1, key/identifier]
+  * "Remote event"  [@rdata 0x7483d40, ref @0x480f0d5, literal, 12B]
+  * "receive"  [@rdata 0x7483e08, ref @0x480f0f5, literal, 7B]
+  * "[FLog::Network] {} exceeds maximum {} size ({} > {} bytes). {}"  [@rdata 0x7483dc8, ref @0x480f134, FLog format]
+  * "{} exceeds maximum {} size ({} > {} bytes). {}"  [@rdata 0x7483d98, ref @0x480f20e, string_view len=46]
+  * "JoinBlobBytes"  [@rdata 0x7483fe8, ref @0x480f2f7, key/identifier]
+  * "send"  [@rdata 0x73023c4, ref @0x480f30a, literal, 4B]
+  * "Error while deserializing item"  [@rdata 0x7464730, ref @0x463c396, literal, 30B]
+  * "deserializeItem"  [@rdata 0x7464788, ref @0x463c3cb, literal, 15B]
+  * "Network"  [@rdata 0x71d8eb8, ref @0x463c3e1, key/identifier]
+  * "GPU"  [@rdata 0x72f68c4, ref @0x463c3eb, literal, 3B]
 
 [Co-Flags na mesma função]
   * FLogNetwork = 7 (default)
   * DFFlagEnableSendItemLimitDisconnect = false (default)
+  * DFFlagEnableReplicationSizeLimits = false (default)
+  * DFFlagMicroProfilerMemoryScope = true (default)
   * DFFlagNetworkPerfTestServerAnalysisStatus = true (default) [vizinha em .data]
   * DFFlagReplicatorKickBigV = false (default) [vizinha em .data]
   * DFFlagReplicatorDisKickSize = false (default) [vizinha em .data]

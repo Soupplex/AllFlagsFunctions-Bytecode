@@ -9,7 +9,7 @@ Operação  : 0x13eb2df: mov/math reg, [flag] ; fn=0x13eafa0..0x13eb41d
     Classe  : RBX::WorldStep (Inferido)
     Padrão  : FLogWorldStepsBehindG = 0 (default) [log, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : WorldStepsBehindG >= 6 && (uint64_t)WorldStepsBehindG >> 8 >= 3
+    Fórmula : (uint8_t)WorldStepsBehindG >= 6 && (uint8_t)((uint64_t)WorldStepsBehindG >> 8) >= 3
     Altera  : this->field_0x3d0, this->field_0x3c8, this->field_0x3c0
     Wasm    : .data=0x1a588 [via FFlagFixNameplateSelfOcclusionMeshPartHead]
     [Wasm]  : w2c_WebClient_f158132((local_2 + 456), (local_2 + 24), &FixNameplateSelfOcclusionMeshPartHead)
@@ -27,18 +27,20 @@ Operação  : 0x13eb2df: mov/math reg, [flag] ; fn=0x13eafa0..0x13eb41d
     
     // Flag defaults: WorldStepMax = 30, WorldStepsOffsetAdjustRate = 100, WorldStepsBehind = 0, WorldStepsBehindG = 0
     double RBX::WorldStep::func_0x13eafa0(RBX::WorldStep* this) {
+      int32_t v_rdi_7 = this->field_0xe8;
       if (this->field_0x3c8 != 0) {
         double ftmp_2 = (double)this->field_0x868 * (this->field_0x3b8 - this->field_0x3c0) - (double)(this->field_0xe8 - this->field_0x3c8);
         this->field_0x3d0 = ftmp_2 + this->field_0x3d0;
         double fxmm1_1;
-        if (ftmp_2 + this->field_0x3d0 <= max((double)WorldStepMax, 1.0)) {
-          if (max((double)WorldStepMax, 1.0) > ftmp_2 + this->field_0x3d0) {
-            fxmm1_1 = max((double)WorldStepMax, 1.0);
+        auto expr_2 = max((double)WorldStepMax, 1.0);
+        if (ftmp_2 + this->field_0x3d0 <= expr_2) {
+          if (expr_2 > ftmp_2 + this->field_0x3d0) {
+            fxmm1_1 = expr_2;
           } else {
             fxmm1_1 = ftmp_2 + this->field_0x3d0;
           }
         } else {
-          fxmm1_1 = max((double)WorldStepMax, 1.0);
+          fxmm1_1 = expr_2;
         }
         this->field_0x3d0 = fxmm1_1;
         double fxmm2_2;
@@ -60,25 +62,36 @@ Operação  : 0x13eb2df: mov/math reg, [flag] ; fn=0x13eafa0..0x13eb41d
           fxmm1_4 = 0.0;
         }
         this->field_0x3d0 = fxmm1_4;
-        if (WorldStepsBehind != 0) {
-          if (WorldStepsBehind >= 6 && (uint64_t)WorldStepsBehind >> 8 >= 3) {
+        int32_t v_rdi_6 = this->field_0xe8;
+        if ((uint8_t)WorldStepsBehind != 0) {
+          int32_t v_rdi_5 = this->field_0xe8;
+          auto expr_1 = (uint64_t)WorldStepsBehind >> 8;
+          if ((uint8_t)WorldStepsBehind >= 6 && (uint8_t)expr_1 >= 3) {
+            auto prev_0xe8_1 = this->field_0xe8;
             FLog::Log("[FLog::WorldStepsBehind] DELTA     WorldSteps       : %d");
+            v_rdi_5 = prev_0xe8_1;
           }
-          if (WorldStepsBehind != 0 && WorldStepsBehind >= 6) {
-            if ((uint64_t)WorldStepsBehind >> 8 >= 3) {
+          if ((uint8_t)WorldStepsBehind != 0 && (uint8_t)WorldStepsBehind >= 6) {
+            if ((uint8_t)expr_1 >= 3) {
               FLog::Log("[FLog::WorldStepsBehind] Expected  WorldSteps       : %d");
             }
-            if (WorldStepsBehind >= 6 && (uint64_t)WorldStepsBehind >> 8 >= 3) {
+            if ((uint8_t)WorldStepsBehind >= 6 && (uint8_t)expr_1 >= 3) {
               FLog::Log("[FLog::WorldStepsBehind] dt: %f");
+              v_rdi_6 = v_rdi_5;
+            } else {
+              v_rdi_6 = v_rdi_5;
             }
+          } else {
+            v_rdi_6 = v_rdi_5;
           }
         }
-        if (WorldStepsBehindG >= 6 && (uint64_t)WorldStepsBehindG >> 8 >= 3) {
+        if ((uint8_t)WorldStepsBehindG >= 6 && (uint8_t)((uint64_t)WorldStepsBehindG >> 8) >= 3) {
           FLog::Log("[FLog::WorldStepsBehindG] Number of WorldSteps behind, wsps, deltaTime: %f  %f  %f");
         }
+        v_rdi_7 = v_rdi_6;
       }
-      if (this->field_0xe8 != this->field_0xe8) {
-        call_0x1bf4f90(1, "getWorldStepId changed %d %d", this->field_0xe8);
+      if (v_rdi_7 != this->field_0xe8) {
+        call_0x1bf4f90(1, "getWorldStepId changed %d %d", v_rdi_7);
       }
       this->field_0x3c8 = this->field_0xe8;
       this->field_0x3c0 = this->field_0x3b8;
@@ -315,11 +328,11 @@ Operação  : 0x13eb2df: mov/math reg, [flag] ; fn=0x13eafa0..0x13eb41d
     }
 
 [Strings .rdata na função]
-  * [FLog::WorldStepsBehind] DELTA     WorldSteps       : %d
-  * [FLog::WorldStepsBehind] Expected  WorldSteps       : %d
-  * [FLog::WorldStepsBehind] dt: %f
-  * [FLog::WorldStepsBehindG] Number of WorldSteps behind, wsps, deltaTime: %f  %f  %f
-  * getWorldStepId changed %d %d
+  * "[FLog::WorldStepsBehind] DELTA     WorldSteps       : %d"  [@rdata 0x722af78, ref @0x13eb11a, FLog format]
+  * "[FLog::WorldStepsBehind] Expected  WorldSteps       : %d"  [@rdata 0x722afb8, ref @0x13eb1d6, FLog format]
+  * "[FLog::WorldStepsBehind] dt: %f"  [@rdata 0x722aff8, ref @0x13eb287, FLog format]
+  * "[FLog::WorldStepsBehindG] Number of WorldSteps behind, wsps, deltaTime: %f  %f  %f"  [@rdata 0x722b020, ref @0x13eb330, FLog format]
+  * "getWorldStepId changed %d %d"  [@rdata 0x722aed8, ref @0x13eb3cb, literal, 28B]
 
 [Co-Flags na mesma função]
   * DFIntUserIdPlayerNameCacheSize = 20 (default)

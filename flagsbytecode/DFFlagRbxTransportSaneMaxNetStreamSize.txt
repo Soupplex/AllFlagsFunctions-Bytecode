@@ -9,7 +9,7 @@ Operação  : 0x212cdef: cmp byte [flag], imm8 ; fn=0x212cca0..0x212d198
     Classe  : RBX::RbxTransport (Inferido)
     Padrão  : DFFlagRbxTransportSaneMaxNetStreamSize = true (default) [bool, mode=2]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
-    Fórmula : !RbxTransportSaneMaxNetStreamSize
+    Fórmula : RbxTransportSaneMaxNetStreamSize && param_2->field_0x10 > RbxTransportMaxNetStreamSize
     Altera  : this->field_0x70, this->field_0x8->field_0x0, this->field_0x8->field_0x8, this->field_0x8->field_0x10, this->field_0x8->field_0x18, this->field_0x8
   
   === [Decompilacao C++ da Funcao 0x212cca0..0x212d198] ===
@@ -29,8 +29,9 @@ Operação  : 0x212cdef: cmp byte [flag], imm8 ; fn=0x212cca0..0x212d198
     
     // Flag defaults: RbxTransportSaneMaxNetStreamSize = true, RbxTransportMaxNetStreamSize = 104857600, RbxTransportMaxContiguousReassemblySize = 262144, RbxTransportChannelTracker = 6
     auto RBX::RbxTransport::func_0x212cca0(RBX::RbxTransport* this, int64_t param_2, void* param_3) {
+      auto expr_1 = (uint64_t)RbxTransportChannelTracker >> 8;
       if (param_2->field_0x18 > param_2->field_0x10) {
-        if (RbxTransportChannelTracker >= 6 && (uint64_t)RbxTransportChannelTracker >> 8 >= 2) {
+        if ((uint8_t)RbxTransportChannelTracker >= 6 && (uint8_t)expr_1 >= 2) {
           "[DFLog::RbxTransportChannelTracker] Unreliable fragment header offset extends past claimed datag";
           "[DFLog::RbxTransportChannelTracker] Unreliable fragment header offset extends past claimed datag";
           L_0x212d14e:
@@ -41,29 +42,33 @@ Operação  : 0x212cdef: cmp byte [flag], imm8 ; fn=0x212cca0..0x212d198
         return 2;
       }
       if (param_3->field_0x8 > param_2->field_0x10 - param_2->field_0x18) {
-        if (RbxTransportChannelTracker >= 6 && (uint64_t)RbxTransportChannelTracker >> 8 >= 2) {
+        if ((uint8_t)RbxTransportChannelTracker >= 6 && (uint8_t)expr_1 >= 2) {
           "[DFLog::RbxTransportChannelTracker] Unreliable fragment extends past claimed datagram size";
           FLog::Log("[DFLog::RbxTransportChannelTracker] Unreliable fragment extends past claimed datagram size");
         }
         return 2;
       }
       if (RbxTransportSaneMaxNetStreamSize && param_2->field_0x10 > RbxTransportMaxNetStreamSize) {
-        if (RbxTransportChannelTracker >= 6 && (uint64_t)RbxTransportChannelTracker >> 8 >= 2) {
+        if ((uint8_t)RbxTransportChannelTracker >= 6 && (uint8_t)expr_1 >= 2) {
           "[DFLog::RbxTransportChannelTracker] Unreliable datagram size {} exceeds limit";
           goto L_0x212d157;
         }
         goto L_0x212d163;
       } else {
+        void* v_r14_11;
         uint64_t i_eax;
         if (param_2->field_0x10 <= RbxTransportMaxContiguousReassemblySize) {
+          void* v_r14_10 = param_3->field_0x8;
           if ((this->field_0x38 == 0) != 0) {
             this->field_0x70 = param_2->field_0x10;
+            void* prev_0x8_4 = param_3->field_0x8;
             call_0x212cc60(&this->field_0x18, param_2->field_0x10);
             auto local_0x30 = 0;
             call_0x184ded0(&this->field_0x58, this->field_0x70, &local_0x30);
+            v_r14_10 = prev_0x8_4;
           } else {
             if (this->field_0x70 != param_2->field_0x10) {
-              if (RbxTransportChannelTracker >= 6 && (uint64_t)RbxTransportChannelTracker >> 8 >= 2) {
+              if ((uint8_t)RbxTransportChannelTracker >= 6 && (uint8_t)expr_1 >= 2) {
                 do { // L_0x212cf45
                   i_eax++;
                 } while (rcx[i_eax] != 0); // loop -> L_0x212cf45
@@ -73,12 +78,13 @@ Operação  : 0x212cdef: cmp byte [flag], imm8 ; fn=0x212cca0..0x212d198
               }
               goto L_0x212d163;
             } else {
-              call_0x5e05370(this->field_0x50 != 0 ? this->field_0x30 : this->field_0x18 + param_2->field_0x18, param_3->field_0x0, param_3->field_0x8);
-              call_0x5e051b0(this->field_0x58 + param_2->field_0x18, 1, param_3->field_0x8);
+              call_0x5e05370(this->field_0x50 != 0 ? this->field_0x30 : this->field_0x18 + param_2->field_0x18, param_3->field_0x0, v_r14_10);
+              call_0x5e051b0(this->field_0x58 + param_2->field_0x18, 1, v_r14_10);
+              v_r14_11 = v_r14_10;
               L_0x212d0cc:
-              this->field_0x78 = this->field_0x78 + param_3->field_0x8;
+              this->field_0x78 = this->field_0x78 + v_r14_11;
               if (this->field_0x78 > this->field_0x70) {
-                if (RbxTransportChannelTracker >= 6 && (uint64_t)RbxTransportChannelTracker >> 8 >= 2) {
+                if ((uint8_t)RbxTransportChannelTracker >= 6 && (uint8_t)expr_1 >= 2) {
                   goto L_0x212d14e;
                 }
                 goto L_0x212d163;
@@ -88,11 +94,12 @@ Operação  : 0x212cdef: cmp byte [flag], imm8 ; fn=0x212cca0..0x212d198
             }
             goto L_0x212d11e;
           }
-          call_0x5e05370(this->field_0x50 != 0 ? this->field_0x30 : this->field_0x18 + param_2->field_0x18, param_3->field_0x0, param_3->field_0x8);
-          call_0x5e051b0(this->field_0x58 + param_2->field_0x18, 1, param_3->field_0x8);
-          this->field_0x78 = this->field_0x78 + param_3->field_0x8;
+          call_0x5e05370(this->field_0x50 != 0 ? this->field_0x30 : this->field_0x18 + param_2->field_0x18, param_3->field_0x0, v_r14_10);
+          call_0x5e051b0(this->field_0x58 + param_2->field_0x18, 1, v_r14_10);
+          v_r14_11 = v_r14_10;
+          this->field_0x78 = this->field_0x78 + v_r14_11;
           if (this->field_0x78 > this->field_0x70) {
-            if (RbxTransportChannelTracker >= 6 && (uint64_t)RbxTransportChannelTracker >> 8 >= 2) {
+            if ((uint8_t)RbxTransportChannelTracker >= 6 && (uint8_t)expr_1 >= 2) {
               goto L_0x212d11e;
             }
             goto L_0x212d163;
@@ -104,41 +111,49 @@ Operação  : 0x212cdef: cmp byte [flag], imm8 ; fn=0x212cca0..0x212d198
             this->field_0x70 = param_2->field_0x10;
             void* v_rsi_1 = 0;
             int64_t v_r8_2 = 0;
+            void* v_r14_3 = param_3->field_0x8;
+            void* v_r15_4 = param_2->field_0x18;
             if (param_3->field_0x8 != 0) {
-              auto ret_0x6fd950_1 = call_0x6fd950(param_3->field_0x8, param_2->field_0x18, 0);
-              call_0x5e05370(ret_0x6fd950_1, param_3->field_0x0, param_3->field_0x8);
+              void* prev_0x8_1 = param_3->field_0x8;
+              void* prev_0x18_2 = param_2->field_0x18;
+              auto ret_0x6fd950_1 = call_0x6fd950(prev_0x8_1, prev_0x18_2, 0);
+              call_0x5e05370(ret_0x6fd950_1, param_3->field_0x0, prev_0x8_1);
               v_rsi_1 = ret_0x6fd950_1;
-              v_r8_2 = ret_0x6fd950_1 + param_3->field_0x8;
+              v_r8_2 = ret_0x6fd950_1 + prev_0x8_1;
+              v_r14_3 = prev_0x8_1;
+              v_r15_4 = prev_0x18_2;
             }
-            void* v_rax_3;
-            void* v_rcx_4;
+            void* v_rax_5;
+            void* v_rcx_6;
             if (this->field_0x8 != this->field_0x10) {
-              this->field_0x8->field_0x0 = param_2->field_0x18;
+              this->field_0x8->field_0x0 = v_r15_4;
               this->field_0x8->field_0x8 = v_rsi_1;
               this->field_0x8->field_0x10 = v_r8_2;
               this->field_0x8->field_0x18 = v_r8_2;
               this->field_0x8 = this->field_0x8 + 0x20;
-              v_rax_3 = 0;
-              v_rcx_4 = 0;
+              v_rax_5 = 0;
+              v_rcx_6 = 0;
             } else {
-              auto local_0x70 = param_2->field_0x18;
+              auto local_0x70 = v_r15_4;
               call_0x212d450(this, this->field_0x8, &local_0x70);
-              v_rax_3 = local_0x88;
-              v_rcx_4 = local_0x78;
+              v_rax_5 = local_0x88;
+              v_rcx_6 = local_0x78;
             }
-            if (v_rcx_4 != 0) {
-              void* v_rcx_7 = v_rcx_4;
-              if (v_rax_3 - v_rcx_4 >= 0x1000) {
-                if (v_rcx_4 - v_rcx_4->field_m0x8 < 8 || v_rcx_4 - v_rcx_4->field_m0x8 > 39) {
+            if (v_rcx_6 != 0) {
+              void* v_rcx_9 = v_rcx_6;
+              if (v_rax_5 - v_rcx_6 >= 0x1000) {
+                if (v_rcx_6 - v_rcx_6->field_m0x8 < 8 || v_rcx_6 - v_rcx_6->field_m0x8 > 39) {
                   call_0x5e14580();
                 }
               }
-              call_0x4955ac0(v_rcx_7);
+              call_0x4955ac0(v_rcx_9);
+              v_r14_11 = v_r14_3;
             }
+            v_r14_11 = v_r14_3;
             goto L_0x212d0cc;
           } else {
             if (this->field_0x70 != param_2->field_0x10) {
-              if (RbxTransportChannelTracker >= 6 && (uint64_t)RbxTransportChannelTracker >> 8 >= 2) {
+              if ((uint8_t)RbxTransportChannelTracker >= 6 && (uint8_t)expr_1 >= 2) {
                 i_eax = -1;
                 do { // L_0x212d071
                   i_eax++;
@@ -150,31 +165,32 @@ Operação  : 0x212cdef: cmp byte [flag], imm8 ; fn=0x212cca0..0x212d198
             } else {
               void* v_rsi_1 = 0;
               int64_t v_r8_2 = 0;
+              void* v_r14_3 = param_3->field_0x8;
+              void* v_r15_4 = param_2->field_0x18;
               if (param_3->field_0x8 != 0) {
-                auto ret_0x6fd950_1 = call_0x6fd950(param_3->field_0x8, param_2->field_0x18, 0);
-                call_0x5e05370(ret_0x6fd950_1, param_3->field_0x0, param_3->field_0x8);
-                v_rsi_1 = ret_0x6fd950_1;
-                v_r8_2 = ret_0x6fd950_1 + param_3->field_0x8;
+                goto L_0x212cfbf;
               }
-              void* v_rax_3;
-              void* v_rcx_4;
+              void* v_rax_5;
+              void* v_rcx_6;
               if (this->field_0x8 != this->field_0x10) {
                 goto L_0x212d003;
               } else {
-                auto local_0x70 = param_2->field_0x18;
+                auto local_0x70 = v_r15_4;
                 call_0x212d450(this, this->field_0x8, &local_0x70);
-                v_rax_3 = local_0x88;
-                v_rcx_4 = local_0x78;
+                v_rax_5 = local_0x88;
+                v_rcx_6 = local_0x78;
               }
-              if (v_rcx_4 != 0) {
-                void* v_rcx_7 = v_rcx_4;
-                if (v_rax_3 - v_rcx_4 >= 0x1000) {
-                  if (v_rcx_4 - v_rcx_4->field_m0x8 < 8 || v_rcx_4 - v_rcx_4->field_m0x8 > 39) {
+              if (v_rcx_6 != 0) {
+                void* v_rcx_9 = v_rcx_6;
+                if (v_rax_5 - v_rcx_6 >= 0x1000) {
+                  if (v_rcx_6 - v_rcx_6->field_m0x8 < 8 || v_rcx_6 - v_rcx_6->field_m0x8 > 39) {
                     call_0x5e14580();
                   }
                 }
-                call_0x4955ac0(v_rcx_7);
+                call_0x4955ac0(v_rcx_9);
+                v_r14_11 = v_r14_3;
               }
+              v_r14_11 = v_r14_3;
               goto L_0x212d0cc;
             }
           }
@@ -725,13 +741,73 @@ Operação  : 0x212cdef: cmp byte [flag], imm8 ; fn=0x212cca0..0x212d198
     0x212d5c1 | e9 fe fe ff ff           | jmp 0x212d4c4
     L_0x212d5c6:
     0x212d5c6 | e8 f5 0c 5d fe           | call 0x6fe2c0
+  
+  === [Estrutura RTTI & VTable da Classe (RbxTranspo::Impl::RbxTransport)] ===
+    VTable  : 0x70441c8 (offset +0x0, 17 slots virtuais)
+    Herança : RBX::RbxTransport::Impl
+    +0x0 -> fn_0x20e62b0
+    +0x8 -> fn_0x20d6910
+    +0x10 -> fn_0x20e6180
+    +0x18 -> fn_0x20e6130
+    +0xa0 -> fn_0x20e5f70
+    +0xa8 -> fn_0x20e6d70
+    +0xb0 -> fn_0x20e6820
+    +0xb8 -> fn_0x20441a0
+    +0x0 -> fn_0x20ead20
+    +0x10 -> fn_0x20eabf0
+    +0x68 -> fn_0x20e7760
+    +0x70 -> fn_0x20eb150
+    +0x78 -> fn_0x20e6820
+    +0x80 -> fn_0x20637f0
+    +0x88 -> fn_0x20eb0f0
+    +0x90 -> fn_0x206ab90
+  
+  === [Decompilacao de Metodo da Classe RbxTranspo::Impl::RbxTransport: 0x20d6910..0x20d69c5 (vfunc_0x8)] ===
+    struct RBX::RbxTransport::Impl {
+      /* +0x8 */ void*   field_0x8;
+    };
+    
+    void RBX::RbxTransport::Impl::func_0x20d6910(RBX::RbxTransport::Impl* this, int64_t param_2) {
+      void* prev_0x8_1 = this->field_0x8;
+      auto ret_0x746580_1 = call_0x746580(&local_0x28, param_2);
+      call_0x746580(&local_0x50, ret_0x746580_1);
+      call_0x6f5b70(ret_0x746580_1);
+      prev_0x8_1->vfunc(prev_0x8_1, &local_0x50);
+      call_0x6f5b70(param_2);
+    }
+  
+  === [Decompilacao de Metodo da Classe RbxTranspo::Impl::RbxTransport: 0x746580..0x746610 (vfunc_0x90)] ===
+    struct RbxTranspo::Impl::RbxTransport {
+      /* +0x0 */ int32_t field_0x0;
+      /* +0x10 */ double  field_0x10;
+      /* +0x18 */ void*   field_0x18;
+    };
+    
+    auto RbxTranspo::Impl::RbxTransport::func_0x746580(RbxTranspo::Impl::RbxTransport* this, int64_t param_2) {
+      this->field_0x18 = param_2->field_0x18;
+      if ((param_2->field_0x18 & 0xfffffff8) != 0) {
+        if ((param_2->field_0x18 >> 1 & 0x1) != 0) {
+          if ((~((param_2->field_0x18 & 0xfffffffc) >> 2) & 0x1) != 0) {
+            this->field_0x0 = param_2->field_0x0;
+            this->field_0x10 = param_2->field_0x10;
+          } else {
+            ((param_2->field_0x18 & 0xfffffffc) & 0xfffffff8)->vfunc_0x8(this);
+            (this->field_0x18 & 0xfffffff8)->vfunc_0x10(param_2);
+          }
+        } else {
+          this->field_0x0 = param_2->field_0x0;
+          this->field_0x10 = param_2->field_0x10;
+        }
+      }
+      return this;
+    }
 
 [Strings .rdata na função]
-  * [DFLog::RbxTransportChannelTracker] Unreliable fragment header offset extends past claimed datag
-  * [DFLog::RbxTransportChannelTracker] Unreliable fragment extends past claimed datagram size
-  * [DFLog::RbxTransportChannelTracker] Unreliable datagram size {} exceeds limit
-  * [DFLog::RbxTransportChannelTracker] Unreliable fragments received for same datagram with differe
-  * [DFLog::RbxTransportChannelTracker] Unreliable fragments size exceed claimed datagram size
+  * "[DFLog::RbxTransportChannelTracker] Unreliable fragment header offset extends past claimed datag"  [@rdata 0x72b19d0, ref @0x212cd05, FLog format]
+  * "[DFLog::RbxTransportChannelTracker] Unreliable fragment extends past claimed datagram size"  [@rdata 0x72b1a40, ref @0x212cd94, FLog format]
+  * "[DFLog::RbxTransportChannelTracker] Unreliable datagram size {} exceeds limit"  [@rdata 0x72b1900, ref @0x212ce36, FLog format]
+  * "[DFLog::RbxTransportChannelTracker] Unreliable fragments received for same datagram with differe"  [@rdata 0x72b1950, ref @0x212cf33, FLog format]
+  * "[DFLog::RbxTransportChannelTracker] Unreliable fragments size exceed claimed datagram size"  [@rdata 0x72b1850, ref @0x212d103, FLog format]
 
 [Co-Flags na mesma função]
   * DFLogRbxTransportChannelTracker = 6 (default)

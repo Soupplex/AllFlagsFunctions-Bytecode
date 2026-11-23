@@ -9,7 +9,7 @@ Operação  : 0x140c020: mov/math reg, [flag] ; fn=0x140af70..0x140c15e
     Classe  : RBX::BroadPhase (Inferido)
     Padrão  : DFIntBroadPhaseIslandAlwaysSimulateDepth = 1 (default) [int, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : i_r14d->field_0x10[i_edi] <= BroadPhaseIslandAlwaysSimulateDepth
+    Fórmula : i_r14d->field_0x10[i_edi] > BroadPhaseIslandAlwaysSimulateDepth
     Altera  : this->field_0x198, this->field_0x1c0
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
@@ -29,7 +29,7 @@ Operação  : 0x140c020: mov/math reg, [flag] ; fn=0x140af70..0x140c15e
     
     // Flag defaults: BroadPhaseIslandAlwaysSimulateDepth = 1, BroadPhaseIslandMaxPartLinearFactorTenth = 10
     void RBX::BroadPhase::func_0x140bf40(RBX::BroadPhase* this) {
-      float ftmp_1 = (float)BroadPhaseIslandMaxPartLinearFactorTenth / 10.0 * this->field_0x3c;
+      float ftmp_1 = (float)BroadPhaseIslandMaxPartLinearFactorTenth / 10.0f * this->field_0x3c;
       call_0x1410ce0(this->field_0x190, this->field_0x198, ((uint64_t)((this->field_0x198 - this->field_0x190) / 24 >> 2) >> 63) + ((this->field_0x198 - this->field_0x190) / 24 >> 2), this->field_0x188);
       if (((this->field_0x198 - this->field_0x190) / 24 >> 2) + ((uint64_t)((this->field_0x198 - this->field_0x190) / 24 >> 2) >> 63) != 0) {
         int32_t i_ebp = 0;
@@ -48,8 +48,9 @@ Operação  : 0x140c020: mov/math reg, [flag] ; fn=0x140af70..0x140c15e
             call_0x140dd90(&this->field_0x1a8);
           }
           auto* f_1a8 = this->field_0x1a8;
-          int64_t tmp_2 = (uint64_t)((((this->field_0x1b0 - f_1a8) / 24 >> 2) + ((uint64_t)((this->field_0x1b0 - f_1a8) / 24 >> 2) >> 63)) >> 2) >> 63;
-          int64_t tmp_3 = tmp_2 + ((((this->field_0x1b0 - f_1a8) / 24 >> 2) + ((uint64_t)((this->field_0x1b0 - f_1a8) / 24 >> 2) >> 63)) >> 2) - 1;
+          auto expr_1 = (((this->field_0x1b0 - f_1a8) / 24 >> 2) + ((uint64_t)((this->field_0x1b0 - f_1a8) / 24 >> 2) >> 63)) >> 2;
+          int64_t tmp_2 = (uint64_t)expr_1 >> 63;
+          int64_t tmp_3 = tmp_2 + expr_1 - 1;
           uint64_t i_ecx = ((uint64_t)i_r14d[i_edi] >> 3) + i_r14d[i_edi] & tmp_3;
           int32_t i_edx = 0;
           void* v_r8_3;
@@ -245,6 +246,7 @@ Operação  : 0x140c020: mov/math reg, [flag] ; fn=0x140af70..0x140c15e
       if ((this->field_0x168 & 0x40) != 0) {
         call_0x14c7470(this);
       }
+      float prev_0xa4_1 = this->field_0xa4;
       auto ret_0x14c6ac0_2 = call_0x14c6ac0(this);
       auto ret_0x1457880_3 = call_0x1457880(ret_0x14c6ac0_2, &local_0x20);
       if ((this->field_0x168 & 0x40) != 0) {
@@ -257,7 +259,7 @@ Operação  : 0x140c020: mov/math reg, [flag] ; fn=0x140af70..0x140c15e
       float ftmp_12 = fabsf(param_2->field_0x4 - (ret_0x1457880_3->field_0x14 * this->field_0xa0 + ftmp_5 + ret_0x1457880_3->field_0x28));
       float ftmp_14 = fabsf(param_2->field_0x0 - (this->field_0xa0 * ret_0x1457880_3->field_0x8 + ftmp_10 + ret_0x1457880_3->field_0x24));
       float ftmp_15 = fabsf(param_2->field_0x8 - (ftmp_8 + ret_0x1457880_3->field_0x2c));
-      return param_3 - this->field_0xa4 > ftmp_15 ? param_3 - this->field_0xa4 > ftmp_12 & param_3 - this->field_0xa4 > ftmp_14 : 0;
+      return param_3 - prev_0xa4_1 > ftmp_15 ? param_3 - prev_0xa4_1 > ftmp_12 & param_3 - prev_0xa4_1 > ftmp_14 : 0;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x140b6d0..0x140b83c)] ===
@@ -369,40 +371,44 @@ Operação  : 0x140c020: mov/math reg, [flag] ; fn=0x140af70..0x140c15e
       auto ret_0x14c6a60_2 = call_0x14c6a60(this);
       auto ret_0x14c9da0_3 = call_0x14c9da0(this);
       float fxmm3_3;
-      float fstk_7;
-      int64_t local_0x40;
+      float fstk_4;
+      int64_t local_0x28;
+      int64_t local_0x24;
       int64_t local_0x20;
-      if (ret_0x14c9da0_3 != 0) {
-        local_0x20 = rdi;
+      if ((uint8_t)ret_0x14c9da0_3 != 0) {
+        local_0x20 = max(ret_0x14c6a60_2->field_0x1c4, 0.05f);
+        local_0x24 = max(ret_0x14c6a60_2->field_0x1c8, 0.05f);
+        local_0x28 = max(ret_0x14c6a60_2->field_0x1cc, 0.05f);
         call_0x14531e0(ret_0x14c6a60_2, &local_0x40, &local_0x20);
-        float ftmp_3 = local_0x40 * local_0x40 + local_0x44 * local_0x44 + local_0x48 * local_0x48;
+        float ftmp_6 = local_0x40 * local_0x40 + local_0x44 * local_0x44 + local_0x48 * local_0x48;
         float fxmm3_2;
-        if (0.0 <= ftmp_3) {
-          fxmm3_2 = sqrtf(ftmp_3);
+        if (0.0 <= ftmp_6) {
+          fxmm3_2 = sqrtf(ftmp_6);
         } else {
-          fxmm3_2 = call_0x609e228(ftmp_3);
+          fxmm3_2 = call_0x609e228(ftmp_6);
         }
         this->field_0x98 = 0.0;
-        fxmm3_3 = fxmm3_2 * 0.5;
-        fstk_7 = 0;
+        fxmm3_3 = fxmm3_2 * 0.5f;
+        fstk_4 = 0;
       } else {
         call_0x1457880(ret_0x14c6a60_2, &local_0x58);
         auto ret_0x14c6a60_5 = call_0x14c6a60(this);
-        local_0x20 = rdi;
-        local_0x40 = &local_0x58;
         call_0x14cbc90(&local_0x20, &local_0x40, ret_0x14c6a60_5);
-        float ftmp_1 = (-8388609 - global_0x75b2a40) * (-8388609 - global_0x75b2a40);
+        float ftmp_1 = (local_0x2c - local_0x20) * (local_0x2c - local_0x20);
+        float ftmp_2 = (local_0x30 - local_0x24) * (local_0x30 - local_0x24);
+        float ftmp_3 = (local_0x34 - local_0x28) * (local_0x34 - local_0x28);
         float fxmm3_1;
-        if (0.0 <= (0) * (0) + ftmp_1 + ftmp_1) {
-          fxmm3_1 = sqrtf((0) * (0) + ftmp_1 + ftmp_1);
+        if (0.0 <= ftmp_1 + ftmp_2 + ftmp_3) {
+          fxmm3_1 = sqrtf(ftmp_1 + ftmp_2 + ftmp_3);
         } else {
-          fxmm3_1 = call_0x609e228((0) * (0) + ftmp_1 + ftmp_1);
+          fxmm3_1 = call_0x609e228(ftmp_1 + ftmp_2 + ftmp_3);
         }
-        this->field_0x98 = (global_0x75b2a40 * 2) * 0.5;
-        fxmm3_3 = fxmm3_1 * 0.5;
-        fstk_7 = (-8388609 + global_0x75b2a40) * 0.5;
+        float ftmp_4 = (local_0x2c + local_0x20) * 0.5f;
+        this->field_0x98 = ftmp_4;
+        fxmm3_3 = fxmm3_1 * 0.5f;
+        fstk_4 = (local_0x34 + local_0x28) * 0.5f;
       }
-      this->field_0xa0 = fstk_7;
+      this->field_0xa0 = fstk_4;
       this->field_0xa4 = fxmm3_3;
       rcx->field_0x38 = fxmm3_3;
       this->field_0x168 = this->field_0x168 & 0xbf;
@@ -599,9 +605,9 @@ Operação  : 0x140c020: mov/math reg, [flag] ; fn=0x140af70..0x140c15e
           float ftmp_1 = f_210_20->field_0x14 + f_210_20->field_0x8;
           float ftmp_2 = f_210_20->field_0x10 + f_210_20->field_0x1c;
           float ftmp_3 = f_210_20->field_0xc + f_210_20->field_0x18;
-          fstk_1 = ftmp_1 * 0.5 * f_210->field_0x28;
-          fstk_2 = ftmp_2 * 0.5 * f_210->field_0x30;
-          fstk_3 = ftmp_3 * 0.5 * f_210->field_0x2c;
+          fstk_1 = ftmp_1 * 0.5f * f_210->field_0x28;
+          fstk_2 = ftmp_2 * 0.5f * f_210->field_0x30;
+          fstk_3 = ftmp_3 * 0.5f * f_210->field_0x2c;
         } else {
           fstk_1 = 0;
           fstk_2 = 0;
@@ -757,24 +763,27 @@ Operação  : 0x140c020: mov/math reg, [flag] ; fn=0x140af70..0x140c15e
     
     // Flag defaults: PhysicsNewSpanningTree = false
     auto SubObj_0x140b840::func_0x140b840(SubObj_0x140b840* this, double param_2) {
+      auto expr_1 = param_2;
       if (this->field_0x28 > 0) {
         int32_t i_edi = 0;
+        int64_t prev_0x28_1;
         do { // L_0x140b890
           auto* f_20 = this->field_0x20;
           void* sel_rcx_1 = f_20->field_0x0[i_edi * 8] == 0 ? 0 : f_20->field_0x0[i_edi * 8] - 0x10;
-          call_0x140b840(sel_rcx_1, param_2);
+          prev_0x28_1 = this->field_0x28;
+          call_0x140b840(sel_rcx_1, expr_1);
           i_edi++;
-        } while (i_edi < this->field_0x28); // loop -> L_0x140b890
+        } while (i_edi < prev_0x28_1); // loop -> L_0x140b890
       }
       if (PhysicsNewSpanningTree && this->field_0x164 != 0) {
         if (this->field_0xd0 != 0) {
-          return tailcall_0x144f280(this->field_0xd0, this->field_0x166 - 4 <= 1, param_2);
+          return tailcall_0x144f280(this->field_0xd0, this->field_0x166 - 4 <= 1, expr_1);
         }
       } else {
         auto* f_40 = this->field_0x40;
         void* sel_rcx_2 = f_40 == 0 ? 0 : f_40->field_m0x10;
         if (sel_rcx_2 != 0) {
-          return tailcall_0x144f280(this->field_0xd0, this->field_0x166 - 4 <= 1, param_2);
+          return tailcall_0x144f280(this->field_0xd0, this->field_0x166 - 4 <= 1, expr_1);
         }
       }
       call_0x49710d0("assembly primitive is null", &sym_0x6647145);
@@ -841,9 +850,69 @@ Operação  : 0x140c020: mov/math reg, [flag] ; fn=0x140af70..0x140c15e
     0x140b914 | 48 8d 15 2a b8 23 05     | lea rdx, [rip + 0x523b82a]
     0x140b91b | 48 8d 0d 8e 2e e2 05     | lea rcx, [rip + 0x5e22e8e] ; "assembly primitive is null"
     0x140b922 | e8 a9 57 56 03           | call 0x49710d0
+  
+  === [Estrutura RTTI & VTable da Classe (RBX::AssemblyBroadPhaseBinding)] ===
+    VTable  : 0x7009078 (offset +0x0, 3 slots virtuais)
+    Herança : RBX::Collision::BroadPhaseColliderBinding
+    +0x0 -> fn_0x14c58f0
+    +0x8 -> fn_0x14c9c20
+    +0x10 -> fn_0x14c9d50
+  
+  === [Decompilacao de Metodo da Classe RBX::AssemblyBroadPhaseBinding: 0x14c58f0..0x14c592e (vfunc_0x0)] ===
+    struct RBX::Collision::BroadPhaseColliderBinding {
+      /* +0x0 */ void*   field_0x0;
+    };
+    
+    auto RBX::Collision::BroadPhaseColliderBinding::func_0x14c58f0(RBX::Collision::BroadPhaseColliderBinding* this, int64_t param_2) {
+      this->field_0x0 = &sym_0x7009098;
+      call_0x9aac20(&this->field_0x8);
+      if (((uint8_t)param_2 & 0x1) != 0) {
+        call_0x4955ac0(this);
+      }
+      return this;
+    }
+  
+  === [Decompilacao de Metodo da Classe RBX::AssemblyBroadPhaseBinding: 0x14c9c20..0x14c9d49 (vfunc_0x8)] ===
+    struct RBX::AssemblyBroadPhaseBinding {
+      /* +0x68 */ void*   field_0x68;
+    };
+    
+    auto RBX::AssemblyBroadPhaseBinding::func_0x14c9c20(RBX::AssemblyBroadPhaseBinding* this, int64_t param_2, void* param_3, void* param_4) {
+      auto ret_0x14c73e0_1 = call_0x14c73e0(this->field_0x68);
+      param_3->field_0x0 = (uint8_t)ret_0x14c73e0_1;
+      auto ret_0x14c8660_2 = call_0x14c8660(this->field_0x68, &local_0x20);
+      param_2->field_0x0 = ret_0x14c8660_2->field_0x0;
+      param_2->field_0x10 = ret_0x14c8660_2->field_0x10;
+      void* prev_0x68_1 = this->field_0x68;
+      auto ret_0x14c6a60_3 = call_0x14c6a60(prev_0x68_1);
+      auto ret_0x1457880_4 = call_0x1457880(ret_0x14c6a60_3, &local_0x20);
+      auto* f_68 = this->field_0x68;
+      f_68->field_0xf0 = ret_0x1457880_4->field_0x0;
+      f_68->field_0x100 = ret_0x1457880_4->field_0x10;
+      f_68->field_0x110 = ret_0x1457880_4->field_0x20;
+      param_4->field_0x0 = f_68->field_0x168 >> 3 & 0x1;
+      return f_68;
+    }
+  
+  === [Decompilacao de Metodo da Classe RBX::AssemblyBroadPhaseBinding: 0x14c9d50..0x14c9d9a (vfunc_0x10)] ===
+    struct RBX::AssemblyBroadPhaseBinding {
+      /* +0x48 */ uint8_t field_0x48;
+      /* +0x49 */ uint8_t field_0x49;
+      /* +0x68 */ void*   field_0x68;
+    };
+    
+    auto RBX::AssemblyBroadPhaseBinding::func_0x14c9d50(RBX::AssemblyBroadPhaseBinding* this) {
+      call_0x14c8660(this->field_0x68, &local_0x20);
+      call_0x14c57d0(this, &local_0x20);
+      auto ret_0x14c73e0_3 = call_0x14c73e0(this->field_0x68);
+      this->field_0x48 = (uint8_t)ret_0x14c73e0_3;
+      auto* f_68 = this->field_0x68;
+      this->field_0x49 = f_68->field_0x168 >> 3 & 0x1;
+      return f_68;
+    }
 
 [Strings .rdata na função]
-  * assembly primitive is null
+  * "assembly primitive is null"  [@rdata 0x722e7b0, ref @0x140b91b, literal, 26B]
 
 [Co-Flags na mesma função]
   * FFlagPhysicsNewSpanningTree = false (default)

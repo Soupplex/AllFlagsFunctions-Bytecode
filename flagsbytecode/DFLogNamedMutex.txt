@@ -9,8 +9,7 @@ Operação  : 0x599e830: mov/math reg, [flag] ; fn=0x599e810..0x599e8a5
     Classe  : RBX::NamedMutex (Inferido)
     Padrão  : DFLogNamedMutex = 6 (default) [log, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : NamedMutex < 6
-    Fórmula : (uint64_t)NamedMutex >> 8 < 3
+    Fórmula : (uint8_t)NamedMutex >= 6 && (uint8_t)((uint64_t)NamedMutex >> 8) >= 3
     Altera  : this->field_0x30
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
@@ -21,8 +20,7 @@ Operação  : 0x599e830: mov/math reg, [flag] ; fn=0x599e810..0x599e8a5
     [XREF #3 @0x599eb3d] Classe  : RBX::NamedMutex (Inferido)
     [XREF #3 @0x599eb3d] Altera  : this->field_0x29
     [XREF #4 @0x599ec55] Classe  : RBX::NamedMutex (Inferido)
-    [XREF #4 @0x599ec55] Fórmula : NamedMutex < 6
-    [XREF #4 @0x599ec55] Fórmula : (uint64_t)NamedMutex >> 8 < 3
+    [XREF #4 @0x599ec55] Fórmula : (uint8_t)NamedMutex >= 6 && (uint8_t)((uint64_t)NamedMutex >> 8) >= 3
     [XREF #4 @0x599ec55] Altera  : this->field_0x0, this->field_0x8, this->field_0x18, this->field_0x20, this->field_0x28, this->field_0x30
   
   === [Decompilacao C++ da Funcao 0x599e810..0x599e8a5] ===
@@ -39,11 +37,11 @@ Operação  : 0x599e830: mov/math reg, [flag] ; fn=0x599e810..0x599e8a5
         this->field_0x30->vfunc(this->field_0x30);
         this->field_0x30 = 0;
       }
-      if (NamedMutex >= 6 && (uint64_t)NamedMutex >> 8 >= 3) {
+      if ((uint8_t)NamedMutex >= 6 && (uint8_t)((uint64_t)NamedMutex >> 8) >= 3) {
         FLog::Log("[DFLog::NamedMutex] ~NamedMutex(%p, name:%s)");
       }
       call_0x6f8fb0(&this->field_0x8);
-      if ((this->field_0x0 & 0x1) == 0) {
+      if (((uint8_t)this->field_0x0 & 0x1) == 0) {
         return tailcall_0xcca0(this);
       }
       return;
@@ -264,8 +262,8 @@ Operação  : 0x599e830: mov/math reg, [flag] ; fn=0x599e810..0x599e8a5
       auto vret_2 = f_30->vfunc(f_30, -1);
       if ((vret_2 & 0xffffff7f) == 0) {
         auto ret_0xc880_7 = call_0xc880(&local_0x30, 0, 0);
-        this->field_0x29 = ret_0xc880_7;
-        if (ret_0xc880_7 != 0) {
+        this->field_0x29 = (uint8_t)ret_0xc880_7;
+        if ((uint8_t)ret_0xc880_7 != 0) {
           call_0xc870(1);
         }
         return true;
@@ -387,7 +385,7 @@ Operação  : 0x599e830: mov/math reg, [flag] ; fn=0x599e810..0x599e8a5
       call_0x6f7000(&this->field_0x8, "InstallerInfo.log", 0);
       this->field_0x28 = 0;
       this->field_0x30 = 0;
-      if (NamedMutex >= 6 && (uint64_t)NamedMutex >> 8 >= 3) {
+      if ((uint8_t)NamedMutex >= 6 && (uint8_t)((uint64_t)NamedMutex >> 8) >= 3) {
         FLog::Log("[DFLog::NamedMutex] NamedMutex(%p, name:%s)");
       }
       if (this->field_0x30 == 0) {
@@ -460,13 +458,34 @@ Operação  : 0x599e830: mov/math reg, [flag] ; fn=0x599e810..0x599e8a5
     0x599ecc9 | 48 83 c4 30              | add rsp, 0x30
     0x599eccd | 5f                       | pop rdi
     0x599ecce | c3                       | ret
+  
+  === [Decompilacao da Rotina Chamadora (Caller): 0x599ecd0..0x599ede1 em RBX::NamedMutex] ===
+    struct RBX::NamedMutex {
+      /* +0x0 */ void*   field_0x0;
+      /* +0x28 */ int32_t field_0x28;
+      /* +0x29 */ uint8_t field_0x29;
+      /* +0x30 */ void*   field_0x30;
+    };
+    
+    void RBX::NamedMutex::func_0x599ecd0(RBX::NamedMutex* this) {
+      auto* f_30 = this->field_0x30;
+      f_30->vfunc(f_30);
+      if (this->field_0x29 != 0) {
+        this->field_0x29 = 0;
+        call_0xc870(0);
+      }
+      if (this->field_0x0 != 3 || atomic_cas(&this->field_0x0, 3, 1) != 0) {
+        call_0xdac0(this);
+      }
+      call_0x599e810(this);
+    }
 
 [Strings .rdata na função]
-  * [DFLog::NamedMutex] ~NamedMutex(%p, name:%s)
-  * NamedMutex::create failed: %s
-  * NamedMutex::lock failed: %s
-  * InstallerInfo.log
-  * [DFLog::NamedMutex] NamedMutex(%p, name:%s)
+  * "[DFLog::NamedMutex] ~NamedMutex(%p, name:%s)"  [@rdata 0x755d7e0, ref @0x599e854, FLog format]
+  * "NamedMutex::create failed: %s"  [@rdata 0x755d760, ref @0x599ea64, symbol/class]
+  * "NamedMutex::lock failed: %s"  [@rdata 0x755d700, ref @0x599ebcb, symbol/class]
+  * "InstallerInfo.log"  [@rdata 0x74de8d8, ref @0x599ec26, key/identifier]
+  * "[DFLog::NamedMutex] NamedMutex(%p, name:%s)"  [@rdata 0x755d810, ref @0x599ec79, FLog format]
 
 [Co-Flags na mesma função]
   * FLogHangDetectionJob = 0 (default) [vizinha em .data]

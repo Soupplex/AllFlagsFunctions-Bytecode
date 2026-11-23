@@ -9,7 +9,7 @@ Operação  : 0x2f9fc77: cmp byte [flag], imm8 ; fn=0x2f9fc60..0x2f9fd82
     Classe  : RBX::SlimDisable (Inferido)
     Padrão  : FFlagSlimDisableAnimationInterpolationWhenModelStreamedIn3 = true (default) [bool, mode=1]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
-    Fórmula : SlimDisableAnimationInterpolationWhenModelStreamedIn3
+    Fórmula : !SlimDisableAnimationInterpolationWhenModelStreamedIn3
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x2f9fdcb (in fn_0x2f9fd90): call 0x2f9fc60  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
@@ -65,7 +65,7 @@ Operação  : 0x2f9fc77: cmp byte [flag], imm8 ; fn=0x2f9fc60..0x2f9fd82
           }
           if (v_rdi_8 != 0) {
             auto ret_0xdcbde0_2 = call_0xdcbde0(&v_rdi_8->field_0xa8);
-            if (ret_0xdcbde0_2 == 0 && v_rdi_8->field_0x2a8 == ret_0xdcbde0_2) {
+            if (ret_0xdcbde0_2 == 0 && v_rdi_8->field_0x2a8 == (uint8_t)ret_0xdcbde0_2) {
               if ((v_rdi_8->field_0x88 & 0x20000000) == 0) {
                 v_bl_10 = 1;
                 v_rsi_11 = v_rsi_7;
@@ -255,11 +255,56 @@ Operação  : 0x2f9fc77: cmp byte [flag], imm8 ; fn=0x2f9fc60..0x2f9fd82
     0x2f93bdf | 4c 89 54 24 58           | mov qword ptr [rsp + 0x58], r10
     0x2f93be4 | 4d 3b e2                 | cmp r12, r10
     0x2f93be7 | 0f 84 af 09 00 00        | je 0x2f9459c
+  
+  === [Decompilacao da Rotina Chamadora (Caller): 0x2f9fd90..0x2f9ffd2 em RBX::SlimDisable] ===
+    struct RBX::SlimDisable {
+      /* +0x160 */ void*   field_0x160;
+      /* +0x168 */ void*   field_0x168;
+      /* +0x1d8 */ void*   field_0x1d8;
+      /* +0x1e0 */ void*   field_0x1e0;
+    };
+    
+    // Flag defaults: SlimDisableAnimationInterpolation = false, SlimReplicationLog = 6
+    auto RBX::SlimDisable::func_0x2f9fd90(RBX::SlimDisable* this, int64_t param_2) {
+      uint64_t v_rdx_1;
+      auto expr_2 = (this->field_0x1e0 - this->field_0x1d8) / 48 >> 3;
+      auto expr_1 = (uint64_t)expr_2 >> 63;
+      if (!SlimDisableAnimationInterpolation) {
+        auto ret_0x2f9fc60_1 = call_0x2f9fc60(this);
+        if ((uint8_t)ret_0x2f9fc60_1 == 0) {
+          call_0x495a220(&local_0x38);
+          call_0x523ea10(&this->field_0x148, &this->field_0x160, (float)local_0x38, &local_0x30);
+          if (local_0x30 != 0) {
+            call_0x2f9fac0(this, &local_0x80);
+            if ((uint8_t)SlimReplicationLog >= 6 && (uint8_t)((uint64_t)SlimReplicationLog >> 8) >= 2) {
+              FLog::Log("[DFLog::SlimReplicationLog] Slim Animation smoothing error {} for source {}");
+            }
+            param_2->field_0x0 = this->field_0x1d8;
+            param_2->field_0x8 = expr_2 + expr_1;
+            std::string::_Tidy_deallocate(local_0x80);
+          } else {
+            param_2->field_0x0 = this->field_0x160;
+            v_rdx_1 = ((this->field_0x168 - this->field_0x160) / 48 >> 3) + ((uint64_t)((this->field_0x168 - this->field_0x160) / 48 >> 3) >> 63);
+            L_0x2f9ffa2:
+            param_2->field_0x8 = v_rdx_1;
+          }
+        } else {
+          param_2->field_0x0 = this->field_0x1d8;
+          v_rdx_1 = expr_2 + expr_1;
+          param_2->field_0x8 = v_rdx_1;
+        }
+        return param_2;
+      }
+      param_2->field_0x0 = this->field_0x1d8;
+      v_rdx_1 = expr_2 + expr_1;
+      goto L_0x2f9ffa2;
+    }
 
 [Strings .rdata na função]
-  * [DFLog::SlimReplicationLog] Received entity array does not align with cFrame array!
-  * Variant cast failed
-  * SecurityViolation
+  * "[DFLog::SlimReplicationLog] Received entity array does not align with cFrame array!"  [@rdata 0x7373460, ref @0x2f91ccc, FLog format]
+  * "Variant cast failed"  [@rdata 0x7191e38, ref @0x2f9237c, literal, 19B]
+  * "SecurityViolation"  [@rdata 0x740b748, ref @0x2f929ef, key/identifier]
+  * "[DFLog::SlimReplicationLog] Slim Animation smoothing error {} for source {}"  [@rdata 0x73737a0, ref @0x2f9fe71, FLog format]
 
 [Co-Flags na mesma função]
   * DFLogSlimReplicationLog = 6 (default)
@@ -269,6 +314,7 @@ Operação  : 0x2f9fc77: cmp byte [flag], imm8 ; fn=0x2f9fc60..0x2f9fd82
   * FFlagMigrateUserIdAccessors = false (default)
   * FFlagPlayerUserIdReturnsEffectiveId3 = false (default)
   * FFlagSplitHashNoRehashOnExistingKey = true (default)
+  * DFFlagSlimDisableAnimationInterpolation = false (default)
   * DFIntSlimReplicationParallelStepBatching = 2 (default) [vizinha em .data]
   * FFlagSlimReplicationUseISRLodDataEntityPositionProperty = false (default) [vizinha em .data]
   * FFlagSlimUnifiedPosePipeline2 = false (default) [vizinha em .data]

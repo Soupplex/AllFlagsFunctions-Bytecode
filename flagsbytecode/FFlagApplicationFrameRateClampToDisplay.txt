@@ -10,8 +10,7 @@ Operação  : 0x29aad93: mov/math reg, [flag] ; fn=0x29aac80..0x29aaf98 [via FLo
     Classe  : RBX::ApplicationFrame (Inferido)
     Padrão  : FLogApplicationFrameRate = 0 (default) [log, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : ApplicationFrameRate < 6
-    Fórmula : (uint64_t)ApplicationFrameRate >> 8 < 4
+    Fórmula : (uint8_t)ApplicationFrameRate >= 6 && (uint8_t)((uint64_t)ApplicationFrameRate >> 8) >= 4
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x29ab0d1 (in fn_0x29ab020): call 0x29aac80  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
@@ -31,25 +30,32 @@ Operação  : 0x29aad93: mov/math reg, [flag] ; fn=0x29aac80..0x29aaf98 [via FLo
     // Flag defaults: ApplicationFrameRate = 0
     void RBX::ApplicationFrame::func_0x29aac80(RBX::ApplicationFrame* this, int64_t param_2) {
       call_0x2e13a20(&local_0x150, this, 0);
-      call_0x29aabf0(this);
+      auto ret_0x29aabf0_2 = call_0x29aabf0(this);
       auto ret_0x29aabf0_3 = call_0x29aabf0(this);
-      int32_t v_rdi_1;
+      uint8_t v_dil_1;
       if (this->field_0x19 != 0) {
-        v_rdi_1 = this->field_0x1a;
+        v_dil_1 = this->field_0x1a;
       } else if (this->field_0x8 > 0) {
-        v_rdi_1 = 1;
+        v_dil_1 = 1;
       } else if (this->field_0x18 != 0) {
-        v_rdi_1 = 0;
+        v_dil_1 = 0;
       } else {
-        v_rdi_1 = this->field_0x1b;
+        v_dil_1 = this->field_0x1b;
       }
-      if (ApplicationFrameRate >= 6 && (uint64_t)ApplicationFrameRate >> 8 >= 4) {
-        FLog::Log("[FLog::ApplicationFrameRate] {} {} target: {:.2f} ms (user cap={} FPS, requested={:.2f} ms, disp");
+      void* sel_rcx_1 = this->field_0x10 <= 0.0 ? "scheduler default" : "requested target";
+      void* sel_rax_2 = this->field_0x8 == 0 ? sel_rcx_1 : "user cap";
+      void* sel_r10_3 = ret_0x29aabf0_3 <= ret_0x29aabf0_2 ? sel_rax_2 : "display cap";
+      uint8_t v_sil_3 = this->field_0x19;
+      if ((uint8_t)ApplicationFrameRate >= 6 && (uint8_t)((uint64_t)ApplicationFrameRate >> 8) >= 4) {
+        void* sel_r8_5 = this->field_0x19 != 0 ? "Preserving VR scheduler interval; resolved" : "Applying";
+        auto prev_0x19_1 = this->field_0x19;
+        FLog::Log("[FLog::ApplicationFrameRate] {} {} target: {:.2f} ms (user cap={} FPS, requested={:.2f} ms, disp", sel_r8_5, sel_r10_3, ret_0x29aabf0_3);
+        v_sil_3 = prev_0x19_1;
       }
-      if (param_2 != 0 && this->field_0x19 == 0) {
+      if (param_2 != 0 && v_sil_3 == 0) {
         call_0x2937010(ret_0x29aabf0_3 * 0.001);
       }
-      call_0x29379a0(v_rdi_1);
+      call_0x29379a0(v_dil_1);
       if ((local_0x150 & 0x1) != 0) {
         if ((local_0x150 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x150 & 0xfffffffe)->field_0x0, (local_0x150 & 0xfffffffe)->field_0x0, 1) != 0) {
           call_0xdac0(local_0x150 & 0xfffffffe);
@@ -272,9 +278,10 @@ Operação  : 0x29aad93: mov/math reg, [flag] ; fn=0x29aac80..0x29aaf98 [via FLo
         return ftmp_2;
       }
       if (this->field_0x10 > 0.0) {
-        auto ret_0x5e20b98_2 = call_0x5e20b98(this->field_0x10);
+        double prev_0x10_1 = this->field_0x10;
+        auto ret_0x5e20b98_2 = call_0x5e20b98(prev_0x10_1);
         if (ret_0x5e20b98_2 <= 0) {
-          return this->field_0x10;
+          return prev_0x10_1;
         }
       }
       double ftmp_1 = 1000.0 / (double)ret_0x2936b10_1;
@@ -489,20 +496,46 @@ Operação  : 0x29aad93: mov/math reg, [flag] ; fn=0x29aac80..0x29aaf98 [via FLo
     0x2937a34 | 48 8d 15 85 41 79 05     | lea rdx, [rip + 0x5794185]
     0x2937a3b | 48 8d 4c 24 20           | lea rcx, [rsp + 0x20]
     0x2937a40 | e8 ab ec 4c 03           | call 0x5e066f0
+  
+  === [Decompilacao da Rotina Chamadora (Caller): 0x29ab020..0x29ab0f3 em RBX::ApplicationFrame] ===
+    struct RBX::ApplicationFrame {
+      /* +0x19 */ uint8_t field_0x19;
+      /* +0x1a */ uint8_t field_0x1a;
+    };
+    
+    void RBX::ApplicationFrame::func_0x29ab020(RBX::ApplicationFrame* this, int64_t param_2, void* param_3) {
+      call_0x2e13a20(&local_0x28, this, 0);
+      if (this->field_0x19 == param_2 && this->field_0x1a == param_3) {
+        if ((local_0x28 & 0x1) != 0) {
+          if ((local_0x28 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x28 & 0xfffffffe)->field_0x0, (local_0x28 & 0xfffffffe)->field_0x0, 1) != 0) {
+            call_0xdac0(local_0x28 & 0xfffffffe);
+          }
+        }
+        return;
+      }
+      this->field_0x19 = param_2;
+      this->field_0x1a = param_3;
+      if ((local_0x28 & 0x1) != 0) {
+        if ((local_0x28 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x28 & 0xfffffffe)->field_0x0, (local_0x28 & 0xfffffffe)->field_0x0, 1) != 0) {
+          call_0xdac0(local_0x28 & 0xfffffffe);
+        }
+      }
+      call_0x29aac80(this, param_2 ^ 0x1);
+    }
 
 [Strings .rdata na função]
-  * scheduler default
-  * requested target
-  * user cap
-  * display cap
-  * physics baseline
-  * VR pacing override
-  * presentation pacing
-  * [FLog::ApplicationFrameRate] {} {} target: {:.2f} ms (user cap={} FPS, requested={:.2f} ms, disp
-  * Preserving VR scheduler interval; resolved
-  * Applying
-  * enabling
-  * disabling
+  * "scheduler default"  [@rdata 0x730cc68, ref @0x29aad33, literal, 17B]
+  * "requested target"  [@rdata 0x730cc80, ref @0x29aad3a, literal, 16B]
+  * "user cap"  [@rdata 0x730cc48, ref @0x29aad4c, literal, 8B]
+  * "display cap"  [@rdata 0x730cc58, ref @0x29aad5d, literal, 11B]
+  * "physics baseline"  [@rdata 0x730cd98, ref @0x29aad6b, literal, 16B]
+  * "VR pacing override"  [@rdata 0x730cdb0, ref @0x29aad77, literal, 18B]
+  * "presentation pacing"  [@rdata 0x730cc98, ref @0x29aad85, literal, 19B]
+  * "[FLog::ApplicationFrameRate] {} {} target: {:.2f} ms (user cap={} FPS, requested={:.2f} ms, disp"  [@rdata 0x730ccb0, ref @0x29aadbf, FLog format]
+  * "Preserving VR scheduler interval; resolved"  [@rdata 0x730ce28, ref @0x29aadc6, literal, 42B]
+  * "Applying"  [@rdata 0x730ce58, ref @0x29aadcd, key/identifier]
+  * "enabling"  [@rdata 0x730ce68, ref @0x29aae06, literal, 8B]
+  * "disabling"  [@rdata 0x730ce78, ref @0x29aae0d, literal, 9B]
 
 [Co-Flags na mesma função]
   * FLogApplicationFrameRate = 0 (default)

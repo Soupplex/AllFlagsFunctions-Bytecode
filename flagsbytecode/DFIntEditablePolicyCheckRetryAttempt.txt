@@ -9,7 +9,7 @@ Operação  : 0x30ab872: cmp [flag], reg ; fn=0x30ab6a0..0x30abb2a
     Classe  : RBX::EditablePolicy (Inferido)
     Padrão  : DFIntEditablePolicyCheckRetryAttempt = 5 (default) [int, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : param_3 >= EditablePolicyCheckRetryAttempt
+    Fórmula : param_3 < EditablePolicyCheckRetryAttempt
     Wasm    : .data=0x1243814 [via DFLogEditableServiceLog]
     [Wasm]  : w2c_WebClient_f148581(&EditableServiceLog, 1734085, (local_0 + 16), 7, local_1)
     [Wasm]  : w2c_WebClient_f148581(&EditableServiceLog, "DFLogEditableServiceLog", (local_0 + 104), 9, local_1)
@@ -22,39 +22,47 @@ Operação  : 0x30ab872: cmp [flag], reg ; fn=0x30ab6a0..0x30abb2a
     
     // Flag defaults: EditablePolicyCheckRetryAttempt = 5, EditableServiceLog = 6
     void RBX::EditablePolicy::func_0x30ab6a0(RBX::EditablePolicy* this, int64_t param_2, void* param_3) {
-      if (EditableServiceLog >= 6 && (uint64_t)EditableServiceLog >> 8 >= 6) {
-        FLog::Log("[DFLog::EditableServiceLog] Performing AMP verified request, {}");
+      auto expr_1 = (uint64_t)EditableServiceLog >> 8;
+      if ((uint8_t)EditableServiceLog >= 6 && (uint8_t)expr_1 >= 6) {
+        FLog::Log("[DFLog::EditableServiceLog] Performing AMP verified request, {}", param_3);
       }
-      auto ret_0x5de64b0_1 = call_0x5de64b0();
+      auto ret_0x5de64b0_1 = call_0x5de64b0(this);
       auto ret_0x5de6490_2 = call_0x5de6490();
-      int64_t v_rax_2;
+      int64_t v_rax_1;
       if (ret_0x5de64b0_1 == 10000000) {
-        v_rax_2 = ret_0x5de6490_2 * 100;
+        v_rax_1 = ret_0x5de6490_2 * 100;
       } else {
-        v_rax_2 = ret_0x5de6490_2 % ret_0x5de64b0_1 * 1000000000 / ret_0x5de64b0_1 + ret_0x5de6490_2 / ret_0x5de64b0_1 * 1000000000;
+        v_rax_1 = ret_0x5de6490_2 % ret_0x5de64b0_1 * 1000000000 / ret_0x5de64b0_1 + ret_0x5de6490_2 / ret_0x5de64b0_1 * 1000000000;
       }
-      int64_t stk_3;
+      int64_t stk_2;
       if (param_3 > 0) {
-        if (v_rax_2 < 0x7fffffffffffffff - param_3 * 1000000000) {
-          stk_3 = v_rax_2 + param_3 * 1000000000;
+        if (v_rax_1 < 0x7fffffffffffffff - param_3 * 1000000000) {
+          stk_2 = v_rax_1 + param_3 * 1000000000;
         } else {
-          stk_3 = 0x7fffffffffffffff;
+          stk_2 = 0x7fffffffffffffff;
         }
       } else {
-        stk_3 = v_rax_2;
+        stk_2 = v_rax_1;
       }
-      auto local_0x30 = stk_3;
+      auto local_0x30 = stk_2;
       call_0x7024e0(&local_0x30);
       auto vret_4 = param_2->field_0x0->vfunc_0x0(param_2->field_0x0, &local_0x120);
       auto ret_0x1b697a0_5 = call_0x1b697a0(vret_4);
       if (ret_0x1b697a0_5->field_0x8 != 0) {
         ret_0x1b697a0_5->field_0x8->field_0x8++;
       }
+      void* v_rsi_3 = ret_0x1b697a0_5->field_0x0;
+      void* v_r14_4 = ret_0x1b697a0_5->field_0x8;
       if (local_0x128 != 0) {
+        void* prev_0x0_1 = ret_0x1b697a0_5->field_0x0;
+        void* prev_0x8_2 = ret_0x1b697a0_5->field_0x8;
         call_0x6daf40(local_0x128);
+        v_rsi_3 = prev_0x0_1;
+        v_r14_4 = prev_0x8_2;
       }
-      if (ret_0x1b697a0_5->field_0x0->field_0xa0 == 0) {
-        if (ret_0x1b697a0_5->field_0x0->field_0x18 != 200) {
+      void* v_r14_8 = v_r14_4;
+      if (v_rsi_3->field_0xa0 == 0) {
+        if (v_rsi_3->field_0x18 != 200) {
           if (param_3 < EditablePolicyCheckRetryAttempt) {
             call_0x2ba80a0(&local_0x40, param_2->field_0x0->field_0x228);
             call_0x2ba8420(&local_0x40->field_0x18, &param_2->field_0x0->field_0x18);
@@ -72,9 +80,9 @@ Operação  : 0x30ab872: cmp [flag], reg ; fn=0x30ab6a0..0x30abb2a
             call_0x29377f0("EditableService", &local_0x148, 0);
             if ((local_0x160 & 0xfffffffc & 0xfffffff8) != 0) {
               if ((~((local_0x160 & 0xfffffffc) >> 2) & 0x1) == 0) {
-                (((local_0x160 & 0xfffffffc) & 0xfffffff8))->vfunc_0x10(local_0x148);
+                ((local_0x160 & 0xfffffffc) & 0xfffffff8)->vfunc_0x10(local_0x148);
               }
-              if ((local_0x160 >> 1 & 0x1) == 0) {
+              if (((uint8_t)local_0x160 >> 1 & 0x1) == 0) {
                 call_0x4955ac0(local_0x148);
               }
             }
@@ -83,32 +91,42 @@ Operação  : 0x30ab872: cmp [flag], reg ; fn=0x30ab6a0..0x30abb2a
             }
           } else {
             L_0x30ab9e6:
-            if (EditableServiceLog >= 6 && (uint64_t)EditableServiceLog >> 8 >= 6) {
+            void* v_rsi_5 = v_rsi_3;
+            void* v_r14_6 = v_r14_4;
+            if ((uint8_t)EditableServiceLog >= 6 && (uint8_t)expr_1 >= 6) {
               FLog::Log("[DFLog::EditableServiceLog] Handling Amp Response");
+              v_rsi_5 = ret_0x1b697a0_5->field_0x0;
+              v_r14_6 = ret_0x1b697a0_5->field_0x8;
             }
-            void* v_r9_4 = this;
+            void* v_r9_7 = this;
             if ((this->field_0x18 >> 1 & 0x1) == 0) {
-              v_r9_4 = this->field_0x0;
+              v_r9_7 = this->field_0x0;
             }
-            ((this->field_0x18 & 0xfffffff8))->vfunc_0x0(v_r9_4, ret_0x1b697a0_5->field_0x0->field_0xa0, ret_0x1b697a0_5->field_0x0);
+            (this->field_0x18 & 0xfffffff8)->vfunc_0x0(v_r9_7, v_rsi_3->field_0xa0, v_rsi_5);
+            v_r14_8 = v_r14_6;
           }
         } else {
-          if (EditableServiceLog >= 6 && (uint64_t)EditableServiceLog >> 8 >= 6) {
+          void* v_rsi_5 = v_rsi_3;
+          void* v_r14_6 = v_r14_4;
+          if ((uint8_t)EditableServiceLog >= 6 && (uint8_t)expr_1 >= 6) {
             FLog::Log("[DFLog::EditableServiceLog] Handling Amp Response");
+            v_rsi_5 = ret_0x1b697a0_5->field_0x0;
+            v_r14_6 = ret_0x1b697a0_5->field_0x8;
           }
-          void* v_r9_4 = this;
+          void* v_r9_7 = this;
           if ((this->field_0x18 >> 1 & 0x1) == 0) {
-            v_r9_4 = this->field_0x0;
+            v_r9_7 = this->field_0x0;
           }
-          ((this->field_0x18 & 0xfffffff8))->vfunc_0x0(v_r9_4, ret_0x1b697a0_5->field_0x0->field_0xa0, ret_0x1b697a0_5->field_0x0);
+          (this->field_0x18 & 0xfffffff8)->vfunc_0x0(v_r9_7, v_rsi_3->field_0xa0, v_rsi_5);
+          v_r14_8 = v_r14_6;
         }
       } else if (param_3 < EditablePolicyCheckRetryAttempt) {
         goto L_0x30ab87f;
       } else {
         goto L_0x30ab9e6;
       }
-      if (ret_0x1b697a0_5->field_0x8 != 0) {
-        call_0x6daf40(ret_0x1b697a0_5->field_0x8);
+      if (v_r14_8 != 0) {
+        call_0x6daf40(v_r14_8);
       }
       call_0x6db7e0(this);
       if (param_2->field_0x8 != 0) {
@@ -473,9 +491,9 @@ Operação  : 0x30ab872: cmp [flag], reg ; fn=0x30ab6a0..0x30abb2a
     }
 
 [Strings .rdata na função]
-  * [DFLog::EditableServiceLog] Performing AMP verified request, {}
-  * EditableService
-  * [DFLog::EditableServiceLog] Handling Amp Response
+  * "[DFLog::EditableServiceLog] Performing AMP verified request, {}"  [@rdata 0x7381060, ref @0x30ab726, FLog format]
+  * "EditableService"  [@rdata 0x71b2e70, ref @0x30ab975, key/identifier]
+  * "[DFLog::EditableServiceLog] Handling Amp Response"  [@rdata 0x7381028, ref @0x30aba12, FLog format]
 
 [Co-Flags na mesma função]
   * DFLogEditableServiceLog = 6 (default)

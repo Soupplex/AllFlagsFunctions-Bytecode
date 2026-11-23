@@ -9,20 +9,17 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
     Classe  : RBX::DynamicTranslationSender::ServerToClientState (RTTI Resolvido)
     Padrão  : DFLogDynamicTranslation = 0 (default) [log, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : DynamicTranslation < 6
-    Fórmula : (uint64_t)DynamicTranslation >> 8 < 6
-    Fórmula : (uint64_t)DynamicTranslation >> 8 < 3
+    Fórmula : (uint8_t)DynamicTranslation >= 6 && (uint8_t)(uint64_t)DynamicTranslation >> 8 >= 3
+    Fórmula : (uint8_t)DynamicTranslation < 6 || (uint8_t)(uint64_t)DynamicTranslation >> 8 < 6
     Altera  : this->field_0x28, this->field_0xc8, this->field_0xd0, this->field_0xe8, this->field_0xf0, this->field_0xf0->field_0xc
     [Child @0x12d04f7] Papel   : Parâmetro de configuração lido diretamente pela rotina
     [Child @0x12d83d0] Fórmula : "DynamicTranslationSender"
     [XREF #2 @0x12d0df8] Classe  : RBX::DynamicTranslation (Inferido)
-    [XREF #2 @0x12d0df8] Fórmula : DynamicTranslation < 6
-    [XREF #2 @0x12d0df8] Fórmula : (uint64_t)DynamicTranslation >> 8 < 6
+    [XREF #2 @0x12d0df8] Fórmula : v_r15b_15 == 0 && (uint8_t)DynamicTranslation >= 6 && (uint8_t)((uint64_t)DynamicTranslation >> 8) >= 6
     [XREF #3 @0x12d1091] Classe  : RBX::DynamicTranslation (Inferido)
-    [XREF #3 @0x12d1091] Fórmula : DynamicTranslation < 6
-    [XREF #3 @0x12d1091] Fórmula : (uint64_t)DynamicTranslation >> 8 < 6
-    [XREF #3 @0x12d1091] Fórmula : (uint64_t)DynamicTranslation >> 8 < 4
-    [XREF #3 @0x12d1091] Fórmula : (uint64_t)DynamicTranslation >> 8 < 3
+    [XREF #3 @0x12d1091] Fórmula : (uint8_t)DynamicTranslation >= 6 && (uint8_t)(uint64_t)DynamicTranslation >> 8 >= 3
+    [XREF #3 @0x12d1091] Fórmula : (uint8_t)DynamicTranslation >= 6 && (uint8_t)(uint64_t)DynamicTranslation >> 8 >= 4
+    [XREF #3 @0x12d1091] Fórmula : (uint8_t)DynamicTranslation >= 6 && (uint8_t)(uint64_t)DynamicTranslation >> 8 >= 6
   
   === [Decompilacao C++ da Funcao 0x12cfe80..0x12d05c9] ===
     struct RBX::DynamicTranslationSender::ServerToClientState {
@@ -38,18 +35,21 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
     
     // Flag defaults: DynamicTranslation = 0
     void RBX::DynamicTranslationSender::ServerToClientState::func_0x12cfe80(RBX::DynamicTranslationSender::ServerToClientState* this, int64_t param_2) {
+      auto expr_1 = (uint64_t)DynamicTranslation >> 8;
       if (param_2 == 0) {
-        if (DynamicTranslation >= 6 && (uint64_t)DynamicTranslation >> 8 >= 3) {
+        if ((uint8_t)DynamicTranslation >= 6 && (uint8_t)expr_1 >= 3) {
           FLog::Log("[DFLog::DynamicTranslation] Sender::tryStart: received nullptr dm");
         }
       } else {
         if (param_2->field_0x200 != 0 && param_2->field_0x200->field_0x8 != 0) {
+          auto expr_2 = &param_2->field_0x200->field_0x8;
           do { // L_0x12cffa0
-            atomic_try_incref(&param_2->field_0x200->field_0x8);
-            if (atomic_cas(&param_2->field_0x200->field_0x8, param_2->field_0x200->field_0x8, param_2->field_0x200->field_0x8 + 1) == 0) break;
+            atomic_try_incref(expr_2);
+            if (atomic_cas(expr_2, param_2->field_0x200->field_0x8, param_2->field_0x200->field_0x8 + 1) == 0) break;
             if (param_2->field_0x200->field_0x8 == 0) break;
           } while (true); // loop -> L_0x12cffa0
           void* sel_rsi_1 = param_2->field_0x1f8 == 0 ? 0 : param_2->field_0x1f8->field_m0x1f0;
+          void* v_rbx_1 = param_2->field_0x200;
           int64_t local_0x70;
           if (param_2->field_0x970 == 1) {
             auto ret_0x40625d0_1 = call_0x40625d0(&param_2->field_0x1f0);
@@ -73,13 +73,13 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
               if (local_0xc8 != 0 && atomic_fetch_sub(&local_0xc8->field_0xc, 1) == 1) {
                 local_0xc8->vfunc_0x8();
               }
-              if (DynamicTranslation < 6 || (uint64_t)DynamicTranslation >> 8 < 6) {
+              if ((uint8_t)DynamicTranslation < 6 || (uint8_t)expr_1 < 6) {
                 L_0x12d0503:
                 if (param_2->field_0x200 != 0 && param_2->field_0x200->field_0x8 != 0) {
                   L_0x12d0525:
                   do { // L_0x12d0525
-                    atomic_try_incref(&param_2->field_0x200->field_0x8);
-                    if (atomic_cas(&param_2->field_0x200->field_0x8, param_2->field_0x200->field_0x8, param_2->field_0x200->field_0x8 + 1) == 0) break;
+                    atomic_try_incref(expr_2);
+                    if (atomic_cas(expr_2, param_2->field_0x200->field_0x8, param_2->field_0x200->field_0x8 + 1) == 0) break;
                     if (param_2->field_0x200->field_0x8 == 0) break;
                   } while (true); // loop -> L_0x12d0525
                   void* sel_rdx_2 = param_2->field_0x1f8 == 0 ? 0 : param_2->field_0x1f8->field_m0x1f0;
@@ -104,8 +104,8 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
             }
             if (param_2->field_0x970 == 2) {
               this->field_0x28 = 0;
-              if (param_2->field_0x200 != 0) {
-                param_2->field_0x200->field_0xc++;
+              if (v_rbx_1 != 0) {
+                v_rbx_1->field_0xc++;
               }
               auto ret_0x4956040_11 = call_0x4956040(360);
               if (ret_0x4956040_11 != 0) {
@@ -123,25 +123,25 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
                   ret_0x12c3480_14->field_0x8->vfunc_0x8();
                 }
                 this->field_0xe8 = ret_0x12c3480_14;
-                void* prev_0xf0_2 = this->field_0xf0;
+                void* prev_0xf0_4 = this->field_0xf0;
                 this->field_0xf0 = ret_0x4956040_15;
-                if (prev_0xf0_2 != 0) {
-                  call_0x6daf40(prev_0xf0_2);
+                if (prev_0xf0_4 != 0) {
+                  call_0x6daf40(prev_0xf0_4);
                 }
                 call_0x12c3070(this->field_0xe8);
-                void* stk_3;
                 void* stk_4;
+                void* stk_5;
                 if (this->field_0xf0 != 0) {
                   this->field_0xf0->field_0xc++;
-                  stk_3 = this->field_0xe8;
-                  stk_4 = this->field_0xf0;
+                  stk_4 = this->field_0xe8;
+                  stk_5 = this->field_0xf0;
                 } else {
-                  stk_3 = 0.0;
                   stk_4 = 0.0;
+                  stk_5 = 0.0;
                 }
-                auto local_0x40 = stk_3;
+                auto local_0x40 = stk_4;
                 auto local_0x44 = 0.0;
-                auto local_0x48 = stk_4;
+                auto local_0x48 = stk_5;
                 auto local_0x4c = 0.0;
                 auto ret_0x12d83d0_18 = call_0x12d83d0(&local_0xa0, &this->field_0x8, &local_0x40);
                 call_0x12d85b0(&this->field_0xf8, ret_0x12d83d0_18);
@@ -155,20 +155,20 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
                 if (local_0x48 != 0 && atomic_fetch_sub(&local_0x48->field_0xc, 1) == 1) {
                   local_0x48->vfunc_0x8();
                 }
-                void* stk_5;
                 void* stk_6;
+                void* stk_7;
                 if (this->field_0xf0 != 0) {
                   this->field_0xf0->field_0xc++;
-                  stk_5 = this->field_0xe8;
-                  stk_6 = this->field_0xf0;
+                  stk_6 = this->field_0xe8;
+                  stk_7 = this->field_0xf0;
                 } else {
-                  stk_5 = 0.0;
                   stk_6 = 0.0;
+                  stk_7 = 0.0;
                 }
                 local_0x70 = sel_rsi_1;
-                auto local_0x50 = stk_5;
+                auto local_0x50 = stk_6;
                 auto local_0x54 = 0.0;
-                auto local_0x58 = stk_6;
+                auto local_0x58 = stk_7;
                 auto local_0x5c = 0.0;
                 auto ret_0x12d8650_24 = call_0x12d8650(&local_0x140, &this->field_0x8, &local_0x70, &local_0x50);
                 this->field_0xd8 = ret_0x12d8650_24->field_0x0;
@@ -184,7 +184,7 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
                 }
                 auto local_0xb0 = this->field_0xd8;
                 call_0x2937390(&local_0xb0);
-                if (DynamicTranslation < 6 || (uint64_t)DynamicTranslation >> 8 < 6) {
+                if ((uint8_t)DynamicTranslation < 6 || (uint8_t)expr_1 < 6) {
                   if (param_2->field_0x200 != 0 && param_2->field_0x200->field_0x8 != 0) {
                     goto L_0x12d0525;
                   }
@@ -916,49 +916,52 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
     
     // Flag defaults: DynamicTranslation = 0
     auto RBX::DynamicTranslation::func_0x12d0c80(RBX::DynamicTranslation* this, int64_t param_2, void* param_3) {
+      void* v_r12_2 = param_3->field_0x0;
       int64_t local_0x80;
       if (param_3->field_0x0 != 0) {
+        void* prev_0x0_1 = param_3->field_0x0;
         local_0x80 = 0;
-        call_0x6f7000(&local_0x80, param_3->field_0x0, param_3->field_0x8);
+        call_0x6f7000(&local_0x80, prev_0x0_1, param_3->field_0x8);
+        v_r12_2 = prev_0x0_1;
       }
-      uint8_t v_bl_4;
+      uint8_t v_bl_5;
       if (this->field_0x30 == 0) {
-        v_bl_4 = 1;
+        v_bl_5 = 1;
       } else {
         auto ret_0x12c70d0_2 = call_0x12c70d0(&this->field_0x30, &local_0x40, &local_0x80, 0);
-        v_bl_4 = ret_0x12c70d0_2->field_0x4 != 0;
+        v_bl_5 = ret_0x12c70d0_2->field_0x4 != 0;
       }
       std::string::_Tidy_deallocate(local_0x80);
-      if (v_bl_4 != 0) {
+      if (v_bl_5 != 0) {
         return 1;
       }
       void* i_ebx = param_2->field_0x0;
-      int32_t v_rdi_11 = 2;
-      int32_t v_rdi_13;
-      uint8_t v_r15b_14;
+      int32_t v_rdi_12 = 2;
+      int32_t v_rdi_14;
+      uint8_t v_r15b_15;
       if (param_2->field_0x0 != param_2->field_0x8 + param_2->field_0x0) {
         do { // L_0x12d0d84
           auto ret_0x5e1f890_4 = call_0x5e1f890(i_ebx->field_0x0);
           if (ret_0x5e1f890_4 != 0) break;
           i_ebx++;
         } while (i_ebx != param_2->field_0x8 + param_2->field_0x0); // loop -> L_0x12d0d84
-        v_rdi_13 = v_rdi_11;
-        v_r15b_14 = 0;
+        v_rdi_14 = v_rdi_12;
+        v_r15b_15 = 0;
       } else {
-        v_rdi_13 = v_rdi_11;
-        v_r15b_14 = 0;
+        v_rdi_14 = v_rdi_12;
+        v_r15b_15 = 0;
       }
-      if ((v_rdi_13 & 0x1) != 0) {
+      if (((uint8_t)v_rdi_14 & 0x1) != 0) {
         std::string::_Tidy_deallocate(local_0x60);
       }
-      if (v_r15b_14 == 0 && DynamicTranslation >= 6 && (uint64_t)DynamicTranslation >> 8 >= 6) {
-        if (param_3->field_0x0 != 0) {
+      if (v_r15b_15 == 0 && (uint8_t)DynamicTranslation >= 6 && (uint8_t)((uint64_t)DynamicTranslation >> 8) >= 6) {
+        if (v_r12_2 != 0) {
           FLog::Log("[DFLog::DynamicTranslation] Sender::isEligibleForDynamicTranslation: text {} of locale {} is not");
         }
-        FLog::Log("[DFLog::DynamicTranslation] Sender::isEligibleForDynamicTranslation: text {} of locale {} is not");
-        std::string::_Tidy_deallocate(v_r15b_14);
+        FLog::Log("[DFLog::DynamicTranslation] Sender::isEligibleForDynamicTranslation: text {} of locale {} is not", param_2, v_r15b_15);
+        std::string::_Tidy_deallocate(v_r15b_15);
       }
-      return v_r15b_14;
+      return v_r15b_15;
     }
   
   === [Instrucoes x86-64 do XREF Runtime #2 (0x12d0c80..0x12d0ff0)] ===
@@ -1227,8 +1230,9 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
     
     // Flag defaults: DynamicTranslation = 0
     auto RBX::DynamicTranslation::func_0x12d1000(RBX::DynamicTranslation* this, int64_t param_2, void* param_3, void* param_4) {
+      auto expr_1 = (uint64_t)DynamicTranslation >> 8;
       if (this->field_0xc8 == 0) {
-        if (DynamicTranslation >= 6 && (uint64_t)DynamicTranslation >> 8 >= 3) {
+        if ((uint8_t)DynamicTranslation >= 6 && (uint8_t)expr_1 >= 3) {
           L_0x12d117a:
           FLog::Log("[DFLog::DynamicTranslation] Sender::fetchTranslation: trying to call fetchTranslation for source");
           "[DFLog::DynamicTranslation] Sender::fetchTranslation: trying to call fetchTranslation for source";
@@ -1238,7 +1242,7 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
         return tailcall_0x12d21f8();
       }
       if (this->field_0xf8 == 0) {
-        if (DynamicTranslation >= 6 && (uint64_t)DynamicTranslation >> 8 >= 3) {
+        if ((uint8_t)DynamicTranslation >= 6 && (uint8_t)expr_1 >= 3) {
           FLog::Log("[DFLog::DynamicTranslation] Sender::fetchTranslation: trying to call fetchTranslation for source");
           "[DFLog::DynamicTranslation] Sender::fetchTranslation: trying to call fetchTranslation for source";
         }
@@ -1263,7 +1267,7 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
       }
       if (stk_2 == 0) {
         void* v_r12_47 = v_r12_1;
-        if (DynamicTranslation >= 6 && (uint64_t)DynamicTranslation >> 8 >= 3) {
+        if ((uint8_t)DynamicTranslation >= 6 && (uint8_t)expr_1 >= 3) {
           FLog::Log("[DFLog::DynamicTranslation] Sender::fetchTranslation: trying to call fetchTranslation for source");
           v_r12_47 = stk_3;
           "[DFLog::DynamicTranslation] Sender::fetchTranslation: trying to call fetchTranslation for source";
@@ -1279,7 +1283,7 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
       void* v_r12_41 = v_r12_1;
       void* v_r12_44;
       if (ret_0x4062490_1 == 0) {
-        if (DynamicTranslation >= 6 && (uint64_t)DynamicTranslation >> 8 >= 3) {
+        if ((uint8_t)DynamicTranslation >= 6 && (uint8_t)expr_1 >= 3) {
           "[DFLog::DynamicTranslation] Sender::fetchTranslation: failed to get DataModel" - 0x333628;
           "[DFLog::DynamicTranslation] Sender::fetchTranslation: failed to get DataModel";
           "[DFLog::DynamicTranslation] Sender::fetchTranslation: failed to get DataModel" - 0x333628;
@@ -1293,7 +1297,7 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
         return tailcall_0x12d21f0();
       }
       if (param_4->field_0x8 == 0) {
-        if (DynamicTranslation >= 6 && (uint64_t)DynamicTranslation >> 8 >= 3) {
+        if ((uint8_t)DynamicTranslation >= 6 && (uint8_t)expr_1 >= 3) {
           "[DFLog::DynamicTranslation] Sender::fetchTranslation: trying to call fetchTranslation for source" - 0x35c5aa;
           "[DFLog::DynamicTranslation] Sender::fetchTranslation: trying to call fetchTranslation for source";
           FLog::Log("[DFLog::DynamicTranslation] Sender::fetchTranslation: failed to get DataModel");
@@ -1308,7 +1312,7 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
       int32_t i_esi;
       if (sel_rcx_1->field_0x358 == 0) {
         void* v_r12_27 = v_r12_1;
-        if (DynamicTranslation >= 6 && (uint64_t)DynamicTranslation >> 8 >= 3) {
+        if ((uint8_t)DynamicTranslation >= 6 && (uint8_t)expr_1 >= 3) {
           do { // L_0x12d1672
             i_esi++;
           } while (rax[i_esi] != 0); // loop -> L_0x12d1672
@@ -1345,7 +1349,7 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
         std::string::_Tidy_deallocate(local_0x4b0);
         if (v_sil_4 != 0) {
           void* v_r12_24 = v_r12_1;
-          if (DynamicTranslation >= 6 && (uint64_t)DynamicTranslation >> 8 >= 4) {
+          if ((uint8_t)DynamicTranslation >= 6 && (uint8_t)expr_1 >= 4) {
             FLog::Log("[DFLog::DynamicTranslation] Sender::fetchTranslation: Ignoring dynamic translation for source: {");
             v_r12_24 = stk_3;
             "[DFLog::DynamicTranslation] Sender::fetchTranslation: Ignoring dynamic translation for source: {";
@@ -1361,14 +1365,15 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
           call_0x12ccee0(&local_0x290, &local_0x3a0, local_0x6e0);
           std::string::_Tidy_deallocate(local_0x420);
           call_0x12cdb40(&local_0x510, &local_0x290);
-          if (DynamicTranslation >= 6 && (uint64_t)DynamicTranslation >> 8 >= 6) {
-            FLog::Log("[DFLog::DynamicTranslation] Sender::fetchTranslationV2: Parameterized source: {}, orig: {}");
+          if ((uint8_t)DynamicTranslation >= 6 && (uint8_t)expr_1 >= 6) {
+            FLog::Log("[DFLog::DynamicTranslation] Sender::fetchTranslationV2: Parameterized source: {}, orig: {}", param_3);
             "[DFLog::DynamicTranslation] Sender::fetchTranslationV2: Parameterized source: {}, orig: {}";
           }
+          void* prev_0xc8_1 = this->field_0xc8;
           auto ret_0x6dbfe0_11 = call_0x6dbfe0(local_0x6d0, &local_0x400);
           auto ret_0x6f7510_12 = call_0x6f7510(&local_0x3e0, &local_0x510);
-          call_0x12dc140(this->field_0xc8, &local_0x130, ret_0x6f7510_12, ret_0x6dbfe0_11);
-          if (DynamicTranslation >= 6 && (uint64_t)DynamicTranslation >> 8 >= 6) {
+          call_0x12dc140(prev_0xc8_1, &local_0x130, ret_0x6f7510_12, ret_0x6dbfe0_11);
+          if ((uint8_t)DynamicTranslation >= 6 && (uint8_t)expr_1 >= 6) {
             FLog::Log("[DFLog::DynamicTranslation] Sender::fetchTranslationV2: Fetched translation from client LRU cach");
             "[DFLog::DynamicTranslation] Sender::fetchTranslationV2: Fetched translation from client LRU cach";
           }
@@ -2300,19 +2305,23 @@ Operação  : 0x12cfec5: mov/math reg, [flag] ; fn=0x12cfe80..0x12d05c9
     0x12d1ff2 | 48 8b 49 f8              | mov rcx, qword ptr [rcx - 0x8]
     0x12d1ff6 | 48 2b d1                 | sub rdx, rcx
     0x12d1ff9 | 48 8d 42 f8              | lea rax, [rdx - 0x8]
+  
+  === [Estrutura RTTI & VTable da Classe (RBX::DynamicTranslationSender::ServerToClientState)] ===
+    VTable  : 0x6ffe3f0 (offset +0x0, 1 slots virtuais)
+    +0x0 -> fn_0x12db4c0
 
 [Strings .rdata na função]
-  * [DFLog::DynamicTranslation] Sender::tryStart: received nullptr dm
-  * [DFLog::DynamicTranslation] Sender::tryStart: server path complete
-  * SelectorGroupCount
-  * [DFLog::DynamicTranslation] Sender::tryStart: client path complete
-  * [DFLog::DynamicTranslation] Sender::isEligibleForDynamicTranslation: text {} of locale {} is not
-  * [DFLog::DynamicTranslation] Sender::fetchTranslation: trying to call fetchTranslation for source
-  * [DFLog::DynamicTranslation] Sender::fetchTranslation: failed to get DataModel
-  * [DFLog::DynamicTranslation] ServerQueue::shouldAdd: failed to get Workspace
-  * [DFLog::DynamicTranslation] Sender::fetchTranslation: Ignoring dynamic translation for source: {
-  * [DFLog::DynamicTranslation] Sender::fetchTranslationV2: Parameterized source: {}, orig: {}
-  * [DFLog::DynamicTranslation] Sender::fetchTranslationV2: Fetched translation from client LRU cach
+  * "[DFLog::DynamicTranslation] Sender::tryStart: received nullptr dm"  [@rdata 0x721b790, ref @0x12cfeed, FLog format]
+  * "[DFLog::DynamicTranslation] Sender::tryStart: server path complete"  [@rdata 0x721bcd0, ref @0x12d0322, FLog format]
+  * "SelectorGroupCount"  [@rdata 0x7384058, ref @0x12d0484, key/identifier]
+  * "[DFLog::DynamicTranslation] Sender::tryStart: client path complete"  [@rdata 0x721b7e0, ref @0x12d0495, FLog format]
+  * "[DFLog::DynamicTranslation] Sender::isEligibleForDynamicTranslation: text {} of locale {} is not"  [@rdata 0x721bb80, ref @0x12d0e24, FLog format]
+  * "[DFLog::DynamicTranslation] Sender::fetchTranslation: trying to call fetchTranslation for source"  [@rdata 0x721bc10, ref @0x12d10bd, FLog format]
+  * "[DFLog::DynamicTranslation] Sender::fetchTranslation: failed to get DataModel"  [@rdata 0x721b910, ref @0x12d14de, FLog format]
+  * "[DFLog::DynamicTranslation] ServerQueue::shouldAdd: failed to get Workspace"  [@rdata 0x721b680, ref @0x12d1661, FLog format]
+  * "[DFLog::DynamicTranslation] Sender::fetchTranslation: Ignoring dynamic translation for source: {"  [@rdata 0x721b6d0, ref @0x12d1858, FLog format]
+  * "[DFLog::DynamicTranslation] Sender::fetchTranslationV2: Parameterized source: {}, orig: {}"  [@rdata 0x721b5b0, ref @0x12d1ab1, FLog format]
+  * "[DFLog::DynamicTranslation] Sender::fetchTranslationV2: Fetched translation from client LRU cach"  [@rdata 0x721b610, ref @0x12d1c2b, FLog format]
 
 [Co-Flags na mesma função]
   * DFIntTextSafetyAnalyticsSenderClientToHttpScale = 0 (default) [vizinha em .data]

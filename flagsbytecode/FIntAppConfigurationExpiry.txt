@@ -9,10 +9,8 @@ Operação  : 0x114ee0f: mov/math reg, [flag] ; fn=0x114ec80..0x114f75a
     Classe  : RBX::AppConfiguration (Inferido)
     Padrão  : FIntAppConfigurationExpiry = 86400 (default) [int, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : AppConfigurationExpiry <= 0
-    Fórmula : AppConfigurationExpiry >= 0
-    Fórmula : call_0x2dbd0c0(&local_0x660, &local_0x1a0, ret_0x1bdb000_14 + (AppConfigurationExpiry - this->field_0x80->field_0x0), 1)
-    Altera  : this->field_0x78->field_0x8, this->field_0x88->field_0x8, this->field_0x80->field_0x0, this->field_0x70->field_0x0
+    Fórmula : AppConfigurationExpiry > 0 && v_rbx_1->field_0x0 > 0
+    Altera  : this->field_0x78->field_0x8, this->field_0x88->field_0x8, this->field_0x70->field_0x0
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x114fc35 (in fn_0x114fb40): call 0x114ec80  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
@@ -20,8 +18,7 @@ Operação  : 0x114ee0f: mov/math reg, [flag] ; fn=0x114ec80..0x114f75a
     [XREF #2 @0x114fa19] Fórmula : AppConfigurationExpiry + (local_0x78 / 1000000 >> 18) + ((uint64_t)(local_0x78 / 1000000 >> 18) >> 63)
     [XREF #2 @0x114fa19] Altera  : this->field_0x50->field_0x0, this->field_0x40->field_0x0
     [XREF #3 @0x114fed9] Classe  : RBX::AppConfiguration (Inferido)
-    [XREF #3 @0x114fed9] Fórmula : AppConfigurationExpiry <= 0
-    [XREF #3 @0x114fed9] Fórmula : call_0x2dbd0c0(&local_0x5a8, &local_0xf0, AppConfigurationExpiry - local_0x6a8 + (local_0x70 / 1000000 >> 18) + ((uint64_t)(local_0x70 / 1000000 >> 18) >> 63), 1)
+    [XREF #3 @0x114fed9] Fórmula : AppConfigurationExpiry > 0 && local_0x6a8 > 0
   
   === [Decompilacao C++ da Funcao 0x114ec80..0x114f75a] ===
     struct RBX::AppConfiguration {
@@ -38,7 +35,7 @@ Operação  : 0x114ee0f: mov/math reg, [flag] ; fn=0x114ec80..0x114f75a
     
     // Flag defaults: AppConfigurationExpiry = 86400, AppConfiguration = 0
     auto RBX::AppConfiguration::func_0x114ec80(RBX::AppConfiguration* this, int64_t param_2, void* param_3) {
-      if (AppConfiguration >= 6 && (uint64_t)AppConfiguration >> 8 >= 3) {
+      if ((uint8_t)AppConfiguration >= 6 && (uint8_t)((uint64_t)AppConfiguration >> 8) >= 3) {
         FLog::Log("[FLog::AppConfiguration] AppConfiguration::update()");
       }
       call_0x2e12fd0(&this->field_0x68);
@@ -54,8 +51,10 @@ Operação  : 0x114ee0f: mov/math reg, [flag] ; fn=0x114ec80..0x114f75a
         if (this->field_0x58 > 0) {
           call_0x72d190(param_2, &this->field_0x48);
         } else {
-          int32_t v_rsi_1 = 1;
+          void* v_rbx_1 = this->field_0x80;
+          int32_t v_rsi_2 = 1;
           if (AppConfigurationExpiry > 0) {
+            void* prev_0x80_1 = this->field_0x80;
             call_0x11291f0(&local_0xa0, &sym_0x1d6ab30);
             call_0x1bda340(&local_0xb0, &local_0xa0);
             call_0x11291f0(&local_0xa8, &sym_0x1d6abd0);
@@ -63,37 +62,42 @@ Operação  : 0x114ee0f: mov/math reg, [flag] ; fn=0x114ec80..0x114f75a
             auto local_0xd8 = local_0xb0;
             auto ret_0x1bdb000_6 = call_0x1bdb000(&local_0xd8);
             if (ret_0x1bdb000_6 < this->field_0x80->field_0x0) {
-              v_rsi_1 = 0;
+              v_rbx_1 = prev_0x80_1;
+              v_rsi_2 = 0;
+            } else {
+              v_rbx_1 = prev_0x80_1;
             }
           } else if (AppConfigurationExpiry < 0) {
-            v_rsi_1 = this->field_0x80->field_0x0 <= 0;
+            v_rsi_2 = this->field_0x80->field_0x0 <= 0;
           }
-          void* v_rdx_2 = this;
+          void* v_rdx_3 = this;
           if (this->field_0x18 >= 16) {
-            v_rdx_2 = this->field_0x0;
+            v_rdx_3 = this->field_0x0;
           }
           if (this->field_0x10 != 0) {
             uint64_t i_r9d = 0xcbf29ce484222325;
             int32_t i_ecx = 0;
             do { // L_0x114eeb1
               i_ecx++;
-              i_r9d = (i_r9d ^ i_ecx[v_rdx_2]) * 0x100000001b3;
+              i_r9d = (i_r9d ^ i_ecx[v_rdx_3]) * 0x100000001b3;
             } while (i_ecx < this->field_0x10); // loop -> L_0x114eeb1
           }
           auto ret_0x6fcb50_7 = call_0x6fcb50(&sym_0x8608280, &local_0x1b0, this);
           void* sel_rax_1 = ret_0x6fcb50_7->field_0x8 != 0 ? ret_0x6fcb50_7->field_0x8 : global_0x8608288;
-          void* v_rax_3;
+          void* v_rax_4;
           if (sel_rax_1 != global_0x8608288) {
             auto ret_0x105b1e0_8 = call_0x105b1e0(&sym_0x8608280, &local_0x1c0, this);
-            v_rax_3 = ret_0x105b1e0_8->field_0x0->field_0x30;
+            v_rax_4 = ret_0x105b1e0_8->field_0x0->field_0x30;
           } else {
-            v_rax_3 = -1;
+            v_rax_4 = -1;
           }
-          if (v_rax_3 != this->field_0x20) {
-            if (AppConfiguration >= 6 && (uint64_t)AppConfiguration >> 8 >= 4) {
+          if (v_rax_4 != this->field_0x20) {
+            void* v_rbx_6 = v_rbx_1;
+            if ((uint8_t)AppConfiguration >= 6 && (uint8_t)((uint64_t)AppConfiguration >> 8) >= 4) {
               FLog::Log("[FLog::AppConfiguration] AppConfiguration fetch was forced.");
+              v_rbx_6 = this->field_0x80;
             }
-            this->field_0x80->field_0x0 = 0;
+            v_rbx_6->field_0x0 = 0;
             this->field_0x70->field_0x0 = 1;
             call_0x114e0d0(&local_0x330, this->field_0x20, this);
             auto* f_78_2 = this->field_0x78;
@@ -103,12 +107,12 @@ Operação  : 0x114ee0f: mov/math reg, [flag] ; fn=0x114ec80..0x114f75a
             call_0x6db860(&local_0x230, param_3);
             call_0x707ef0(&local_0x200, 48, param_3, &local_0x220);
             auto ret_0x292b7d0_28 = call_0x292b7d0(&local_0x190);
-            void* stk_5;
+            void* stk_10;
             if (ret_0x292b7d0_28->field_0x8 != 0) {
               ret_0x292b7d0_28->field_0x8->field_0xc++;
-              stk_5 = ret_0x292b7d0_28->field_0x0;
+              stk_10 = ret_0x292b7d0_28->field_0x0;
             } else {
-              stk_5 = 0.0;
+              stk_10 = 0.0;
             }
             auto local_0x250 = 0;
             auto ret_0x1087fd0_29 = call_0x1087fd0(&local_0x180, &local_0x250);
@@ -127,11 +131,11 @@ Operação  : 0x114ee0f: mov/math reg, [flag] ; fn=0x114ec80..0x114f75a
             L_0x114f188:
             call_0x6db860(&local_0x2f0, param_2);
             call_0x6db860(&local_0x310, param_3);
-            auto local_0x290 = stk_5;
+            auto local_0x290 = stk_10;
             call_0x707ef0(&local_0x1e0, 160, param_3, &local_0x290);
             call_0x114bd40(this, &local_0x1e0, &local_0x200);
             if ((local_0x1f8 & 0xfffffffc & 0xfffffff8) != 0) {
-              if ((local_0x1f8 >> 1 & 0x1) != 0) {
+              if (((uint8_t)local_0x1f8 >> 1 & 0x1) != 0) {
                 if ((~((local_0x1f8 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x1f8 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
                   ((~((local_0x1f8 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x1f8 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0x1e0);
                 }
@@ -143,7 +147,7 @@ Operação  : 0x114ee0f: mov/math reg, [flag] ; fn=0x114ec80..0x114f75a
               }
             }
             if ((local_0x328 & 0xfffffffc & 0xfffffff8) != 0) {
-              if ((local_0x328 >> 1 & 0x1) != 0) {
+              if (((uint8_t)local_0x328 >> 1 & 0x1) != 0) {
                 if ((~((local_0x328 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x328 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
                   ((~((local_0x328 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x328 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0x310);
                 }
@@ -155,7 +159,7 @@ Operação  : 0x114ee0f: mov/math reg, [flag] ; fn=0x114ec80..0x114f75a
               }
             }
             if ((local_0x308 & 0xfffffffc & 0xfffffff8) != 0) {
-              if ((local_0x308 >> 1 & 0x1) != 0) {
+              if (((uint8_t)local_0x308 >> 1 & 0x1) != 0) {
                 if ((~((local_0x308 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x308 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
                   ((~((local_0x308 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x308 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0x2f0);
                 }
@@ -181,7 +185,7 @@ Operação  : 0x114ee0f: mov/math reg, [flag] ; fn=0x114ec80..0x114f75a
               call_0x6daf40(local_0x198);
             }
             if ((local_0x218 & 0xfffffffc & 0xfffffff8) != 0) {
-              if ((local_0x218 >> 1 & 0x1) != 0) {
+              if (((uint8_t)local_0x218 >> 1 & 0x1) != 0) {
                 if ((~((local_0x218 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x218 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
                   ((~((local_0x218 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x218 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0x200);
                 }
@@ -193,7 +197,7 @@ Operação  : 0x114ee0f: mov/math reg, [flag] ; fn=0x114ec80..0x114f75a
               }
             }
             if ((local_0x248 & 0xfffffffc & 0xfffffff8) != 0) {
-              if ((local_0x248 >> 1 & 0x1) != 0) {
+              if (((uint8_t)local_0x248 >> 1 & 0x1) != 0) {
                 if ((~((local_0x248 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x248 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
                   ((~((local_0x248 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x248 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0x230);
                 }
@@ -209,7 +213,7 @@ Operação  : 0x114ee0f: mov/math reg, [flag] ; fn=0x114ec80..0x114f75a
             }
             std::string::_Tidy_deallocate(local_0x330);
           } else {
-            if (v_rsi_1 != 0) {
+            if ((uint8_t)v_rsi_2 != 0) {
               this->field_0x70->field_0x0 = 1;
               call_0x114e0d0(&local_0x330, this->field_0x20, this);
               auto* f_78_4 = this->field_0x78;
@@ -219,12 +223,12 @@ Operação  : 0x114ee0f: mov/math reg, [flag] ; fn=0x114ec80..0x114f75a
               call_0x6db860(&local_0x230, param_3);
               call_0x707ef0(&local_0x200, 48, param_3, &local_0x220);
               auto ret_0x292b7d0_28 = call_0x292b7d0(&local_0x190);
-              void* stk_5;
+              void* stk_10;
               if (ret_0x292b7d0_28->field_0x8 != 0) {
                 ret_0x292b7d0_28->field_0x8->field_0xc++;
-                stk_5 = ret_0x292b7d0_28->field_0x0;
+                stk_10 = ret_0x292b7d0_28->field_0x0;
               } else {
-                stk_5 = 0.0;
+                stk_10 = 0.0;
               }
               auto local_0x250 = 0;
               auto ret_0x1087fd0_29 = call_0x1087fd0(&local_0x180, &local_0x250);
@@ -243,36 +247,41 @@ Operação  : 0x114ee0f: mov/math reg, [flag] ; fn=0x114ec80..0x114f75a
               goto L_0x114f188;
             } else {
               call_0x746610(&local_0x380, &sym_0x815d108);
-              if (AppConfigurationExpiry > 0 && this->field_0x80->field_0x0 > 0) {
+              if (AppConfigurationExpiry > 0 && v_rbx_1->field_0x0 > 0) {
                 call_0x11291f0(&local_0xc0, &sym_0x1d6ab30);
                 call_0x1bda340(&local_0xd0, &local_0xc0);
                 call_0x11291f0(&local_0xc8, &sym_0x1d6abd0);
                 call_0x1bda340(&local_0x68, &local_0xc8);
                 auto local_0x110 = local_0xd0;
                 auto ret_0x1bdb000_14 = call_0x1bdb000(&local_0x110);
-                call_0x2dbd0c0(&local_0x660, &local_0x1a0, ret_0x1bdb000_14 + (AppConfigurationExpiry - this->field_0x80->field_0x0), 1);
+                call_0x2dbd0c0(&local_0x660, std::string_view("timeInterval", 12), ret_0x1bdb000_14 + (AppConfigurationExpiry - v_rbx_1->field_0x0), 1);
               }
+              void* prev_0x20_2 = this->field_0x20;
               call_0x6f7510(&local_0x350, this);
               auto local_0x130 = &local_0x350;
               auto ret_0x10ca590_17 = call_0x10ca590(&local_0x80, &local_0x130);
               auto local_0x270 = 0;
-              call_0x114c290(&local_0x380, ret_0x10ca590_17, this->field_0x20, &local_0x270);
+              call_0x114c290(&local_0x380, ret_0x10ca590_17, prev_0x20_2, &local_0x270);
               call_0x73d550(&local_0x80, &local_0x80, local_0x80->field_0x8);
               call_0x4955ac0(local_0x80);
               call_0x5de4970(&local_0x350, 32, 1, &sym_0x6f7320);
               if (local_0x288 >= 16) {
-                void* v_rcx_4 = local_0x270;
+                void* v_rcx_5 = local_0x270;
                 if (local_0x288 + 1 >= 0x1000) {
                   if (local_0x270 - local_0x270->field_m0x8 < 8 || local_0x270 - local_0x270->field_m0x8 > 39) {
                     call_0x5e14580();
                     call_0x5e14580();
                   }
                 }
-                call_0x4955ac0(v_rcx_4);
+                call_0x4955ac0(v_rcx_5);
                 call_0x6e48a0(&local_0x6a8);
                 L_0x114ed92:
+                auto* f_70 = this->field_0x70;
+                uint8_t v_bl_19 = f_70->field_0x0;
                 if (this->field_0x88 != 0) {
+                  auto prev_0x0_3 = f_70->field_0x0;
                   call_0x6daf40(this->field_0x88);
+                  v_bl_19 = prev_0x0_3;
                 }
                 if (this->field_0x78 != 0) {
                   call_0x6daf40(this->field_0x78);
@@ -280,11 +289,15 @@ Operação  : 0x114ee0f: mov/math reg, [flag] ; fn=0x114ec80..0x114f75a
                 if (local_0x90->field_0x0 != 3 || atomic_cas(&local_0x90->field_0x0, 3, 1) != 0) {
                   call_0xdac0(local_0x90);
                 }
-                return this->field_0x70->field_0x0;
+                return v_bl_19;
               }
               call_0x6e48a0(&local_0x6a8);
+              auto* f_70_2 = this->field_0x70;
+              uint8_t v_bl_19 = f_70_2->field_0x0;
               if (this->field_0x88 != 0) {
+                auto prev_0x0_3 = f_70_2->field_0x0;
                 call_0x6daf40(this->field_0x88);
+                v_bl_19 = prev_0x0_3;
               }
               if (this->field_0x78 != 0) {
                 call_0x6daf40(this->field_0x78);
@@ -292,7 +305,7 @@ Operação  : 0x114ee0f: mov/math reg, [flag] ; fn=0x114ec80..0x114f75a
               if (local_0x90->field_0x0 != 3 || atomic_cas(&local_0x90->field_0x0, 3, 1) != 0) {
                 call_0xdac0(local_0x90);
               }
-              return this->field_0x70->field_0x0;
+              return v_bl_19;
             }
           }
         }
@@ -2061,8 +2074,8 @@ Operação  : 0x114ee0f: mov/math reg, [flag] ; fn=0x114ec80..0x114f75a
       void* v_rbx_4 = 0;
       int64_t local_0x180;
       if (global_0x8d756f8 <= rbp->field_0x58->field_0x0->field_0x0[40]) {
-        if (AppConfiguration >= 6 && (uint64_t)AppConfiguration >> 8 >= 3) {
-          FLog::Log("[FLog::AppConfiguration] AppConfiguration::fetch(): url = '{}'");
+        if ((uint8_t)AppConfiguration >= 6 && (uint8_t)((uint64_t)AppConfiguration >> 8) >= 3) {
+          FLog::Log("[FLog::AppConfiguration] AppConfiguration::fetch(): url = '{}'", v_rcx_1);
         }
         call_0x746610(&local_0x2c8, LambdaOTACommit);
         if (AppConfigurationExpiry > 0 && local_0x6a8 > 0) {
@@ -2077,14 +2090,14 @@ Operação  : 0x114ee0f: mov/math reg, [flag] ; fn=0x114ec80..0x114f75a
           if (local_0x40 != local_0xc0) {
             auto local_0x100 = local_0x40;
             call_0x119de40(&local_0x70, &local_0x100, &sym_0x84ae148);
-            call_0x2dbd0c0(&local_0x5a8, &local_0xf0, AppConfigurationExpiry - local_0x6a8 + (local_0x70 / 1000000 >> 18) + ((uint64_t)(local_0x70 / 1000000 >> 18) >> 63), 1);
+            call_0x2dbd0c0(&local_0x5a8, std::string_view("timeInterval", 12), AppConfigurationExpiry - local_0x6a8 + (local_0x70 / 1000000 >> 18) + ((uint64_t)(local_0x70 / 1000000 >> 18) >> 63), 1);
           } else {
             call_0x4973aa0("Invalid Datetime.\n");
             call_0x5e14580();
           }
         }
         L_0x1150000:
-        call_0x2dbdab0(&local_0x5a8, &local_0xa0, &local_0x80, 1);
+        call_0x2dbdab0(&local_0x5a8, std::string_view("url", 3), &local_0x80, 1);
         local_0x180 = 0;
         call_0x6f7000(&local_0x180, &sym_0x6647145, 0);
         call_0x114c290(&local_0x2c8, param_4, local_0x6a0, &local_0x180);
@@ -2132,8 +2145,8 @@ Operação  : 0x114ee0f: mov/math reg, [flag] ; fn=0x114ec80..0x114f75a
       }
       call_0x12e0(&sym_0x8d756f8);
       if (global_0x8d756f8 != -1) {
-        if (AppConfiguration >= 6 && (uint64_t)AppConfiguration >> 8 >= 3) {
-          FLog::Log("[FLog::AppConfiguration] AppConfiguration::fetch(): url = '{}'");
+        if ((uint8_t)AppConfiguration >= 6 && (uint8_t)((uint64_t)AppConfiguration >> 8) >= 3) {
+          FLog::Log("[FLog::AppConfiguration] AppConfiguration::fetch(): url = '{}'", v_rcx_1);
         }
         call_0x746610(&local_0x2c8, LambdaOTACommit);
         if (AppConfigurationExpiry > 0 && local_0x6a8 > 0) {
@@ -2705,17 +2718,95 @@ Operação  : 0x114ee0f: mov/math reg, [flag] ; fn=0x114ec80..0x114f75a
     0x11505b1 | 90                       | nop
     L_0x11505b2:
     0x11505b2 | e8 c9 3f cc 04           | call 0x5e14580
+  
+  === [Estrutura RTTI & VTable da Classe (RBX::AppConfiguration)] ===
+    VTable  : 0x6ff5688 (offset +0x0, 7 slots virtuais)
+    Herança : RSL::AppConfiguration (+0x10)
+    +0x0 -> fn_0x1153620
+    +0x8 -> fn_0xd1d710
+    +0x10 -> fn_0x1153690
+    +0x0 -> fn_0x1153160
+    +0x10 -> fn_0x11531d0
+    +0x20 -> fn_0x1152a80
+    +0x28 -> fn_0x1152ac0
+  
+  === [Decompilacao de Metodo da Classe RBX::AppConfiguration: 0xd1d710..0xd1d75c (vfunc_0x8)] ===
+    struct RBX::FutureState {
+      /* +0x0 */ void*   field_0x0;
+      /* +0x10 */ void*   field_0x10;
+    };
+    
+    void RBX::FutureState::func_0xd1d710(RBX::FutureState* this) {
+      void* prev_0x10_1 = this->field_0x10;
+      this->vfunc_0x10(this, 0);
+      this->field_0x10->vfunc_0x10(prev_0x10_1, this, 168, 8);
+    }
+  
+  === [Decompilacao de Metodo da Classe RBX::AppConfiguration: 0x1152a80..0x1152ab7 (vfunc_0x20)] ===
+    void RBX::AppConfiguration::func_0x1152a80(RBX::AppConfiguration* this, int64_t param_2) {
+      call_0x114f760(this, &local_0x20);
+    }
+  
+  === [Decompilacao de Metodo da Classe RBX::AppConfiguration: 0x1152ac0..0x1152bb0 (vfunc_0x28)] ===
+    struct RBX::AppConfiguration {
+      /* +0x0 */ void*   field_0x0;
+      /* +0x8 */ void*   field_0x8;
+      /* +0x10 */ void*   field_0x10;
+      /* +0x18 */ void*   field_0x18;
+      /* +0x40 */ void*   field_0x40;
+      /* +0x48 */ void*   field_0x48;
+      /* +0x50 */ void*   field_0x50;
+      /* +0x58 */ void*   field_0x58;
+      /* +0x78 */ void*   field_0x78;
+      /* +0x98 */ void*   field_0x98;
+    };
+    
+    void RBX::AppConfiguration::func_0x1152ac0(RBX::AppConfiguration* this, int64_t param_2) {
+      this->field_0x0 = 0;
+      this->field_0x8 = 0;
+      if (param_2->field_0x8 != 0) {
+        this->field_0x0 = param_2->field_0x0;
+        this->field_0x8 = param_2->field_0x8;
+        param_2->field_0x8->field_0xc++;
+      }
+      this->field_0x10 = 0;
+      this->field_0x18 = 0;
+      if (param_2->field_0x18 != 0) {
+        this->field_0x10 = param_2->field_0x10;
+        this->field_0x18 = param_2->field_0x18;
+        param_2->field_0x18->field_0xc++;
+      }
+      call_0x6f7510(&this->field_0x20, &param_2->field_0x20);
+      this->field_0x40 = 0;
+      this->field_0x48 = 0;
+      if (param_2->field_0x48 != 0) {
+        param_2->field_0x48->field_0x8++;
+      }
+      this->field_0x40 = param_2->field_0x40;
+      this->field_0x48 = param_2->field_0x48;
+      this->field_0x50 = 0;
+      this->field_0x58 = 0;
+      if (param_2->field_0x58 != 0) {
+        param_2->field_0x58->field_0x8++;
+      }
+      this->field_0x50 = param_2->field_0x50;
+      this->field_0x58 = param_2->field_0x58;
+      this->field_0x78 = 0;
+      call_0x6db860(&this->field_0x60, &param_2->field_0x60);
+      this->field_0x98 = 0;
+      call_0x6db860(&this->field_0x80, &param_2->field_0x80);
+    }
 
 [Strings .rdata na função]
-  * [FLog::AppConfiguration] AppConfiguration::update()
-  * [FLog::AppConfiguration] AppConfiguration fetch was forced.
-  * timeInterval
-  * app-patch-
-  * Invalid Datetime.\n
-  * [FLog::AppConfiguration] AppConfiguration::fetch(): url = '{}'
-  * url
-  * unordered_map/set too long
-  * GUAC:
+  * "[FLog::AppConfiguration] AppConfiguration::update()"  [@rdata 0x7205070, ref @0x114ece0, FLog format]
+  * "[FLog::AppConfiguration] AppConfiguration fetch was forced."  [@rdata 0x72050a8, ref @0x114ef50, FLog format]
+  * "timeInterval"  [@rdata 0x7204b60, ref @0x114f610, string_view len=12]
+  * "app-patch-"  [@rdata 0x7204de0, ref @0x114f8a6, literal, 10B]
+  * "Invalid Datetime.\n"  [@rdata 0x7207780, ref @0x114fa89, literal, 19B]
+  * "[FLog::AppConfiguration] AppConfiguration::fetch(): url = '{}'"  [@rdata 0x72051d8, ref @0x114fe2d, FLog format]
+  * "url"  [@rdata 0x7189148, ref @0x1150008, string_view len=3]
+  * "unordered_map/set too long"  [@rdata 0x718b5b0, ref @0x105b3f9, literal, 26B]
+  * "GUAC:"  [@rdata 0x720515c, ref @0x114e11d, key/identifier]
 
 [Co-Flags na mesma função]
   * FLogAppConfiguration = 0 (default)

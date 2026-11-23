@@ -9,8 +9,7 @@ Operação  : 0x4803ddd: mov/math reg, [flag] ; fn=0x4803dc0..0x4803e73
     Classe  : RBX::RemoteEvent (Inferido)
     Padrão  : DFIntRemoteEventSendSizeLimitBytes = 0 (default) [int, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : RemoteEventSendSizeLimitBytes <= 0
-    Fórmula : param_4 <= RemoteEventSendSizeLimitBytes
+    Fórmula : RemoteEventSendSizeLimitBytes > 0 && param_4 > RemoteEventSendSizeLimitBytes
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x480423d (in fn_0x4804030): call 0x4803dc0  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
@@ -19,7 +18,7 @@ Operação  : 0x4803ddd: mov/math reg, [flag] ; fn=0x4803dc0..0x4803e73
   === [Decompilacao C++ da Funcao 0x4803dc0..0x4803e73] ===
     // Flag defaults: RemoteEventSendSizeLimitBytes = 0, RemoteEventSendSizeLimitLogToUser = false
     void RBX::RemoteEvent::func_0x4803dc0(RBX::RemoteEvent* this, int64_t param_2, void* param_3, void* param_4) {
-      if (this != 0 || param_2 == 0) {
+      if ((uint8_t)this != 0 || (uint8_t)param_2 == 0) {
         if (RemoteEventSendSizeLimitBytes > 0 && param_4 > RemoteEventSendSizeLimitBytes) {
           call_0x4803c90(&local_0x30, param_3);
           call_0x480f080(2, this, RemoteEventSendSizeLimitLogToUser, param_4);
@@ -91,26 +90,7 @@ Operação  : 0x4803ddd: mov/math reg, [flag] ; fn=0x4803dc0..0x4803e73
   
   === [Sub-Rotina Chamada: 0x4803c90..0x4803dc0 via call @0x4803dfb (Direct Engine Sub-Call)] ===
     auto SubObj_0x4803c90::func_0x4803c90(SubObj_0x4803c90* this, int64_t param_2) {
-      void* stk_4;
-      float fstk_8;
-      float fstk_9;
-      void* stk_10;
-      if (param_2->field_0x20 != 0) {
-        stk_4 = 204;
-        fstk_8 = local_0x24;
-        fstk_9 = "Class: {} Event: {}";
-        stk_10 = 19;
-      } else {
-        stk_4 = param_2->field_0x0;
-        fstk_8 = local_0x44;
-        fstk_9 = 2;
-        stk_10 = &local_0x40;
-      }
-      auto local_0x30 = fstk_9;
-      auto local_0x38 = stk_10;
-      auto local_0x40 = stk_4;
-      auto local_0x44 = fstk_8;
-      call_0x1d48fe0(this, &local_0x30, &local_0x40);
+      call_0x1d48fe0(this, std::string_view("Class: {} Event: {}", 19), &local_0x40);
       return this;
     }
   
@@ -186,35 +166,57 @@ Operação  : 0x4803ddd: mov/math reg, [flag] ; fn=0x4803dc0..0x4803e73
   === [Sub-Rotina Chamada: 0x480f080..0x480f422 via call @0x4803e1e (Direct Engine Sub-Call)] ===
     // Flag defaults: Network = 7, EnableSendItemLimitDisconnect = false
     void SubObj_0x480f080::func_0x480f080(SubObj_0x480f080* this, int64_t param_2, void* param_3, void* param_4) {
+      void* sel_rsi_1 = this >= 2 && this <= 3 ? "Remote event" : "Item";
+      void* stk_2;
+      float fxmm0_5;
+      void* stk_14;
       if ((this & 0xfffffffd) != 0) {
-        if (Network >= 6 && (uint64_t)Network >> 8 >= 3) {
+        stk_2 = "receive";
+        if ((uint8_t)Network >= 6 && (uint8_t)((uint64_t)Network >> 8) >= 3) {
+          void* v_rcx_3 = local_0x2b8;
+          if (local_0x2b8->field_0x18 >= 16) {
+            v_rcx_3 = local_0x2b8->field_0x0;
+          }
+          fxmm0_5 = v_rcx_3;
           "[FLog::Network] {} exceeds maximum {} size ({} > {} bytes). {}";
+          stk_14 = stk_2;
           L_0x480f1b4:
-          FLog::Log("[FLog::Network] {} exceeds maximum {} size ({} > {} bytes). {}");
+          FLog::Log("[FLog::Network] {} exceeds maximum {} size ({} > {} bytes). {}", sel_rsi_1, stk_14, param_4, fxmm0_5);
         }
       } else if ((this & 0xfffffffd) == 0) {
-        if (Network >= 6 && (uint64_t)Network >> 8 >= 2) {
+        if ((uint8_t)Network >= 6 && (uint8_t)((uint64_t)Network >> 8) >= 2) {
+          void* v_rcx_1 = local_0x2b8;
           if (local_0x2b8->field_0x18 >= 16) {
-            FLog::Log("[FLog::Network] {} exceeds maximum {} size ({} > {} bytes). {}");
+            v_rcx_1 = local_0x2b8->field_0x0;
+            FLog::Log("[FLog::Network] {} exceeds maximum {} size ({} > {} bytes). {}", sel_rsi_1, stk_14, param_4, fxmm0_5);
             if (param_3 != 0) {
-              call_0x1bf4900(3, &local_0xe0, &local_0xb0);
+              call_0x1bf4900(3, std::string_view("{} exceeds maximum {} size ({} > {} bytes). {}", 46), &local_0xb0);
             }
-            call_0x480ec70(this, param_2, EnableSendItemLimitDisconnect, param_4);
+            call_0x480ec70(this, (uint8_t)param_2, EnableSendItemLimitDisconnect, param_4);
             return;
           }
+          fxmm0_5 = v_rcx_1;
+          stk_14 = "send";
           "[FLog::Network] {} exceeds maximum {} size ({} > {} bytes). {}";
           goto L_0x480f1b4;
         }
       } else {
-        if (Network >= 6 && (uint64_t)Network >> 8 >= 3) {
+        stk_2 = "send";
+        if ((uint8_t)Network >= 6 && (uint8_t)((uint64_t)Network >> 8) >= 3) {
+          void* v_rcx_3 = local_0x2b8;
+          if (local_0x2b8->field_0x18 >= 16) {
+            v_rcx_3 = local_0x2b8->field_0x0;
+          }
+          fxmm0_5 = v_rcx_3;
           "[FLog::Network] {} exceeds maximum {} size ({} > {} bytes). {}";
+          stk_14 = stk_2;
           goto L_0x480f1b4;
         }
       }
       if (param_3 != 0) {
-        call_0x1bf4900(3, &local_0xe0, &local_0xb0);
+        call_0x1bf4900(3, std::string_view("{} exceeds maximum {} size ({} > {} bytes). {}", 46), &local_0xb0);
       }
-      call_0x480ec70(this, param_2, EnableSendItemLimitDisconnect, param_4);
+      call_0x480ec70(this, (uint8_t)param_2, EnableSendItemLimitDisconnect, param_4);
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x480f080..0x480f422)] ===
@@ -431,22 +433,91 @@ Operação  : 0x4803ddd: mov/math reg, [flag] ; fn=0x4803dc0..0x4803e73
     0x480f40f | 48 8d 15 9a e6 8b 03     | lea rdx, [rip + 0x38be69a]
     0x480f416 | 48 8d 8d 10 01 00 00     | lea rcx, [rbp + 0x110]
     0x480f41d | e8 ce 72 5f 01           | call 0x5e066f0
+  
+  === [Estrutura RTTI & VTable da Classe (RBX::RemoteEvent)] ===
+    VTable  : 0x6f4c938 (offset +0x0, 38 slots virtuais)
+    Herança : RBX::FunctionDescriptor, RBX::MemberDescriptor, RBX::Descriptor
+    +0x0 -> fn_0x343e280
+    +0x8 -> fn_0x1c1f1a0
+    +0x10 -> fn_0x343e3f0
+    +0x18 -> fn_0x1c44010
+    +0x38 -> fn_0x343e470
+    +0x40 -> fn_0x1c3dbf0
+    +0x50 -> fn_0x1c432c0
+    +0x78 -> fn_0x1c3cdf0
+    +0x88 -> fn_0x1c49aa0
+    +0x90 -> fn_0x1c3d010
+    +0x98 -> fn_0x343e430
+    +0xb0 -> fn_0x1c43930
+    +0xc0 -> fn_0x1c43cb0
+    +0xd0 -> fn_0x1c3da30
+    +0xd8 -> fn_0x1c439b0
+    +0xe0 -> fn_0x3114ad0
+  
+  === [Decompilacao de Metodo da Classe RBX::RemoteEvent: 0x343e280..0x343e2b0 (vfunc_0x0)] ===
+    auto RBX::BaseRemoteEvent::RemoteEvent::func_0x343e280(RBX::BaseRemoteEvent::RemoteEvent* this, int64_t param_2) {
+      call_0x343e4a0(this);
+      if (((uint8_t)param_2 & 0x1) != 0) {
+        call_0x4955ac0(this);
+      }
+      return this;
+    }
+  
+  === [Decompilacao de Metodo da Classe RBX::RemoteEvent: 0x343e3f0..0x343e42c (vfunc_0x10)] ===
+    void RBX::RemoteEvent::func_0x343e3f0(RBX::RemoteEvent* this, int64_t param_2) {
+      if (param_2 != &sym_0x854fdd0 && param_2 != &sym_0x854fe80) {
+        call_0x33641b0(this, param_2, param_3, param_4);
+        return;
+      }
+      call_0x33641b0(this, param_2, param_3, param_4);
+    }
+  
+  === [Decompilacao de Metodo da Classe RBX::RemoteEvent: 0x1c44010..0x1c44138 (vfunc_0x18)] ===
+    struct RBX::Instance {
+      /* +0x48 */ void*   field_0x48;
+      /* +0x60 */ void*   field_0x60;
+    };
+    
+    // Flag defaults: CheckEngineContextOnInstanceAccess2 = false
+    void RBX::Instance::func_0x1c44010(RBX::Instance* this, int64_t param_2, void* param_3, void* param_4) {
+      if (this->field_0x60 != 0) {
+        (*global_0x80f4c48)(this);
+      }
+      auto ret_0x4956040_2 = call_0x4956040(24);
+      auto ret_0xffc540_3 = call_0xffc540(ret_0x4956040_2, param_3);
+      call_0xd29440(&local_0x40, ret_0xffc540_3);
+      auto* f_48 = this->field_0x48;
+      if (f_48 != 0 && f_48->field_0x8 != 0) {
+        auto ret_0xc700_5 = call_0xc700(global_0x84cf408, 1);
+        if (ret_0xc700_5->field_0x0 == 0) {
+          auto local_0x20 = 3;
+          call_0x7d7f00(this->field_0x48, &local_0x20, &local_0x28);
+        } else {
+          call_0x49710d0("Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel ", &sym_0x6647145);
+        }
+      }
+      if (local_0x48 != 0) {
+        call_0x6daf40(local_0x48);
+      }
+    }
 
 [Strings .rdata na função]
-  * Class: {} Event: {}
-  * EventNetworkId: {}
-  * Item
-  * Remote event
-  * receive
-  * [FLog::Network] {} exceeds maximum {} size ({} > {} bytes). {}
-  * {} exceeds maximum {} size ({} > {} bytes). {}
-  * JoinBlobBytes
-  * send
+  * "Class: {} Event: {}"  [@rdata 0x74834a8, ref @0x4803ce2, string_view len=19]
+  * "EventNetworkId: {}"  [@rdata 0x7483058, ref @0x4803d48, string_view len=18]
+  * "Item"  [@rdata 0x71e9f00, ref @0x480f0c1, key/identifier]
+  * "Remote event"  [@rdata 0x7483d40, ref @0x480f0d5, literal, 12B]
+  * "receive"  [@rdata 0x7483e08, ref @0x480f0f5, literal, 7B]
+  * "[FLog::Network] {} exceeds maximum {} size ({} > {} bytes). {}"  [@rdata 0x7483dc8, ref @0x480f134, FLog format]
+  * "{} exceeds maximum {} size ({} > {} bytes). {}"  [@rdata 0x7483d98, ref @0x480f20e, string_view len=46]
+  * "JoinBlobBytes"  [@rdata 0x7483fe8, ref @0x480f2f7, key/identifier]
+  * "send"  [@rdata 0x73023c4, ref @0x480f30a, literal, 4B]
+  * "Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel "  [@rdata 0x7280e40, ref @0x1c44110, literal, 96B]
 
 [Co-Flags na mesma função]
   * DFFlagRemoteEventSendSizeLimitLogToUser = false (default)
   * FLogNetwork = 7 (default)
   * DFFlagEnableSendItemLimitDisconnect = false (default)
+  * DFFlagCheckEngineContextOnInstanceAccess2 = false (default)
   * DFIntRCCReceiveEventStringDataLimitBytes = 100000000 (default) [vizinha em .data]
   * DFIntClientSendEventStringDataLimitBytes = 100000000 (default) [vizinha em .data]
   * DFIntRemoteEventReceiveSizeLimitBytes = 0 (default) [vizinha em .data]

@@ -9,7 +9,7 @@ Operação  : 0x26437a4: cmp [flag], reg ; fn=0x2643530..0x26439d7
     Classe  : RBX::SQLiteStatement (Inferido)
     Padrão  : DFIntSQLiteStatementMaxSlowCount = 3 (default) [int, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : atomic_fetch_add(&global_0x8c664bc, 1) + 1 > SQLiteStatementMaxSlowCount
+    Fórmula : global_0x8c6f728 != 0 && atomic_fetch_add(&global_0x8c664bc, 1) + 1 <= SQLiteStatementMaxSlowCount
     Altera  : this->field_0x50, this->field_0x28, this->field_0x38, this->field_0x20, this->field_0x10->field_0x5[v_r14_6]
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
@@ -44,8 +44,12 @@ Operação  : 0x26437a4: cmp [flag], reg ; fn=0x2643530..0x26439d7
             this->field_0x38 = ret_0x2641860_3->field_0x10;
           }
           std::string::_Tidy_deallocate(local_0x150);
-          if (SQLite >= 6 && (uint64_t)SQLite >> 8 >= 2) {
-            FLog::Log("[DFLog::SQLite] Statement::finalize [ERROR] rc: {}, error: {}, elapsed: {} us");
+          if ((uint8_t)SQLite >= 6 && (uint8_t)((uint64_t)SQLite >> 8) >= 2) {
+            void* v_rcx_2 = &this->field_0x28;
+            if (this->field_0x40 >= 16) {
+              v_rcx_2 = this->field_0x28;
+            }
+            FLog::Log("[DFLog::SQLite] Statement::finalize [ERROR] rc: {}, error: {}, elapsed: {} us", ret_0x267a4e0_1, v_rcx_2, this->field_0x50);
           }
         }
         this->field_0x20 = 0;
@@ -61,6 +65,7 @@ Operação  : 0x26437a4: cmp [flag], reg ; fn=0x2643530..0x26439d7
             int64_t v_rdi_5 = 15;
             void* v_r14_6 = &local_0xc0;
             auto* f_10 = this->field_0x10;
+            void* v_r15_7 = f_10;
             if (&f_10->field_0x5 > 15) {
               uint64_t v_rdi_4;
               if ((&f_10->field_0x5 | 0xf) > 0x7fffffffffffffff) {
@@ -69,36 +74,38 @@ Operação  : 0x26437a4: cmp [flag], reg ; fn=0x2643530..0x26439d7
                 uint64_t sel_rdi_1 = max(&f_10->field_0x5 | 0xf, 22);
                 v_rdi_4 = sel_rdi_1;
               }
+              void* prev_0x10_2 = f_10;
               auto ret_0x6fd950_6 = call_0x6fd950(v_rdi_4 + 1);
               v_rdi_5 = v_rdi_4;
               v_r14_6 = ret_0x6fd950_6;
+              v_r15_7 = prev_0x10_2;
             }
-            call_0x5e05370(&local_0xc5, v_rbx_3, this->field_0x10);
+            call_0x5e05370(&local_0xc5, v_rbx_3, v_r15_7);
             this->field_0x10->field_0x5[v_r14_6] = 0;
             auto ret_0x6fd950_8 = call_0x6fd950(32);
             memcpy(ret_0x6fd950_8, "sqlite3_statement_slow", 22);
             ret_0x6fd950_8->field_0x14 = global_0x72d6684;
             auto local_0xe0 = ret_0x6fd950_8;
-            global_0x8c6f728->vfunc_0x38(global_0x8c6f728, &local_0xe0);
+            global_0x8c6f728->vfunc(global_0x8c6f728, &local_0xe0);
             if (v_rdi_5 >= 16) {
-              void* v_rcx_8 = local_0x100;
+              void* v_rcx_9 = local_0x100;
               if (v_rdi_5 + 1 >= 0x1000) {
                 if (local_0x100 - local_0x100->field_m0x8 < 8 || local_0x100 - local_0x100->field_m0x8 > 39) {
                   call_0x5e14580();
                   call_0x5e14580();
                 }
               }
-              call_0x4955ac0(v_rcx_8);
+              call_0x4955ac0(v_rcx_9);
             }
             if (local_0xf8 >= 16) {
-              void* v_rcx_16 = local_0xe0;
+              void* v_rcx_17 = local_0xe0;
               if (local_0xf8 + 1 >= 0x1000) {
                 if (local_0xe0 - local_0xe0->field_m0x8 < 8 || local_0xe0 - local_0xe0->field_m0x8 > 39) {
                   call_0x5e14580();
                   goto L_0x26439cc;
                 }
               }
-              call_0x4955ac0(v_rcx_16);
+              call_0x4955ac0(v_rcx_17);
             }
           }
           if (global_0x8c6f728 != 0) {
@@ -1077,18 +1084,25 @@ Operação  : 0x26437a4: cmp [flag], reg ; fn=0x2643530..0x26439d7
     0x2641f60 | 90                       | nop
     L_0x2641f61:
     0x2641f61 | e8 1a 26 7d 03           | call 0x5e14580
+  
+  === [Decompilacao da Rotina Chamadora (Caller): 0x2642440..0x2642464 em RBX::SQLiteStatement] ===
+    auto RBX::SQLiteStatement::func_0x2642440(RBX::SQLiteStatement* this) {
+      call_0x2643530(this);
+      call_0x6f8fb0(&this->field_0x28);
+      return tailcall_0x6f8fb0(this);
+    }
 
 [Strings .rdata na função]
-  * sqlite3_finalize
-  * [DFLog::SQLite] Statement::finalize [ERROR] rc: {}, error: {}, elapsed: {} us
-  * API called with finalized prepared statement
-  * misuse
-  * %s at line %d of [%.10s]
-  *  failed: NULL DB - 
-  * SQLITE_MISUSE
-  *  failed: 
-  *  - 
-  *  succeeded: 
+  * "sqlite3_finalize"  [@rdata 0x72d64a8, ref @0x26435d6, literal, 16B]
+  * "[DFLog::SQLite] Statement::finalize [ERROR] rc: {}, error: {}, elapsed: {} us"  [@rdata 0x72d64c0, ref @0x264368a, FLog format]
+  * "API called with finalized prepared statement"  [@rdata 0x72d8ff8, ref @0x267a507, literal, 44B]
+  * "misuse"  [@rdata 0x72dcc44, ref @0x267a523, literal, 6B]
+  * "%s at line %d of [%.10s]"  [@rdata 0x72dcc68, ref @0x267a52f, literal, 24B]
+  * " failed: NULL DB - "  [@rdata 0x72d63a8, ref @0x26418e2, literal, 19B]
+  * "SQLITE_MISUSE"  [@rdata 0x72d6380, ref @0x2641a17, key/identifier]
+  * " failed: "  [@rdata 0x720a0b0, ref @0x2641a6d, literal, 9B]
+  * " - "  [@rdata 0x725329c, ref @0x2641ab8, literal, 3B]
+  * " succeeded: "  [@rdata 0x72d6370, ref @0x2641dfd, literal, 12B]
 
 [Co-Flags na mesma função]
   * DFLogSQLite = 6 (default)

@@ -9,21 +9,16 @@ Operação  : 0xe1109d: mov/math reg, [flag] ; fn=0xe11060..0xe11387
     Classe  : RBX::ExperienceState (Inferido)
     Padrão  : DFLogExperienceStateRecording = 6 (default) [log, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : ExperienceStateRecording < 6
-    Fórmula : (uint64_t)ExperienceStateRecording >> 8 < 2
+    Fórmula : (uint8_t)ExperienceStateRecording >= 6 && (uint8_t)((uint64_t)ExperienceStateRecording >> 8) >= 2
     Altera  : this->field_0x2b2
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0xe10c38 (in fn_0xe10b30): call 0xe11060  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
     Caller @0xe1182c (in fn_0xe11710): call 0xe11060  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
     [XREF #2 @0xe263fd] Classe  : RBX::ExperienceState (Inferido)
-    [XREF #2 @0xe263fd] Fórmula : ExperienceStateRecording < 6
-    [XREF #2 @0xe263fd] Fórmula : (uint64_t)ExperienceStateRecording >> 8 < 4
-    [XREF #2 @0xe263fd] Fórmula : "[DFLog::ExperienceStateRecording] Losses: {}. Num buffers: {}"[0] != 0
+    [XREF #2 @0xe263fd] Fórmula : (uint8_t)ExperienceStateRecording >= 6 && (uint8_t)((uint64_t)ExperienceStateRecording >> 8) >= 4
     [XREF #3 @0xe26539] Classe  : RBX::ExperienceState (Inferido)
-    [XREF #3 @0xe26539] Fórmula : ExperienceStateRecording < 6
-    [XREF #3 @0xe26539] Fórmula : (uint64_t)ExperienceStateRecording >> 8 < 4
-    [XREF #3 @0xe26539] Fórmula : "[DFLog::ExperienceStateRecording] Losses: {}. Num buffers: {}"[0] != 0
+    [XREF #3 @0xe26539] Fórmula : (uint8_t)ExperienceStateRecording >= 6 && (uint8_t)((uint64_t)ExperienceStateRecording >> 8) >= 4
   
   === [Decompilacao C++ da Funcao 0xe11060..0xe11387] ===
     struct RBX::ExperienceState {
@@ -37,7 +32,7 @@ Operação  : 0xe1109d: mov/math reg, [flag] ; fn=0xe11060..0xe11387
     // Flag defaults: ExperienceStateRecording = 6
     void RBX::ExperienceState::func_0xe11060(RBX::ExperienceState* this, int64_t param_2, void* param_3) {
       this->field_0x2b2 = 1;
-      if (ExperienceStateRecording >= 6 && (uint64_t)ExperienceStateRecording >> 8 >= 2) {
+      if ((uint8_t)ExperienceStateRecording >= 6 && (uint8_t)((uint64_t)ExperienceStateRecording >> 8) >= 2) {
         if (param_3 <= 7) {
           switch (param_3) {
             case 0:
@@ -58,7 +53,11 @@ Operação  : 0xe1109d: mov/math reg, [flag] ; fn=0xe11060..0xe11387
               break;
           }
         }
-        FLog::Log("[DFLog::ExperienceStateRecording] Batch disk write failure: op={}, path={}");
+        void* v_rcx_3 = param_2;
+        if (param_2->field_0x18 >= 16) {
+          v_rcx_3 = param_2->field_0x0;
+        }
+        FLog::Log("[DFLog::ExperienceStateRecording] Batch disk write failure: op={}, path={}", &local_0x30, v_rcx_3);
       }
       if (this->field_0x200 != 0) {
         call_0x75d830(&this->field_0x178);
@@ -390,20 +389,21 @@ Operação  : 0xe1109d: mov/math reg, [flag] ; fn=0xe11060..0xe11387
           if (f_0_2 != 0) {
             f_0_2->field_0x0++;
           }
+          void* prev_0x0_1 = ret_0xc700_1->field_0x0;
           __ImageBase->field_0x6fbae90[param_2->vfunc_0x0 * 8](&local_0x60, &param_2->field_0x8);
           call_0x707ef0(&local_0x30, 56, param_3, &local_0x50);
           if (ret_0xc700_1->field_0x0->field_0x8 != ret_0xc700_1->field_0x0->field_0x10) {
             call_0x6db970(ret_0xc700_1->field_0x0->field_0x8, &local_0x30);
             ret_0xc700_1->field_0x0->field_0x8 = ret_0xc700_1->field_0x0->field_0x8 + 0x20;
           } else {
-            call_0x73d740(ret_0xc700_1->field_0x0, ret_0xc700_1->field_0x0->field_0x8, &local_0x30);
+            call_0x73d740(prev_0x0_1, ret_0xc700_1->field_0x0->field_0x8, &local_0x30);
           }
           if ((local_0x48 & 0xfffffff8) != 0) {
             uint64_t v_rax_1 = 0;
-            if ((~((local_0x48 & 0xfffffffc) >> 2) & 0x1) == 0) {
+            if ((~((uint8_t)(local_0x48 & 0xfffffffc) >> 2) & 0x1) == 0) {
               v_rax_1 = (local_0x48 & 0xfffffff8)->field_0x18;
             }
-            if ((local_0x48 >> 1 & 0x1) != 0) {
+            if (((uint8_t)local_0x48 >> 1 & 0x1) != 0) {
               if (v_rax_1 != 0) {
                 (&local_0x30)->vfunc(&local_0x30);
               }
@@ -548,10 +548,10 @@ Operação  : 0xe1109d: mov/math reg, [flag] ; fn=0xe11060..0xe11387
     
     // Flag defaults: ExperienceStateRecording = 6
     void RBX::ExperienceState::func_0xe263e0(RBX::ExperienceState* this) {
-      if (ExperienceStateRecording >= 6 && (uint64_t)ExperienceStateRecording >> 8 >= 4) {
-        this->vfunc_0x38(this);
-        this->vfunc_0x38(this);
-        FLog::Log("[DFLog::ExperienceStateRecording] Losses: {}. Num buffers: {}");
+      if ((uint8_t)ExperienceStateRecording >= 6 && (uint8_t)((uint64_t)ExperienceStateRecording >> 8) >= 4) {
+        auto vret_1 = this->vfunc_0x38(this);
+        auto vret_2 = this->vfunc_0x38(this);
+        FLog::Log("[DFLog::ExperienceStateRecording] Losses: {}. Num buffers: {}", vret_2->field_0x0, vret_1->field_0x8);
       }
     }
   
@@ -630,8 +630,9 @@ Operação  : 0xe1109d: mov/math reg, [flag] ; fn=0xe11060..0xe11387
     
     // Flag defaults: ExperienceStateRecording = 6
     void RBX::ExperienceState::func_0xe26520(RBX::ExperienceState* this) {
-      if (ExperienceStateRecording >= 6 && (uint64_t)ExperienceStateRecording >> 8 >= 4) {
-        FLog::Log("[DFLog::ExperienceStateRecording] Losses: {}. Num buffers: {}");
+      if ((uint8_t)ExperienceStateRecording >= 6 && (uint8_t)((uint64_t)ExperienceStateRecording >> 8) >= 4) {
+        auto* f_0 = this->field_0x0;
+        FLog::Log("[DFLog::ExperienceStateRecording] Losses: {}. Num buffers: {}", f_0->field_0x198, f_0->field_0x1a0);
       }
     }
   
@@ -688,19 +689,84 @@ Operação  : 0xe1109d: mov/math reg, [flag] ; fn=0xe11060..0xe11387
     0xe2661e | e8 7d e2 fb 04           | call 0x5de48a0
     0xe26623 | 48 81 c4 b8 00 00 00     | add rsp, 0xb8
     0xe2662a | c3                       | ret
+  
+  === [Estrutura RTTI & VTable da Classe (RBX::ExperienceState)] ===
+    VTable  : 0x6fbb2b8 (offset +0x0, 8 slots virtuais)
+    Herança : RBX::DataModelChangeTracking::ScopedLossyConsumerHandle
+    +0x0 -> fn_0xe18970
+    +0x8 -> fn_0xe121c0
+    +0x10 -> fn_0xe12330
+    +0x18 -> fn_0xe12460
+    +0x20 -> fn_0xe124b0
+    +0x28 -> fn_0xe12130
+    +0x30 -> fn_0xe12110
+    +0x38 -> fn_0xe12100
+  
+  === [Decompilacao de Metodo da Classe RBX::ExperienceState: 0xe18970..0xe189c3 (vfunc_0x0)] ===
+    struct RBX::ExperienceState {
+      /* +0x0 */ void*   field_0x0;
+      /* +0x30 */ void*   field_0x30;
+    };
+    
+    auto RBX::ExperienceState::func_0xe18970(RBX::ExperienceState* this, int64_t param_2) {
+      this->field_0x0 = &sym_0x6fbb2b8;
+      call_0xe124b0(this);
+      if (this->field_0x30 != 0) {
+        call_0x6daf40(this->field_0x30);
+      }
+      call_0x6f5b70(&this->field_0x8);
+      if (((uint8_t)param_2 & 0x1) != 0) {
+        call_0x4955ac0(this);
+      }
+      return this;
+    }
+  
+  === [Decompilacao da Rotina Chamadora (Caller): 0xe10b30..0xe10d7c em RBX::ExperienceState] ===
+    struct RBX::ExperienceState {
+      /* +0x10 */ void*   field_0x10;
+      /* +0x20 */ void*   field_0x20;
+      /* +0x28 */ void*   field_0x28;
+      /* +0x30 */ void*   field_0x30;
+      /* +0x40 */ void*   field_0x40;
+      /* +0x48 */ void*   field_0x48;
+      /* +0x178 */ void*   field_0x178;
+      /* +0x200 */ void*   field_0x200;
+      /* +0x280 */ void*   field_0x280;
+    };
+    
+    void RBX::ExperienceState::func_0xe10b30(RBX::ExperienceState* this) {
+      if (this->field_0x200 != 0) {
+        call_0x733d70(&this->field_0x178);
+        int64_t local_0x40;
+        if ((this->field_0x178->field_0x4->field_0x188[this] & 0x6) != 0) {
+          local_0x40 = 1245;
+          auto local_0x48 = &local_0x60;
+          call_0x1d48fe0(&local_0x40, std::string_view("{}/{}/{}.dmct", 13), &local_0x30);
+          call_0xe11060(this, &local_0x40, 2);
+          std::string::_Tidy_deallocate(local_0x40);
+          call_0x75d830(&this->field_0x178);
+        } else {
+          call_0x75d830(&this->field_0x178);
+          call_0x1d48fe0(&local_0x60, &local_0x40, &local_0x20);
+          call_0xe11710(this, &local_0x20);
+          std::string::_Tidy_deallocate(local_0x60);
+        }
+      }
+    }
 
 [Strings .rdata na função]
-  * [DFLog::ExperienceStateRecording] Batch disk write failure: op={}, path={}
-  * open_buffer_file
-  * write_buffer_file
-  * flush
-  * open_manifest_file
-  * write_manifest_file
-  * create_session_directory
-  * stale_buffer_files
-  * stop_file
-  * unknown
-  * [DFLog::ExperienceStateRecording] Losses: {}. Num buffers: {}
+  * "[DFLog::ExperienceStateRecording] Batch disk write failure: op={}, path={}"  [@rdata 0x71ce540, ref @0xe110c9, FLog format]
+  * "open_buffer_file"  [@rdata 0x71ce4b0, ref @0xe110e7, string_view len=16]
+  * "write_buffer_file"  [@rdata 0x71ce498, ref @0xe110fc, string_view len=17]
+  * "flush"  [@rdata 0x71ce48c, ref @0xe1110e, string_view len=5]
+  * "open_manifest_file"  [@rdata 0x71ce478, ref @0xe11120, string_view len=18]
+  * "write_manifest_file"  [@rdata 0x71ce510, ref @0xe11132, string_view len=19]
+  * "create_session_directory"  [@rdata 0x71ce4f0, ref @0xe11144, string_view len=24]
+  * "stale_buffer_files"  [@rdata 0x71ce4d8, ref @0xe11156, string_view len=18]
+  * "stop_file"  [@rdata 0x71ce4c8, ref @0xe11168, string_view len=9]
+  * "unknown"  [@rdata 0x71ce528, ref @0xe1117a, string_view len=7]
+  * "[DFLog::ExperienceStateRecording] Losses: {}. Num buffers: {}"  [@rdata 0x71cf330, ref @0xe26433, FLog format]
+  * "{}/{}/{}.dmct"  [@rdata 0x71ce530, ref @0xe10b92, string_view len=13]
 
 [Co-Flags na mesma função]
   * DFLogInputRecorder = 6 (default) [vizinha em .data]
