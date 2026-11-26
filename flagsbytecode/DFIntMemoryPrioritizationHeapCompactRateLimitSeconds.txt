@@ -8,25 +8,31 @@ Operação  : 0x298c9ec: mov/math reg, [flag] ; fn=0x298c9a0..0x298ca71
   === [Resumo do Efeito da FFlag no Engine (RBX::MemoryPrioritization)] ===
     Classe  : RBX::MemoryPrioritization (Inferido)
     Padrão  : DFIntMemoryPrioritizationHeapCompactRateLimitSeconds = 0 (default) [int, mode=2]
-    Papel   : Parâmetro de configuração lido diretamente pela rotina
+    Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
+    Fórmula : global_0x8c67214 == 0 || (global_0x8c67210 == 0) != 0 || param_2 > global_0x8c67210 || local_0x40 - global_0x8c67218 >= (double)(MemoryPrioritizationHeapCompactRateLimitSeconds > 0 ? MemoryPrioritizationHeapCompactRateLimitSeconds : 1)
   
   === [Decompilacao C++ da Funcao 0x298c9a0..0x298ca71] ===
     // Flag defaults: MemoryPrioritizationHeapCompactRateLimit = true, DisableMemoryPrioritizationHeapCompaction = false, MemoryPrioritizationHeapCompactRateLimitSeconds = 0
-    auto RBX::MemoryPrioritization::func_0x298c9a0(RBX::MemoryPrioritization* this, int64_t param_2) {
+    void func_0x298c9a0(int64_t param_2) {
       if (param_2 != 0 && !DisableMemoryPrioritizationHeapCompaction) {
         if (MemoryPrioritizationHeapCompactRateLimit) {
+          uint64_t local_0x40;
           call_0x495a220(&local_0x40);
           global_0x8c67210 = param_2;
+          if (global_0x8c67214 == 0 || (global_0x8c67210 == 0) != 0 || param_2 > global_0x8c67210 || local_0x40 - global_0x8c67218 >= (double)(MemoryPrioritizationHeapCompactRateLimitSeconds > 0 ? MemoryPrioritizationHeapCompactRateLimitSeconds : 1)) {
+            global_0x8c67218 = local_0x40;
+            global_0x8c67214 = 1;
+            call_0x4957570();
+          }
           return;
         }
-        return tailcall_0x4957570(this);
+        tailcall_0x4957570();
+        return;
       }
       if (MemoryPrioritizationHeapCompactRateLimit) {
         global_0x8c67210 = 0;
         global_0x8c67214 = 0;
-        return;
       }
-      return;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -91,53 +97,55 @@ Operação  : 0x298c9ec: mov/math reg, [flag] ; fn=0x298c9a0..0x298ca71
     0x298ca6c | e9 ff aa fc 01           | jmp 0x4957570
   
   === [Estrutura RTTI & VTable da Classe (RBX::MemoryPrioritizationJob)] ===
-    VTable  : 0x7054cf0 (offset +0x0, 8 slots virtuais)
-    Herança : RSL::MemoryPrioritizationJob (+0x10)
-    +0x8 -> fn_0x298d370
-    +0x10 -> fn_0x298d400
-    +0x10 -> fn_0x298d180
+    VTable  : 0x7054d40 (offset +0x0, 5 slots virtuais)
+    Herança : RBX::TaskScheduler::Job, RBX::Noncopyable (+0x8), RBX::enable_shared_from_this (+0x8)
     +0x8 -> fn_0x298bb30
     +0x30 -> fn_0x296eeb0
     +0x38 -> fn_0x2903270
     +0x40 -> fn_0x2991ad0
     +0x48 -> fn_0x2995d20
   
-  === [Decompilacao de Metodo da Classe RBX::MemoryPrioritizationJob: 0x298d370..0x298d3bc (vfunc_0x8)] ===
+  === [Decompilacao de Metodo da Classe RBX::MemoryPrioritizationJob: 0x298bb30..0x298bbd1 (vfunc_0x8)] ===
     struct RBX::MemoryPrioritizationJob {
-      /* +0x0 */ void*   field_0x0;
-      /* +0x10 */ void*   field_0x10;
+      /* +0x178 */ double  field_0x178;
+      /* +0x180 */ double  field_0x180;
     };
     
-    void RBX::MemoryPrioritizationJob::func_0x298d370(RBX::MemoryPrioritizationJob* this) {
-      void* prev_0x10_1 = this->field_0x10;
-      this->vfunc_0x10(this, 0);
-      this->field_0x10->vfunc_0x10(prev_0x10_1, this, 448, 8);
+    auto RBX::MemoryPrioritizationJob::func_0x298bb30(RBX::MemoryPrioritizationJob* this, void* param_2) {
+      float ftmp_1 = (float)(this->field_0x178 * param_2->field_0x8 + this->field_0x180);
+      auto ret_0x60a2a44_1 = call_0x60a2a44(ftmp_1);
+      this->field_0x180 = (double)min(1.0f, ftmp_1 - min(1.0f, ret_0x60a2a44_1));
+      if ((double)std::clamp(ret_0x60a2a44_1, 0.0, 1.0f) < 1.0) {
+        return 1;
+      }
+      return tailcall_0x298bbe0(this, param_2->field_0x8);
     }
   
-  === [Decompilacao de Metodo da Classe RBX::MemoryPrioritizationJob: 0x298d400..0x298d427 (vfunc_0x10)] ===
-    struct RBX::MemoryPrioritizationJob {
-      /* +0x0 */ void*   field_0x0;
-    };
-    
-    auto RBX::MemoryPrioritizationJob::func_0x298d400(RBX::MemoryPrioritizationJob* this, int64_t param_2) {
-      this->field_0x0 = &sym_0x7054cf0;
+  === [Decompilacao de Metodo da Classe RBX::MemoryPrioritizationJob: 0x2903270..0x29032a0 (vfunc_0x38)] ===
+    auto RBX::TaskScheduler::Job::func_0x2903270(RBX::TaskScheduler::Job* this, int64_t param_2) {
+      call_0x296ed50(this);
       if (((uint8_t)param_2 & 0x1) != 0) {
         call_0x4955ac0(this);
       }
       return this;
     }
   
-  === [Decompilacao de Metodo da Classe RBX::MemoryPrioritizationJob: 0x298d180..0x298d1a7 (vfunc_0x10)] ===
-    struct RBX::MemoryPrioritizationJob {
-      /* +0x0 */ void*   field_0x0;
-    };
-    
-    auto RBX::MemoryPrioritizationJob::func_0x298d180(RBX::MemoryPrioritizationJob* this, int64_t param_2) {
-      this->field_0x0 = &sym_0x7054d18;
-      if (((uint8_t)param_2 & 0x1) != 0) {
-        call_0x4955ac0(this);
+  === [Decompilacao de Metodo da Classe RBX::MemoryPrioritizationJob: 0x2991ad0..0x2991b7d (vfunc_0x40)] ===
+    void RBX::MemoryPrioritizationJob::func_0x2991ad0(void* param_2) {
+      if (param_2->field_0x0 != 0) {
+        auto ret_0x2903d60_1 = call_0x2903d60(param_2);
+        if ((uint8_t)ret_0x2903d60_1 == 0) {
+          uint64_t local_0x20;
+          local_0x20 = "sessionend";
+          auto local_0x28 = global_0x7305bb0;
+          auto local_0x2a = 0;
+          auto local_0x30 = 10;
+          auto local_0x38 = 15;
+          call_0x29d6420(&local_0x20);
+          std::string::_Tidy_deallocate(local_0x20);
+          return;
+        }
       }
-      return this;
     }
 
 [Strings .rdata na função]

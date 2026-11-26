@@ -9,7 +9,7 @@ Operação  : 0x3d6a5b0: cmp byte [flag], imm8 ; fn=0x3d6a5b0..0x3d6a600
     Classe  : RBX::PCLRefactorFix (Inferido)
     Padrão  : FFlagPCLRefactorFixR6LoadTimer = true (default) [bool, mode=1]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
-    Fórmula : PCLRefactorFixR6LoadTimer && f_8 != 0 && f_8->field_0x8 != 0
+    Fórmula : PCLRefactorFixR6LoadTimer && this->field_0x8 != 0 && this->field_0x8->field_0x8 != 0
     Altera  : this->field_0x0->field_0x1130
     [XREF #2 @0x3d6a64f] Classe  : RBX::PCLRefactorFix (Inferido)
     [XREF #2 @0x3d6a64f] Fórmula : PCLRefactorFixR6LoadTimer
@@ -23,11 +23,17 @@ Operação  : 0x3d6a5b0: cmp byte [flag], imm8 ; fn=0x3d6a5b0..0x3d6a600
     
     // Flag defaults: PCLRefactorFixR6LoadTimer = true
     void RBX::PCLRefactorFix::func_0x3d6a5b0(RBX::PCLRefactorFix* this) {
-      auto* f_8 = this->field_0x8;
-      if (PCLRefactorFixR6LoadTimer && f_8 != 0 && f_8->field_0x8 != 0) {
+      if (PCLRefactorFixR6LoadTimer && this->field_0x8 != 0 && this->field_0x8->field_0x8 != 0) {
+        int32_t i_eax = this->field_0x8->field_0x8;
         do { // L_0x3d6a5d0
-          if (atomic_cas(&f_8->field_0x8, f_8->field_0x8, f_8->field_0x8 + 1) == 0) break;
-        } while (this->field_0x8->field_0x8 != 0); // loop -> L_0x3d6a5d0
+          if (atomic_cas(&this->field_0x8->field_0x8, i_eax, i_eax + 1)) {
+            auto* f_0 = this->field_0x0;
+            if (f_0 != 0) {
+              f_0->field_0x1130 = -1;
+            }
+            if (this->field_0x8 != 0) goto L_0x6daf40; // [out of decoded window]
+          }
+        } while (i_eax != 0); // loop -> L_0x3d6a5d0
       }
     }
   
@@ -68,26 +74,48 @@ Operação  : 0x3d6a5b0: cmp byte [flag], imm8 ; fn=0x3d6a5b0..0x3d6a600
     };
     
     // Flag defaults: PCLRefactorFixR6LoadTimer = true, PlayerCharacterLoadingLog = 0
-    void RBX::PCLRefactorFix::func_0x3d6a600(RBX::PCLRefactorFix* this, int64_t param_2) {
+    void RBX::PCLRefactorFix::func_0x3d6a600(RBX::PCLRefactorFix* this, void* param_2) {
+      uint64_t local_0x60;
+      local_0x60 = param_2->field_0x0;
+      uint64_t local_0x70;
+      local_0x70 = param_2->field_0x10;
+      param_2->field_0x10 = 0;
+      param_2->field_0x18 = 15;
+      param_2->field_0x0 = 0;
       if (PCLRefactorFixR6LoadTimer) {
-        auto* f_8 = this->field_0x8;
-        if (f_8 != 0 && f_8->field_0x8 != 0) {
-          do { // L_0x3d6a673
-            atomic_try_incref(&f_8->field_0x8);
-            auto* f_8_2 = this->field_0x8;
-            if (atomic_cas(&f_8_2->field_0x8, f_8_2->field_0x8, f_8_2->field_0x8 + 1) == 0) break;
-          } while (this->field_0x8->field_0x8 != 0); // loop -> L_0x3d6a673
+        if (this->field_0x8 != 0) {
+          int32_t i_eax = this->field_0x8->field_0x8;
+          if (this->field_0x8->field_0x8 != 0) {
+            do { // L_0x3d6a673
+              if (atomic_cas(&this->field_0x8->field_0x8, i_eax, i_eax + 1)) {
+                auto* f_0 = this->field_0x0;
+                if (f_0 != 0) {
+                  f_0->field_0x1130 = -1;
+                }
+                if (this->field_0x8 != 0) {
+                  call_0x6daf40(this->field_0x8);
+                }
+                break;
+              }
+            } while (i_eax != 0); // loop -> L_0x3d6a673
+          }
         }
         if ((uint8_t)PlayerCharacterLoadingLog >= 6 && (uint8_t)((uint64_t)PlayerCharacterLoadingLog >> 8) >= 3) {
-          FLog::Log("[DFLog::PlayerCharacterLoadingLog] R6 character appearance loading failed: {}");
+          uint64_t local_0x30;
+          local_0x30 = "[DFLog::PlayerCharacterLoadingLog] R6 character appearance loading failed: {}";
+          uint64_t local_0x50;
+          local_0x50 = local_0x30 - 0x2e3c035;
+          local_0x30 = PlayerCharacterLoadingLog;
+          FLog::Log("[DFLog::PlayerCharacterLoadingLog] R6 character appearance loading failed: {}", local_0x60.c_str());
         }
       }
-      auto local_0x60 = param_2->field_0x0;
       auto local_0x64 = param_2->field_0x4;
       auto local_0x68 = param_2->field_0x8;
       auto local_0x6c = param_2->field_0xc;
-      auto local_0x70 = param_2->field_0x10;
       auto local_0x74 = param_2->field_0x14;
+      auto local_0x78 = param_2->field_0x18;
+      auto local_0x7c = param_2->field_0x1c;
+      auto local_0x80 = &local_0x60;
       call_0x6f8fb0(&local_0x60);
     }
   

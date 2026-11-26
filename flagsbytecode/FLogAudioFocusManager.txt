@@ -7,10 +7,10 @@ Operação  : 0x5d4cd08: mov/math reg, [flag] ; fn=0x5d4cba0..0x5d4ce05
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::AudioFocus)] ===
     Classe  : RBX::AudioFocus (Inferido)
-    Padrão  : FLogAudioFocusManager = 6 (default) [log, mode=1]
+    Padrão  : FLogAudioFocusManager = 0 (default) [log, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : "AudioFocusManager"
     Fórmula : (uint8_t)AudioFocusManager >= 6 && (uint8_t)((uint64_t)AudioFocusManager >> 8) >= 4
+    Fórmula : "[FLog::AudioFocusManager] AudioFocusManager::AudioFocusManager() constructor"
     Altera  : this->field_0x10, this->field_0x18, this->field_0x20
     [XREF #2 @0x5d4cec7] Classe  : RBX::AudioFocus (Inferido)
     [XREF #2 @0x5d4cec7] Fórmula : (uint8_t)AudioFocusManager >= 6 && (uint8_t)((uint64_t)AudioFocusManager >> 8) >= 4
@@ -18,74 +18,106 @@ Operação  : 0x5d4cd08: mov/math reg, [flag] ; fn=0x5d4cba0..0x5d4ce05
   
   === [Decompilacao C++ da Funcao 0x5d4cba0..0x5d4ce05] ===
     struct RBX::AudioFocus {
-      /* +0x8 */ void*   field_0x8;
-      /* +0x10 */ void*   field_0x10;
-      /* +0x18 */ void*   field_0x18;
+      /* +0x8 */ uint64_t field_0x8;
+      /* +0x10 */ uint64_t field_0x10;
+      /* +0x18 */ uint64_t field_0x18;
       /* +0x20 */ int32_t field_0x20;
     };
     
-    // Flag defaults: AudioFocusManager = 6
+    // Flag defaults: AudioFocusManager = 0
     auto RBX::AudioFocus::func_0x5d4cba0(RBX::AudioFocus* this) {
-      if ((atomic_fetch_add(&this->field_0x20, 1) & 0xc0000000) != -2147483648) {
-        atomic_fetch_add(&this->field_0x20, 1) & 0xc0000000;
-        int32_t i_edi = 0;
-        do { // L_0x5d4cc10
-          void* prev_0x8_1 = this->field_0x8;
-          auto ret_0xc8a0_1 = call_0xc8a0();
-          if (prev_0x8_1 == ret_0xc8a0_1) break;
-          if (prev_0x8_1 == 0) {
-            auto ret_0xc8a0_2 = call_0xc8a0();
-            if (atomic_cas(&this->field_0x8, 0, ret_0xc8a0_2) == 0) break;
-            if (i_edi >= 16) {
-              auto ret_0xc880_6 = call_0xc880(&local_0x80, 0, 0);
-              if ((uint8_t)ret_0xc880_6 != 0) {
-                call_0xcb40(1);
-                i_edi++;
-                continue;
+      int32_t atomic_1 = atomic_fetch_add(&this->field_0x20, 1);
+      if ((atomic_1 & 0x3fffffff) != 0x3fffffff) {
+        if ((atomic_1 & 0xc0000000) != -2147483648) {
+          void* local_0x70;
+          local_0x70 = &this->field_0x8;
+          int32_t i_ecx = atomic_1 & 0xc0000000;
+          int32_t i_edi = 0;
+          uint8_t local_0x78 = 1;
+          do { // L_0x5d4cc10
+            void* prev_0x8_1 = this->field_0x8;
+            auto ret_0xc8a0_3 = call_0xc8a0(i_ecx);
+            if (prev_0x8_1 == ret_0xc8a0_3) break;
+            int64_t v_rcx_1 = i_ecx;
+            uint64_t local_0x80;
+            int64_t ret_0xc880_8;
+            void* v_rcx_2;
+            if (prev_0x8_1 == 0) {
+              auto ret_0xc8a0_4 = call_0xc8a0();
+              if (atomic_cas(&this->field_0x8, 0, ret_0xc8a0_4)) break;
+              v_rcx_2 = v_rcx_1;
+              if (i_edi >= 16) {
+                ret_0xc880_8 = call_0xc880(&local_0x80, 0, 0);
+                if ((uint8_t)ret_0xc880_8 != 0) {
+                  call_0xcb40(1);
+                  i_edi++;
+                  i_ecx = 1;
+                  continue;
+                } else {
+                  v_rcx_2 = &local_0x80;
+                  L_0x5d4cc5b:
+                  i_edi++;
+                  i_ecx = v_rcx_2;
+                }
               } else {
-                L_0x5d4cc5b:
                 i_edi++;
+                i_ecx = v_rcx_2;
               }
             } else {
-              i_edi++;
+              v_rcx_2 = v_rcx_1;
+              if (i_edi >= 16) {
+                ret_0xc880_8 = call_0xc880(&local_0x80, 0, 0);
+                if ((uint8_t)ret_0xc880_8 != 0) {
+                  call_0xcb40(1);
+                  i_edi++;
+                  i_ecx = 1;
+                  continue;
+                } else {
+                  v_rcx_2 = &local_0x80;
+                  goto L_0x5d4cc5b;
+                }
+              } else {
+                goto L_0x5d4cc5b;
+              }
             }
-          } else if (i_edi >= 16) {
-            auto ret_0xc880_6 = call_0xc880(&local_0x80, 0, 0);
-            if ((uint8_t)ret_0xc880_6 != 0) {
-              call_0xcb40(1);
-              i_edi++;
-              continue;
-            } else {
-              goto L_0x5d4cc5b;
+          } while (true); // loop -> L_0x5d4cc10
+          this->field_0x10++;
+          if (this->field_0x18 == 0) {
+            call_0x4959930(global_0x84a4e50, this);
+            auto ret_0x4956380_6 = call_0x4956380(144, 8);
+            ret_0x4956380_6->field_0x0 = "eedbackBuffersEXT";
+            ret_0x4956380_6->field_0x10 = 0;
+            ret_0x4956380_6->field_0x18 = 0;
+            if (ret_0x4956380_6 != -32) {
+              (ret_0x4956380_6 + 0x20)->field_0x0 = 1;
             }
-          } else {
-            goto L_0x5d4cc5b;
+            ret_0x4956380_6->field_0x28 = -1;
+            ret_0x4956380_6->field_0x30 = 0;
+            ret_0x4956380_6->field_0x38 = 0;
+            ret_0x4956380_6->field_0x40 = 0;
+            ret_0x4956380_6->field_0x48 = 0;
+            uint64_t local_0x38;
+            local_0x38 = ret_0x4956380_6 + 0x50;
+            auto local_0x30 = 0.0;
+            auto local_0x40 = "eedbackBuffersEXT";
+            auto local_0x48 = 17;
+            call_0x5d4e8c0(ret_0x4956380_6 + 0x50, &local_0x30);
+            if ((uint8_t)AudioFocusManager >= 6 && (uint8_t)((uint64_t)AudioFocusManager >> 8) >= 4) {
+              local_0x38 = "[FLog::AudioFocusManager] AudioFocusManager::AudioFocusManager() constructor";
+              FLog::Log("[FLog::AudioFocusManager] AudioFocusManager::AudioFocusManager() constructor");
+            }
+            this->field_0x18 = ret_0x4956380_6;
+            this->field_0x20 = this->field_0x20 | 0x80000000;
           }
-        } while (true); // loop -> L_0x5d4cc10
-        this->field_0x10++;
-        if (this->field_0x18 == 0) {
-          call_0x4959930(global_0x84a4e50, this);
-          auto ret_0x4956380_4 = call_0x4956380(144, 8);
-          ret_0x4956380_4->field_0x0 = "AudioFocusManager";
-          if (&ret_0x4956380_4->field_0x20 != 0) {
-            ret_0x4956380_4->field_0x20 = 1;
+          local_0x70->field_0x8--;
+          if (local_0x70->field_0x8 == 1) {
+            local_0x70->field_0x0 = 0;
           }
-          ret_0x4956380_4->field_0x28 = -1;
-          auto local_0x30 = 0.0;
-          call_0x5d4e8c0(&ret_0x4956380_4->field_0x50, &local_0x30);
-          if ((uint8_t)AudioFocusManager >= 6 && (uint8_t)((uint64_t)AudioFocusManager >> 8) >= 4) {
-            FLog::Log("[FLog::AudioFocusManager] AudioFocusManager::AudioFocusManager() constructor");
-          }
-          this->field_0x18 = ret_0x4956380_4;
-          this->field_0x20 = this->field_0x20 | 0x80000000;
         }
-        auto* f_8 = this->field_0x8;
-        &f_8->field_0x8--;
-        if (&f_8->field_0x8 == 1) {
-          &f_8->field_0x0 = 0;
-        }
+        return this;
       }
-      return this;
+      call_0x4971090(0, "Reference count overflow");
+      return; // noreturn
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -156,7 +188,7 @@ Operação  : 0x5d4cd08: mov/math reg, [flag] ; fn=0x5d4cba0..0x5d4ce05
     0x5d4cc8b | e8 f0 96 c0 fe           | call 0x4956380
     0x5d4cc90 | 48 8b f8                 | mov rdi, rax
     0x5d4cc93 | 48 89 84 24 88 00 00 00  | mov qword ptr [rsp + 0x88], rax
-    0x5d4cc9b | 48 8d 05 76 00 85 01     | lea rax, [rip + 0x1850076] ; "AudioFocusManager"
+    0x5d4cc9b | 48 8d 05 76 00 85 01     | lea rax, [rip + 0x1850076] ; "eedbackBuffersEXT"
     0x5d4cca2 | 48 89 44 24 40           | mov qword ptr [rsp + 0x40], rax
     0x5d4cca7 | 48 c7 44 24 48 11 00 00.. | mov qword ptr [rsp + 0x48], 0x11
     0x5d4ccb0 | 0f 10 44 24 40           | movups xmm0, xmmword ptr [rsp + 0x40]
@@ -244,56 +276,71 @@ Operação  : 0x5d4cd08: mov/math reg, [flag] ; fn=0x5d4cba0..0x5d4ce05
   
   === [Decompilacao C++ do XREF Runtime #2: 0x5d4ce20..0x5d4cfff (insn @0x5d4cec7: mov/math reg, [flag])] ===
     struct RBX::AudioFocus {
-      /* +0x8 */ void*   field_0x8;
-      /* +0x10 */ void*   field_0x10;
-      /* +0x18 */ void*   field_0x18;
+      /* +0x8 */ uint64_t field_0x8;
+      /* +0x10 */ uint64_t field_0x10;
+      /* +0x18 */ uint64_t field_0x18;
       /* +0x20 */ int32_t field_0x20;
     };
     
-    // Flag defaults: AudioFocusManager = 6
+    // Flag defaults: AudioFocusManager = 0
     void RBX::AudioFocus::func_0x5d4ce20(RBX::AudioFocus* this) {
+      uint64_t i_ecx = this;
       int32_t i_edi = 0;
       do { // L_0x5d4ce50
         void* prev_0x8_1 = this->field_0x8;
         auto ret_0xc8a0_1 = call_0xc8a0();
         if (prev_0x8_1 == ret_0xc8a0_1) break;
+        void* v_rcx_2 = i_ecx;
+        uint64_t local_0x60;
+        int64_t ret_0xc880_10;
+        void* v_rcx_3;
         if (prev_0x8_1 == 0) {
           auto ret_0xc8a0_2 = call_0xc8a0();
-          if (atomic_cas(&this->field_0x8, 0, ret_0xc8a0_2) == 0) break;
+          if (atomic_cas(&this->field_0x8, 0, ret_0xc8a0_2)) break;
+          v_rcx_3 = v_rcx_2;
           if (i_edi >= 16) {
-            auto ret_0xc880_10 = call_0xc880(&local_0x60, 0, 0);
+            ret_0xc880_10 = call_0xc880(&local_0x60, 0, 0);
             if ((uint8_t)ret_0xc880_10 != 0) {
               call_0xcb40(1);
               i_edi++;
+              i_ecx = 1;
               continue;
             } else {
+              v_rcx_3 = &local_0x60;
               L_0x5d4ce9a:
               i_edi++;
+              i_ecx = v_rcx_3;
             }
           } else {
             i_edi++;
+            i_ecx = v_rcx_3;
           }
-        } else if (i_edi >= 16) {
-          auto ret_0xc880_10 = call_0xc880(&local_0x60, 0, 0);
-          if ((uint8_t)ret_0xc880_10 != 0) {
-            call_0xcb40(1);
-            i_edi++;
-            continue;
+        } else {
+          v_rcx_3 = v_rcx_2;
+          if (i_edi >= 16) {
+            ret_0xc880_10 = call_0xc880(&local_0x60, 0, 0);
+            if ((uint8_t)ret_0xc880_10 != 0) {
+              call_0xcb40(1);
+              i_edi++;
+              i_ecx = 1;
+              continue;
+            } else {
+              v_rcx_3 = &local_0x60;
+              goto L_0x5d4ce9a;
+            }
           } else {
             goto L_0x5d4ce9a;
           }
-        } else {
-          goto L_0x5d4ce9a;
         }
       } while (true); // loop -> L_0x5d4ce50
       this->field_0x10++;
-      if (atomic_cas(&this->field_0x20, -2147483648, -1073741824) == 0) {
+      if (atomic_cas(&this->field_0x20, 0x80000000ULL, 0xc0000000ULL)) {
         if (this->field_0x18 != 0) {
           void* v_rdi_1 = this->field_0x18;
           if ((uint8_t)AudioFocusManager >= 6 && (uint8_t)((uint64_t)AudioFocusManager >> 8) >= 4) {
-            void* prev_0x18_2 = this->field_0x18;
+            void* prev_0x18_3 = this->field_0x18;
             FLog::Log("[FLog::AudioFocusManager] AudioFocusManager::AudioFocusManager() destructor");
-            v_rdi_1 = prev_0x18_2;
+            v_rdi_1 = prev_0x18_3;
           }
           call_0x6f5be0(&v_rdi_1->field_0x68);
           call_0x5d4e840(&v_rdi_1->field_0x58);
@@ -436,8 +483,8 @@ Operação  : 0x5d4cd08: mov/math reg, [flag] ; fn=0x5d4cba0..0x5d4ce05
     0x5d4cffe | c3                       | ret
   
   === [Estrutura RTTI & VTable da Classe (RBX::AudioFocusService)] ===
-    VTable  : 0x7183ec0 (offset +0x0, 33 slots virtuais)
-    Herança : RBX::FunctionDescriptor, RBX::MemberDescriptor, RBX::Descriptor
+    VTable  : 0x7186ee8 (offset +0x0, 34 slots virtuais)
+    Herança : RBX::ServiceInstance, RBX::Instance, RBX::Object, RBX::DescribedBase, RBX::EventSource, RBX::enable_shared_from_this (+0x8), RBX::GuidItem (+0x28), RBX::ObjectProp (+0x38), RBX::Noncopyable (+0x38), RBX::Diagnostics::Countable (+0x58), RBX::InstanceProp (+0x58), RBX::Service (+0x98)
     +0x8 -> fn_0x1c1f1a0
     +0x10 -> fn_0x1c396e0
     +0x18 -> fn_0x1c44010
@@ -458,40 +505,65 @@ Operação  : 0x5d4cd08: mov/math reg, [flag] ; fn=0x5d4cba0..0x5d4ce05
   === [Decompilacao de Metodo da Classe RBX::AudioFocusService: 0x1c44010..0x1c44138 (vfunc_0x18)] ===
     struct RBX::Instance {
       /* +0x48 */ void*   field_0x48;
-      /* +0x60 */ void*   field_0x60;
+      /* +0x60 */ uint64_t field_0x60;
     };
     
     // Flag defaults: CheckEngineContextOnInstanceAccess2 = false
-    void RBX::Instance::func_0x1c44010(RBX::Instance* this, int64_t param_2, void* param_3, void* param_4) {
+    void RBX::Instance::func_0x1c44010(RBX::Instance* this, int64_t param_2, int64_t param_3, int64_t param_4) {
       if (this->field_0x60 != 0) {
-        (*global_0x80f4c48)(this);
-      }
-      auto ret_0x4956040_2 = call_0x4956040(24);
-      auto ret_0xffc540_3 = call_0xffc540(ret_0x4956040_2, param_3);
-      call_0xd29440(&local_0x40, ret_0xffc540_3);
-      auto* f_48 = this->field_0x48;
-      if (f_48 != 0 && f_48->field_0x8 != 0) {
-        auto ret_0xc700_5 = call_0xc700(global_0x84cf408, 1);
-        if (ret_0xc700_5->field_0x0 == 0) {
-          auto local_0x20 = 3;
-          call_0x7d7f00(this->field_0x48, &local_0x20, &local_0x28);
-        } else {
-          call_0x49710d0("Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel ", &sym_0x6647145);
+        void* v_rax_1 = global_0x80f4c48;
+        if (!CheckEngineContextOnInstanceAccess2) {
+          v_rax_1 = global_0x80f4c50;
         }
+        (*v_rax_1)(this);
       }
-      if (local_0x48 != 0) {
-        call_0x6daf40(local_0x48);
+      uint64_t local_0x30;
+      local_0x30 = &sym_0x70375b0;
+      auto ret_0x4956040_2 = call_0x4956040(24);
+      uint64_t local_0x60;
+      if (ret_0x4956040_2 != 0) {
+        uint64_t local_0x28;
+        local_0x28 = ret_0x4956040_2;
+        auto ret_0xffc540_3 = call_0xffc540(ret_0x4956040_2, param_3);
+        uint64_t local_0x40;
+        call_0xd29440(&local_0x40, ret_0xffc540_3);
+        local_0x28 = &local_0x30;
+        uint64_t local_0x20;
+        local_0x20 = 3;
+        auto* f_48 = this->field_0x48;
+        if (f_48 != 0 && f_48->field_0x8 != 0) {
+          auto ret_0xc700_5 = call_0xc700(global_0x84cf408, 1);
+          if (ret_0xc700_5->field_0x0 == 0) {
+            auto local_0x38 = param_2;
+            call_0x7d7f00(this->field_0x48, &local_0x20, &local_0x28);
+          } else {
+            call_0x49710d0("Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel execution.", &sym_0x6647145);
+            call_0x6ca7d0(&local_0x60);
+            call_0x5e066f0(&local_0x60, &sym_0x80cbbc0);
+            return; // noreturn
+          }
+        }
+        uint64_t local_0x48;
+        if (local_0x48 != 0) {
+          call_0x6daf40(local_0x48);
+          return;
+        }
+        return;
       }
+      call_0x6ca7d0(&local_0x60);
+      call_0x5e066f0(&local_0x60, &sym_0x80cbbc0);
+      return; // noreturn
     }
   
   === [Decompilacao de Metodo da Classe RBX::AudioFocusService: 0x1c3dbf0..0x1c3dc23 (vfunc_0x40)] ===
     struct RBX::Instance {
-      /* +0x0 */ void*   field_0x0;
+      /* +0x0 */ uint64_t field_0x0;
     };
     
     void RBX::Instance::func_0x1c3dbf0(RBX::Instance* this) {
-      call_0x1c4d900(this);
-      switch (this->field_0x0->field_0x1a0) {
+      auto ret_0x1c4d900_1 = call_0x1c4d900(this);
+      if (ret_0x1c4d900_1 != 0) {
+        ret_0x1c4d900_1->field_0x0 = 0;
       }
     }
   
@@ -502,49 +574,46 @@ Operação  : 0x5d4cd08: mov/math reg, [flag] ; fn=0x5d4cba0..0x5d4ce05
     };
     
     // Flag defaults: ClearDescendantOfDataModelOnParentDestroy = true, DescendantOfDataModel3 = true
-    auto RBX::Instance::func_0x1c432c0(RBX::Instance* this) {
+    void RBX::Instance::func_0x1c432c0(RBX::Instance* this) {
       if (global_0x84a44d6 != 0 && ClearDescendantOfDataModelOnParentDestroy && DescendantOfDataModel3) {
-        return tailcall_0x1c43380(this, this);
+        tailcall_0x1c43380(this);
+        return;
       }
       if (this->field_0x70 != 0) {
         if (this->field_0x70->field_0x0 != this->field_0x70->field_0x8) {
-          void* i_ecx = this->field_0x70->field_0x0;
+          uint8_t* i_ecx = this->field_0x70->field_0x0;
           do { // L_0x1c43310
             i_ecx += 0x10;
             i_ecx->field_0x0->field_0x60 = 0;
           } while (i_ecx != this->field_0x70->field_0x8); // loop -> L_0x1c43310
         }
         this->field_0x70 = 0;
-        void* prev_0x78_1 = this->field_0x78;
+        void* prev_0x78_2 = this->field_0x78;
         this->field_0x78 = 0;
-        if (prev_0x78_1 != 0) {
-          if (atomic_fetch_sub(&this->field_0x78->field_0x8, 1) == 1) {
-            this->field_0x78->vfunc_0x0(prev_0x78_1);
-            if (atomic_fetch_sub(&this->field_0x78->field_0xc, 1) == 1) {
-              this->field_0x78->vfunc_0x8(prev_0x78_1);
+        if (prev_0x78_2 != 0) {
+          int32_t atomic_1 = atomic_fetch_sub(&this->field_0x78->field_0x8, 1);
+          if (atomic_1 == 1) {
+            this->field_0x78->vfunc_0x0(prev_0x78_2, this, this->field_0x70->field_0x8);
+            int32_t atomic_3 = atomic_fetch_sub(&this->field_0x78->field_0xc, 1);
+            if (atomic_3 == 1) {
+              this->field_0x78->vfunc_0x8(prev_0x78_2);
             }
           }
         }
-        return;
       }
-      return;
     }
 
 [Strings .rdata na função]
   * "[FLog::AudioFocusManager] AudioFocusManager::AudioFocusManager() constructor"  [@rdata 0x759ccb0, ref @0x5d4cd34, FLog format]
   * "Reference count overflow"  [@rdata 0x718b538, ref @0x5d4cdf7, literal, 24B]
   * "[FLog::AudioFocusManager] AudioFocusManager::AudioFocusManager() destructor"  [@rdata 0x759cc60, ref @0x5d4cef3, FLog format]
-  * "Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel "  [@rdata 0x7280e40, ref @0x1c44110, literal, 96B]
 
 [Co-Flags na mesma função]
-  * DFFlagCheckEngineContextOnInstanceAccess2 = false (default)
-  * FFlagClearDescendantOfDataModelOnParentDestroy = true (default)
-  * FFlagDescendantOfDataModel3 = true (default)
   * DFIntPCSCEVLaunchFeasibilityThrottleHundredthsPercent = 10000 (default) [vizinha em .data]
-  * FLogAudioFocusService = 6 (default) [vizinha em .data]
-  * FLogPerformanceControlService = 6 (default) [vizinha em .data]
+  * FLogAudioFocusService = 0 (default) [vizinha em .data]
+  * FLogPerformanceControlService = 0 (default) [vizinha em .data]
   * DFFlagStartupMessageActionButtonEnabled = true (default) [vizinha em .data]
   * DFFlagCLI230370 = true (default) [vizinha em .data]
-  * FLogHangMonitor = 6 (default) [vizinha em .data]
+  * FLogHangMonitor = 0 (default) [vizinha em .data]
   * FFlagEnableWindowsMicPermissionAccess = false (default) [vizinha em .data]
   * FFlagEnableWindowsFixPermissionsProtocol = false (default) [vizinha em .data]

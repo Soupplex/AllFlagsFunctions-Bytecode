@@ -7,7 +7,7 @@ Operação  : 0x2608a65: mov/math reg, [flag] ; fn=0x26088e0..0x2608cab
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::RbxStorage)] ===
     Classe  : RBX::RbxStorage (Inferido)
-    Padrão  : FIntRbxStorageRemoveOnInitThresholdMiB = 256 (default) [int, mode=1]
+    Padrão  : FIntRbxStorageRemoveOnInitThresholdMiB = 32768 (default) [int, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : RbxStorageRemoveOnInitCleanupMiB > 0 && param_2 < RbxStorageRemoveOnInitThresholdMiB << 20
     Fórmula : ret_0x2618730_7 < RbxStorageRemoveOnInitThresholdMiB << 20 && (uint8_t)RbxStorage >= 6 && (uint8_t)((uint64_t)RbxStorage >> 8) >= 2
@@ -16,26 +16,42 @@ Operação  : 0x2608a65: mov/math reg, [flag] ; fn=0x26088e0..0x2608cab
     Caller @0x2609f5d (in fn_0x26099f0): call 0x26088e0  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
   
   === [Decompilacao C++ da Funcao 0x26088e0..0x2608cab] ===
-    // Flag defaults: RbxStorageDeleteOldCacheMB = 0, RbxStorageMinAvailableDiskSpaceMB = 10, RbxStorage = 6, RbxStorageRemoveOnInitCleanupMiB = 0, RbxStorageRemoveOnInitThresholdMiB = 256, RbxStorageFCLocation = 1
+    // Flag defaults: RbxStorageDeleteOldCacheMB = 0, RbxStorageMinAvailableDiskSpaceMB = 10, RbxStorage = 0, RbxStorageRemoveOnInitCleanupMiB = 0, RbxStorageRemoveOnInitThresholdMiB = 32768, RbxStorageFCLocation = 1
     void RBX::RbxStorage::func_0x26088e0(RBX::RbxStorage* this, int64_t param_2) {
+      uint64_t local_0x20;
+      uint64_t local_0x30;
+      auto expr_1 = (int64_t)(param_2 + ((int64_t)param_2 >> 63 & 0xfffff)) >> 20;
       if (RbxStorageDeleteOldCacheMB > 0 && param_2 < RbxStorageMinAvailableDiskSpaceMB << 20) {
         if ((uint8_t)RbxStorage >= 6 && (uint8_t)((uint64_t)RbxStorage >> 8) >= 3) {
-          FLog::Log("[DFLog::RbxStorage] Available disk space of {} MiB is below the minimum threshold of {} MiB. Del", (param_2 + (param_2 & 0xfffff)) >> 20, RbxStorageMinAvailableDiskSpaceMB);
+          local_0x30 = "[DFLog::RbxStorage] Available disk space of {} MiB is below the minimum threshold of {} MiB. Deleting {} MiB from the old http cache.";
+          local_0x20 = 1;
+          FLog::Log("[DFLog::RbxStorage] Available disk space of {} MiB is below the minimum threshold of {} MiB. Deleting {} MiB from the old http cache.", expr_1, RbxStorageMinAvailableDiskSpaceMB, RbxStorageDeleteOldCacheMB);
         }
+        uint64_t local_0x200;
         auto ret_0x26199c0_1 = call_0x26199c0(&local_0x200, 0, 0);
         call_0x2617d40(ret_0x26199c0_1, RbxStorageDeleteOldCacheMB << 20);
         call_0x6f8cb0(&local_0x200);
       }
       if (RbxStorageRemoveOnInitCleanupMiB > 0 && param_2 < RbxStorageRemoveOnInitThresholdMiB << 20) {
+        uint64_t local_0x60;
         if ((uint8_t)RbxStorage >= 6 && (uint8_t)((uint64_t)RbxStorage >> 8) >= 3) {
-          FLog::Log("[DFLog::RbxStorage] Available disk space of {} MiB is below the threshold of {} MiB. Removing {}", (param_2 + (param_2 & 0xfffff)) >> 20, RbxStorageRemoveOnInitThresholdMiB, RbxStorageRemoveOnInitCleanupMiB);
+          local_0x30 = "[DFLog::RbxStorage] Available disk space of {} MiB is below the threshold of {} MiB. Removing {} MiB from the file cache.";
+          local_0x60 = RbxStorage;
+          local_0x20 = 1;
+          FLog::Log("[DFLog::RbxStorage] Available disk space of {} MiB is below the threshold of {} MiB. Removing {} MiB from the file cache.", expr_1, RbxStorageRemoveOnInitThresholdMiB, RbxStorageRemoveOnInitCleanupMiB);
         }
-        call_0x26199c0(&local_0x170, 2, "rbx-storage");
+        uint64_t local_0x170;
+        call_0x26199c0(&local_0x170, RbxStorageFCLocation != 1 ? 2 : 1, "rbx-storage");
         call_0x2619480(&local_0x170, RbxStorageRemoveOnInitCleanupMiB << 20);
         call_0x6f8cb0(&local_0x170);
         auto ret_0x2618730_7 = call_0x2618730(this, "cleanupOnInit");
         if (ret_0x2618730_7 < RbxStorageRemoveOnInitThresholdMiB << 20 && (uint8_t)RbxStorage >= 6 && (uint8_t)((uint64_t)RbxStorage >> 8) >= 2) {
-          FLog::Log("[DFLog::RbxStorage] Failed to free enough space on disk. Available space is still {} MiB", (ret_0x2618730_7 + (ret_0x2618730_7 & 0xfffff)) >> 20);
+          local_0x30 = "[DFLog::RbxStorage] Failed to free enough space on disk. Available space is still {} MiB";
+          uint64_t local_0x50;
+          local_0x50 = local_0x30 - 0x789a6b;
+          local_0x60 = (int64_t)(ret_0x2618730_7 + ((int64_t)ret_0x2618730_7 >> 63 & 0xfffff)) >> 20;
+          local_0x20 = 1;
+          FLog::Log("[DFLog::RbxStorage] Failed to free enough space on disk. Available space is still {} MiB", local_0x60);
         }
       }
     }
@@ -67,7 +83,7 @@ Operação  : 0x2608a65: mov/math reg, [flag] ; fn=0x26088e0..0x2608cab
     0x260894c | 48 c1 e8 08              | shr rax, 0x8
     0x2608950 | 3c 03                    | cmp al, 0x3
     0x2608952 | 0f 82 ce 00 00 00        | jb 0x2608a26
-    0x2608958 | 48 8d 05 ec ef 40 05     | lea rax, [rip + 0x540efec] ; "[DFLog::RbxStorage] Available disk space of {} MiB is below the minimum threshold of {} MiB. Del"
+    0x2608958 | 48 8d 05 ec ef 40 05     | lea rax, [rip + 0x540efec] ; "[DFLog::RbxStorage] Available disk space of {} MiB is below the minimum threshold of {} MiB. Deleting {} MiB from the old http cache."
     0x260895f | 48 89 44 24 30           | mov qword ptr [rsp + 0x30], rax
     0x2608964 | 4c 8b 44 24 30           | mov r8, qword ptr [rsp + 0x30]
     0x2608969 | 49 81 c0 65 7e 8b ff     | add r8, 0xff8b7e65
@@ -139,7 +155,7 @@ Operação  : 0x2608a65: mov/math reg, [flag] ; fn=0x26088e0..0x2608cab
     0x2608a88 | 48 c1 e8 08              | shr rax, 0x8
     0x2608a8c | 3c 03                    | cmp al, 0x3
     0x2608a8e | 0f 82 c6 00 00 00        | jb 0x2608b5a
-    0x2608a94 | 48 8d 05 cf be 43 05     | lea rax, [rip + 0x543becf] ; "[DFLog::RbxStorage] Available disk space of {} MiB is below the threshold of {} MiB. Removing {}"
+    0x2608a94 | 48 8d 05 cf be 43 05     | lea rax, [rip + 0x543becf] ; "[DFLog::RbxStorage] Available disk space of {} MiB is below the threshold of {} MiB. Removing {} MiB from the file cache."
     0x2608a9b | 48 89 44 24 30           | mov qword ptr [rsp + 0x30], rax
     0x2608aa0 | 4c 8b 44 24 30           | mov r8, qword ptr [rsp + 0x30]
     0x2608aa5 | 49 81 c0 56 ad 88 ff     | add r8, 0xff88ad56
@@ -266,179 +282,296 @@ Operação  : 0x2608a65: mov/math reg, [flag] ; fn=0x26088e0..0x2608cab
   
   === [Sub-Rotina Chamada: 0x26199c0..0x261a31d via call @0x2608a39 (Direct Engine Sub-Call)] ===
     struct SubObj_0x26199c0 {
-      /* +0x0 */ void*   field_0x0;
-      /* +0x10 */ void*   field_0x10;
-      /* +0x18 */ void*   field_0x18;
+      /* +0x0 */ uint64_t field_0x0;
+      /* +0x4 */ uint8_t field_0x4;
+      /* +0x8 */ uint8_t field_0x8;
+      /* +0xc */ uint8_t field_0xc;
+      /* +0x10 */ uint64_t field_0x10;
+      /* +0x14 */ uint8_t field_0x14;
+      /* +0x18 */ uint64_t field_0x18;
+      /* +0x1c */ uint8_t field_0x1c;
     };
     
-    // Flag defaults: RbxStorage = 6
-    auto SubObj_0x26199c0::func_0x26199c0(SubObj_0x26199c0* this, int64_t param_2, void* param_3) {
-      int64_t local_0x160;
-      if (param_2 == 0) {
-        call_0x29853f0(&local_0x220, 1, 0);
-        if (local_0x230 == 0) {
-          if ((uint8_t)RbxStorage >= 6 && (uint8_t)((uint64_t)RbxStorage >> 8) >= 2) {
-            FLog::Log("[DFLog::RbxStorage] Old cache directory path does not exist");
+    // Flag defaults: RbxStorage = 0
+    auto SubObj_0x26199c0::func_0x26199c0(SubObj_0x26199c0* this, int64_t param_2, int64_t param_3) {
+      uint64_t local_0x30;
+      local_0x30 = 0;
+      uint64_t local_0x198;
+      uint64_t local_0x190;
+      uint64_t local_0x1a0;
+      uint64_t local_0x1c0;
+      uint64_t local_0x178;
+      uint64_t local_0x170;
+      void* local_0x160;
+      void* local_0x180;
+      uint64_t local_0x20;
+      uint64_t local_0x38;
+      switch (param_2) {
+        case 0: {
+          uint64_t local_0x220;
+          call_0x29853f0(&local_0x220, 1, 0);
+          uint64_t local_0x230;
+          if (local_0x230 == 0) {
+            if ((uint8_t)RbxStorage >= 6 && (uint8_t)((uint64_t)RbxStorage >> 8) >= 2) {
+              local_0x38 = "[DFLog::RbxStorage] Old cache directory path does not exist";
+              local_0x20 = 1;
+              FLog::Log("[DFLog::RbxStorage] Old cache directory path does not exist");
+            }
+            this->field_0x10 = 0;
+            this->field_0x18 = 7;
+            this->field_0x0 = 0;
+            local_0x30 = 1;
+            call_0x6f8cb0(&local_0x220);
+          } else {
+            call_0x6fb700(&local_0x180, "http");
+            call_0x6f6cc0(&local_0x160, &local_0x220);
+            auto ret_0x1d65880_36 = call_0x1d65880(&local_0x160, &local_0x180);
+            call_0x6f6cc0(this, ret_0x1d65880_36);
+            call_0x6f8cb0(&local_0x160);
+            local_0x30 = 1025;
+            call_0x6f8cb0(&local_0x180);
+            call_0x6f8cb0(&local_0x220);
           }
-          this->field_0x10 = 0;
-          this->field_0x18 = 7;
-          this->field_0x0 = 0;
-          call_0x6f8cb0(&local_0x220);
-        } else {
-          call_0x6fb700(&local_0x180, "http", param_3);
-          call_0x6f6cc0(&local_0x160, &local_0x220);
-          auto ret_0x1d65880_35 = call_0x1d65880(&local_0x160, &local_0x180);
-          call_0x6f6cc0(this, ret_0x1d65880_35);
-          call_0x6f8cb0(&local_0x160);
-          call_0x6f8cb0(&local_0x180);
-          call_0x6f8cb0(&local_0x220);
+          break;
         }
-      } else {
-        int64_t local_0x1a0;
-        if (param_2 == 1) {
+        case 1: {
+          void* local_0x1e0;
           call_0x2969930(&local_0x1e0, param_2, 0, 0);
+          uint64_t local_0x1f0;
           if (local_0x1f0 == 0) {
             if ((uint8_t)RbxStorage >= 6 && (uint8_t)((uint64_t)RbxStorage >> 8) >= 2) {
+              local_0x38 = "[DFLog::RbxStorage] AppData directory path does not exist";
+              local_0x20 = 1;
               FLog::Log("[DFLog::RbxStorage] AppData directory path does not exist");
             }
             this->field_0x10 = 0;
             this->field_0x18 = 7;
             this->field_0x0 = 0;
+            local_0x30 = 1;
             call_0x6f8cb0(&local_0x1e0);
           } else {
-            int32_t v_rsi_13;
+            void* v_rax_8;
+            int32_t v_rsi_9;
+            uint64_t local_0x1f8;
             if (param_3 != 0) {
-              auto ret_0x1d67dd0_15 = call_0x1d67dd0();
-              auto ret_0x1d68340_16 = call_0x1d68340(ret_0x1d67dd0_15);
+              local_0x170 = 0;
+              local_0x178 = 7;
               local_0x160 = 0;
-              call_0x1d5ff60(param_3, 0, &local_0x160, ret_0x1d68340_16);
+              auto ret_0x1d67dd0_18 = call_0x1d67dd0();
+              auto ret_0x1d68340_19 = call_0x1d68340(ret_0x1d67dd0_18);
+              call_0x1d5ff60(param_3, 0, &local_0x160, ret_0x1d68340_19);
+              local_0x30 = 2;
               call_0x6f6cc0(&local_0x1c0, &local_0x1e0);
-              auto ret_0x1d65880_19 = call_0x1d65880(&local_0x1c0, &local_0x160);
-              call_0x6f6cc0(&local_0x1a0, ret_0x1d65880_19);
+              auto ret_0x1d65880_22 = call_0x1d65880(&local_0x1c0, &local_0x160);
+              call_0x6f6cc0(&local_0x1a0, ret_0x1d65880_22);
               call_0x6f8cb0(&local_0x1c0);
-              v_rsi_13 = 2054;
+              v_rax_8 = &local_0x1a0;
+              v_rsi_9 = 2054;
             } else {
-              v_rsi_13 = 8;
+              local_0x180 = local_0x1e0;
+              local_0x190 = local_0x1f0;
+              local_0x198 = local_0x1f8;
+              local_0x1f0 = 0;
+              local_0x1f8 = 7;
+              local_0x1e0 = 0;
+              v_rax_8 = &local_0x180;
+              v_rsi_9 = 8;
             }
-            this->field_0x0 = local_0x1a0;
-            this->field_0x10 = local_0x1b0;
-            int32_t v_rsi_16 = v_rsi_13 | 0x1;
-            if (((uint8_t)(v_rsi_13 | 0x1) & 0x8) != 0) {
+            this->field_0x0 = v_rax_8->field_0x0;
+            this->field_0x4 = v_rax_8->field_0x4;
+            this->field_0x8 = v_rax_8->field_0x8;
+            this->field_0xc = v_rax_8->field_0xc;
+            this->field_0x10 = v_rax_8->field_0x10;
+            this->field_0x14 = v_rax_8->field_0x14;
+            this->field_0x18 = v_rax_8->field_0x18;
+            this->field_0x1c = v_rax_8->field_0x1c;
+            v_rax_8->field_0x10 = 0;
+            v_rax_8->field_0x18 = 7;
+            v_rax_8->field_0x0 = 0;
+            local_0x30 = v_rsi_9 | 0x1;
+            int32_t v_rsi_11 = v_rsi_9 | 0x1;
+            if (((uint8_t)(v_rsi_9 | 0x1) & 0x8) != 0) {
+              local_0x30 = (v_rsi_9 | 0x1) & 0xfffffff7;
               if (local_0x198 >= 8) {
-                void* v_rcx_15 = local_0x180;
-                if (local_0x198 * 2 >= 0x1000) {
+                void* v_rcx_10 = local_0x180;
+                if (local_0x198 * 2 + 2 >= 0x1000) {
                   if (local_0x180 - local_0x180->field_m0x8 < 8 || local_0x180 - local_0x180->field_m0x8 > 39) {
                     call_0x5e14580();
-                    call_0x5e14580();
-                    L_0x261a306:
-                    call_0x5e14580();
-                    L_0x261a30c:
-                    call_0x5e14580();
-                    L_0x261a312:
-                    call_0x5e14580();
+                    return; // noreturn
+                  } else {
+                    v_rcx_10 = local_0x180->field_m0x8;
                   }
                 }
-                call_0x4955ac0(v_rcx_15);
+                call_0x4955ac0(v_rcx_10);
               }
-              v_rsi_16 = (v_rsi_13 | 0x1) & 0xfffffff7;
+              local_0x190 = 0;
+              local_0x198 = 7;
+              local_0x180 = 0;
+              v_rsi_11 = (v_rsi_9 | 0x1) & 0xfffffff7;
             }
-            int32_t v_rsi_18 = v_rsi_16;
-            if (((uint8_t)v_rsi_16 & 0x4) != 0) {
-              local_0x1a0 = 0;
+            int32_t v_rsi_12 = v_rsi_11;
+            if (((uint8_t)v_rsi_11 & 0x4) != 0) {
+              local_0x30 = v_rsi_11 & 0xfffffffb;
               call_0x6f8cb0(&local_0x1a0);
-              v_rsi_18 = v_rsi_16 & 0xfffffffb;
+              v_rsi_12 = v_rsi_11 & 0xfffffffb;
             }
-            if (((uint8_t)v_rsi_18 & 0x2) != 0) {
+            if (((uint8_t)v_rsi_12 & 0x2) != 0) {
+              local_0x30 = v_rsi_12 & 0xfffffffd;
               if (local_0x178 >= 8) {
-                void* v_rcx_21 = local_0x160;
-                if (local_0x178 * 2 >= 0x1000) {
+                void* v_rcx_13 = local_0x160;
+                if (local_0x178 * 2 + 2 >= 0x1000) {
                   if (local_0x160 - local_0x160->field_m0x8 < 8 || local_0x160 - local_0x160->field_m0x8 > 39) {
                     call_0x5e14580();
-                    call_0x5e14580();
-                    call_0x5e14580();
-                    call_0x5e14580();
+                    return; // noreturn
+                  } else {
+                    v_rcx_13 = local_0x160->field_m0x8;
                   }
                 }
-                call_0x4955ac0(v_rcx_21);
+                call_0x4955ac0(v_rcx_13);
               }
+              local_0x170 = 0;
+              local_0x178 = 7;
+              local_0x160 = 0;
             }
             if (local_0x1f8 >= 8) {
-              void* v_rcx_26 = local_0x1e0;
-              if (local_0x1f8 * 2 >= 0x1000) {
+              void* v_rcx_14 = local_0x1e0;
+              if (local_0x1f8 * 2 + 2 >= 0x1000) {
                 if (local_0x1e0 - local_0x1e0->field_m0x8 < 8 || local_0x1e0 - local_0x1e0->field_m0x8 > 39) {
-                  goto L_0x261a306;
+                  call_0x5e14580();
+                  return; // noreturn
+                } else {
+                  v_rcx_14 = local_0x1e0->field_m0x8;
                 }
               }
-              call_0x4955ac0(v_rcx_26);
+              call_0x4955ac0(v_rcx_14);
             }
+            local_0x1f0 = 0;
+            local_0x1f8 = 7;
+            local_0x1e0 = 0;
           }
-        } else if (param_2 == 2) {
+          break;
+        }
+        case 2: {
+          void* local_0x200;
           call_0x29853f0(&local_0x200, 1, 0);
+          uint64_t local_0x210;
           if (local_0x210 == 0) {
             if ((uint8_t)RbxStorage >= 6 && (uint8_t)((uint64_t)RbxStorage >> 8) >= 2) {
+              local_0x38 = "[DFLog::RbxStorage] Cache directory path does not exist";
+              local_0x20 = 1;
               FLog::Log("[DFLog::RbxStorage] Cache directory path does not exist");
             }
             this->field_0x10 = 0;
             this->field_0x18 = 7;
             this->field_0x0 = 0;
+            local_0x30 = 1;
             call_0x6f8cb0(&local_0x200);
           } else {
+            void* v_rax_1;
             int32_t v_rsi_2;
+            uint64_t local_0x218;
             if (param_3 != 0) {
+              local_0x170 = 0;
+              local_0x178 = 7;
+              local_0x160 = 0;
               auto ret_0x1d67dd0_2 = call_0x1d67dd0();
               auto ret_0x1d68340_3 = call_0x1d68340(ret_0x1d67dd0_2);
-              local_0x160 = 0;
               call_0x1d5ff60(param_3, 0, &local_0x160, ret_0x1d68340_3);
+              local_0x30 = 16;
               call_0x6f6cc0(&local_0x1c0, &local_0x200);
               auto ret_0x1d65880_6 = call_0x1d65880(&local_0x1c0, &local_0x160);
               call_0x6f6cc0(&local_0x1a0, ret_0x1d65880_6);
               call_0x6f8cb0(&local_0x1c0);
+              v_rax_1 = &local_0x1a0;
               v_rsi_2 = 4144;
             } else {
+              local_0x180 = local_0x200;
+              local_0x190 = local_0x210;
+              local_0x198 = local_0x218;
+              local_0x210 = 0;
+              local_0x218 = 7;
+              local_0x200 = 0;
+              v_rax_1 = &local_0x180;
               v_rsi_2 = 64;
             }
-            this->field_0x0 = local_0x1a0;
-            this->field_0x10 = local_0x1b0;
-            int32_t v_rsi_5 = v_rsi_2 | 0x1;
+            this->field_0x0 = v_rax_1->field_0x0;
+            this->field_0x4 = v_rax_1->field_0x4;
+            this->field_0x8 = v_rax_1->field_0x8;
+            this->field_0xc = v_rax_1->field_0xc;
+            this->field_0x10 = v_rax_1->field_0x10;
+            this->field_0x14 = v_rax_1->field_0x14;
+            this->field_0x18 = v_rax_1->field_0x18;
+            this->field_0x1c = v_rax_1->field_0x1c;
+            v_rax_1->field_0x10 = 0;
+            v_rax_1->field_0x18 = 7;
+            v_rax_1->field_0x0 = 0;
+            local_0x30 = v_rsi_2 | 0x1;
+            int32_t v_rsi_4 = v_rsi_2 | 0x1;
             if (((uint8_t)(v_rsi_2 | 0x1) & 0x40) != 0) {
+              local_0x30 = (v_rsi_2 | 0x1) & 0xffffffbf;
               if (local_0x198 >= 8) {
-                void* v_rcx_4 = local_0x180;
-                if (local_0x198 * 2 >= 0x1000) {
+                void* v_rcx_3 = local_0x180;
+                if (local_0x198 * 2 + 2 >= 0x1000) {
                   if (local_0x180 - local_0x180->field_m0x8 < 8 || local_0x180 - local_0x180->field_m0x8 > 39) {
-                    goto L_0x261a30c;
+                    call_0x5e14580();
+                    return; // noreturn
+                  } else {
+                    v_rcx_3 = local_0x180->field_m0x8;
                   }
                 }
-                call_0x4955ac0(v_rcx_4);
+                call_0x4955ac0(v_rcx_3);
               }
-              v_rsi_5 = (v_rsi_2 | 0x1) & 0xffffffbf;
+              local_0x190 = 0;
+              local_0x198 = 7;
+              local_0x180 = 0;
+              v_rsi_4 = (v_rsi_2 | 0x1) & 0xffffffbf;
             }
-            int32_t v_rsi_7 = v_rsi_5;
-            if (((uint8_t)v_rsi_5 & 0x20) != 0) {
-              local_0x1a0 = 0;
+            int32_t v_rsi_5 = v_rsi_4;
+            if (((uint8_t)v_rsi_4 & 0x20) != 0) {
+              local_0x30 = v_rsi_4 & 0xffffffdf;
               call_0x6f8cb0(&local_0x1a0);
-              v_rsi_7 = v_rsi_5 & 0xffffffdf;
+              v_rsi_5 = v_rsi_4 & 0xffffffdf;
             }
-            if (((uint8_t)v_rsi_7 & 0x10) != 0) {
+            if (((uint8_t)v_rsi_5 & 0x10) != 0) {
+              local_0x30 = v_rsi_5 & 0xffffffef;
               if (local_0x178 >= 8) {
-                void* v_rcx_9 = local_0x160;
-                if (local_0x178 * 2 >= 0x1000) {
+                void* v_rcx_6 = local_0x160;
+                if (local_0x178 * 2 + 2 >= 0x1000) {
                   if (local_0x160 - local_0x160->field_m0x8 < 8 || local_0x160 - local_0x160->field_m0x8 > 39) {
-                    goto L_0x261a312;
+                    call_0x5e14580();
+                    return; // noreturn
+                  } else {
+                    v_rcx_6 = local_0x160->field_m0x8;
                   }
                 }
-                call_0x4955ac0(v_rcx_9);
+                call_0x4955ac0(v_rcx_6);
               }
+              local_0x170 = 0;
+              local_0x178 = 7;
+              local_0x160 = 0;
             }
             if (local_0x218 >= 8) {
-              void* v_rcx_11 = local_0x200;
-              call_0x4955ac0(v_rcx_11);
+              void* v_rcx_7 = local_0x200;
+              if (local_0x218 * 2 + 2 >= 0x1000) {
+                if (local_0x200 - local_0x200->field_m0x8 < 8 || local_0x200 - local_0x200->field_m0x8 > 39) {
+                  call_0x5e14580();
+                  return; // noreturn
+                } else {
+                  v_rcx_7 = local_0x200->field_m0x8;
+                }
+              }
+              call_0x4955ac0(v_rcx_7);
             }
+            local_0x210 = 0;
+            local_0x218 = 7;
+            local_0x200 = 0;
           }
-        } else {
+          break;
+        }
+        default:
           this->field_0x10 = 0;
           this->field_0x18 = 7;
           this->field_0x0 = 0;
-        }
       }
       return this;
     }
@@ -949,144 +1082,206 @@ Operação  : 0x2608a65: mov/math reg, [flag] ; fn=0x26088e0..0x2608cab
   
   === [Sub-Rotina Chamada: 0x2617d40..0x26182a4 via call @0x2608a45 (Direct Engine Sub-Call)] ===
     struct SubObj_0x2617d40 {
-      /* +0x0 */ void*   field_0x0;
-      /* +0x10 */ void*   field_0x10;
-      /* +0x18 */ void*   field_0x18;
+      /* +0x0 */ uint64_t field_0x0;
+      /* +0x10 */ uint64_t field_0x10;
+      /* +0x18 */ uint64_t field_0x18;
     };
     
-    // Flag defaults: RbxStorageRemoveOldCacheYield = false, RbxStorage = 6
+    // Flag defaults: RbxStorageRemoveOldCacheYield = true, RbxStorage = 0
     void SubObj_0x2617d40::func_0x2617d40(SubObj_0x2617d40* this, int64_t param_2) {
+      uint64_t local_0x40;
+      local_0x40 = 0;
       if (this->field_0x10 != 0) {
+        uint64_t local_0xc0;
+        local_0xc0 = 0;
+        uint64_t local_0xd0;
+        local_0xd0 = 0;
+        uint64_t local_0xd8;
+        local_0xd8 = 15;
+        local_0xc0 = 0;
+        local_0x40 = 1;
         auto ret_0x1d67dd0_1 = call_0x1d67dd0();
         auto ret_0x1d68340_2 = call_0x1d68340(ret_0x1d67dd0_1);
-        auto local_0xc0 = 0;
         call_0x1d60070(this->field_0x18 >= 8 ? this->field_0x0 : this, this->field_0x18 >= 8 ? this->field_0x10 * 2 + this->field_0x0 : this->field_0x10 * 2 + this, &local_0xc0, ret_0x1d68340_2);
+        local_0x40 = 0;
         std::string::_Tidy_deallocate(local_0xc0);
-        if (local_0xd0 < 3) {
+        auto mem_1_1 = local_0xd0;
+        local_0xd0 = 0;
+        local_0xd8 = 15;
+        local_0xc0 = 0;
+        float local_0xbc;
+        float local_0xb8;
+        float local_0xb4;
+        uint64_t local_0x70;
+        uint64_t local_0xb0;
+        if (mem_1_1 < 3) {
           if ((uint8_t)RbxStorage >= 6 && (uint8_t)((uint64_t)RbxStorage >> 8) >= 2) {
-            int64_t local_0x100;
+            local_0x40 = "[DFLog::RbxStorage] removeOldCache: cache directory path is too short: {}";
+            uint64_t local_0x100;
+            local_0x100 = 0;
+            uint64_t local_0x110;
+            local_0x110 = 0;
+            uint64_t local_0x118;
+            local_0x118 = 15;
+            local_0x100 = 0;
+            void* mem_7_7 = local_0x40;
+            local_0x40 = 2;
+            void* v_rsi_11 = 0;
+            void* v_r14_12 = 15;
             if (this->field_0x10 != 0) {
-              FLog::Log("[DFLog::RbxStorage] removeOldCache: cache directory path is too short: {}");
-              auto ret_0x1d68340_27 = call_0x1d68340(rax);
-              local_0x100 = 0;
-              call_0x1d60070(this->field_0x18 >= 8 ? this->field_0x0 : this, this->field_0x18 >= 8 ? this->field_0x0 + this->field_0x10 * 2 : this + this->field_0x10 * 2, &local_0x100, ret_0x1d68340_27);
+              auto ret_0x1d67dd0_29 = call_0x1d67dd0();
+              auto ret_0x1d68340_30 = call_0x1d68340(ret_0x1d67dd0_29);
+              FLog::Log("[DFLog::RbxStorage] removeOldCache: cache directory path is too short: {}", ret_0x1d68340_30);
+              v_rsi_11 = local_0x110;
+              v_r14_12 = local_0x118;
             }
-            FLog::Log("[DFLog::RbxStorage] removeOldCache: cache directory path is too short: {}");
+            local_0x70 = mem_7_7 - 0xa3e08;
+            uint64_t i_eax_2 = -1;
+            do { // L_0x2617ee0
+              i_eax_2++;
+            } while ((mem_7_7 - 0xa3e08)[i_eax_2] != 0); // loop -> L_0x2617ee0
+            void* sel_rax_2 = v_r14_12 >= 16 ? local_0x100 : &local_0x100;
+            local_0xc0 = 13;
+            local_0xb0 = RbxStorage;
+            local_0xb4 = *(uint32_t*)((uint8_t*)&RbxStorage + 0x4);
+            local_0xb8 = *(uint32_t*)((uint8_t*)&RbxStorage + 0x8);
+            local_0xbc = *(uint32_t*)((uint8_t*)&RbxStorage + 0xc);
+            auto local_0x78 = i_eax_2;
+            int64_t local_0x120;
+            auto local_0xc8 = &local_0x120;
+            local_0x120 = sel_rax_2;
+            auto local_0x128 = v_rsi_11;
+            call_0x4971cd0(&local_0xb0, 2, &local_0x70, &local_0xc0, 1);
             std::string::_Tidy_deallocate(local_0x100);
           }
         } else {
-          call_0x1d69110();
-          auto ret_0x4956040_6 = call_0x4956040(56);
-          if (ret_0x4956040_6 != 0) {
-            ret_0x4956040_6->field_0x18 = 7;
-            ret_0x4956040_6->field_0x24 = 65535;
-            ret_0x4956040_6->field_0x2c = 65535;
-            call_0xe0b6c0(&local_0x30, ret_0x4956040_6);
-            auto local_0x60 = 0;
+          uint64_t local_0x60;
+          local_0x60 = 0;
+          auto ret_0x1d69110_6 = call_0x1d69110();
+          local_0xb0 = 0.0;
+          auto ret_0x4956040_7 = call_0x4956040(56);
+          if (ret_0x4956040_7 != 0) {
+            ret_0x4956040_7->field_0x0 = 0;
+            ret_0x4956040_7->field_0x10 = 0;
+            ret_0x4956040_7->field_0x18 = 7;
+            ret_0x4956040_7->field_0x20 = 0;
+            ret_0x4956040_7->field_0x24 = 65535;
+            ret_0x4956040_7->field_0x2c = 65535;
+            ret_0x4956040_7->field_0x30 = 0;
+            uint64_t local_0x30;
+            call_0xe0b6c0(&local_0x30, ret_0x4956040_7);
+            auto local_0x68 = ret_0x1d69110_6;
             call_0x1d64820(&local_0x30, this, &local_0x60);
+            void* local_0x38;
             if (local_0x30 != 0) {
-              void* i_eax = local_0x30;
-              void* i_r12d = param_2;
+              uint64_t i_eax = local_0x30;
+              uint64_t i_r12d = param_2;
               int32_t i_r14d = 0;
+              local_0xb4 = 0.0;
+              local_0xb8 = 0.0;
+              local_0xbc = 0.0;
               do { // L_0x2618043
                 if (local_0x60 != 0) break;
                 if (param_2 <= 0 || i_r12d > 0) {
-                  auto ret_0x1d66430_9 = call_0x1d66430(i_eax, &local_0x130);
-                  call_0x709650(ret_0x1d66430_9, &local_0xe0);
+                  uint64_t local_0x130;
+                  auto ret_0x1d66430_12 = call_0x1d66430(i_eax, &local_0x130);
+                  std::string local_0xe0;
+                  call_0x709650(ret_0x1d66430_12, &local_0xe0);
                   call_0x6f8cb0(&local_0x130);
-                  void* v_r12_4 = i_r12d;
-                  void* v_r12_9 = i_r12d;
+                  uint64_t local_0xf8;
+                  void* sel_rcx_1 = local_0xf8 >= 16 ? local_0xe0 : &local_0xe0;
+                  int64_t v_r12_6 = i_r12d;
+                  int64_t v_r12_10 = i_r12d;
+                  uint64_t local_0xf0;
+                  int64_t v_r12_5;
                   if (local_0xf0 == 32) {
-                    auto ret_0x5e06820_12 = memcmp(local_0xe0, "8913724486d5e3c463c493b25346ca31", 32);
-                    if (ret_0x5e06820_12 != 0) {
-                    void* v_r12_3 = i_r12d;
+                    auto ret_0x5e06820_15 = call_0x5e06820(sel_rcx_1, "8913724486d5e3c463c493b25346ca31", 32);
+                    if (ret_0x5e06820_15 != 0) {
+                    v_r12_5 = i_r12d;
                     if (param_2 > 0) {
-                    call_0x1d69110();
-                    auto local_0x90 = 0;
-                    auto ret_0x4993650_14 = call_0x4993650(local_0x30, &local_0x90);
-                    if (local_0x90 == 0 && (uint8_t)ret_0x4993650_14 != 0) {
-                    auto ret_0x2618460_16 = call_0x2618460(local_0x30);
-                    if (ret_0x2618460_16 < 0) {
+                    L_0x26180b9:
+                    uint64_t local_0x90;
+                    local_0x90 = 0;
+                    uint64_t local_0x98;
+                    local_0x98 = call_0x1d69110();
+                    auto ret_0x4993650_17 = call_0x4993650(local_0x30, &local_0x90);
+                    if (local_0x90 == 0 && (uint8_t)ret_0x4993650_17 != 0) {
+                    auto ret_0x2618460_19 = call_0x2618460(local_0x30);
+                    uint64_t local_0x58;
+                    uint64_t local_0x50;
+                    if (ret_0x2618460_19 < 0) {
                     std::string::_Tidy_deallocate(local_0xe0);
                     L_0x26181be:
                     call_0x1d64d70(&local_0x30, &local_0x60);
-                    auto local_0x58 = local_0x38;
-                    auto local_0x5c = local_0x3c;
+                    local_0x50 = local_0x30;
+                    local_0x58 = local_0x38;
+                    if (local_0x38 != 0) {
+                    local_0x38->field_0x8++;
+                    }
+                    L_0x26181f0:
+                    void* mem_3_3 = local_0x50;
+                    local_0x50 = local_0x30;
+                    local_0x30 = mem_3_3;
+                    auto mem_5_5 = local_0x38;
+                    local_0x38 = local_0x58;
+                    local_0x58 = mem_5_5;
                     call_0x6dbda0(&local_0x58);
                     i_eax = local_0x30;
-                    i_r12d = v_r12_9;
+                    i_r12d = v_r12_10;
                     } else {
-                    v_r12_3 = i_r12d - ret_0x2618460_16;
+                    v_r12_5 = i_r12d - ret_0x2618460_19;
                     L_0x2618137:
-                    call_0x1d69110();
-                    auto local_0xa0 = 0;
+                    uint64_t local_0xa0;
+                    local_0xa0 = 0;
+                    uint64_t local_0xa8;
+                    local_0xa8 = call_0x1d69110();
                     call_0x296a510(local_0x30, &local_0xa0);
                     if (RbxStorageRemoveOldCacheYield) {
                     i_r14d++;
+                    if (i_r14d == ((uint64_t)(((uint64_t)(i_r14d - mulhi(0x47ae147ae147ae15, i_r14d)) >> 1) + mulhi(0x47ae147ae147ae15, i_r14d)) >> 5) * 50) {
+                    call_0xcb40(1);
                     }
-                    v_r12_4 = v_r12_3;
-                    L_0x261818b:
+                    }
+                    v_r12_6 = v_r12_5;
                     std::string::_Tidy_deallocate(local_0xe0);
-                    v_r12_9 = v_r12_4;
+                    v_r12_10 = v_r12_6;
                     call_0x1d64d70(&local_0x30, &local_0x60);
-                    auto local_0x58 = local_0x38;
-                    auto local_0x5c = local_0x3c;
-                    call_0x6dbda0(&local_0x58);
-                    i_eax = local_0x30;
-                    i_r12d = v_r12_9;
+                    local_0x50 = local_0x30;
+                    local_0x58 = local_0x38;
+                    if (local_0x38 != 0) {
+                    local_0x38->field_0x8++;
+                    }
+                    goto L_0x26181f0;
                     }
                     } else {
                     std::string::_Tidy_deallocate(local_0xe0);
                     goto L_0x26181be;
                     }
                     } else {
-                    call_0x1d69110();
-                    auto local_0xa0 = 0;
-                    call_0x296a510(local_0x30, &local_0xa0);
-                    if (RbxStorageRemoveOldCacheYield) {
-                    i_r14d++;
-                    }
-                    v_r12_4 = v_r12_3;
-                    std::string::_Tidy_deallocate(local_0xe0);
-                    v_r12_9 = v_r12_4;
-                    goto L_0x26181be;
-                    }
-                    } else {
-                    goto L_0x261818b;
-                    }
-                  } else {
-                    void* v_r12_3 = i_r12d;
-                    if (param_2 > 0) {
-                    call_0x1d69110();
-                    auto local_0x90 = 0;
-                    auto ret_0x4993650_14 = call_0x4993650(local_0x30, &local_0x90);
-                    if (local_0x90 == 0 && (uint8_t)ret_0x4993650_14 != 0) {
-                    auto ret_0x2618460_16 = call_0x2618460(local_0x30);
-                    if (ret_0x2618460_16 < 0) {
-                    std::string::_Tidy_deallocate(local_0xe0);
-                    goto L_0x26181be;
-                    } else {
-                    v_r12_3 = i_r12d - ret_0x2618460_16;
                     goto L_0x2618137;
                     }
                     } else {
                     std::string::_Tidy_deallocate(local_0xe0);
+                    v_r12_10 = v_r12_6;
                     goto L_0x26181be;
                     }
+                  } else {
+                    v_r12_5 = i_r12d;
+                    if (param_2 > 0) {
+                    goto L_0x26180b9;
                     } else {
                     goto L_0x2618137;
                     }
                   }
                 }
-              } while (local_0x30 != 0); // loop -> L_0x2618043
-              call_0x6dbda0(&local_0x38);
-              return;
+              } while (i_eax != 0); // loop -> L_0x2618043
             }
             call_0x6dbda0(&local_0x38);
-            return;
+          } else {
+            call_0x6ca7d0(&local_0x70);
+            call_0x5e066f0(&local_0x70, &sym_0x80cbbc0);
+            return; // noreturn
           }
-          call_0x6ca7d0(&local_0x70);
-          call_0x5e066f0(&local_0x70, &sym_0x80cbbc0);
         }
       }
     }
@@ -1465,28 +1660,38 @@ Operação  : 0x2608a65: mov/math reg, [flag] ; fn=0x26088e0..0x2608cab
   
   === [Sub-Rotina Chamada: 0x2619480..0x26199b0 via call @0x2608b93 (Direct Engine Sub-Call)] ===
     struct SubObj_0x2619480 {
-      /* +0x10 */ void*   field_0x10;
+      /* +0x10 */ uint64_t field_0x10;
     };
     
-    // Flag defaults: RbxStorage = 6, RbxStorageRemoveFileCacheYield = false
+    // Flag defaults: RbxStorage = 0, RbxStorageRemoveFileCacheYield = true
     void SubObj_0x2619480::func_0x2619480(SubObj_0x2619480* this, int64_t param_2) {
       if (this->field_0x10 != 0) {
+        uint64_t local_0x48;
+        local_0x48 = 0.0;
+        uint64_t local_0x58;
+        local_0x58 = 0;
         auto ret_0x4956040_1 = call_0x4956040(1024);
         if (ret_0x4956040_1 != 0) {
+          local_0x48 = ret_0x4956040_1;
+          local_0x58 = ret_0x4956040_1 + 0x400;
           call_0x5e051b0(ret_0x4956040_1, 0, 1024);
-          if (ret_0x4956040_1 != &ret_0x4956040_1->field_0x400) {
-            uint64_t i_eax = ret_0x4956040_1;
+          if (ret_0x4956040_1 != ret_0x4956040_1 + 0x400) {
+            uint8_t* i_eax = ret_0x4956040_1;
             int32_t i_ecx = 0;
             do { // L_0x2619550
               i_eax->field_0x0 = i_ecx;
               i_ecx++;
               i_eax += 4;
-            } while (i_eax != &ret_0x4956040_1->field_0x400); // loop -> L_0x2619550
+            } while (i_eax != ret_0x4956040_1 + 0x400); // loop -> L_0x2619550
           }
+          auto local_0x4c = 0.0;
+          auto local_0x50 = ret_0x4956040_1 + 0x400;
+          auto local_0x54 = 0.0;
+          uint64_t local_0x38;
           call_0x495a220(&local_0x38);
           auto ret_0x49755c0_6 = call_0x49755c0();
           uint64_t v_rdx_1 = 0;
-          double fxmm0_2;
+          double fxmm0_2 = local_0x38;
           if (local_0x38 >= 9.22337e+18) {
             if (local_0x38 - 9.22337e+18 < 9.22337e+18) {
               v_rdx_1 = 0x8000000000000000;
@@ -1494,55 +1699,160 @@ Operação  : 0x2608a65: mov/math reg, [flag] ; fn=0x26088e0..0x2608cab
             } else {
               fxmm0_2 = local_0x38 - 9.22337e+18;
             }
-          } else {
-            fxmm0_2 = local_0x38;
           }
           auto local_0x40 = (ret_0x49755c0_6 ^ (int64_t)fxmm0_2 + v_rdx_1) * 0x5851f42d4c957f2d + 0x399d2694695129de;
-          call_0x261aed0(ret_0x4956040_1, &ret_0x4956040_1->field_0x400, &local_0x40);
+          call_0x261aed0(ret_0x4956040_1, ret_0x4956040_1 + 0x400, &local_0x40);
           int32_t i_ebx = 0;
           int32_t i_r14d = 0;
-          void* i_esi = param_2;
+          uint64_t i_esi = param_2;
           do { // L_0x26195e4
             if (i_esi <= 0) break;
+            uint64_t local_0x20;
+            uint64_t local_0x30;
             if ((uint8_t)RbxStorage >= 6 && (uint8_t)((uint64_t)RbxStorage >> 8) >= 6) {
-              break;
+              local_0x30 = "[DFLog::RbxStorage] Removing temp files in subdirectory {:02x} to free up space. Bytes removed: {}. Bytes left: {}";
+              uint64_t local_0x70;
+              local_0x70 = local_0x30 - 0x456443;
+              uint64_t i_eax_2 = -1;
+              do { // L_0x2619625
+                i_eax_2++;
+              } while ((local_0x30 - 0x456443)[i_eax_2] != 0); // loop -> L_0x2619625
+              uint64_t local_0x78;
+              local_0x78 = i_eax_2;
+              uint64_t local_0xc0;
+              local_0xc0 = ret_0x4956040_1[i_ebx * 4];
+              uint64_t local_0xd0;
+              local_0xd0 = i_r14d;
+              uint64_t local_0xe0;
+              local_0xe0 = i_esi;
+              uint64_t local_0x270;
+              local_0x270 = local_0xc0;
+              uint64_t local_0x280;
+              local_0x280 = local_0xd0;
+              uint64_t local_0x290;
+              local_0x290 = local_0xe0;
+              uint64_t local_0x60;
+              local_0x60 = 817;
+              uint64_t local_0x68;
+              local_0x68 = &local_0x270;
+              uint64_t local_0xf0;
+              local_0xf0 = local_0x60;
+              uint64_t local_0x100;
+              local_0x100 = local_0x70;
+              uint64_t local_0x110;
+              local_0x110 = RbxStorage;
+              local_0x20 = 1;
+              FLog::Log("[DFLog::RbxStorage] Removing temp files in subdirectory {:02x} to free up space. Bytes removed: {}. Bytes left: {}", local_0x60);
             }
-            FLog::Log("[DFLog::RbxStorage] Removing temp files in subdirectory {:02x} to free up space. Bytes removed: ");
-            auto local_0x1b8 = 0;
+            uint64_t local_0x90;
+            local_0x90 = "{:02x}";
+            uint64_t local_0x98;
+            local_0x98 = 6;
+            uint64_t local_0x120;
+            local_0x120 = ret_0x4956040_1[i_ebx * 4];
+            uint64_t local_0x200;
+            local_0x200 = local_0x120;
+            uint64_t local_0x80;
+            local_0x80 = 1;
+            uint64_t local_0x88;
+            local_0x88 = &local_0x200;
+            uint64_t local_0x130;
+            local_0x130 = local_0x80;
+            uint64_t local_0x140;
+            local_0x140 = local_0x90;
+            auto local_0x148 = local_0x98;
+            auto local_0x138 = local_0x88;
+            uint64_t local_0x1d8;
+            call_0x1d48fe0(&local_0x1d8, &local_0x140, &local_0x130);
+            void* local_0x1b8;
+            local_0x1b8 = 0;
+            uint64_t local_0x1c8;
+            local_0x1c8 = 0;
+            uint64_t local_0x1d0;
+            local_0x1d0 = 7;
+            local_0x1b8 = 0;
             call_0x6fecb0(&local_0x1d8, &local_0x1b8);
+            uint64_t local_0x210;
             call_0x6f6cc0(&local_0x210, this);
-            auto ret_0x1d65880_10 = call_0x1d65880(&local_0x210, &local_0x1b8);
-            call_0x6f6cc0(&local_0x250, ret_0x1d65880_10);
+            auto ret_0x1d65880_11 = call_0x1d65880(&local_0x210, &local_0x1b8);
+            uint64_t local_0x250;
+            call_0x6f6cc0(&local_0x250, ret_0x1d65880_11);
             call_0x6f8cb0(&local_0x210);
             if (local_0x1d0 >= 8) {
               void* v_rcx_4 = local_0x1b8;
-              if (local_0x1d0 * 2 >= 0x1000) {
-                if (local_0x1b8 - local_0x1b8->field_m0x8 < 8 || local_0x1b8 - local_0x1b8->field_m0x8 > 39) break;
+              if (local_0x1d0 * 2 + 2 >= 0x1000) {
+                if (local_0x1b8 - local_0x1b8->field_m0x8 < 8 || local_0x1b8 - local_0x1b8->field_m0x8 > 39) {
+                  call_0x5e14580();
+                  return; // noreturn
+                }
               }
               call_0x4955ac0(v_rcx_4);
             }
+            local_0x1c8 = 0;
+            local_0x1d0 = 7;
+            local_0x1b8 = 0;
             std::string::_Tidy_deallocate(local_0x1d8);
-            auto ret_0x26192a0_16 = call_0x26192a0(&local_0x250);
+            uint64_t local_0x1e8;
+            local_0x1e8 = 0;
+            uint64_t local_0x1f0;
+            local_0x1f0 = 15;
+            local_0x1d8 = 0;
+            auto ret_0x26192a0_18 = call_0x26192a0(&local_0x250);
             if ((uint8_t)RbxStorage >= 6 && (uint8_t)((uint64_t)RbxStorage >> 8) >= 6) {
-              break;
+              local_0x30 = "[DFLog::RbxStorage] Finished removing temp files in subdirectory {:02x}. Freed up {} bytes";
+              uint64_t local_0xb0;
+              local_0xb0 = local_0x30 - 0x46ac04;
+              uint64_t i_eax_3 = -1;
+              do { // L_0x2619890
+                i_eax_3++;
+              } while ((local_0x30 - 0x46ac04)[i_eax_3] != 0); // loop -> L_0x2619890
+              uint64_t local_0xb8;
+              local_0xb8 = i_eax_3;
+              uint64_t local_0x150;
+              local_0x150 = ret_0x4956040_1[i_ebx * 4];
+              uint64_t local_0x160;
+              local_0x160 = ret_0x26192a0_18;
+              uint64_t local_0x230;
+              local_0x230 = local_0x150;
+              uint64_t local_0x240;
+              local_0x240 = local_0x160;
+              uint64_t local_0xa0;
+              local_0xa0 = 49;
+              uint64_t local_0xa8;
+              local_0xa8 = &local_0x230;
+              uint64_t local_0x170;
+              local_0x170 = local_0xa0;
+              uint64_t local_0x180;
+              local_0x180 = local_0xb0;
+              uint64_t local_0x190;
+              local_0x190 = RbxStorage;
+              local_0x20 = 1;
+              FLog::Log("[DFLog::RbxStorage] Finished removing temp files in subdirectory {:02x}. Freed up {} bytes", local_0xa0);
             }
             if (RbxStorageRemoveFileCacheYield) {
               call_0xcb40(1);
             }
             call_0x6f8cb0(&local_0x250);
             i_ebx++;
-            i_r14d = i_r14d + ret_0x26192a0_16;
-            i_esi = i_esi - ret_0x26192a0_16;
+            i_r14d = i_r14d + ret_0x26192a0_18;
+            i_esi = i_esi - ret_0x26192a0_18;
           } while (i_ebx < 256); // loop -> L_0x26195e4
-          if (((local_0x58 - ret_0x4956040_1) >> 2) * 4 >= 0x1000) {
-            FLog::Log("[DFLog::RbxStorage] Removing temp files in subdirectory {:02x} to free up space. Bytes removed: ");
-            return;
+          void* v_rdi_7 = ret_0x4956040_1;
+          if (((int64_t)(local_0x58 - ret_0x4956040_1) >> 2) * 4 >= 0x1000) {
+            if (ret_0x4956040_1 - ret_0x4956040_1->field_m0x8 >= 8 && ret_0x4956040_1 - ret_0x4956040_1->field_m0x8 <= 39) {
+              v_rdi_7 = ret_0x4956040_1->field_m0x8;
+              call_0x4955ac0(v_rdi_7);
+              return;
+            }
+            call_0x5e14580();
+            return; // noreturn
           }
-          FLog::Log("[DFLog::RbxStorage] Removing temp files in subdirectory {:02x} to free up space. Bytes removed: ");
+          call_0x4955ac0(v_rdi_7);
         } else {
+          uint64_t local_0x1a0;
           call_0x6ca7d0(&local_0x1a0);
           call_0x5e066f0(&local_0x1a0, &sym_0x80cbbc0);
-          call_0x5e14580();
+          return; // noreturn
         }
       }
     }
@@ -1640,7 +1950,7 @@ Operação  : 0x2608a65: mov/math reg, [flag] ; fn=0x26088e0..0x2608cab
     0x26195d2 | e8 f9 18 00 00           | call 0x261aed0
     0x26195d7 | 4d 8b f4                 | mov r14, r12
     0x26195da | 49 8b dc                 | mov rbx, r12
-    0x26195dd | 4c 8d 2d 4f dd 10 05     | lea r13, [rip + 0x510dd4f] ; "[DFLog::RbxStorage] Removing temp files in subdirectory {:02x} to free up space. Bytes removed: "
+    0x26195dd | 4c 8d 2d 4f dd 10 05     | lea r13, [rip + 0x510dd4f] ; "[DFLog::RbxStorage] Removing temp files in subdirectory {:02x} to free up space. Bytes removed: {}. Bytes left: {}"
     L_0x26195e4:
     0x26195e4 | 48 85 f6                 | test rsi, rsi
     0x26195e7 | 0f 8e 51 03 00 00        | jle 0x261993e
@@ -1860,95 +2170,168 @@ Operação  : 0x2608a65: mov/math reg, [flag] ; fn=0x26088e0..0x2608cab
   
   === [Sub-Rotina Chamada: 0x2618730..0x2618d74 via call @0x2608bac (Direct Engine Sub-Call)] ===
     struct SubObj_0x2618730 {
-      /* +0x0 */ void*   field_0x0;
-      /* +0x10 */ void*   field_0x10;
-      /* +0x18 */ void*   field_0x18;
+      /* +0x0 */ uint64_t field_0x0;
+      /* +0x10 */ uint64_t field_0x10;
+      /* +0x18 */ uint64_t field_0x18;
     };
     
-    // Flag defaults: RbxStorageLowDiskSpaceMB = 200, RbxStorage = 6, RbxStorageAvailableSpaceErrorMaxCount = 10
+    // Flag defaults: RbxStorageLowDiskSpaceMB = 10, RbxStorage = 0, RbxStorageAvailableSpaceErrorMaxCount = 0
     auto SubObj_0x2618730::func_0x2618730(SubObj_0x2618730* this, int64_t param_2) {
-      void* v_rax_18;
+      uint64_t local_0x30;
+      local_0x30 = 0;
+      int64_t v_rax_13;
       if (this->field_0x10 != 0) {
-        call_0x1d69110(this);
-        auto local_0x48 = 0;
+        uint64_t local_0x48;
+        local_0x48 = 0;
+        uint64_t local_0x50;
+        local_0x50 = call_0x1d69110(this);
         auto ret_0x4993600_2 = call_0x4993600(this, &local_0x48);
         if ((uint8_t)ret_0x4993600_2 == 0) {
-          call_0x1d69110();
+          auto ret_0x1d69110_3 = call_0x1d69110(this);
           auto local_0x80 = 0;
+          auto local_0x88 = ret_0x1d69110_3;
           call_0x49935c0(this, &local_0x80);
           global_0x8c66508++;
         }
-        call_0x1d69110();
-        auto local_0x38 = 0;
-        auto ret_0x4993a00_6 = call_0x4993a00(this, &local_0x38, param_3);
+        uint64_t local_0x38;
+        local_0x38 = 0;
+        void* local_0x40;
+        local_0x40 = call_0x1d69110(this);
+        auto ret_0x4993a00_6 = call_0x4993a00(this, &local_0x38);
         if (local_0x38 != 0) {
           if ((uint8_t)RbxStorage >= 6 && (uint8_t)((uint64_t)RbxStorage >> 8) >= 2) {
+            local_0x30 = "[DFLog::RbxStorage] Failed to get available disk space for path {}: {}";
+            std::string local_0x190;
             local_0x40->vfunc_0x10(local_0x40, &local_0x190, local_0x38);
-            int64_t stk_4;
-            int64_t local_0x130;
+            uint64_t local_0x130;
+            local_0x130 = 0;
+            uint64_t local_0x140;
+            local_0x140 = 0;
+            uint64_t local_0x148;
+            local_0x148 = 15;
+            local_0x130 = 0;
+            void* mem_1_1 = local_0x30;
+            local_0x30 = 3;
+            void* v_rdx_1 = 0;
+            void* v_r8_2 = 15;
             if (this->field_0x10 != 0) {
-              FLog::Log("[DFLog::RbxStorage] Failed to get available disk space for path {}: {}");
-              auto ret_0x1d68340_8 = call_0x1d68340(rax);
-              local_0x130 = 0;
-              call_0x1d60070(this->field_0x18 >= 8 ? this->field_0x0 : this, this->field_0x18 >= 8 ? this->field_0x0 + this->field_0x10 * 2 : this + this->field_0x10 * 2, &local_0x130, ret_0x1d68340_8);
-              stk_4 = local_0x148;
-            } else {
-              stk_4 = 15;
+              auto ret_0x1d67dd0_8 = call_0x1d67dd0();
+              auto ret_0x1d68340_9 = call_0x1d68340(ret_0x1d67dd0_8);
+              FLog::Log("[DFLog::RbxStorage] Failed to get available disk space for path {}: {}", ret_0x1d68340_9);
+              v_rdx_1 = local_0x140;
+              v_r8_2 = local_0x148;
             }
-            FLog::Log("[DFLog::RbxStorage] Failed to get available disk space for path {}: {}");
-            if (stk_4 >= 16) {
-              void* v_rcx_5 = local_0x130;
-              if (stk_4 + 1 >= 0x1000) {
-                if (local_0x130 - local_0x130->field_m0x8 < 8 || local_0x130 - local_0x130->field_m0x8 > 39) {
-                  call_0x5e14580();
-                  call_0x5e14580();
-                  call_0x5e14580();
-                }
-              }
-              call_0x4955ac0(v_rcx_5);
-            }
-            if (local_0x1a8 >= 16) {
-              void* v_rcx_6 = local_0x190;
-              if (local_0x1a8 + 1 >= 0x1000) {
-                if (local_0x190 - local_0x190->field_m0x8 < 8 || local_0x190 - local_0x190->field_m0x8 > 39) {
-                  call_0x5e14580();
-                  call_0x5e14580();
-                }
-              }
-              call_0x4955ac0(v_rcx_6);
-            }
+            uint64_t i_eax = -1;
+            do { // L_0x26188b0
+              i_eax++;
+            } while ((mem_1_1 - 0x316b4d)[i_eax] != 0); // loop -> L_0x26188b0
+            void* sel_rax_1 = v_r8_2 >= 16 ? local_0x130 : &local_0x130;
+            auto local_0x120 = RbxStorage;
+            auto local_0x124 = *(uint32_t*)((uint8_t*)&RbxStorage + 0x4);
+            auto local_0x128 = *(uint32_t*)((uint8_t*)&RbxStorage + 0x8);
+            auto local_0x12c = *(uint32_t*)((uint8_t*)&RbxStorage + 0xc);
+            auto local_0x110 = mem_1_1 - 0x316b4d;
+            auto local_0x118 = i_eax;
+            auto local_0x100 = 221;
+            int64_t local_0x220;
+            auto local_0x108 = &local_0x220;
+            local_0x220 = sel_rax_1;
+            auto local_0x228 = v_rdx_1;
+            auto local_0x230 = local_0x190.c_str();
+            uint64_t local_0x1a0;
+            auto local_0x238 = local_0x1a0;
+            call_0x4971cd0(&local_0x120, 2, &local_0x110, &local_0x100, 1);
+            std::string::_Tidy_deallocate(local_0x130);
+            local_0x140 = 0;
+            local_0x148 = 15;
+            local_0x130 = 0;
+            std::string::_Tidy_deallocate(local_0x190);
           }
-          if (atomic_fetch_add(&global_0x8c664b4, 1) + 1 <= RbxStorageAvailableSpaceErrorMaxCount) {
+          int32_t atomic_15 = atomic_fetch_add(&global_0x8c664b4, 1);
+          if (atomic_15 + 1 <= RbxStorageAvailableSpaceErrorMaxCount) {
             if (global_0x8c6f730 != 0) {
               global_0x8c6f730->field_0x8++;
             }
+            void* local_0xf0;
+            local_0xf0 = global_0x8c6f728;
             if (global_0x8c6f728 != 0) {
-              call_0x709650(this, &local_0x240);
+              void* sel_rsi_2 = param_2 != 0 ? param_2 : "null";
+              std::string local_0x240;
+              auto ret_0x709650_16 = call_0x709650(this, &local_0x240);
+              uint64_t local_0x150;
               local_0x40->vfunc_0x10(local_0x40, &local_0x150, local_0x38);
-              call_0x1d48fe0(&local_0x170, std::string_view("Error: {}, Path: {}, Caller: {}", 31), &local_0x70);
+              uint64_t local_0x60;
+              local_0x60 = "Error: {}, Path: {}, Caller: {}";
+              local_0x48 = local_0x150.c_str();
+              uint64_t local_0x160;
+              local_0x50 = local_0x160;
+              void* v_rcx_5 = ret_0x709650_16;
+              if (ret_0x709650_16->field_0x18 >= 16) {
+                v_rcx_5 = ret_0x709650_16->field_0x0;
+              }
+              auto local_0x68 = 31;
+              auto local_0x70 = 3293;
+              int64_t local_0x260;
+              auto local_0x78 = &local_0x260;
+              local_0x260 = local_0x48;
+              auto local_0x268 = local_0x50;
+              auto local_0x270 = v_rcx_5;
+              auto local_0x278 = ret_0x709650_16->field_0x10;
+              auto local_0x280 = sel_rsi_2;
+              auto local_0x288 = local_0x78;
+              uint64_t local_0x170;
+              call_0x1d48fe0(&local_0x170, &local_0x60, &local_0x70);
               std::string::_Tidy_deallocate(local_0x150);
+              local_0x160 = 0;
+              uint64_t local_0x168;
+              local_0x168 = 15;
+              local_0x150 = 0;
               std::string::_Tidy_deallocate(local_0x240);
-              auto local_0x1b0 = 0;
-              global_0x8c6f728->vfunc_0x38(global_0x8c6f728, &local_0x1b0);
+              uint64_t local_0x1b0;
+              local_0x1b0 = 0;
+              uint64_t local_0x1d0;
+              local_0x1d0 = local_0x170;
+              uint64_t local_0x180;
+              uint64_t local_0x1e0;
+              local_0x1e0 = local_0x180;
+              uint64_t local_0x188;
+              local_0x188 = 15;
+              local_0x170 = 0;
+              auto local_0x1c0 = global_0x75ac990;
+              auto local_0x1c4 = *(uint32_t*)((uint8_t*)&global_0x75ac990 + 0x4);
+              auto local_0x1c8 = *(uint32_t*)((uint8_t*)&global_0x75ac990 + 0x8);
+              auto local_0x1cc = *(uint32_t*)((uint8_t*)&global_0x75ac990 + 0xc);
+              uint64_t local_0x178;
+              auto local_0x1d8 = local_0x178;
+              auto local_0x1e8 = local_0x188;
+              auto local_0x1f0 = 20;
+              auto local_0x1f8 = -1;
+              auto local_0x200 = 0;
+              auto local_0x208 = 0.0;
+              auto local_0x210 = atomic_15 + 1;
+              auto local_0x218 = 0;
+              local_0xf0->vfunc_0x38(local_0xf0, &local_0x1b0);
               std::string::_Tidy_deallocate(local_0x1d0);
+              local_0x1e0 = global_0x75ac990;
+              local_0x1d0 = 0;
               std::string::_Tidy_deallocate(local_0x1b0);
-              std::string::_Tidy_deallocate(0);
+              std::string::_Tidy_deallocate(local_0x170);
             }
-            if (global_0x8c6f728 != 0) {
-              call_0x6daf40(global_0x8c6f728);
+            if (*(uint32_t*)((uint8_t*)&global_0x8c6f728 + 0x8) != 0) {
+              call_0x6daf40(*(uint32_t*)((uint8_t*)&global_0x8c6f728 + 0x8));
             }
           }
         } else {
           if (RbxStorageLowDiskSpaceMB > 0 && ret_0x4993a00_6 < RbxStorageLowDiskSpaceMB << 20) {
             global_0x8c66480++;
-            return v_rax_18;
+            return v_rax_13;
           }
-          v_rax_18 = ret_0x4993a00_6;
-          return v_rax_18;
+          v_rax_13 = ret_0x4993a00_6;
+          return v_rax_13;
         }
       }
-      v_rax_18 = -1;
-      return v_rax_18;
+      v_rax_13 = -1;
+      return v_rax_13;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x2618730..0x2618d74)] ===
@@ -2349,8 +2732,8 @@ Operação  : 0x2608a65: mov/math reg, [flag] ; fn=0x26088e0..0x2608cab
     0x2618d6f | e8 0c b8 7f 03           | call 0x5e14580
   
   === [Estrutura RTTI & VTable da Classe (RBX::RbxStorage::MemCache)] ===
-    VTable  : 0x704d520 (offset +0x0, 24 slots virtuais)
-    +0x10 -> fn_0x26132f0
+    VTable  : 0x704d9f0 (offset +0x0, 23 slots virtuais)
+    Herança : RBX::RbxStorage::StorageInterface
     +0x0 -> fn_0x262f1f0
     +0x8 -> fn_0x2630ca0
     +0x10 -> fn_0x2616e40
@@ -2366,19 +2749,7 @@ Operação  : 0x2608a65: mov/math reg, [flag] ; fn=0x26088e0..0x2608cab
     +0x60 -> fn_0x26303c0
     +0x68 -> fn_0x2630660
     +0x70 -> fn_0x2630530
-  
-  === [Decompilacao de Metodo da Classe RBX::RbxStorage::MemCache: 0x26132f0..0x2613317 (vfunc_0x10)] ===
-    struct RBX::RbxStorage::MemCache {
-      /* +0x0 */ void*   field_0x0;
-    };
-    
-    auto RBX::RbxStorage::MemCache::func_0x26132f0(RBX::RbxStorage::MemCache* this, int64_t param_2) {
-      this->field_0x0 = &sym_0x704d520;
-      if (((uint8_t)param_2 & 0x1) != 0) {
-        call_0x4955ac0(this);
-      }
-      return this;
-    }
+    +0x78 -> fn_0x26304c0
   
   === [Decompilacao de Metodo da Classe RBX::RbxStorage::MemCache: 0x262f1f0..0x262f220 (vfunc_0x0)] ===
     auto RBX::RbxStorage::MemCache::func_0x262f1f0(RBX::RbxStorage::MemCache* this, int64_t param_2) {
@@ -2391,23 +2762,36 @@ Operação  : 0x2608a65: mov/math reg, [flag] ; fn=0x26088e0..0x2608cab
   
   === [Decompilacao de Metodo da Classe RBX::RbxStorage::MemCache: 0x2616e40..0x2616f21 (vfunc_0x10)] ===
     struct RBX::RbxStorage::StorageInterface {
-      /* +0x0 */ void*   field_0x0;
+      /* +0x0 */ uint64_t field_0x0;
     };
     
-    auto RBX::RbxStorage::StorageInterface::func_0x2616e40(RBX::RbxStorage::StorageInterface* this, int64_t param_2, void* param_3) {
+    auto RBX::RbxStorage::StorageInterface::func_0x2616e40(RBX::RbxStorage::StorageInterface* this, int64_t param_2, int64_t param_3) {
+      uint64_t local_0x40;
       call_0x497e810(param_3, &local_0x40);
       uint8_t v_dil_2;
+      uint64_t local_0x50;
       if (local_0x50 != 0) {
         auto vret_5 = this->vfunc_0x38(this, param_2, &local_0x40);
-        v_dil_2 = vret_5;
+        v_dil_2 = (uint8_t)vret_5;
       } else {
+        uint64_t local_0x20;
         call_0x497e4d0(param_3, &local_0x20);
         uint8_t v_dil_1;
+        void* local_0x28;
         if (local_0x20 == 0) {
           v_dil_1 = 0;
         } else {
+          uint64_t local_0x30;
+          local_0x30 = 0.0;
+          if (local_0x28 != 0) {
+            local_0x28->field_0x8++;
+          }
+          local_0x30 = local_0x20;
+          auto local_0x34 = 0.0;
+          auto local_0x38 = local_0x28;
+          auto local_0x3c = 0.0;
           auto vret_3 = this->vfunc_0x30(this, param_2, &local_0x30);
-          v_dil_1 = vret_3;
+          v_dil_1 = (uint8_t)vret_3;
         }
         if (local_0x28 != 0) {
           call_0x6daf40(local_0x28);
@@ -2418,6 +2802,67 @@ Operação  : 0x2608a65: mov/math reg, [flag] ; fn=0x26088e0..0x2608cab
       }
       call_0x6f8cb0(&local_0x40);
       return v_dil_2;
+    }
+  
+  === [Decompilacao de Metodo da Classe RBX::RbxStorage::MemCache: 0x2616cb0..0x2616e13 (vfunc_0x20)] ===
+    struct RBX::RbxStorage::StorageInterface {
+      /* +0x0 */ uint64_t field_0x0;
+    };
+    
+    void RBX::RbxStorage::StorageInterface::func_0x2616cb0(RBX::RbxStorage::StorageInterface* this, int64_t param_2, int64_t param_3, int64_t param_4) {
+      double local_0x2c;
+      int64_t local_0x28;
+      double local_0x24;
+      uint64_t local_0x20;
+      if (param_4 == 0) {
+        local_0x20 = 0.0;
+        if (global_0x8968ad8 != 0) {
+          global_0x8968ad8->field_0x8++;
+        }
+        local_0x20 = global_0x8968ad0;
+        local_0x24 = *(uint32_t*)((uint8_t*)&global_0x8968ad0 + 0x4);
+        local_0x28 = *(uint32_t*)((uint8_t*)&global_0x8968ad0 + 0x8);
+        local_0x2c = *(uint32_t*)((uint8_t*)&global_0x8968ad0 + 0xc);
+        this->vfunc_0x30(this, param_2, &local_0x20, param_4);
+        return;
+      }
+      auto ret_0x4956040_1 = call_0x4956040(param_4);
+      if (ret_0x4956040_1 != 0) {
+        call_0x5e05370(ret_0x4956040_1, param_3, param_4);
+        auto ret_0x4956040_3 = call_0x4956040(48);
+        uint64_t local_0x30;
+        if (ret_0x4956040_3 != 0) {
+          ret_0x4956040_3->field_0x8 = 1;
+          ret_0x4956040_3->field_0xc = 1;
+          ret_0x4956040_3->field_0x0 = &sym_0x7147690;
+          (ret_0x4956040_3 + 0x10)->field_0x0 = &sym_0x71474b0;
+          (ret_0x4956040_3 + 0x10)->field_0x8 = ret_0x4956040_1;
+          (ret_0x4956040_3 + 0x10)->field_0x10 = param_4;
+          (ret_0x4956040_3 + 0x10)->field_0x18 = &sym_0x13db1b0;
+          local_0x30 = ret_0x4956040_3 + 0x10;
+          uint64_t local_0x38;
+          local_0x38 = ret_0x4956040_3;
+          local_0x20 = 0.0;
+          void* v_rbx_1 = ret_0x4956040_3;
+          if (ret_0x4956040_3 != 0) {
+            ret_0x4956040_3->field_0x8++;
+            v_rbx_1 = local_0x38;
+          }
+          local_0x20 = local_0x30;
+          local_0x24 = 0.0;
+          local_0x28 = local_0x38;
+          local_0x2c = 0.0;
+          this->vfunc_0x30(this, param_2, &local_0x20);
+          if (v_rbx_1 != 0) {
+            call_0x6daf40(v_rbx_1);
+            return;
+          }
+          return;
+        }
+        call_0x6ca7d0(&local_0x30);
+        call_0x5e066f0(&local_0x30, &sym_0x80cbbc0);
+        return; // noreturn
+      }
     }
 
 [Strings .rdata na função]
@@ -2441,17 +2886,17 @@ Operação  : 0x2608a65: mov/math reg, [flag] ; fn=0x26088e0..0x2608cab
 [Co-Flags na mesma função]
   * FIntRbxStorageDeleteOldCacheMB = 0 (default)
   * FIntRbxStorageMinAvailableDiskSpaceMB = 10 (default)
-  * DFLogRbxStorage = 6 (default)
+  * DFLogRbxStorage = 0 (default)
   * FIntRbxStorageRemoveOnInitCleanupMiB = 0 (default)
   * FIntRbxStorageFCLocation = 1 (default)
-  * DFFlagRbxStorageRemoveOldCacheYield = false (default)
-  * DFFlagRbxStorageRemoveFileCacheYield = false (default)
-  * DFIntRbxStorageAvailableSpaceErrorMaxCount = 10 (default)
-  * DFIntRbxStorageLowDiskSpaceMB = 200 (default)
-  * DFFlagRbxStorageDontQueryForNonPermanentCategorySizes = false (default) [vizinha em .data]
+  * DFFlagRbxStorageRemoveOldCacheYield = true (default)
+  * DFFlagRbxStorageRemoveFileCacheYield = true (default)
+  * DFIntRbxStorageAvailableSpaceErrorMaxCount = 0 (default)
+  * DFIntRbxStorageLowDiskSpaceMB = 10 (default)
+  * DFFlagRbxStorageDontQueryForNonPermanentCategorySizes = true (default) [vizinha em .data]
   * FIntRbxStorageCleanupThreadStackSizeBytes = 65536 (default) [vizinha em .data]
-  * DFIntRbxStorageMinAvailableSpaceBeforeCleanupMB = 100 (default) [vizinha em .data]
-  * DFIntRbxStorageMinAvailableSpaceBeforeCleanupThresholdMB = 200 (default) [vizinha em .data]
+  * DFIntRbxStorageMinAvailableSpaceBeforeCleanupMB = 10 (default) [vizinha em .data]
+  * DFIntRbxStorageMinAvailableSpaceBeforeCleanupThresholdMB = 10 (default) [vizinha em .data]
   * FFlagRbxStorageUseStdThread = true (default) [vizinha em .data]
-  * DFIntRbxStorageTelemetryTriggerInterval = 15 (default) [vizinha em .data]
+  * DFIntRbxStorageTelemetryTriggerInterval = 2147483647 (default) [vizinha em .data]
   * FFlagRbxStorageTelemetryProtocol = false (default) [vizinha em .data]

@@ -13,7 +13,7 @@ Operação  : 0x415e806: cmp byte [flag], imm8 ; fn=0x415e800..0x415e88b
   
   === [Decompilacao C++ da Funcao 0x415e800..0x415e88b] ===
     struct RBX::ModuleScript {
-      /* +0x48 */ int32_t field_0x48;
+      /* +0x48 */ uint8_t field_0x48;
     };
     
     // Flag defaults: CoreStrengthIsImportant = true, LDP1117FixCrossPluginEditing = true
@@ -21,12 +21,16 @@ Operação  : 0x415e806: cmp byte [flag], imm8 ; fn=0x415e800..0x415e88b
       if (CoreStrengthIsImportant && (this->field_0x48 & 0x1) != 0) {
         auto ret_0xc700_1 = call_0xc700(global_0x84aed78, 1);
         if (ret_0xc700_1->field_0x30 != 0) {
-          auto vret_2 = ret_0xc700_1->vfunc_0x30(ret_0xc700_1->field_0x28, ret_0xc700_1->field_0x18);
+          auto vret_2 = (*ret_0xc700_1->field_0x30)(ret_0xc700_1->field_0x28, ret_0xc700_1->field_0x18);
           ret_0xc700_1->field_0x28 = vret_2;
+          ret_0xc700_1->field_0x30 = 0;
         }
         if ((ret_0xc700_1->field_0x28 >> 3 & 0x1) == 0) {
           return true;
         }
+      }
+      if (LDP1117FixCrossPluginEditing) {
+        call_0x4160c50(&this->field_m0xe8, 0);
       }
       return false;
     }
@@ -79,21 +83,29 @@ Operação  : 0x415e806: cmp byte [flag], imm8 ; fn=0x415e800..0x415e88b
       auto ret_0xc700_1 = call_0xc700(global_0x84aed78, 1);
       void* v_rax_1 = ret_0xc700_1->field_0x30;
       if (ret_0xc700_1->field_0x30 != 0) {
-        auto vret_2 = ret_0xc700_1->vfunc_0x30(ret_0xc700_1->field_0x28, ret_0xc700_1->field_0x18);
+        auto vret_2 = (*ret_0xc700_1->field_0x30)(ret_0xc700_1->field_0x28, ret_0xc700_1->field_0x18);
         ret_0xc700_1->field_0x28 = vret_2;
+        ret_0xc700_1->field_0x30 = 0;
         v_rax_1 = 0;
       }
       if ((ret_0xc700_1->field_0x28 & 0x1) != 0) {
         if (v_rax_1 != 0) {
-          auto vret_3 = ret_0xc700_1->field_0x28->vfunc(ret_0xc700_1->field_0x28, ret_0xc700_1->field_0x18);
+          auto vret_3 = (*v_rax_1)(ret_0xc700_1->field_0x28, ret_0xc700_1->field_0x18);
           ret_0xc700_1->field_0x28 = vret_3;
+          ret_0xc700_1->field_0x30 = 0;
         }
         if ((ret_0xc700_1->field_0x28 >> 1 & 0x1) == 0 && global_0x84a3f30 != 0) {
-          global_0x84a3f30->vfunc_0x60(global_0x84a3f30, ret_0xc700_1, this);
-          if (param_2 != 0) {
-            global_0x84a3f30->vfunc_0x60(global_0x84a3f30, ret_0xc700_1, param_2);
+          auto vret_4 = global_0x84a3f30->vfunc_0x60(global_0x84a3f30, ret_0xc700_1, this);
+          if ((uint8_t)vret_4 != 0 && param_2 != 0) {
+            auto vret_5 = global_0x84a3f30->vfunc_0x60(global_0x84a3f30, ret_0xc700_1, param_2);
+            if ((uint8_t)vret_5 == 0) {
+              call_0x4973aa0("Plugins cannot modify scripts that belong to another plugin");
+              return; // noreturn
+            }
+            return;
           }
-          return;
+          call_0x4973aa0("Plugins cannot modify scripts that belong to another plugin");
+          return; // noreturn
         }
       }
     }
@@ -168,11 +180,8 @@ Operação  : 0x415e806: cmp byte [flag], imm8 ; fn=0x415e800..0x415e88b
     0x4160d2d | e8 6e 2d 81 00           | call 0x4973aa0
   
   === [Estrutura RTTI & VTable da Classe (RBX::ModuleScript)] ===
-    VTable  : 0x6fcae60 (offset +0x0, 47 slots virtuais)
-    Herança : RBX::PropertyDescriptor, RBX::MemberDescriptor, RBX::Descriptor
-    +0x0 -> fn_0xea7520
-    +0x8 -> fn_0xea7500
-    +0x10 -> fn_0xea74e0
+    VTable  : 0x711bb38 (offset +0x0, 44 slots virtuais)
+    Herança : RBX::LuaSourceContainer, RBX::Reflection::Described, RBX::Instance, RBX::Object, RBX::DescribedBase, RBX::EventSource, RBX::enable_shared_from_this (+0x8), RBX::GuidItem (+0x28), RBX::ObjectProp (+0x38), RBX::Noncopyable (+0x38), RBX::Diagnostics::Countable (+0x58), RBX::InstanceProp (+0x58), RBX::LuaSourceContainerProp (+0x98), RBX::ModuleScriptProp (+0xe8)
     +0x0 -> fn_0x415b660
     +0x8 -> fn_0x1c1f1a0
     +0x10 -> fn_0x1c396e0
@@ -186,41 +195,30 @@ Operação  : 0x415e806: cmp byte [flag], imm8 ; fn=0x415e800..0x415e88b
     +0x90 -> fn_0x1c3d010
     +0xb0 -> fn_0x1c43930
     +0xc0 -> fn_0x1c43cb0
-  
-  === [Decompilacao de Metodo da Classe RBX::ModuleScript: 0xea7520..0xea75e4 (vfunc_0x0)] ===
-    auto RBX::ModuleScript::func_0xea7520(RBX::ModuleScript* this, int64_t param_2, void* param_3) {
-      if (param_3 == 0) {
-        call_0xc700(global_0x84ae548, param_3 + 1);
-      }
-      call_0xea73e0(this);
-      call_0xe7d450(&local_0x58, 591, 360);
-      param_2->field_0x0 = local_0x58;
-      param_2->field_0x8 = local_0x60;
-      local_0x58->vfunc_0x40();
-      return param_2;
-    }
+    +0xd0 -> fn_0x1c3da30
+    +0xd8 -> fn_0x1c439b0
+    +0xe0 -> fn_0x3114ad0
   
   === [Decompilacao de Metodo da Classe RBX::ModuleScript: 0x415b660..0x415b71c (vfunc_0x0)] ===
     struct RBX::ModuleScript {
       /* +0x0 */ void*   field_0x0;
       /* +0x98 */ void*   field_0x98;
       /* +0xe8 */ void*   field_0xe8;
-      /* +0x130 */ void*   field_0x130;
-      /* +0x160 */ void*   field_0x160;
+      /* +0x130 */ uint64_t field_0x130;
+      /* +0x160 */ uint64_t field_0x160;
     };
     
     auto RBX::ModuleScript::func_0x415b660(RBX::ModuleScript* this, int64_t param_2) {
       this->field_0x0 = &sym_0x711bb38;
       this->field_0x98 = &sym_0x711bde8;
       this->field_0xe8 = &sym_0x711be30;
-      if ((this->field_0x130 & 0xfffffff8) != 0) {
+      if ((this->field_0x130 & 0xfffffffffffffff8ULL) != 0) {
         call_0x415b720(&this->field_0x138);
       }
-      auto expr_1 = this->field_0x160 & 0xfffffff8;
-      if (expr_1 != 0) {
-        call_0x6f5be0(expr_1 + 0x18);
-        call_0x415e9f0(expr_1 + 8);
-        call_0x4955ac0expr_1;
+      if ((this->field_0x160 & 0xfffffffffffffff8ULL) != 0) {
+        call_0x6f5be0((this->field_0x160 & 0xfffffffffffffff8ULL) + 0x18);
+        call_0x415e9f0((this->field_0x160 & 0xfffffffffffffff8ULL) + 8);
+        call_0x4955ac0(this->field_0x160 & 0xfffffffffffffff8ULL);
       }
       call_0xea6cc0(&this->field_0xe8);
       call_0x415ea90(this);
@@ -233,44 +231,74 @@ Operação  : 0x415e806: cmp byte [flag], imm8 ; fn=0x415e800..0x415e88b
   === [Decompilacao de Metodo da Classe RBX::ModuleScript: 0x1c44010..0x1c44138 (vfunc_0x18)] ===
     struct RBX::Instance {
       /* +0x48 */ void*   field_0x48;
-      /* +0x60 */ void*   field_0x60;
+      /* +0x60 */ uint64_t field_0x60;
     };
     
     // Flag defaults: CheckEngineContextOnInstanceAccess2 = false
-    void RBX::Instance::func_0x1c44010(RBX::Instance* this, int64_t param_2, void* param_3, void* param_4) {
+    void RBX::Instance::func_0x1c44010(RBX::Instance* this, int64_t param_2, int64_t param_3, int64_t param_4) {
       if (this->field_0x60 != 0) {
-        (*global_0x80f4c48)(this);
-      }
-      auto ret_0x4956040_2 = call_0x4956040(24);
-      auto ret_0xffc540_3 = call_0xffc540(ret_0x4956040_2, param_3);
-      call_0xd29440(&local_0x40, ret_0xffc540_3);
-      auto* f_48 = this->field_0x48;
-      if (f_48 != 0 && f_48->field_0x8 != 0) {
-        auto ret_0xc700_5 = call_0xc700(global_0x84cf408, 1);
-        if (ret_0xc700_5->field_0x0 == 0) {
-          auto local_0x20 = 3;
-          call_0x7d7f00(this->field_0x48, &local_0x20, &local_0x28);
-        } else {
-          call_0x49710d0("Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel ", &sym_0x6647145);
+        void* v_rax_1 = global_0x80f4c48;
+        if (!CheckEngineContextOnInstanceAccess2) {
+          v_rax_1 = global_0x80f4c50;
         }
+        (*v_rax_1)(this);
       }
-      if (local_0x48 != 0) {
-        call_0x6daf40(local_0x48);
+      uint64_t local_0x30;
+      local_0x30 = &sym_0x70375b0;
+      auto ret_0x4956040_2 = call_0x4956040(24);
+      uint64_t local_0x60;
+      if (ret_0x4956040_2 != 0) {
+        uint64_t local_0x28;
+        local_0x28 = ret_0x4956040_2;
+        auto ret_0xffc540_3 = call_0xffc540(ret_0x4956040_2, param_3);
+        uint64_t local_0x40;
+        call_0xd29440(&local_0x40, ret_0xffc540_3);
+        local_0x28 = &local_0x30;
+        uint64_t local_0x20;
+        local_0x20 = 3;
+        auto* f_48 = this->field_0x48;
+        if (f_48 != 0 && f_48->field_0x8 != 0) {
+          auto ret_0xc700_5 = call_0xc700(global_0x84cf408, 1);
+          if (ret_0xc700_5->field_0x0 == 0) {
+            auto local_0x38 = param_2;
+            call_0x7d7f00(this->field_0x48, &local_0x20, &local_0x28);
+          } else {
+            call_0x49710d0("Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel execution.", &sym_0x6647145);
+            call_0x6ca7d0(&local_0x60);
+            call_0x5e066f0(&local_0x60, &sym_0x80cbbc0);
+            return; // noreturn
+          }
+        }
+        uint64_t local_0x48;
+        if (local_0x48 != 0) {
+          call_0x6daf40(local_0x48);
+          return;
+        }
+        return;
+      }
+      call_0x6ca7d0(&local_0x60);
+      call_0x5e066f0(&local_0x60, &sym_0x80cbbc0);
+      return; // noreturn
+    }
+  
+  === [Decompilacao de Metodo da Classe RBX::ModuleScript: 0x415ea60..0x415ea85 (vfunc_0x38)] ===
+    void RBX::ModuleScript::func_0x415ea60(RBX::ModuleScript* this) {
+      if (global_0x8cd4618 == 0) {
+        auto ret_0xea73e0_1 = call_0xea73e0(this);
+        global_0x8cd4618 = ret_0xea73e0_1->field_0x8;
       }
     }
 
 [Strings .rdata na função]
   * "Plugins cannot modify scripts that belong to another plugin"  [@rdata 0x74321a0, ref @0x4160d26, literal, 59B]
-  * "Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel "  [@rdata 0x7280e40, ref @0x1c44110, literal, 96B]
 
 [Co-Flags na mesma função]
   * FFlagLDP1117FixCrossPluginEditing = true (default)
-  * DFFlagCheckEngineContextOnInstanceAccess2 = false (default)
   * FFlagStackTraceResolveScriptPath = false (default) [vizinha em .data]
   * FFlagScriptDebuggerServiceEnabled2 = true (default) [vizinha em .data]
   * FLogRemoteDebuggerServer = 0 (default) [vizinha em .data]
   * FFlagRemoteDebuggerStampClonesBeforeServerStart = false (default) [vizinha em .data]
-  * DFLogPreloadLinkedScriptsTiming = 6 (default) [vizinha em .data]
+  * DFLogPreloadLinkedScriptsTiming = 0 (default) [vizinha em .data]
   * FFlagCreateEditorSourceService = false (default) [vizinha em .data]
   * FFlagStudioITextEditTargetRefactor = false (default) [vizinha em .data]
   * FFlagDisableRedundantSourceChangeInvocations = false (default) [vizinha em .data]

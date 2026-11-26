@@ -9,7 +9,7 @@ Operação  : 0x1621fb9: cmp byte [flag], imm8 ; fn=0x1621f70..0x1621fff
     Classe  : RBX::ValueCurve (Inferido)
     Padrão  : DFFlagAnimationCurveSanitizeInterpolationMode = true (default) [bool, mode=2]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
-    Fórmula : ValueCurveRejectPartiallyDecodedKeys && AnimationCurveSanitizeInterpolationMode && (uint8_t)ret_0x16245d0_1 != 0 && ret_0x16245d0_1 != 1 && ret_0x16245d0_1 != 2
+    Fórmula : ValueCurveRejectPartiallyDecodedKeys && AnimationCurveSanitizeInterpolationMode && (uint8_t)ret_0x16245d0_1 != 0 && (uint8_t)ret_0x16245d0_1 != 1 && (uint8_t)ret_0x16245d0_1 != 2
     Altera  : this->field_0x58
     Wasm    : .data=0x78ca7c [via FIntTPoseBlockyElbowBendMin]
     [Wasm]  : (TPoseBlockyElbowBendMin == 1)
@@ -19,7 +19,7 @@ Operação  : 0x1621fb9: cmp byte [flag], imm8 ; fn=0x1621f70..0x1621fff
     [XREF #2 @0x1bb5514] Altera  : this->field_0xc, this->field_0xd, this->field_0x0, this->field_0x4, this->field_0x8
     [XREF #3 @0x1bb606d] Classe  : RBX::AnimationCurve (Inferido)
     [XREF #3 @0x1bb606d] Fórmula : AnimationCurveSanitizeInterpolationMode && f_0->field_0x10[i_edi] != 0 && f_0->field_0x10[i_edi] != 1 && f_0->field_0x10[i_edi] != 2
-    [XREF #3 @0x1bb606d] Altera  : this->field_0x8, this->field_0x8->field_0x0, this->field_0x8->field_0x10, this->field_0x8->field_0x18, this->field_0x0->field_0x10[i_edi], this->field_0x0->field_0x11[i_edi]
+    [XREF #3 @0x1bb606d] Altera  : this->field_0x8, this->field_0x8->field_0x0, this->field_0x8->field_0x4, this->field_0x8->field_0x8, this->field_0x8->field_0xc, this->field_0x8->field_0x10
   
   === [Decompilacao C++ da Funcao 0x1621f70..0x1621fff] ===
     struct RBX::ValueCurve {
@@ -28,13 +28,17 @@ Operação  : 0x1621fb9: cmp byte [flag], imm8 ; fn=0x1621f70..0x1621fff
     
     // Flag defaults: ValueCurveRejectPartiallyDecodedKeys = true, AnimationCurveSanitizeInterpolationMode = true
     void RBX::ValueCurve::func_0x1621f70(RBX::ValueCurve* this, void* param_3) {
+      if (param_3->field_0x10 < 1) goto L_0x162212b; // [out of decoded window]
       auto ret_0x16245d0_1 = call_0x16245d0(param_3);
       this->field_0x58 = (uint8_t)ret_0x16245d0_1;
-      if (ValueCurveRejectPartiallyDecodedKeys && AnimationCurveSanitizeInterpolationMode && (uint8_t)ret_0x16245d0_1 != 0 && ret_0x16245d0_1 != 1 && ret_0x16245d0_1 != 2) {
+      if (ValueCurveRejectPartiallyDecodedKeys && AnimationCurveSanitizeInterpolationMode && (uint8_t)ret_0x16245d0_1 != 0 && (uint8_t)ret_0x16245d0_1 != 1 && (uint8_t)ret_0x16245d0_1 != 2) {
         this->field_0x58 = 0;
       }
+      if (param_3->field_0x10 < 1) goto L_0x162212b; // [out of decoded window]
       param_3->field_0x10--;
-      param_3->field_0x8 = &param_3->field_0x8->field_0x1;
+      void* prev_0x8_2 = param_3->field_0x8;
+      param_3->field_0x8++;
+      if (prev_0x8_2 == 0) goto L_0x1622002; // [out of decoded window]
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -80,7 +84,7 @@ Operação  : 0x1621fb9: cmp byte [flag], imm8 ; fn=0x1621f70..0x1621fff
   === [Sub-Rotina Chamada: 0x16245d0..0x162465d via call @0x1621fa8 (Direct Engine Sub-Call)] ===
     struct SubObj_0x16245d0 {
       /* +0x8 */ void*   field_0x8;
-      /* +0x10 */ void*   field_0x10;
+      /* +0x10 */ uint64_t field_0x10;
     };
     
     // Flag defaults: Error = 6
@@ -93,10 +97,11 @@ Operação  : 0x1621fb9: cmp byte [flag], imm8 ; fn=0x1621f70..0x1621fff
         }
       } else {
         this->field_0x10--;
-        void* prev_0x8_2 = this->field_0x8;
-        this->field_0x8 = &this->field_0x8->field_0x1;
+        auto* f_8 = this->field_0x8;
+        void* prev_0x8_2 = f_8;
+        f_8++;
         if (prev_0x8_2 != 0) {
-          return this->field_0x8->field_0x0;
+          return f_8->field_0x0;
         }
       }
       return 0;
@@ -153,10 +158,11 @@ Operação  : 0x1621fb9: cmp byte [flag], imm8 ; fn=0x1621f70..0x1621fff
     };
     
     // Flag defaults: AnimationCurveSanitizeInterpolationMode = true, AnimationCurvesClangTidyAndOtherFixes = false
-    auto RBX::AnimationCurve::func_0x1bb53d0(RBX::AnimationCurve* this, int64_t param_2, void* param_3, void* param_4) {
+    auto RBX::AnimationCurve::func_0x1bb53d0(RBX::AnimationCurve* this, int64_t param_2, void* param_3, int64_t param_4) {
       int64_t v_rdx_6;
       if ((uint8_t)param_4 != 0) {
-        if (&param_2->field_0x4 > param_3->field_0x10) {
+        if (param_2 + 4 > param_3->field_0x10) {
+          uint64_t local_0x28;
           this->field_0xc = (uint8_t)(AnimationCurvesClangTidyAndOtherFixes ? 0 : local_0x28);
           this->field_0xd = 3;
           v_rdx_6 = 0;
@@ -171,7 +177,7 @@ Operação  : 0x1621fb9: cmp byte [flag], imm8 ; fn=0x1621f70..0x1621fff
         }
       } else {
         int32_t v_rcx_2;
-        if (&param_2->field_0x1 > param_3->field_0x10) {
+        if (param_2 + 1 > param_3->field_0x10) {
           v_rcx_2 = 0;
         } else {
           void* v_rax_1 = param_3;
@@ -369,228 +375,323 @@ Operação  : 0x1621fb9: cmp byte [flag], imm8 ; fn=0x1621f70..0x1621fff
     struct RBX::AnimationCurve {
       /* +0x0 */ void*   field_0x0;
       /* +0x8 */ void*   field_0x8;
-      /* +0x10 */ void*   field_0x10;
+      /* +0x10 */ uint64_t field_0x10;
     };
     
     // Flag defaults: AnimationCurveSanitizeInterpolationMode = true, AnimationCurvesClangTidyAndOtherFixes = false
-    auto RBX::AnimationCurve::func_0x1bb5b90(RBX::AnimationCurve* this, int64_t param_2, void* param_3) {
+    auto RBX::AnimationCurve::func_0x1bb5b90(RBX::AnimationCurve* this, void* param_2, void* param_3) {
+      uint64_t local_0x50;
+      local_0x50 = param_2;
+      uint64_t local_0x40;
+      local_0x40 = param_2;
       this->field_0x8 = this->field_0x0;
+      void* v_r15_37 = param_2;
+      uint64_t local_0xb8;
+      uint64_t local_0xb0;
+      uint64_t local_0xa0;
       if (param_3->field_0x10 >= 8) {
         void* v_rax_1 = param_3;
         if (param_3->field_0x18 >= 16) {
           v_rax_1 = param_3->field_0x0;
         }
+        uint64_t local_0x24;
+        local_0x24 = v_rax_1->field_0x0;
+        uint64_t local_0x88;
+        uint64_t local_0x80;
+        uint64_t local_0x78;
+        uint64_t local_0x70;
+        uint64_t local_0x60;
         if (v_rax_1->field_0x0 >= 2) {
           this->field_0x8 = this->field_0x0;
-          call_0x1d48fe0(&local_0xa0, std::string_view("Attempting to decode a CurveFloat values with an invalid version, expected {}, but found {}", 91), &local_0x50, 4);
-          param_2->field_0x0 = 1;
+          local_0x40 = "Attempting to decode a CurveFloat values with an invalid version, expected {}, but found {}";
+          local_0x50 = 0;
+          local_0x60 = v_rax_1->field_0x0;
+          local_0x70 = local_0x50;
+          void* local_0x58;
+          local_0x78 = local_0x58;
+          local_0x80 = local_0x60;
+          uint64_t local_0x68;
+          local_0x88 = local_0x68;
+          local_0x50 = 34;
+          auto local_0x48 = 91;
+          local_0x58 = &local_0x70;
+          auto local_0x98 = 1;
+          call_0x1d48fe0(&local_0xa0, &local_0x40, &local_0x50);
+          param_2->field_0x28 = 0;
+          param_2->field_0x0 = local_0x98;
           L_0x1bb6119:
           param_2->field_0x8 = local_0xa0;
+          uint64_t local_0xa8;
+          param_2->field_0x10 = local_0xa8;
           param_2->field_0x18 = local_0xb0;
+          param_2->field_0x20 = local_0xb8;
         } else {
           void* v_rax_2 = param_3;
           if (param_3->field_0x18 >= 16) {
             v_rax_2 = param_3->field_0x0;
           }
-          if (0 > param_3->field_0x10 - 8) {
+          int32_t v_rcx_3;
+          if (v_rax_1->field_0x0 != 0) {
+            if (v_rax_1->field_0x0 != 1) {
+              v_rcx_3 = 0;
+            } else {
+              v_rcx_3 = 25;
+            }
+          } else {
+            v_rcx_3 = 28;
+          }
+          uint64_t local_0x30;
+          local_0x30 = v_rax_2->field_0x0[4];
+          if (v_rax_2->field_0x0[4] * v_rcx_3 > param_3->field_0x10 - 8) {
             this->field_0x8 = this->field_0x0;
             auto ret_0x6fd950_6 = call_0x6fd950(96);
+            local_0xb0 = 85;
+            local_0xb8 = 95;
             memcpy(ret_0x6fd950_6, "Binary String has invalid size when decoding RotationCurve. Instance likely corrupted", 85);
             ret_0x6fd950_6->field_0x54 = global_0x7242734;
+            ret_0x6fd950_6->field_0x55 = 0;
+            local_0xa0 = ret_0x6fd950_6;
             param_2->field_0x0 = 2;
-            param_2->field_0x8 = local_0xa0;
-            param_2->field_0x18 = local_0xb0;
+            param_2->field_0x28 = 0;
+            goto L_0x1bb6119;
           } else {
-            if (v_rax_2->field_0x0[4] > ((this->field_0x10 - this->field_0x0) / 28 >> 3) + ((uint64_t)((this->field_0x10 - this->field_0x0) / 28 >> 3) >> 63)) {
+            int32_t v_r9_4 = v_rax_2->field_0x0[4];
+            void* v_r11_5 = v_rax_2->field_0x0[4];
+            if (v_rax_2->field_0x0[4] > (this->field_0x10 - this->field_0x0) / 28 + ((uint64_t)((this->field_0x10 - this->field_0x0) / 28) >> 63)) {
               call_0x1570690(this, v_rax_2->field_0x0[4]);
+              auto mem_1_1 = v_rax_2->field_0x0[4];
+              v_r9_4 = mem_1_1;
+              v_r11_5 = local_0x30;
             }
-            int64_t v_rsi_32 = 8;
-            if (v_rax_2->field_0x0[4] != 0) {
-              int32_t i_esi = 8;
-              int32_t i_edi = 0;
-              int32_t i_r9d = v_rax_2->field_0x0[4];
+            int64_t v_rsi_35 = 8;
+            void* v_r15_36 = param_2;
+            if (v_r11_5 != 0) {
+              uint8_t* i_esi = 8;
+              uint8_t* i_edi = 0;
+              int32_t i_r9d = v_r9_4;
               int32_t i_r10d = 0;
-              int32_t i_r11d = v_rax_2->field_0x0[4];
+              uint64_t i_r11d = v_r11_5;
+              uint64_t local_0x20;
               int32_t i_r12d = local_0x20;
-              int32_t i_r13d = v_rax_1->field_0x0;
-              uint8_t v_dl_28;
-              void* v_r11_6;
+              int32_t i_r13d = local_0x24;
+              uint8_t v_dl_31;
               do { // L_0x1bb5d90
-                int32_t v_r10_5 = i_r10d;
-                v_r11_6 = i_r11d;
-                int64_t local_0x74;
-                int64_t local_0x70;
+                int32_t v_r15_7 = local_0x24;
+                int32_t v_r10_9 = i_r10d;
+                void* v_r11_10 = i_r11d;
+                int32_t v_r15_11 = local_0x24;
+                uint64_t local_0x84;
+                uint64_t local_0x7c;
+                uint64_t local_0x74;
                 if (AnimationCurvesClangTidyAndOtherFixes) {
+                  local_0x70 = 2;
+                  local_0x74 = 3;
+                  local_0x78 = 0;
+                  local_0x7c = 0.0f;
+                  local_0x80 = 0.0f;
+                  local_0x84 = 0.0f;
+                  local_0x88 = 1.0f;
+                  uint64_t local_0x8c;
+                  local_0x8c = 0;
                   if (this->field_0x8 != this->field_0x10) {
-                    local_0x70 = 2;
-                    local_0x74 = 3;
                     call_0x162a870(this->field_0x8, &local_0x70);
                     this->field_0x8 = this->field_0x8 + 0x1c;
                   } else {
-                    local_0x70 = 2;
-                    local_0x74 = 3;
                     call_0x162d3e0(this, this->field_0x8, &local_0x70);
-                    v_r10_5 = 0;
-                    v_r11_6 = v_rax_2->field_0x0[4];
+                    v_r10_9 = 0;
+                    v_r11_10 = local_0x30;
+                    v_r15_11 = v_r15_7;
                   }
                 } else {
+                  local_0x70 = 0.0f;
+                  local_0x74 = 0.0f;
+                  local_0x78 = 0.0f;
+                  local_0x7c = 1.0f;
+                  local_0x80 = 770;
+                  auto mem_2_2 = local_0x24;
+                  local_0x24 = 0;
+                  uint64_t local_0x28;
+                  local_0x28 = 1;
+                  local_0x40 = local_0x24;
+                  local_0x84 = (uint8_t)((uint64_t)local_0x24 >> 32) != 0 ? local_0x40 : 0.0;
+                  local_0x60 = 0;
+                  uint64_t local_0x64;
+                  local_0x64 = 1;
+                  local_0x40 = local_0x60;
+                  local_0x88 = (uint8_t)((uint64_t)local_0x60 >> 32) != 0 ? local_0x40 : 0.0;
                   if (this->field_0x8 != this->field_0x10) {
                     this->field_0x8->field_0x0 = 0.0f;
-                    this->field_0x8->field_0x10 = 770;
-                    this->field_0x8->field_0x18 = (uint8_t)((uint64_t)0 >> 32) != 0 ? 0 : 0.0;
+                    this->field_0x8->field_0x4 = 0.0f;
+                    this->field_0x8->field_0x8 = 0.0f;
+                    this->field_0x8->field_0xc = 1.0f;
+                    this->field_0x8->field_0x10 = local_0x80;
+                    this->field_0x8->field_0x18 = local_0x88;
                     this->field_0x8 = this->field_0x8 + 0x1c;
+                    v_r15_11 = mem_2_2;
                   } else {
-                    local_0x70 = 0.0f;
-                    local_0x74 = 0.0f;
-                    auto local_0x78 = 0.0f;
-                    auto local_0x7c = 1.0f;
-                    auto local_0x80 = 770;
-                    auto local_0x84 = (uint8_t)((uint64_t)0 >> 32) != 0 ? 0 : 0.0;
                     call_0x1570800(this, this->field_0x8, &local_0x70);
-                    v_r10_5 = 0;
-                    v_r11_6 = v_rax_2->field_0x0[4];
+                    v_r15_7 = mem_2_2;
+                    v_r10_9 = 0;
+                    v_r11_10 = local_0x30;
+                    v_r15_11 = v_r15_7;
                   }
                 }
-                v_dl_28 = 0;
-                uint64_t v_r9_29 = i_r9d;
-                int32_t v_r12_30 = i_r12d;
-                int32_t v_r13_31 = i_r13d;
+                v_dl_31 = 0;
+                int32_t v_r9_32 = i_r9d;
+                int32_t v_r12_33 = i_r12d;
+                int32_t v_r13_34 = i_r13d;
                 auto* f_0 = this->field_0x0;
-                if (v_rax_1->field_0x0 == 0) {
-                  int32_t selected_r13d_2 = AnimationCurvesClangTidyAndOtherFixes ? v_r10_5 : i_r13d;
-                  uint8_t v_dl_19 = 0;
-                  int32_t v_r13_20 = selected_r13d_2;
+                if (v_r15_11 == 0) {
+                  int32_t selected_r13d_3 = AnimationCurvesClangTidyAndOtherFixes ? v_r10_9 : i_r13d;
+                  uint8_t v_dl_22 = 0;
+                  int32_t v_r13_23 = selected_r13d_3;
                   if (i_esi + 4 <= param_3->field_0x10) {
-                    void* v_rax_18 = param_3;
-                    if (param_3->field_0x18 >= 16) {
-                    v_rax_18 = param_3->field_0x0;
-                    }
-                    v_dl_19 = 4;
-                    v_r13_20 = i_esi[v_rax_18];
-                  }
-                  f_0->field_0x10[i_edi] = (uint8_t)v_r13_20;
-                  uint8_t v_al_22;
-                  if (v_dl_19 + i_esi + 0x10 > param_3->field_0x10) {
-                    v_al_22 = 0;
-                  } else {
                     void* v_rax_21 = param_3;
                     if (param_3->field_0x18 >= 16) {
                     v_rax_21 = param_3->field_0x0;
                     }
-                    f_0->field_0x0[i_edi] = v_rax_21->field_0x0[v_dl_19 + i_esi];
-                    v_al_22 = 16;
+                    v_dl_22 = 4;
+                    v_r13_23 = v_rax_21->field_0x0[i_esi];
                   }
-                  uint8_t v_al_24;
-                  if (v_dl_19 + v_al_22 + i_esi + 4 > param_3->field_0x10) {
-                    v_al_24 = 0;
+                  f_0->field_0x10[i_edi] = (uint8_t)v_r13_23;
+                  uint8_t v_al_25;
+                  if (v_dl_22 + i_esi + 0x10 > param_3->field_0x10) {
+                    v_al_25 = 0;
                   } else {
-                    void* v_rax_23 = param_3;
+                    void* v_rax_24 = param_3;
                     if (param_3->field_0x18 >= 16) {
-                    v_rax_23 = param_3->field_0x0;
+                    v_rax_24 = param_3->field_0x0;
                     }
-                    f_0->field_0x14[i_edi] = v_rax_23->field_0x0[v_dl_19 + v_al_22 + i_esi];
-                    v_al_24 = 4;
+                    f_0->field_0x0[i_edi] = v_rax_24->field_0x0[v_dl_22 + i_esi];
+                    f_0->field_0x4[i_edi] = v_rax_24->field_0x0[v_dl_22 + i_esi];
+                    f_0->field_0x8[i_edi] = v_rax_24->field_0x0[v_dl_22 + i_esi];
+                    f_0->field_0xc[i_edi] = v_rax_24->field_0x0[v_dl_22 + i_esi];
+                    v_al_25 = 16;
                   }
-                  uint8_t v_al_26;
-                  if (v_dl_19 + v_al_22 + v_al_24 + i_esi + 4 > param_3->field_0x10) {
-                    v_al_26 = 0;
+                  uint8_t v_al_27;
+                  if ((uint8_t)(v_dl_22 + v_al_25) + i_esi + 4 > param_3->field_0x10) {
+                    v_al_27 = 0;
                   } else {
-                    void* v_rax_25 = param_3;
+                    void* v_rax_26 = param_3;
                     if (param_3->field_0x18 >= 16) {
-                    v_rax_25 = param_3->field_0x0;
+                    v_rax_26 = param_3->field_0x0;
                     }
-                    f_0->field_0x18[i_edi] = v_rax_25->field_0x0[v_dl_19 + v_al_22 + v_al_24 + i_esi];
-                    v_al_26 = 4;
+                    f_0->field_0x14[i_edi] = v_rax_26->field_0x0[(uint8_t)(v_dl_22 + v_al_25) + i_esi];
+                    v_al_27 = 4;
+                  }
+                  int64_t idx_4 = (uint8_t)((uint8_t)(v_dl_22 + v_al_25) + v_al_27) + i_esi;
+                  uint8_t v_al_29;
+                  if (idx_4 + 4 > param_3->field_0x10) {
+                    v_al_29 = 0;
+                  } else {
+                    void* v_rax_28 = param_3;
+                    if (param_3->field_0x18 >= 16) {
+                    v_rax_28 = param_3->field_0x0;
+                    }
+                    f_0->field_0x18[i_edi] = v_rax_28->field_0x0[idx_4];
+                    v_al_29 = 4;
                   }
                   f_0->field_0x11[i_edi] = 0;
-                  uint8_t v_r9b_27 = 0;
+                  uint8_t v_r9b_30 = 0;
                   if (isnan(f_0->field_0x14[i_edi]) != 1) {
                     f_0->field_0x11[i_edi] = 1;
-                    v_r9b_27 = 1;
+                    v_r9b_30 = 1;
                   }
                   if (isnan(f_0->field_0x18[i_edi]) != 1) {
-                    f_0->field_0x11[i_edi] = v_r9b_27 | 0x2;
-                    v_dl_28 = v_dl_19 + v_al_22 + v_al_24 + v_al_26;
-                    v_r9_29 = v_r9b_27 | 0x2;
-                    v_r13_31 = v_r13_20;
+                    f_0->field_0x11[i_edi] = v_r9b_30 | 0x2;
+                    v_dl_31 = (uint8_t)((uint8_t)((uint8_t)(v_dl_22 + v_al_25) + v_al_27) + v_al_29);
+                    v_r9_32 = v_r9b_30 | 0x2;
+                    v_r13_34 = v_r13_23;
                   } else {
-                    v_dl_28 = v_dl_19 + v_al_22 + v_al_24 + v_al_26;
-                    v_r9_29 = v_r9b_27;
-                    v_r13_31 = v_r13_20;
+                    v_dl_31 = (uint8_t)((uint8_t)((uint8_t)(v_dl_22 + v_al_25) + v_al_27) + v_al_29);
+                    v_r9_32 = v_r9b_30;
+                    v_r13_34 = v_r13_23;
                   }
-                } else if (v_rax_1->field_0x0 == 1) {
-                  int32_t selected_r12d_1 = AnimationCurvesClangTidyAndOtherFixes ? v_r10_5 : i_r12d;
-                  uint8_t v_dl_10 = 0;
-                  int32_t v_r12_11 = selected_r12d_1;
+                } else if (v_r15_11 == 1) {
+                  int32_t selected_r12d_1 = AnimationCurvesClangTidyAndOtherFixes ? v_r10_9 : i_r12d;
+                  uint8_t v_dl_13 = 0;
+                  int32_t v_r12_14 = selected_r12d_1;
                   if (i_esi + 1 <= param_3->field_0x10) {
-                    void* v_rax_9 = param_3;
-                    if (param_3->field_0x18 >= 16) {
-                    v_rax_9 = param_3->field_0x0;
-                    }
-                    v_dl_10 = 1;
-                    v_r12_11 = i_esi[v_rax_9];
-                  }
-                  f_0->field_0x10[i_edi] = v_r12_11 & 0x3;
-                  f_0->field_0x11[i_edi] = v_r12_11 >> 2 & 0x3;
-                  uint8_t v_al_13;
-                  if (v_dl_10 + i_esi + 0x10 > param_3->field_0x10) {
-                    v_al_13 = 0;
-                  } else {
                     void* v_rax_12 = param_3;
                     if (param_3->field_0x18 >= 16) {
                     v_rax_12 = param_3->field_0x0;
                     }
-                    f_0->field_0x0[i_edi] = v_rax_12->field_0x0[v_dl_10 + i_esi];
-                    v_al_13 = 16;
+                    v_dl_13 = 1;
+                    v_r12_14 = v_rax_12->field_0x0[i_esi];
                   }
-                  uint8_t v_al_15;
-                  if (v_dl_10 + v_al_13 + i_esi + 4 > param_3->field_0x10) {
-                    v_al_15 = 0;
+                  f_0->field_0x10[i_edi] = (uint8_t)v_r12_14 & 0x3;
+                  f_0->field_0x11[i_edi] = (uint8_t)v_r12_14 >> 2 & 0x3;
+                  uint8_t v_al_16;
+                  if (v_dl_13 + i_esi + 0x10 > param_3->field_0x10) {
+                    v_al_16 = 0;
                   } else {
-                    void* v_rax_14 = param_3;
+                    void* v_rax_15 = param_3;
                     if (param_3->field_0x18 >= 16) {
-                    v_rax_14 = param_3->field_0x0;
+                    v_rax_15 = param_3->field_0x0;
                     }
-                    f_0->field_0x14[i_edi] = v_rax_14->field_0x0[v_dl_10 + v_al_13 + i_esi];
-                    v_al_15 = 4;
+                    f_0->field_0x0[i_edi] = v_rax_15->field_0x0[v_dl_13 + i_esi];
+                    f_0->field_0x4[i_edi] = v_rax_15->field_0x0[v_dl_13 + i_esi];
+                    f_0->field_0x8[i_edi] = v_rax_15->field_0x0[v_dl_13 + i_esi];
+                    f_0->field_0xc[i_edi] = v_rax_15->field_0x0[v_dl_13 + i_esi];
+                    v_al_16 = 16;
                   }
-                  uint8_t v_al_17;
-                  if (v_dl_10 + v_al_13 + v_al_15 + i_esi + 4 > param_3->field_0x10) {
-                    v_al_17 = 0;
+                  uint8_t v_al_18;
+                  if ((uint8_t)(v_dl_13 + v_al_16) + i_esi + 4 > param_3->field_0x10) {
+                    v_al_18 = 0;
                   } else {
-                    void* v_rax_16 = param_3;
+                    void* v_rax_17 = param_3;
                     if (param_3->field_0x18 >= 16) {
-                    v_rax_16 = param_3->field_0x0;
+                    v_rax_17 = param_3->field_0x0;
                     }
-                    f_0->field_0x18[i_edi] = v_rax_16->field_0x0[v_dl_10 + v_al_13 + v_al_15 + i_esi];
-                    v_al_17 = 4;
+                    f_0->field_0x14[i_edi] = v_rax_17->field_0x0[(uint8_t)(v_dl_13 + v_al_16) + i_esi];
+                    v_al_18 = 4;
                   }
-                  v_dl_28 = v_dl_10 + v_al_13 + v_al_15 + v_al_17;
-                  v_r12_30 = v_r12_11;
+                  int64_t idx_2 = (uint8_t)((uint8_t)(v_dl_13 + v_al_16) + v_al_18) + i_esi;
+                  uint8_t v_al_20;
+                  if (idx_2 + 4 > param_3->field_0x10) {
+                    v_al_20 = 0;
+                  } else {
+                    void* v_rax_19 = param_3;
+                    if (param_3->field_0x18 >= 16) {
+                    v_rax_19 = param_3->field_0x0;
+                    }
+                    f_0->field_0x18[i_edi] = v_rax_19->field_0x0[idx_2];
+                    v_al_20 = 4;
+                  }
+                  v_dl_31 = (uint8_t)((uint8_t)((uint8_t)(v_dl_13 + v_al_16) + v_al_18) + v_al_20);
+                  v_r12_33 = v_r12_14;
                 }
                 if (AnimationCurveSanitizeInterpolationMode && f_0->field_0x10[i_edi] != 0 && f_0->field_0x10[i_edi] != 1 && f_0->field_0x10[i_edi] != 2) {
                   f_0->field_0x10[i_edi] = 0;
                 }
                 i_edi += 0x1c;
-                i_esi = i_esi + v_dl_28;
-                i_r9d = v_r9_29;
-                i_r10d = v_r10_5;
-                i_r11d = v_r11_6 - 1;
-                i_r12d = v_r12_30;
-                i_r13d = v_r13_31;
-              } while (v_r11_6 != 1); // loop -> L_0x1bb5d90
-              v_rsi_32 = i_esi + v_dl_28;
+                local_0x30 = v_r11_10 - 1;
+                i_esi = i_esi + v_dl_31;
+                i_r9d = v_r9_32;
+                i_r10d = v_r10_9;
+                i_r11d = v_r11_10 - 1;
+                i_r12d = v_r12_33;
+                i_r13d = v_r13_34;
+              } while (i_r11d != 0); // loop -> L_0x1bb5d90
+              v_rsi_35 = i_esi + v_dl_31;
+              v_r15_36 = local_0x50;
             }
-            param_2->field_0x28 = 1;
-            param_2->field_0x0 = v_rsi_32;
+            v_r15_36->field_0x28 = 1;
+            v_r15_36->field_0x0 = v_rsi_35;
+            v_r15_37 = v_r15_36;
           }
         }
       } else {
         auto ret_0x6fd950_1 = call_0x6fd950(80);
+        local_0xb0 = 72;
+        local_0xb8 = 79;
         memcpy(ret_0x6fd950_1, "RotationCurve attempts to decode invalid data. Instance likely corrupted", 72);
+        local_0xa0 = ret_0x6fd950_1;
+        param_2->field_0x0 = 0;
+        param_2->field_0x28 = 0;
         goto L_0x1bb6119;
       }
-      return param_2;
+      return v_r15_37;
     }
   
   === [Instrucoes x86-64 do XREF Runtime #3 (0x1bb5b90..0x1bb6155)] ===
@@ -1034,8 +1135,8 @@ Operação  : 0x1621fb9: cmp byte [flag], imm8 ; fn=0x1621f70..0x1621fff
     0x1bb6154 | c3                       | ret
   
   === [Estrutura RTTI & VTable da Classe (RBX::ValueCurve)] ===
-    VTable  : 0x6ede768 (offset +0x0, 35 slots virtuais)
-    Herança : RBX::Ref, RBX::PropertyDescriptor, RBX::MemberDescriptor, RBX::Descriptor
+    VTable  : 0x7013188 (offset +0x0, 35 slots virtuais)
+    Herança : RBX::Instance, RBX::Object, RBX::DescribedBase, RBX::EventSource, RBX::enable_shared_from_this (+0x8), RBX::GuidItem (+0x28), RBX::ObjectProp (+0x38), RBX::Noncopyable (+0x38), RBX::Diagnostics::Countable (+0x58), RBX::InstanceProp (+0x58), RBX::ValueCurveProp (+0x98)
     +0x0 -> fn_0x1622c00
     +0x8 -> fn_0x1c1f1a0
     +0x10 -> fn_0x1c396e0
@@ -1056,40 +1157,65 @@ Operação  : 0x1621fb9: cmp byte [flag], imm8 ; fn=0x1621f70..0x1621fff
   === [Decompilacao de Metodo da Classe RBX::ValueCurve: 0x1c44010..0x1c44138 (vfunc_0x18)] ===
     struct RBX::Instance {
       /* +0x48 */ void*   field_0x48;
-      /* +0x60 */ void*   field_0x60;
+      /* +0x60 */ uint64_t field_0x60;
     };
     
     // Flag defaults: CheckEngineContextOnInstanceAccess2 = false
-    void RBX::Instance::func_0x1c44010(RBX::Instance* this, int64_t param_2, void* param_3, void* param_4) {
+    void RBX::Instance::func_0x1c44010(RBX::Instance* this, int64_t param_2, int64_t param_3, int64_t param_4) {
       if (this->field_0x60 != 0) {
-        (*global_0x80f4c48)(this);
-      }
-      auto ret_0x4956040_2 = call_0x4956040(24);
-      auto ret_0xffc540_3 = call_0xffc540(ret_0x4956040_2, param_3);
-      call_0xd29440(&local_0x40, ret_0xffc540_3);
-      auto* f_48 = this->field_0x48;
-      if (f_48 != 0 && f_48->field_0x8 != 0) {
-        auto ret_0xc700_5 = call_0xc700(global_0x84cf408, 1);
-        if (ret_0xc700_5->field_0x0 == 0) {
-          auto local_0x20 = 3;
-          call_0x7d7f00(this->field_0x48, &local_0x20, &local_0x28);
-        } else {
-          call_0x49710d0("Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel ", &sym_0x6647145);
+        void* v_rax_1 = global_0x80f4c48;
+        if (!CheckEngineContextOnInstanceAccess2) {
+          v_rax_1 = global_0x80f4c50;
         }
+        (*v_rax_1)(this);
       }
-      if (local_0x48 != 0) {
-        call_0x6daf40(local_0x48);
+      uint64_t local_0x30;
+      local_0x30 = &sym_0x70375b0;
+      auto ret_0x4956040_2 = call_0x4956040(24);
+      uint64_t local_0x60;
+      if (ret_0x4956040_2 != 0) {
+        uint64_t local_0x28;
+        local_0x28 = ret_0x4956040_2;
+        auto ret_0xffc540_3 = call_0xffc540(ret_0x4956040_2, param_3);
+        uint64_t local_0x40;
+        call_0xd29440(&local_0x40, ret_0xffc540_3);
+        local_0x28 = &local_0x30;
+        uint64_t local_0x20;
+        local_0x20 = 3;
+        auto* f_48 = this->field_0x48;
+        if (f_48 != 0 && f_48->field_0x8 != 0) {
+          auto ret_0xc700_5 = call_0xc700(global_0x84cf408, 1);
+          if (ret_0xc700_5->field_0x0 == 0) {
+            auto local_0x38 = param_2;
+            call_0x7d7f00(this->field_0x48, &local_0x20, &local_0x28);
+          } else {
+            call_0x49710d0("Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel execution.", &sym_0x6647145);
+            call_0x6ca7d0(&local_0x60);
+            call_0x5e066f0(&local_0x60, &sym_0x80cbbc0);
+            return; // noreturn
+          }
+        }
+        uint64_t local_0x48;
+        if (local_0x48 != 0) {
+          call_0x6daf40(local_0x48);
+          return;
+        }
+        return;
       }
+      call_0x6ca7d0(&local_0x60);
+      call_0x5e066f0(&local_0x60, &sym_0x80cbbc0);
+      return; // noreturn
     }
   
   === [Decompilacao de Metodo da Classe RBX::ValueCurve: 0x1c3dbf0..0x1c3dc23 (vfunc_0x40)] ===
     struct RBX::Instance {
-      /* +0x0 */ void*   field_0x0;
+      /* +0x0 */ uint64_t field_0x0;
     };
     
     void RBX::Instance::func_0x1c3dbf0(RBX::Instance* this) {
-      call_0x1c4d900(this);
-      switch (this->field_0x0->field_0x1a0) {
+      auto ret_0x1c4d900_1 = call_0x1c4d900(this);
+      if (ret_0x1c4d900_1 != 0) {
+        ret_0x1c4d900_1->field_0x0 = 0;
       }
     }
   
@@ -1100,32 +1226,33 @@ Operação  : 0x1621fb9: cmp byte [flag], imm8 ; fn=0x1621f70..0x1621fff
     };
     
     // Flag defaults: ClearDescendantOfDataModelOnParentDestroy = true, DescendantOfDataModel3 = true
-    auto RBX::Instance::func_0x1c432c0(RBX::Instance* this) {
+    void RBX::Instance::func_0x1c432c0(RBX::Instance* this) {
       if (global_0x84a44d6 != 0 && ClearDescendantOfDataModelOnParentDestroy && DescendantOfDataModel3) {
-        return tailcall_0x1c43380(this, this);
+        tailcall_0x1c43380(this);
+        return;
       }
       if (this->field_0x70 != 0) {
         if (this->field_0x70->field_0x0 != this->field_0x70->field_0x8) {
-          void* i_ecx = this->field_0x70->field_0x0;
+          uint8_t* i_ecx = this->field_0x70->field_0x0;
           do { // L_0x1c43310
             i_ecx += 0x10;
             i_ecx->field_0x0->field_0x60 = 0;
           } while (i_ecx != this->field_0x70->field_0x8); // loop -> L_0x1c43310
         }
         this->field_0x70 = 0;
-        void* prev_0x78_1 = this->field_0x78;
+        void* prev_0x78_2 = this->field_0x78;
         this->field_0x78 = 0;
-        if (prev_0x78_1 != 0) {
-          if (atomic_fetch_sub(&this->field_0x78->field_0x8, 1) == 1) {
-            this->field_0x78->vfunc_0x0(prev_0x78_1);
-            if (atomic_fetch_sub(&this->field_0x78->field_0xc, 1) == 1) {
-              this->field_0x78->vfunc_0x8(prev_0x78_1);
+        if (prev_0x78_2 != 0) {
+          int32_t atomic_1 = atomic_fetch_sub(&this->field_0x78->field_0x8, 1);
+          if (atomic_1 == 1) {
+            this->field_0x78->vfunc_0x0(prev_0x78_2, this, this->field_0x70->field_0x8);
+            int32_t atomic_3 = atomic_fetch_sub(&this->field_0x78->field_0xc, 1);
+            if (atomic_3 == 1) {
+              this->field_0x78->vfunc_0x8(prev_0x78_2);
             }
           }
         }
-        return;
       }
-      return;
     }
   
   === [Decompilacao C++ Cross-Engine (WebClient.wasm)] ===
@@ -1148,15 +1275,11 @@ Operação  : 0x1621fb9: cmp byte [flag], imm8 ; fn=0x1621f70..0x1621fff
   * "Attempting to decode a CurveFloat values with an invalid version, expected {}, but found {}"  [@rdata 0x727a280, ref @0x1bb5c06, string_view len=91]
   * "declare"  [@rdata 0x72c7220, ref @0x16245f3, literal, 7B]
   * "[FLog::Error] BinaryString size mismatch: trying to read more characters than remaining"  [@rdata 0x72027b0, ref @0x1624620, FLog format]
-  * "Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel "  [@rdata 0x7280e40, ref @0x1c44110, literal, 96B]
 
 [Co-Flags na mesma função]
   * DFFlagValueCurveRejectPartiallyDecodedKeys = true (default)
   * DFFlagAnimationCurvesClangTidyAndOtherFixes = false (default)
   * FLogError = 6 (default)
-  * DFFlagCheckEngineContextOnInstanceAccess2 = false (default)
-  * FFlagClearDescendantOfDataModelOnParentDestroy = true (default)
-  * FFlagDescendantOfDataModel3 = true (default)
   * DFFlagDebugAvatarAutoSetupKeepResultFiles = false (default) [vizinha em .data]
   * DFIntAvatarAutoSetupEventsThrottleHundredthsPercent = 10000 (default) [vizinha em .data]
   * FIntTPoseBlockyElbowBendMin = 10 (default) [vizinha em .data]

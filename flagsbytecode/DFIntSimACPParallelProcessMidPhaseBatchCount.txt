@@ -7,69 +7,81 @@ Operação  : 0x14a7928: mov/math reg, [flag] ; fn=0x14a78e0..0x14a7b0d
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::SimACPParallel)] ===
     Classe  : RBX::SimACPParallel (Inferido)
-    Padrão  : DFIntSimACPParallelProcessMidPhaseBatchCount = 1 (default) [int, mode=2]
+    Padrão  : DFIntSimACPParallelProcessMidPhaseBatchCount = 4 (default) [int, mode=2]
     Papel   : Divisor / Taxa de frequência (Hz) usado em cálculos de intervalo e orçamento
-    Fórmula : call_0xc8c0(SimACPParallelProcessMidPhaseBatchCount, (SimACPParallelProcessMidPhaseBatchCount - 1 + ((this->field_0x810 - this->field_0x808) >> 5)) % SimACPParallelProcessMidPhaseBatchCount)
-    Fórmula : std::min<uint64_t>(ret_0xc8c0_2, (SimACPParallelProcessMidPhaseBatchCount - 1 + ((this->field_0x810 - this->field_0x808) >> 5)) / SimACPParallelProcessMidPhaseBatchCount)
+    Fórmula : (uint64_t)(SimACPParallelProcessMidPhaseBatchCount - 1 + ((int64_t)(this->field_0x810 - this->field_0x808) >> 5)) / (uint64_t)SimACPParallelProcessMidPhaseBatchCount
     Altera  : this->field_0x810
     [Child @0x2995e40] Papel   : Parâmetro de configuração lido diretamente pela rotina
+    [Child @0x2995e40] Fórmula : SimACPParallelProcessMidPhaseBatchCount
   
   === [Decompilacao C++ da Funcao 0x14a78e0..0x14a7b0d] ===
     struct RBX::SimACPParallel {
-      /* +0x58 */ void*   field_0x58;
-      /* +0x7f0 */ void*   field_0x7f0;
-      /* +0x7f8 */ void*   field_0x7f8;
-      /* +0x808 */ void*   field_0x808;
-      /* +0x810 */ void*   field_0x810;
+      /* +0x7f0 */ uint64_t field_0x7f0;
+      /* +0x7f8 */ uint64_t field_0x7f8;
+      /* +0x808 */ uint64_t field_0x808;
+      /* +0x810 */ uint64_t field_0x810;
     };
     
-    // Flag defaults: SimACPParallelProcessMidPhaseBatchCount = 1, SimACPParallelProcessMidPhaseSerialCutoff = 15
+    // Flag defaults: SimACPParallelProcessMidPhaseBatchCount = 4, SimACPParallelProcessMidPhaseSerialCutoff = 100
     void RBX::SimACPParallel::func_0x14a78e0(RBX::SimACPParallel* this) {
       auto ret_0x4954e70_1 = call_0x4954e70(global_0x84a9fa8);
-      int64_t v_rsi_1;
-      if ((this->field_0x810 - this->field_0x808) >> 5 > SimACPParallelProcessMidPhaseSerialCutoff) {
-        auto ret_0xc8c0_2 = call_0xc8c0(SimACPParallelProcessMidPhaseBatchCount, (SimACPParallelProcessMidPhaseBatchCount - 1 + ((this->field_0x810 - this->field_0x808) >> 5)) % SimACPParallelProcessMidPhaseBatchCount);
-        v_rsi_1 = std::min<uint64_t>(ret_0xc8c0_2, (SimACPParallelProcessMidPhaseBatchCount - 1 + ((this->field_0x810 - this->field_0x808) >> 5)) / SimACPParallelProcessMidPhaseBatchCount);
+      uint64_t v_rsi_1;
+      if ((int64_t)(this->field_0x810 - this->field_0x808) >> 5 > SimACPParallelProcessMidPhaseSerialCutoff) {
+        int64_t tmp_1 = (uint64_t)(SimACPParallelProcessMidPhaseBatchCount - 1 + ((int64_t)(this->field_0x810 - this->field_0x808) >> 5)) / (uint64_t)SimACPParallelProcessMidPhaseBatchCount;
+        auto ret_0xc8c0_2 = call_0xc8c0();
+        v_rsi_1 = std::min<uint64_t>(ret_0xc8c0_2, tmp_1);
       } else {
         v_rsi_1 = 1;
       }
-      if (((this->field_0x7f8 - this->field_0x7f0) / 48 >> 3) + ((uint64_t)((this->field_0x7f8 - this->field_0x7f0) / 48 >> 3) >> 63) < v_rsi_1) {
+      int64_t tmp_3 = ((int64_t)mulhi(0x2aaaaaaaaaaaaaab, this->field_0x7f8 - this->field_0x7f0) >> 3) + ((uint64_t)((int64_t)mulhi(0x2aaaaaaaaaaaaaab, this->field_0x7f8 - this->field_0x7f0) >> 3) >> 63);
+      if (tmp_3 < v_rsi_1) {
         call_0x14a9480(&this->field_0x7f0, v_rsi_1);
       }
-      if (global_0x8d7c3e0 > this->field_0x58->field_0x0->field_0x0[40]) {
+      uint64_t local_0x20;
+      if (global_0x8d7c3e0 > __readgsqword(0x58)->field_0x0->field_0x0[40]) {
         call_0x12e0(&sym_0x8d7c3e0);
         if (global_0x8d7c3e0 == -1) {
-          global_0x8d7c3e8 = call_0x29a3390("Physics", "Post Midphase", -1, 0);
+          local_0x20 = 255;
+          global_0x8d7c3e8 = call_0x29a3390("Physics", "Post Midphase", -1, 0, 255);
           call_0x14f0(&sym_0x8d7c3e0);
         }
       }
+      local_0x20 = global_0x8d7c3e8;
       auto local_0x30 = this;
-      call_0x2995e40(&local_0x30, (this->field_0x810 - this->field_0x808) >> 5, SimACPParallelProcessMidPhaseBatchCount, v_rsi_1);
+      call_0x2995e40(&local_0x30, (int64_t)(this->field_0x810 - this->field_0x808) >> 5, SimACPParallelProcessMidPhaseBatchCount, v_rsi_1, global_0x8d7c3e8);
       this->field_0x810 = this->field_0x808;
       if (this->field_0x7f0 != this->field_0x7f8) {
-        void* i_esi = this->field_0x7f0;
+        uint64_t i_ecx = &local_0x30;
+        uint8_t* i_esi = this->field_0x7f0;
+        int32_t local_0xb0 = ret_0x4954e70_1;
+        void* local_0x70 = &sym_0x7008d60 & 0xfffffffffffffffbULL | 0x2ULL;
         do { // L_0x14a7a10
-          void* i_edi;
+          void* v_rcx_2 = i_ecx;
           if (i_esi->field_0x0 != i_esi->field_0x8) {
-            i_edi = i_esi->field_0x0;
-            void* prev_0x8_3;
+            uint8_t* i_edi = i_esi->field_0x0;
+            void* prev_0x8_5;
             do { // L_0x14a7a20
-              prev_0x8_3 = i_esi->field_0x8;
+              prev_0x8_5 = i_esi->field_0x8;
               call_0x149d4f0(this, i_edi->field_0x0, 1);
               i_edi += 8;
-            } while (i_edi != prev_0x8_3); // loop -> L_0x14a7a20
+            } while (i_edi != prev_0x8_5); // loop -> L_0x14a7a20
+            v_rcx_2 = this;
           }
+          uint8_t* i_edi_2 = i_esi->field_0x18;
+          void* v_rcx_3 = v_rcx_2;
           if (i_esi->field_0x18 != i_esi->field_0x20) {
-            void* prev_0x20_5;
+            void* prev_0x20_7;
             do { // L_0x14a7a44
-              prev_0x20_5 = i_esi->field_0x20;
-              call_0x149d2f0(this, i_edi->field_0x0);
-              i_edi += 8;
-            } while (i_edi != prev_0x20_5); // loop -> L_0x14a7a44
+              prev_0x20_7 = i_esi->field_0x20;
+              call_0x149d2f0(this, i_edi_2->field_0x0);
+              i_edi_2 += 8;
+            } while (i_edi_2 != prev_0x20_7); // loop -> L_0x14a7a44
+            v_rcx_3 = this;
           }
           i_esi->field_0x8 = i_esi->field_0x0;
           i_esi->field_0x20 = i_esi->field_0x18;
           i_esi += 0x30;
+          i_ecx = v_rcx_3;
         } while (i_esi != this->field_0x7f8); // loop -> L_0x14a7a10
       }
       if (ret_0x4954e70_1 >= 1024) {
@@ -236,9 +248,20 @@ Operação  : 0x14a7928: mov/math reg, [flag] ; fn=0x14a78e0..0x14a7b0d
     0x14a7b08 | e9 a4 fe ff ff           | jmp 0x14a79b1
   
   === [Sub-Rotina Chamada: 0x2995e40..0x2995eec via call @0x14a79e8 (Direct Engine Sub-Call)] ===
-    // Flag defaults: SimACPParallelProcessMidPhaseBatchCount = 1
-    void SubObj_0x2995e40::func_0x2995e40(SubObj_0x2995e40* this, int64_t param_2, int32_t SimACPParallelProcessMidPhaseBatchCount, void* param_4) {
+    // Flag defaults: SimACPParallelProcessMidPhaseBatchCount = 4
+    void SubObj_0x2995e40::func_0x2995e40(SubObj_0x2995e40* this, int64_t param_2, int32_t SimACPParallelProcessMidPhaseBatchCount, int64_t param_4) {
+      uint64_t local_0x80;
       auto ret_0x27d2670_1 = call_0x27d2670(&local_0x80, this);
+      auto local_0x50 = 0;
+      uint64_t local_0x24;
+      auto local_0x54 = local_0x24;
+      auto local_0x58 = 65536;
+      uint64_t local_0x2c;
+      auto local_0x5c = local_0x2c;
+      auto local_0x60 = SimACPParallelProcessMidPhaseBatchCount;
+      auto local_0x68 = param_4;
+      uint64_t local_0x120;
+      auto local_0x70 = local_0x120;
       call_0x2995ef0(ret_0x27d2670_1, param_2, &local_0x50);
       call_0xd52ab0(this);
     }
@@ -286,34 +309,34 @@ Operação  : 0x14a7928: mov/math reg, [flag] ; fn=0x14a78e0..0x14a7b0d
   
   === [Sub-Rotina Chamada: 0x14a9480..0x14a9558 via call @0x14a798c (Direct Engine Sub-Call)] ===
     struct SubObj_0x14a9480 {
-      /* +0x0 */ void*   field_0x0;
-      /* +0x8 */ void*   field_0x8;
-      /* +0x10 */ void*   field_0x10;
+      /* +0x0 */ uint64_t field_0x0;
+      /* +0x8 */ uint64_t field_0x8;
+      /* +0x10 */ uint64_t field_0x10;
     };
     
     void SubObj_0x14a9480::func_0x14a9480(SubObj_0x14a9480* this, int64_t param_2) {
-      auto expr_1 = (uint64_t)(param_2 >> 3) >> 63;
-      if (param_2 < (param_2 >> 3) + expr_1) {
-        auto expr_2 = (param_2 + param_2 * 2) << 4;
-        uint64_t i_ebx = expr_2 + this->field_0x0;
-        if (expr_2 + this->field_0x0 != this->field_0x8) {
-          void* prev_0x8_2;
+      int64_t tmp_1 = ((int64_t)mulhi(0x2aaaaaaaaaaaaaab, this->field_0x8 - this->field_0x0) >> 3) + ((uint64_t)((int64_t)mulhi(0x2aaaaaaaaaaaaaab, this->field_0x8 - this->field_0x0) >> 3) >> 63);
+      if (param_2 < tmp_1) {
+        uint64_t i_ebx = (param_2 * 3 << 4) + this->field_0x0;
+        if ((param_2 * 3 << 4) + this->field_0x0 != this->field_0x8) {
+          void* prev_0x8_4;
           do { // L_0x14a94e1
-            prev_0x8_2 = this->field_0x8;
+            prev_0x8_4 = this->field_0x8;
             call_0x6f5b10(i_ebx + 0x18);
             call_0x6f5b10(i_ebx);
             i_ebx += 0x30;
-          } while (i_ebx != prev_0x8_2); // loop -> L_0x14a94e1
+          } while (i_ebx != prev_0x8_4); // loop -> L_0x14a94e1
         }
-        this->field_0x8 = expr_2 + this->field_0x0;
+        this->field_0x8 = (param_2 * 3 << 4) + this->field_0x0;
         return;
       }
-      if (param_2 > (param_2 >> 3) + expr_1) {
-        if (param_2 > ((this->field_0x10 - this->field_0x0) / 48 >> 3) + ((uint64_t)((this->field_0x10 - this->field_0x0) / 48 >> 3) >> 63)) {
+      if (param_2 > tmp_1) {
+        int64_t tmp_2 = ((int64_t)mulhi(0x2aaaaaaaaaaaaaab, this->field_0x10 - this->field_0x0) >> 3) + ((uint64_t)((int64_t)mulhi(0x2aaaaaaaaaaaaaab, this->field_0x10 - this->field_0x0) >> 3) >> 63);
+        if (param_2 > tmp_2) {
           call_0x14aea90(this, param_2);
           return;
         }
-        this->field_0x8 = call_0x14ac750(this->field_0x10 - this->field_0x0, this->field_0x8, param_2 - ((param_2 >> 3) + expr_1));
+        this->field_0x8 = call_0x14ac750(this->field_0x10 - this->field_0x0, this->field_0x8, param_2 - tmp_1);
       }
     }
   
@@ -397,14 +420,14 @@ Operação  : 0x14a7928: mov/math reg, [flag] ; fn=0x14a78e0..0x14a7b0d
       /* +0x1e0 */ void*   field_0x1e0;
       /* +0x1e8 */ void*   field_0x1e8;
       /* +0x258 */ int32_t field_0x258;
-      /* +0x260 */ void*   field_0x260;
+      /* +0x260 */ uint64_t field_0x260;
       /* +0x274 */ int32_t field_0x274;
       /* +0x888 */ void*   field_0x888;
     };
     
-    void SubObj_0x149d4f0::func_0x149d4f0(SubObj_0x149d4f0* this, int64_t param_2, void* param_3) {
-      void* sel_r14_1 = param_2->field_0x8->field_0x48 == 0 ? 0 : param_2->field_0x8->field_0x48->field_m0x10;
-      void* sel_r15_2 = param_2->field_0x10->field_0x48 == 0 ? 0 : param_2->field_0x10->field_0x48->field_m0x10;
+    void SubObj_0x149d4f0::func_0x149d4f0(SubObj_0x149d4f0* this, void* param_2, int64_t param_3) {
+      void* sel_r14_1 = param_2->field_0x8->field_0x48 == 0 ? 0 : param_2->field_0x8->field_0x48 - 0x10;
+      void* sel_r15_2 = param_2->field_0x10->field_0x48 == 0 ? 0 : param_2->field_0x10->field_0x48 - 0x10;
       void* prev_0x10_1 = param_2->field_0x10;
       auto vret_1 = param_2->vfunc_0x38(param_2);
       if (vret_1 == 1) {
@@ -416,27 +439,27 @@ Operação  : 0x14a7928: mov/math reg, [flag] ; fn=0x14a78e0..0x14a7b0d
         auto vret_2 = param_2->vfunc_0x38(param_2);
         if (vret_2 == 2) {
           call_0x1450e90(prev_0x10_1);
+          atomic_exchange(&param_2->field_0x10->field_0x260, 0);
         }
       }
       if (sel_r14_1 != 0) {
-        auto ret_0x1479630_4 = call_0x1479630(sel_r14_1);
-        call_0x14a6400(this, ret_0x1479630_4, 0);
+        auto ret_0x1479630_5 = call_0x1479630(sel_r14_1);
+        call_0x14a6400(this, ret_0x1479630_5, 0);
       }
       if (sel_r15_2 != 0) {
-        auto ret_0x1479630_6 = call_0x1479630(sel_r15_2);
-        call_0x14a6400(this, ret_0x1479630_6, 0);
+        auto ret_0x1479630_7 = call_0x1479630(sel_r15_2);
+        call_0x14a6400(this, ret_0x1479630_7, 0);
       }
       if (param_2->field_0x20 != -1) {
         call_0x149d8f0(this, param_2);
-        auto* f_1e0 = this->field_0x1e0;
-      } else if (param_2->field_0x28 >= 0 && param_2->field_0x28 < (this->field_0x1e8 - f_1e0) >> 3) {
-        f_1e0->field_0x0[param_2->field_0x28 * 8] = this->field_0x1e8->field_m0x8;
+      } else if (param_2->field_0x28 >= 0 && param_2->field_0x28 < (int64_t)(this->field_0x1e8 - this->field_0x1e0) >> 3) {
+        this->field_0x1e0->field_0x0[param_2->field_0x28 * 8] = this->field_0x1e8->field_m0x8;
         this->field_0x1e8->field_m0x8->field_0x28 = param_2->field_0x28;
         this->field_0x1e8 = this->field_0x1e8 - 8;
         param_2->field_0x28 = -1;
       }
       auto* f_1c0 = this->field_0x1c0;
-      if (param_2->field_0x24 != -1 && param_2->field_0x24 >= 0 && param_2->field_0x24 < (this->field_0x1c8 - f_1c0) >> 3) {
+      if (param_2->field_0x24 != -1 && param_2->field_0x24 >= 0 && param_2->field_0x24 < (int64_t)(this->field_0x1c8 - f_1c0) >> 3) {
         f_1c0->field_0x0[param_2->field_0x24 * 8] = this->field_0x1c8->field_m0x8;
         this->field_0x1c8->field_m0x8->field_0x24 = param_2->field_0x24;
         this->field_0x1c8 = this->field_0x1c8 - 8;
@@ -454,6 +477,7 @@ Operação  : 0x14a7928: mov/math reg, [flag] ; fn=0x14a78e0..0x14a7b0d
       } else {
         param_2->field_0x1c = -1;
       }
+      int64_t idx_3 = param_2->field_0x10 == param_2->field_0x8 ? param_2->field_0x18 : param_2->field_0x1c;
       param_2->field_0x10->field_0x170->field_0x0[idx_3 * 8] = param_2->field_0x10->field_0x178->field_m0x8;
       param_2->field_0x10->field_0x178 = param_2->field_0x10->field_0x178 - 8;
       if (param_2->field_0x10 == param_2->field_0x10->field_0x178->field_m0x8->field_0x8) {
@@ -468,33 +492,32 @@ Operação  : 0x14a7928: mov/math reg, [flag] ; fn=0x14a78e0..0x14a7b0d
       }
       uint8_t v_bl_1 = 0;
       auto* f_888 = this->field_0x888;
-      auto* f_888_a00 = f_888->field_0xa00;
-      if (f_888_a00->field_0x48 != 0) {
-        void* prev_0x8_8 = param_2->field_0x8;
-        void* prev_0x10_9 = param_2->field_0x10;
-        auto vret_9 = param_2->vfunc_0x58(param_2, f_888_a00->field_0x48);
-        if ((uint8_t)vret_9 != 0) {
-          call_0x1452630(prev_0x8_8, prev_0x10_9, 0);
-          v_bl_1 = vret_9;
+      if (f_888->field_0xa00->field_0x48 != 0) {
+        void* prev_0x8_7 = param_2->field_0x8;
+        void* prev_0x10_8 = param_2->field_0x10;
+        auto vret_10 = param_2->vfunc_0x58(param_2, f_888->field_0xa00->field_0x48);
+        if ((uint8_t)vret_10 != 0) {
+          call_0x1452630(prev_0x8_7, prev_0x10_8, 0);
+          v_bl_1 = (uint8_t)vret_10;
         } else {
-          v_bl_1 = vret_9;
+          v_bl_1 = (uint8_t)vret_10;
         }
       }
-      if (param_3 != 0 && v_bl_1 != 0) {
+      if ((uint8_t)param_3 != 0 && v_bl_1 != 0) {
         if (sel_r14_1 != 0) {
-          void* prev_0x38_10 = this->field_0x888->field_0xa00->field_0x38;
-          auto ret_0x1479630_11 = call_0x1479630(sel_r14_1);
-          call_0x14249f0(prev_0x38_10, ret_0x1479630_11, 0);
+          void* prev_0x38_9 = this->field_0x888->field_0xa00->field_0x38;
+          auto ret_0x1479630_12 = call_0x1479630(sel_r14_1);
+          call_0x14249f0(prev_0x38_9, ret_0x1479630_12, 0);
         }
         if (sel_r15_2 != 0) {
-          void* prev_0x38_11 = this->field_0x888->field_0xa00->field_0x38;
-          auto ret_0x1479630_13 = call_0x1479630(sel_r15_2);
-          call_0x14249f0(prev_0x38_11, ret_0x1479630_13, 0);
+          void* prev_0x38_10 = this->field_0x888->field_0xa00->field_0x38;
+          auto ret_0x1479630_14 = call_0x1479630(sel_r15_2);
+          call_0x14249f0(prev_0x38_10, ret_0x1479630_14, 0);
         }
         if (this->field_0x258 != 0) {
           this->field_0x258 = 0;
-          if (this->field_0x260 != 0 && 4 << this->field_0x274 != 0) {
-            call_0x5e051b0(this->field_0x260, -1, 4 << this->field_0x274);
+          if (this->field_0x260 != 0 && 4 << (uint8_t)this->field_0x274 != 0) {
+            call_0x5e051b0(this->field_0x260, -1, 4 << (uint8_t)this->field_0x274);
           }
         }
       }
@@ -761,14 +784,14 @@ Operação  : 0x14a7928: mov/math reg, [flag] ; fn=0x14a78e0..0x14a7b0d
     struct SubObj_0x149d2f0 {
       /* +0x140 */ int32_t field_0x140;
       /* +0x144 */ int32_t field_0x144;
-      /* +0x1e0 */ void*   field_0x1e0;
+      /* +0x1e0 */ uint64_t field_0x1e0;
       /* +0x1e8 */ void*   field_0x1e8;
-      /* +0x1f0 */ void*   field_0x1f0;
+      /* +0x1f0 */ uint64_t field_0x1f0;
     };
     
-    void SubObj_0x149d2f0::func_0x149d2f0(SubObj_0x149d2f0* this, int64_t param_2) {
-      void* sel_rsi_1 = param_2->field_0x8->field_0x48 == 0 ? 0 : param_2->field_0x8->field_0x48->field_m0x10;
-      void* sel_rbp_2 = param_2->field_0x10->field_0x48 == 0 ? 0 : param_2->field_0x10->field_0x48->field_m0x10;
+    void SubObj_0x149d2f0::func_0x149d2f0(SubObj_0x149d2f0* this, void* param_2) {
+      void* sel_rsi_1 = param_2->field_0x8->field_0x48 == 0 ? 0 : param_2->field_0x8->field_0x48 - 0x10;
+      void* sel_rbp_2 = param_2->field_0x10->field_0x48 == 0 ? 0 : param_2->field_0x10->field_0x48 - 0x10;
       void* prev_0x8_1 = param_2->field_0x8;
       void* prev_0x10_2 = param_2->field_0x10;
       auto vret_1 = param_2->vfunc_0x38(param_2);
@@ -786,18 +809,19 @@ Operação  : 0x14a7928: mov/math reg, [flag] ; fn=0x14a78e0..0x14a7b0d
         call_0x14a6400(this, ret_0x1479630_4, 0);
       }
       auto ret_0x1452440_6 = call_0x1452440(prev_0x8_1, prev_0x10_2, 0);
+      uint64_t local_0x58;
       if (ret_0x1452440_6 != 0) {
-        auto vret_7 = (&ret_0x1452440_6->field_0x10)->vfunc_0x20();
+        auto vret_7 = (*((ret_0x1452440_6 + 0x10)->field_0x0)->field_0x20)();
         if (vret_7 >= 11 && vret_7 <= 31) {
           if ((ret_0x1452440_6->field_0xdc & 0x1) == 0) {
             param_2->field_0x2c = param_2->field_0x2c | 0x1;
             if (((uint8_t)((uint32_t)param_2->field_0x28 >> 31) ^ 0x1) == 0) {
-              param_2->field_0x28 = (this->field_0x1e8 - this->field_0x1e0) >> 3;
+              local_0x58 = param_2;
+              param_2->field_0x28 = (int64_t)(this->field_0x1e8 - this->field_0x1e0) >> 3;
               if (this->field_0x1e8 != this->field_0x1f0) {
                 this->field_0x1e8->field_0x0 = param_2;
                 this->field_0x1e8 = this->field_0x1e8 + 8;
               } else {
-                auto local_0x58 = param_2;
                 call_0xcd89d0(&this->field_0x1d8, this->field_0x1e8, &local_0x58);
               }
             }
@@ -807,12 +831,12 @@ Operação  : 0x14a7928: mov/math reg, [flag] ; fn=0x14a78e0..0x14a7b0d
         } else {
           param_2->field_0x2c = param_2->field_0x2c | 0x1;
           if (((uint8_t)((uint32_t)param_2->field_0x28 >> 31) ^ 0x1) == 0) {
-            param_2->field_0x28 = (this->field_0x1e8 - this->field_0x1e0) >> 3;
+            local_0x58 = param_2;
+            param_2->field_0x28 = (int64_t)(this->field_0x1e8 - this->field_0x1e0) >> 3;
             if (this->field_0x1e8 != this->field_0x1f0) {
               this->field_0x1e8->field_0x0 = param_2;
               this->field_0x1e8 = this->field_0x1e8 + 8;
             } else {
-              auto local_0x58 = param_2;
               call_0xcd89d0(&this->field_0x1d8, this->field_0x1e8, &local_0x58);
             }
           }
@@ -821,28 +845,29 @@ Operação  : 0x14a7928: mov/math reg, [flag] ; fn=0x14a78e0..0x14a7b0d
         call_0x149d860(this, param_2);
       }
       auto ret_0x4954e70_10 = call_0x4954e70(global_0x84aadfc);
-      param_2->field_0x18 = (param_2->field_0x8->field_0x178 - param_2->field_0x8->field_0x170) >> 3;
+      local_0x58 = ret_0x4954e70_10;
+      param_2->field_0x18 = (int64_t)(param_2->field_0x8->field_0x178 - param_2->field_0x8->field_0x170) >> 3;
+      uint64_t local_0x60;
+      local_0x60 = param_2;
       void* v_rsi_1 = param_2->field_0x10;
-      int64_t local_0x60;
       if (param_2->field_0x8->field_0x178 != param_2->field_0x8->field_0x180) {
         param_2->field_0x8->field_0x178->field_0x0 = param_2;
         param_2->field_0x8->field_0x178 = param_2->field_0x8->field_0x178 + 8;
       } else {
         void* prev_0x10_4 = param_2->field_0x10;
-        local_0x60 = param_2;
         call_0x99e480(&param_2->field_0x8->field_0x170, param_2->field_0x8->field_0x178, &local_0x60);
         v_rsi_1 = prev_0x10_4;
       }
       if (v_rsi_1 == param_2->field_0x8) {
-        param_2->field_0x18 = (v_rsi_1->field_0x178 - v_rsi_1->field_0x170) >> 3;
+        param_2->field_0x18 = (int64_t)(v_rsi_1->field_0x178 - v_rsi_1->field_0x170) >> 3;
       } else {
-        param_2->field_0x1c = (v_rsi_1->field_0x178 - v_rsi_1->field_0x170) >> 3;
+        param_2->field_0x1c = (int64_t)(v_rsi_1->field_0x178 - v_rsi_1->field_0x170) >> 3;
       }
+      local_0x60 = param_2;
       if (v_rsi_1->field_0x178 != v_rsi_1->field_0x180) {
         v_rsi_1->field_0x178->field_0x0 = param_2;
         v_rsi_1->field_0x178 = v_rsi_1->field_0x178 + 8;
       } else {
-        local_0x60 = param_2;
         call_0x99e480(&v_rsi_1->field_0x170, v_rsi_1->field_0x178, &local_0x60);
       }
       call_0x4954e70(ret_0x4954e70_10);
@@ -1004,9 +1029,9 @@ Operação  : 0x14a7928: mov/math reg, [flag] ; fn=0x14a78e0..0x14a7b0d
   * "Physics"  [@rdata 0x71ac1c8, ref @0x14a7ae9, key/identifier]
 
 [Co-Flags na mesma função]
-  * DFIntSimACPParallelProcessMidPhaseSerialCutoff = 15 (default)
-  * DFIntParallelBroadPhaseNewSerialCutoff = 15 (default) [vizinha em .data]
-  * DFIntTerrainPhysicsDeferredSquaredTimerCheckInverse = 4 (default) [vizinha em .data]
+  * DFIntSimACPParallelProcessMidPhaseSerialCutoff = 100 (default)
+  * DFIntParallelBroadPhaseNewSerialCutoff = 100 (default) [vizinha em .data]
+  * DFIntTerrainPhysicsDeferredSquaredTimerCheckInverse = 1 (default) [vizinha em .data]
   * DFIntParallelBroadPhaseNewBatchCount = 1 (default) [vizinha em .data]
   * DFFlagSimDeferTerrainWeldRemoval = true (default) [vizinha em .data]
   * DFFlagOptimizePartsInPart = false (default) [vizinha em .data]

@@ -10,12 +10,15 @@ Operação  : 0x3e5840d: mov/math reg, [flag] ; fn=0x3e583f0..0x3e584e7
     Padrão  : FLogSafeAreaInsetChanges = 0 (default) [log, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : (uint8_t)SafeAreaInsetChanges >= 6 && (uint8_t)((uint64_t)SafeAreaInsetChanges >> 8) >= 3
-    Altera  : this->field_0x794
+    Altera  : this->field_0x794, this->field_0x798, this->field_0x79c, this->field_0x7a0
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x3e58157 (in fn_0x3e58130): call 0x3e583f0  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
     [Child @0x3e589b0] Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     [Child @0x3e589b0] Fórmula : (uint8_t)SafeAreaInsetChanges >= 6 && (uint8_t)((uint64_t)SafeAreaInsetChanges >> 8) >= 3
+    [Child @0x3e589b0] Fórmula : *(uint32_t*)((uint8_t*)&SafeAreaInsetChanges + 0x4)
+    [Child @0x3e589b0] Fórmula : *(uint32_t*)((uint8_t*)&SafeAreaInsetChanges + 0x8)
+    [Child @0x3e589b0] Fórmula : *(uint32_t*)((uint8_t*)&SafeAreaInsetChanges + 0xc)
   
   === [Decompilacao C++ da Funcao 0x3e583f0..0x3e584e7] ===
     struct RBX::SafeArea {
@@ -27,13 +30,16 @@ Operação  : 0x3e5840d: mov/math reg, [flag] ; fn=0x3e583f0..0x3e584e7
     };
     
     // Flag defaults: SafeAreaInsetChanges = 0
-    void RBX::SafeArea::func_0x3e583f0(RBX::SafeArea* this, int64_t param_2) {
+    void RBX::SafeArea::func_0x3e583f0(RBX::SafeArea* this, void* param_2) {
       if (this->field_0x791 != 0) {
         if ((uint8_t)SafeAreaInsetChanges >= 6 && (uint8_t)((uint64_t)SafeAreaInsetChanges >> 8) >= 3) {
-          FLog::Log("[FLog::SafeAreaInsetChanges] New safe area insets: left: %.1f, top: %.1f, right: %.1f, bottom: %");
+          FLog::Log("[FLog::SafeAreaInsetChanges] New safe area insets: left: %.1f, top: %.1f, right: %.1f, bottom: %.1f", (double)param_2->field_0x0, (double)param_2->field_0x4);
         }
         if (isnan(this->field_0x794) || isnan(param_2->field_0x0) || this->field_0x794 != param_2->field_0x0 || isnan(this->field_0x798) || isnan(param_2->field_0x4) || this->field_0x798 != param_2->field_0x4 || isnan(this->field_0x79c) || isnan(param_2->field_0x8) || this->field_0x79c != param_2->field_0x8 || isnan(this->field_0x7a0) || isnan(param_2->field_0xc) || this->field_0x7a0 != param_2->field_0xc) {
           this->field_0x794 = param_2->field_0x0;
+          this->field_0x798 = param_2->field_0x4;
+          this->field_0x79c = param_2->field_0x8;
+          this->field_0x7a0 = param_2->field_0xc;
           call_0x3e589b0(this);
           call_0x3e58170(this);
           return;
@@ -55,7 +61,7 @@ Operação  : 0x3e5840d: mov/math reg, [flag] ; fn=0x3e583f0..0x3e584e7
     0x3e58418 | 48 c1 e8 08              | shr rax, 0x8
     0x3e5841c | 3c 03                    | cmp al, 0x3
     0x3e5841e | 72 63                    | jb 0x3e58483
-    0x3e58420 | 48 8d 05 11 00 25 07     | lea rax, [rip + 0x7250011] ; "[FLog::SafeAreaInsetChanges] New safe area insets: left: %.1f, top: %.1f, right: %.1f, bottom: %"
+    0x3e58420 | 48 8d 05 11 00 25 07     | lea rax, [rip + 0x7250011] ; "[FLog::SafeAreaInsetChanges] New safe area insets: left: %.1f, top: %.1f, right: %.1f, bottom: %.1f"
     0x3e58427 | 48 89 44 24 50           | mov qword ptr [rsp + 0x50], rax
     0x3e5842c | 48 8d 4c 24 30           | lea rcx, [rsp + 0x30]
     0x3e58431 | 48 8b 54 24 50           | mov rdx, qword ptr [rsp + 0x50]
@@ -112,6 +118,9 @@ Operação  : 0x3e5840d: mov/math reg, [flag] ; fn=0x3e583f0..0x3e584e7
       /* +0x300 */ float   field_0x300;
       /* +0x304 */ float   field_0x304;
       /* +0x318 */ int32_t field_0x318;
+      /* +0x31c */ uint8_t field_0x31c;
+      /* +0x320 */ uint8_t field_0x320;
+      /* +0x324 */ uint8_t field_0x324;
       /* +0x5b0 */ float   field_0x5b0;
       /* +0x794 */ float   field_0x794;
       /* +0x798 */ float   field_0x798;
@@ -119,53 +128,82 @@ Operação  : 0x3e5840d: mov/math reg, [flag] ; fn=0x3e583f0..0x3e584e7
       /* +0x7a0 */ float   field_0x7a0;
     };
     
-    // Flag defaults: LuaAppEnableHardwareSafeAreaInset3 = true, PlatformUIScale3 = false, DMRecorderRecordGuiServiceScreenContext = true, DMCTMigrateGuiBase2dAbsolutePosition = false, SafeAreaInsetChanges = 0
+    // Flag defaults: LuaAppEnableHardwareSafeAreaInset3 = true, PlatformUIScale3 = false, DMRecorderRecordGuiServiceScreenContext = true, DMCTMigrateGuiBase2dAbsolutePosition = true, SafeAreaInsetChanges = 0
     void SubObj_0x3e589b0::func_0x3e589b0(SubObj_0x3e589b0* this) {
-      float fxmm6_1;
-      float fxmm7_2;
-      if ((global_0x810973c >= 2 && global_0x810973c <= 3) != 0 && this->field_0x304 - this->field_0x2fc > 1.0f && this->field_0x300 - this->field_0x2f8 > this->field_0x304 - this->field_0x2fc) {
-        auto expr_1 = max(this->field_0x79c, this->field_0x794);
-        if (LuaAppEnableHardwareSafeAreaInset3) {
-          fxmm6_1 = expr_1;
-          fxmm7_2 = expr_1;
-        } else {
-          fxmm6_1 = expr_1;
-          fxmm7_2 = expr_1;
-        }
-      } else {
-        fxmm6_1 = this->field_0x79c;
-        fxmm7_2 = this->field_0x794;
-      }
-      float fxmm6_7;
-      float fxmm7_8;
-      if (PlatformUIScale3 && this->field_0x5b0 > 0.0) {
-        if (!isnan(this->field_0x5b0) && !isnan(1.0f)) {
-          if (this->field_0x5b0 != 1.0f) {
-            fxmm6_7 = fxmm6_1 * (1.0f / this->field_0x5b0);
-            fxmm7_8 = fxmm7_2 * (1.0f / this->field_0x5b0);
+      uint64_t local_0x30;
+      local_0x30 = this->field_0x794;
+      uint64_t local_0x34;
+      local_0x34 = this->field_0x798;
+      uint64_t local_0x38;
+      local_0x38 = this->field_0x79c;
+      uint64_t local_0x3c;
+      local_0x3c = this->field_0x7a0;
+      if ((global_0x810973c >= 2 && global_0x810973c <= 3) != 0) {
+        float fxmm6_1;
+        float fxmm7_2;
+        float fxmm8_3;
+        float fxmm9_4;
+        if (this->field_0x304 - this->field_0x2fc > 1.0f && this->field_0x300 - this->field_0x2f8 > this->field_0x304 - this->field_0x2fc) {
+          local_0x34 = this->field_0x798;
+          auto expr_1 = max(this->field_0x79c, this->field_0x794);
+          local_0x30 = expr_1;
+          local_0x38 = expr_1;
+          if (LuaAppEnableHardwareSafeAreaInset3) {
+            local_0x3c = this->field_0x7a0;
+            fxmm6_1 = expr_1;
+            fxmm7_2 = expr_1;
+            fxmm8_3 = this->field_0x798;
+            fxmm9_4 = this->field_0x7a0;
           } else {
-            fxmm6_7 = fxmm6_1;
-            fxmm7_8 = fxmm7_2;
+            local_0x3c = 0.0;
+            fxmm6_1 = expr_1;
+            fxmm7_2 = expr_1;
+            fxmm8_3 = this->field_0x798;
+            fxmm9_4 = 0.0;
           }
         } else {
-          fxmm6_7 = fxmm6_1 * (1.0f / this->field_0x5b0);
-          fxmm7_8 = fxmm7_2 * (1.0f / this->field_0x5b0);
+          local_0x30 = this->field_0x794;
+          local_0x34 = this->field_0x798;
+          local_0x38 = this->field_0x79c;
+          local_0x3c = this->field_0x7a0;
+          fxmm6_1 = local_0x38;
+          fxmm7_2 = local_0x30;
+          fxmm8_3 = local_0x34;
+          fxmm9_4 = this->field_0x7a0;
         }
-      } else {
-        fxmm6_7 = fxmm6_1;
-        fxmm7_8 = fxmm7_2;
-      }
-      this->field_0x318 = fxmm7_8;
-      if (DMRecorderRecordGuiServiceScreenContext) {
-        call_0x8f7ba0(&this->field_0xa8, fxmm7_8);
-        call_0x8f7ca0(&this->field_0xa8, fxmm6_7);
-      }
-      if (DMCTMigrateGuiBase2dAbsolutePosition) {
-        call_0x3e4de10(this);
-      }
-      if ((uint8_t)SafeAreaInsetChanges >= 6 && (uint8_t)((uint64_t)SafeAreaInsetChanges >> 8) >= 3) {
-        FLog::Log("[FLog::SafeAreaInsetChanges] New modified safe area insets: left: %.1f, top: %.1f, right: %.1f, ");
-        return;
+        float fxmm6_8 = fxmm6_1;
+        float fxmm7_9 = fxmm7_2;
+        float fxmm8_10 = fxmm8_3;
+        if (PlatformUIScale3 && this->field_0x5b0 > 0.0) {
+          if (isnan(this->field_0x5b0) || isnan(1.0f) || this->field_0x5b0 != 1.0f) {
+            local_0x30 = fxmm7_2 * (1.0f / this->field_0x5b0);
+            local_0x38 = fxmm6_1 * (1.0f / this->field_0x5b0);
+            local_0x34 = fxmm8_3 * (1.0f / this->field_0x5b0);
+            local_0x3c = fxmm9_4 * (1.0f / this->field_0x5b0);
+            fxmm6_8 = fxmm6_1 * (1.0f / this->field_0x5b0);
+            fxmm7_9 = fxmm7_2 * (1.0f / this->field_0x5b0);
+            fxmm8_10 = fxmm8_3 * (1.0f / this->field_0x5b0);
+          }
+        }
+        this->field_0x318 = local_0x30;
+        this->field_0x31c = local_0x34;
+        this->field_0x320 = local_0x38;
+        this->field_0x324 = local_0x3c;
+        if (DMRecorderRecordGuiServiceScreenContext) {
+          call_0x8f7ba0(&this->field_0xa8, fxmm7_9);
+          call_0x8f7ca0(&this->field_0xa8, fxmm6_8);
+        }
+        if (DMCTMigrateGuiBase2dAbsolutePosition) {
+          call_0x3e4de10(this);
+        }
+        if ((uint8_t)SafeAreaInsetChanges >= 6 && (uint8_t)((uint64_t)SafeAreaInsetChanges >> 8) >= 3) {
+          local_0x30 = SafeAreaInsetChanges;
+          local_0x34 = *(uint32_t*)((uint8_t*)&SafeAreaInsetChanges + 0x4);
+          local_0x38 = *(uint32_t*)((uint8_t*)&SafeAreaInsetChanges + 0x8);
+          local_0x3c = *(uint32_t*)((uint8_t*)&SafeAreaInsetChanges + 0xc);
+          FLog::Log("[FLog::SafeAreaInsetChanges] New modified safe area insets: left: %.1f, top: %.1f, right: %.1f, bottom: %.1f", (double)fxmm7_9, (double)fxmm8_10);
+          return;
+        }
       }
     }
   
@@ -190,7 +228,7 @@ Operação  : 0x3e5840d: mov/math reg, [flag] ; fn=0x3e583f0..0x3e584e7
     0x3e589f8 | 0f 10 01                 | movups xmm0, xmmword ptr [rcx]
     0x3e589fb | 0f 11 45 b0              | movups xmmword ptr [rbp - 0x50], xmm0
     0x3e589ff | 84 c0                    | test al, al
-    0x3e58a01 | 0f 84 82 00 00 00        | je 0x3e58a89 ; [Nanomite Reconstructed: je +0x82 via cfg_exit_block_resolver]
+    0x3e58a01 | 0f 84 c7 01 00 00        | je 0x3e58bce ; [Nanomite Reconstructed: je +0x1c7 via cfg_shared_epilogue_resolver]
     0x3e58a07 | f3 0f 10 8f 04 03 00 00  | movss xmm1, dword ptr [rdi + 0x304]
     0x3e58a0f | f3 0f 5c 8f fc 02 00 00  | subss xmm1, dword ptr [rdi + 0x2fc]
     0x3e58a17 | 0f 2f ca                 | comiss xmm1, xmm2
@@ -280,7 +318,7 @@ Operação  : 0x3e5840d: mov/math reg, [flag] ; fn=0x3e583f0..0x3e584e7
     0x3e58b78 | 3c 03                    | cmp al, 0x3
     0x3e58b7a | 72 52                    | jb 0x3e58bce
     0x3e58b7c | 0f 57 c9                 | xorps xmm1, xmm1
-    0x3e58b7f | 48 8d 05 d5 ae 4d 07     | lea rax, [rip + 0x74daed5] ; "[FLog::SafeAreaInsetChanges] New modified safe area insets: left: %.1f, top: %.1f, right: %.1f, "
+    0x3e58b7f | 48 8d 05 d5 ae 4d 07     | lea rax, [rip + 0x74daed5] ; "[FLog::SafeAreaInsetChanges] New modified safe area insets: left: %.1f, top: %.1f, right: %.1f, bottom: %.1f"
     0x3e58b86 | 41 0f 5a d8              | cvtps2pd xmm3, xmm8
     0x3e58b8a | 48 89 45 10              | mov qword ptr [rbp + 0x10], rax
     0x3e58b8e | 48 8d 4d b0              | lea rcx, [rbp - 0x50]
@@ -319,28 +357,38 @@ Operação  : 0x3e5840d: mov/math reg, [flag] ; fn=0x3e583f0..0x3e584e7
     };
     
     void SubObj_0x3e58170::func_0x3e58170(SubObj_0x3e58170* this) {
+      uint64_t local_0x30;
       call_0x746610(&local_0x30, &sym_0x818a3a0);
       if (this->field_0x483 == 0) {
+        uint64_t local_0x378;
         auto ret_0x2db5740_2 = call_0x2db5740(&local_0x378);
         if ((uint8_t)ret_0x2db5740_2 == 0) {
           auto ret_0x4062490_3 = call_0x4062490(this);
           if (ret_0x4062490_3 != 0) {
             auto ret_0x4061a70_4 = call_0x4061a70(ret_0x4062490_3);
+            uint64_t local_0x310;
             if ((uint8_t)ret_0x4061a70_4 != 0) {
               L_0x3e581e9:
               this->field_0x483 = 1;
-              call_0x2dbd800(&local_0x310, std::string_view("Left", 4), (double)this->field_0x794, 1);
-              call_0x2dbd800(&local_0x310, std::string_view("Top", 3), (double)this->field_0x798, 1);
-              call_0x2dbd800(&local_0x310, std::string_view("Right", 5), (double)this->field_0x79c, 1);
-              call_0x2dbd800(&local_0x310, std::string_view("Bottom", 6), (double)this->field_0x7a0, 1);
-              call_0x2dbd800(&local_0x310, std::string_view("ViewportWidth", 13), (double)(this->field_0x300 - this->field_0x2f8), 1);
-              call_0x2dbd800(&local_0x310, std::string_view("ViewportHeight", 14), (double)(this->field_0x304 - this->field_0x2fc), 1);
+              call_0x2dbd800(&local_0x310, std::string_view("Left", 4), (double)this->field_0x794);
+              call_0x2dbd800(&local_0x310, std::string_view("Top", 3), (double)this->field_0x798);
+              call_0x2dbd800(&local_0x310, std::string_view("Right", 5), (double)this->field_0x79c);
+              call_0x2dbd800(&local_0x310, std::string_view("Bottom", 6), (double)this->field_0x7a0);
+              auto local_0x20 = "splaySize";
+              auto local_0x28 = 13;
+              call_0x2dbd800(&local_0x310, &local_0x20, (double)(this->field_0x300 - this->field_0x2f8));
+              local_0x20 = "GameLoaded_ReportHundredthsPercent";
+              local_0x28 = 14;
+              call_0x2dbd800(&local_0x310, &local_0x20, (double)(this->field_0x304 - this->field_0x2fc));
+              uint64_t local_0x358;
               call_0x2db2c00(&local_0x358);
             }
             L_0x3e58399:
+            uint64_t local_0x330;
             call_0x6f5b70(&local_0x330);
             call_0x6f5b70(&local_0x310);
             call_0x6e41c0(&local_0x310);
+            uint64_t local_0x58;
             call_0x6f8fb0(&local_0x58);
             return;
           }
@@ -426,7 +474,7 @@ Operação  : 0x3e5840d: mov/math reg, [flag] ; fn=0x3e583f0..0x3e584e7
     0x3e582f8 | f3 0f 10 83 00 03 00 00  | movss xmm0, dword ptr [rbx + 0x300]
     0x3e58300 | f3 0f 5c 83 f8 02 00 00  | subss xmm0, dword ptr [rbx + 0x2f8]
     0x3e58308 | 0f 5a d0                 | cvtps2pd xmm2, xmm0
-    0x3e5830b | 48 8d 05 7e 14 5c 03     | lea rax, [rip + 0x35c147e] ; "ViewportWidth"
+    0x3e5830b | 48 8d 05 7e 14 5c 03     | lea rax, [rip + 0x35c147e] ; "splaySize"
     0x3e58312 | 48 89 44 24 20           | mov qword ptr [rsp + 0x20], rax
     0x3e58317 | 48 c7 44 24 28 0d 00 00.. | mov qword ptr [rsp + 0x28], 0xd
     0x3e58320 | 0f 28 44 24 20           | movaps xmm0, xmmword ptr [rsp + 0x20]
@@ -438,7 +486,7 @@ Operação  : 0x3e5840d: mov/math reg, [flag] ; fn=0x3e583f0..0x3e584e7
     0x3e58342 | f3 0f 10 83 04 03 00 00  | movss xmm0, dword ptr [rbx + 0x304]
     0x3e5834a | f3 0f 5c 83 fc 02 00 00  | subss xmm0, dword ptr [rbx + 0x2fc]
     0x3e58352 | 0f 5a d0                 | cvtps2pd xmm2, xmm0
-    0x3e58355 | 48 8d 05 1c 15 5c 03     | lea rax, [rip + 0x35c151c] ; "ViewportHeight"
+    0x3e58355 | 48 8d 05 1c 15 5c 03     | lea rax, [rip + 0x35c151c] ; "GameLoaded_ReportHundredthsPercent"
     0x3e5835c | 48 89 44 24 20           | mov qword ptr [rsp + 0x20], rax
     0x3e58361 | 48 c7 44 24 28 0e 00 00.. | mov qword ptr [rsp + 0x28], 0xe
     0x3e5836a | 0f 28 44 24 20           | movaps xmm0, xmmword ptr [rsp + 0x20]
@@ -483,6 +531,7 @@ Operação  : 0x3e5840d: mov/math reg, [flag] ; fn=0x3e583f0..0x3e584e7
       auto local_0x20 = param_2;
       auto local_0x24 = param_3;
       auto local_0x28 = param_4;
+      uint64_t local_0x60;
       auto local_0x2c = local_0x60;
       call_0x3e583f0(this, &local_0x20);
     }
@@ -502,11 +551,11 @@ Operação  : 0x3e5840d: mov/math reg, [flag] ; fn=0x3e583f0..0x3e584e7
   * FFlagLuaAppEnableHardwareSafeAreaInset3 = true (default)
   * FFlagPlatformUIScale3 = false (default)
   * FFlagDMRecorderRecordGuiServiceScreenContext = true (default)
-  * FFlagDMCTMigrateGuiBase2dAbsolutePosition = false (default)
-  * DFIntReportUIStylingUpdateTimeSampleInterval = 100 (default) [vizinha em .data]
+  * FFlagDMCTMigrateGuiBase2dAbsolutePosition = true (default)
+  * DFIntReportUIStylingUpdateTimeSampleInterval = 2147483647 (default) [vizinha em .data]
   * DFIntUIPerfSplitCoreDev_ReportHundredthsPercent2 = 10 (default) [vizinha em .data]
-  * FFlagReportUIOcclusionMetrics6 = true (default) [vizinha em .data]
-  * FIntUIOcclusionMetricsReportingPeriodSeconds = 60 (default) [vizinha em .data]
+  * FFlagReportUIOcclusionMetrics6 = false (default) [vizinha em .data]
+  * FIntUIOcclusionMetricsReportingPeriodSeconds = 0 (default) [vizinha em .data]
   * DFIntGuiServiceChromeSignalAPIAnalytics_ReportHundredthsPercent = 10000 (default) [vizinha em .data]
   * DFIntGuiServiceSetMenuOpenTelemetry_ReportHundredthsPercent = 500 (default) [vizinha em .data]
   * DFIntGuiServiceMenuConnectionTelemetry_ReportHundredthsPercent = 500 (default) [vizinha em .data]

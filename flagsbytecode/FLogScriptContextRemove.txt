@@ -10,6 +10,10 @@ Operação  : 0x412e465: mov/math reg, [flag] ; fn=0x412e3e0..0x412e548
     Padrão  : FLogScriptContextRemove = 0 (default) [log, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : (uint8_t)ScriptContextRemove >= 6 && (uint8_t)((uint64_t)ScriptContextRemove >> 8) >= 3
+    Fórmula : "[FLog::ScriptContextRemove] LoaderFacet::removeScript -- %s"
+    Fórmula : *(uint32_t*)((uint8_t*)&ScriptContextRemove + 0x4)
+    Fórmula : *(uint32_t*)((uint8_t*)&ScriptContextRemove + 0x8)
+    Fórmula : *(uint32_t*)((uint8_t*)&ScriptContextRemove + 0xc)
   
   === [Decompilacao C++ da Funcao 0x412e3e0..0x412e548] ===
     struct RBX::ScriptContext {
@@ -17,35 +21,65 @@ Operação  : 0x412e465: mov/math reg, [flag] ; fn=0x412e3e0..0x412e548
     };
     
     // Flag defaults: ScriptContextRemove = 0
-    void RBX::ScriptContext::func_0x412e3e0(RBX::ScriptContext* this, int64_t param_2) {
-      void* stk_1;
-      void* stk_2;
-      if (param_2->field_0x8 != 0 && param_2->field_0x8->field_0x8 != 0) {
-        do { // L_0x412e440
-          atomic_try_incref(&param_2->field_0x8->field_0x8);
-          if (atomic_cas(&param_2->field_0x8->field_0x8, param_2->field_0x8->field_0x8, param_2->field_0x8->field_0x8 + 1) == 0) break;
-        } while (param_2->field_0x8->field_0x8 != 0); // loop -> L_0x412e440
-        stk_1 = 0.0;
-        stk_2 = 0.0;
-      } else {
-        stk_1 = 0.0;
-        stk_2 = 0.0;
-      }
-      if (stk_1 != 0) {
-        if ((uint8_t)ScriptContextRemove >= 6 && (uint8_t)((uint64_t)ScriptContextRemove >> 8) >= 3) {
-          FLog::Log("[FLog::ScriptContextRemove] LoaderFacet::removeScript -- %s");
+    void RBX::ScriptContext::func_0x412e3e0(RBX::ScriptContext* this, void* param_2) {
+      uint64_t local_0x70;
+      if (this->field_0x15e8 < 3) {
+        uint64_t local_0x20;
+        local_0x20 = param_2->field_0x0;
+        void* local_0x28;
+        local_0x28 = param_2->field_0x8;
+        param_2->field_0x0 = 0;
+        void* prev_0x8_1 = param_2->field_0x8;
+        param_2->field_0x8 = 0;
+        void* local_0x30;
+        local_0x30 = 0.0;
+        float fstk_1;
+        if (prev_0x8_1 != 0 && param_2->field_0x8->field_0x8 != 0) {
+          int32_t i_eax = param_2->field_0x8->field_0x8;
+          do { // L_0x412e440
+            if (atomic_cas(&param_2->field_0x8->field_0x8, i_eax, i_eax + 1)) {
+              local_0x30 = local_0x20;
+              fstk_1 = local_0x28;
+              break;
+            }
+          } while (i_eax != 0); // loop -> L_0x412e440
+          fstk_1 = 0.0;
+        } else {
+          fstk_1 = 0.0;
         }
-        call_0x41fb730(&this->field_0xa18, stk_1);
+        if (local_0x30 != 0) {
+          if ((uint8_t)ScriptContextRemove >= 6 && (uint8_t)((uint64_t)ScriptContextRemove >> 8) >= 3) {
+            local_0x70 = "[FLog::ScriptContextRemove] LoaderFacet::removeScript -- %s";
+            auto local_0x40 = ScriptContextRemove;
+            auto local_0x44 = *(uint32_t*)((uint8_t*)&ScriptContextRemove + 0x4);
+            auto local_0x48 = *(uint32_t*)((uint8_t*)&ScriptContextRemove + 0x8);
+            auto local_0x4c = *(uint32_t*)((uint8_t*)&ScriptContextRemove + 0xc);
+            call_0x49722e0(&local_0x40, local_0x70 - 0xa4639a, local_0x30->field_0x68);
+          }
+          call_0x41fb730(&this->field_0xa18, local_0x30);
+        }
+        if (fstk_1 != 0) {
+          call_0x6daf40(fstk_1);
+        }
+        if (local_0x28 != 0) {
+          int32_t atomic_5 = atomic_fetch_sub(&local_0x28->field_0xc, 1);
+          if (atomic_5 == 1) {
+            local_0x28->vfunc_0x8(local_0x28, param_2->field_0x0);
+          }
+        }
+        if (param_2->field_0x8 != 0) {
+          int32_t atomic_7 = atomic_fetch_sub(&param_2->field_0x8->field_0xc, 1);
+          if (atomic_7 == 1) {
+            param_2->field_0x8->vfunc_0x8(param_2->field_0x0);
+            return;
+          }
+          return;
+        }
+        return;
       }
-      if (stk_2 != 0) {
-        call_0x6daf40(stk_2);
-      }
-      if (param_2->field_0x8 != 0 && atomic_fetch_sub(&param_2->field_0x8->field_0xc, 1) == 1) {
-        param_2->field_0x8->vfunc_0x8(param_2->field_0x8);
-      }
-      if (param_2->field_0x8 != 0 && atomic_fetch_sub(&param_2->field_0x8->field_0xc, 1) == 1) {
-        param_2->field_0x8->vfunc_0x8();
-      }
+      local_0x70 = "Invalid Facet Access";
+      call_0x4971090(0, local_0x70 - 0x24d9);
+      return; // noreturn
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -163,30 +197,51 @@ Operação  : 0x412e465: mov/math reg, [flag] ; fn=0x412e3e0..0x412e548
   
   === [Sub-Rotina Chamada: 0x41fb730..0x41fb907 via call @0x412e4bf (Direct Engine Sub-Call)] ===
     // Flag defaults: ScriptContext = 0, DebugExecutionCountersEnabled = false
-    void SubObj_0x41fb730::func_0x41fb730(SubObj_0x41fb730* this, int64_t param_2) {
+    void SubObj_0x41fb730::func_0x41fb730(SubObj_0x41fb730* this, void* param_2) {
       if (param_2->field_0x150 != 0) {
         if ((uint8_t)ScriptContext >= 6 && (uint8_t)((uint64_t)ScriptContext >> 8) >= 3) {
-          FLog::Log("[FLog::ScriptContext] LoaderFacet::disassociateState -- %s");
+          FLog::Log("[FLog::ScriptContext] LoaderFacet::disassociateState -- %s", param_2->field_0x68);
         }
-        void* sel_r12_1 = this == 0 ? 4960 : this->field_0xac0;
+        void* sel_r12_1 = this == 0 ? 4960 : &this->field_0xac0;
+        uint64_t local_0x40;
         param_2->vfunc_0x290(param_2, &local_0x40);
+        uint64_t local_0x50;
         if (local_0x50 != 0) {
+          uint64_t local_0x30;
           auto ret_0x42969c0_2 = call_0x42969c0(sel_r12_1, &local_0x30, &local_0x40);
           if (ret_0x42969c0_2->field_0x0->field_0x58 != ret_0x42969c0_2->field_0x0->field_0x60) {
-            void* i_r8d = ret_0x42969c0_2->field_0x0->field_0x58;
+            uint8_t* i_r8d = ret_0x42969c0_2->field_0x0->field_0x58;
             do { // L_0x41fb810
-              if (i_r8d->field_0x0 == param_2) break;
+              if (i_r8d->field_0x0 == param_2) {
+                call_0xe307a0(i_r8d + 0x10, ret_0x42969c0_2->field_0x0->field_0x60, i_r8d);
+                if (ret_0x42969c0_2->field_0x0->field_0x60->field_m0x8 != 0) {
+                  int32_t atomic_4 = atomic_fetch_sub(&ret_0x42969c0_2->field_0x0->field_0x60->field_m0x8->field_0x8, 1);
+                  if (atomic_4 == 1) {
+                    void* mem_2_2 = ret_0x42969c0_2->field_0x0->field_0x60->field_m0x8;
+                    ret_0x42969c0_2->field_0x0->field_0x60->field_m0x8->vfunc_0x0(mem_2_2);
+                    int32_t atomic_6 = atomic_fetch_sub(&ret_0x42969c0_2->field_0x0->field_0x60->field_m0x8->field_0xc, 1);
+                    if (atomic_6 == 1) {
+                    ret_0x42969c0_2->field_0x0->field_0x60->field_m0x8->vfunc_0x8(mem_2_2);
+                    }
+                  }
+                }
+                ret_0x42969c0_2->field_0x0->field_0x60 = ret_0x42969c0_2->field_0x0->field_0x60 - 0x10;
+                if (ret_0x42969c0_2->field_0x0->field_0x58 == ret_0x42969c0_2->field_0x0->field_0x60) {
+                  call_0x4296340(sel_r12_1, &local_0x40);
+                }
+                break;
+              }
               i_r8d = i_r8d + 0x10;
-            } while (i_r8d + 0x10 != ret_0x42969c0_2->field_0x0->field_0x60); // loop -> L_0x41fb810
+            } while (i_r8d != ret_0x42969c0_2->field_0x0->field_0x60); // loop -> L_0x41fb810
           }
         }
         if (DebugExecutionCountersEnabled) {
-          void* sel_rcx_2 = this == 0 ? 3976 : this->field_0x6e8;
+          void* sel_rcx_2 = this == 0 ? 3976 : &this->field_0x6e8;
           call_0x4289060(sel_rcx_2, param_2);
         }
         call_0x40ecfb0(param_2->field_0x150);
-        call_0x415eb30(&param_2->field_0x150);
-        call_0x7385b0(&param_2->field_0x160);
+        call_0x415eb30(param_2 + 0x150);
+        call_0x7385b0(param_2 + 0x160);
       }
     }
   
@@ -312,51 +367,27 @@ Operação  : 0x412e465: mov/math reg, [flag] ; fn=0x412e3e0..0x412e548
     0x41fb906 | c3                       | ret
   
   === [Estrutura RTTI & VTable da Classe (RBX::ScriptContext)] ===
-    VTable  : 0x6fc64d8 (offset +0x0, 45 slots virtuais)
-    Herança : RBX::FunctionDescriptor, RBX::MemberDescriptor, RBX::Descriptor
-    +0x0 -> fn_0xe86580
-    +0x8 -> fn_0xe86560
-    +0x10 -> fn_0xe86540
-    +0x18 -> fn_0xe3fe20
-    +0x8 -> fn_0xe86600
-    +0x38 -> fn_0xe86860
-    +0x8 -> fn_0xe86870
-    +0x38 -> fn_0xe86ad0
-    +0x0 -> fn_0x412cbe0
+    VTable  : 0x7118b80 (offset +0x0, 36 slots virtuais)
+    Herança : RBX::ServiceInstance, RBX::Instance, RBX::Object, RBX::DescribedBase, RBX::EventSource, RBX::enable_shared_from_this (+0x8), RBX::GuidItem (+0x28), RBX::ObjectProp (+0x38), RBX::Noncopyable (+0x38), RBX::Diagnostics::Countable (+0x58), RBX::InstanceProp (+0x58), RBX::Service (+0x98)
+    +0x0 -> fn_0x4131310
     +0x8 -> fn_0x1c1f1a0
     +0x10 -> fn_0x1c396e0
     +0x18 -> fn_0x1c44010
     +0x38 -> fn_0x41311b0
     +0x40 -> fn_0x1c3dbf0
-    +0x48 -> fn_0xe86370
     +0x50 -> fn_0x1c432c0
+    +0x78 -> fn_0x1c3cdf0
+    +0x88 -> fn_0x1c49aa0
+    +0x90 -> fn_0x1c3d010
+    +0xb0 -> fn_0x1c43930
+    +0xc0 -> fn_0x1c43cb0
+    +0xd0 -> fn_0x1c3da30
+    +0xd8 -> fn_0x1c439b0
+    +0xe0 -> fn_0x1c451b0
+    +0xf8 -> fn_0x1c3d9d0
   
-  === [Decompilacao de Metodo da Classe RBX::ScriptContext: 0x412cbe0..0x412ccd0 (vfunc_0x0)] ===
-    struct RBX::ScriptContext {
-      /* +0x0 */ void*   field_0x0;
-      /* +0x98 */ void*   field_0x98;
-      /* +0xa8 */ void*   field_0xa8;
-      /* +0x148 */ void*   field_0x148;
-      /* +0x15e8 */ int32_t field_0x15e8;
-    };
-    
-    auto RBX::ScriptContext::func_0x412cbe0(RBX::ScriptContext* this, int64_t param_2) {
-      this->field_0x0 = &sym_0x7118e40;
-      this->field_0x98 = &sym_0x71190f8;
-      this->field_0xa8 = &sym_0x7118e30;
-      call_0x6db7e0(&this->field_0x150);
-      if (((uint8_t)this->field_0x148 & 0x1) == 0) {
-        call_0xcca0(&this->field_0x148);
-      }
-      call_0x6f5be0(&this->field_0x120);
-      call_0x36522e0(&this->field_0x110);
-      call_0x6f6690(&this->field_0xe8);
-      call_0x6f6690(&this->field_0xe0);
-      call_0x6f6690(&this->field_0xd8);
-      call_0x6f6690(&this->field_0xd0);
-      call_0x6f6690(&this->field_0xc8);
-      call_0x6f6690(&this->field_0xc0);
-      call_0x6f6690(&this->field_0xb8);
+  === [Decompilacao de Metodo da Classe RBX::ScriptContext: 0x4131310..0x4131340 (vfunc_0x0)] ===
+    auto RBX::ScriptContext::func_0x4131310(RBX::ScriptContext* this, int64_t param_2) {
       call_0x41311e0(this);
       if (((uint8_t)param_2 & 0x1) != 0) {
         call_0x4955ac0(this);
@@ -367,34 +398,58 @@ Operação  : 0x412e465: mov/math reg, [flag] ; fn=0x412e3e0..0x412e548
   === [Decompilacao de Metodo da Classe RBX::ScriptContext: 0x1c44010..0x1c44138 (vfunc_0x18)] ===
     struct RBX::Instance {
       /* +0x48 */ void*   field_0x48;
-      /* +0x60 */ void*   field_0x60;
+      /* +0x60 */ uint64_t field_0x60;
     };
     
     // Flag defaults: CheckEngineContextOnInstanceAccess2 = false
-    void RBX::Instance::func_0x1c44010(RBX::Instance* this, int64_t param_2, void* param_3, void* param_4) {
+    void RBX::Instance::func_0x1c44010(RBX::Instance* this, int64_t param_2, int64_t param_3, int64_t param_4) {
       if (this->field_0x60 != 0) {
-        (*global_0x80f4c48)(this);
-      }
-      auto ret_0x4956040_2 = call_0x4956040(24);
-      auto ret_0xffc540_3 = call_0xffc540(ret_0x4956040_2, param_3);
-      call_0xd29440(&local_0x40, ret_0xffc540_3);
-      auto* f_48 = this->field_0x48;
-      if (f_48 != 0 && f_48->field_0x8 != 0) {
-        auto ret_0xc700_5 = call_0xc700(global_0x84cf408, 1);
-        if (ret_0xc700_5->field_0x0 == 0) {
-          auto local_0x20 = 3;
-          call_0x7d7f00(this->field_0x48, &local_0x20, &local_0x28);
-        } else {
-          call_0x49710d0("Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel ", &sym_0x6647145);
+        void* v_rax_1 = global_0x80f4c48;
+        if (!CheckEngineContextOnInstanceAccess2) {
+          v_rax_1 = global_0x80f4c50;
         }
+        (*v_rax_1)(this);
       }
-      if (local_0x48 != 0) {
-        call_0x6daf40(local_0x48);
+      uint64_t local_0x30;
+      local_0x30 = &sym_0x70375b0;
+      auto ret_0x4956040_2 = call_0x4956040(24);
+      uint64_t local_0x60;
+      if (ret_0x4956040_2 != 0) {
+        uint64_t local_0x28;
+        local_0x28 = ret_0x4956040_2;
+        auto ret_0xffc540_3 = call_0xffc540(ret_0x4956040_2, param_3);
+        uint64_t local_0x40;
+        call_0xd29440(&local_0x40, ret_0xffc540_3);
+        local_0x28 = &local_0x30;
+        uint64_t local_0x20;
+        local_0x20 = 3;
+        auto* f_48 = this->field_0x48;
+        if (f_48 != 0 && f_48->field_0x8 != 0) {
+          auto ret_0xc700_5 = call_0xc700(global_0x84cf408, 1);
+          if (ret_0xc700_5->field_0x0 == 0) {
+            auto local_0x38 = param_2;
+            call_0x7d7f00(this->field_0x48, &local_0x20, &local_0x28);
+          } else {
+            call_0x49710d0("Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel execution.", &sym_0x6647145);
+            call_0x6ca7d0(&local_0x60);
+            call_0x5e066f0(&local_0x60, &sym_0x80cbbc0);
+            return; // noreturn
+          }
+        }
+        uint64_t local_0x48;
+        if (local_0x48 != 0) {
+          call_0x6daf40(local_0x48);
+          return;
+        }
+        return;
       }
+      call_0x6ca7d0(&local_0x60);
+      call_0x5e066f0(&local_0x60, &sym_0x80cbbc0);
+      return; // noreturn
     }
   
   === [Decompilacao de Metodo da Classe RBX::ScriptContext: 0x41311b0..0x41311d5 (vfunc_0x38)] ===
-    void RBX::ServiceInstance::ScriptContext::func_0x41311b0(RBX::ServiceInstance::ScriptContext* this) {
+    void RBX::ScriptContext::func_0x41311b0(RBX::ScriptContext* this) {
       if (global_0x8cd42d8 == 0) {
         auto ret_0xe86440_1 = call_0xe86440(this);
         global_0x8cd42d8 = ret_0xe86440_1->field_0x8;
@@ -405,16 +460,14 @@ Operação  : 0x412e465: mov/math reg, [flag] ; fn=0x412e3e0..0x412e548
   * "[FLog::ScriptContextRemove] LoaderFacet::removeScript -- %s"  [@rdata 0x7437878, ref @0x412e489, FLog format]
   * "Invalid Facet Access"  [@rdata 0x7225a28, ref @0x412e53a, literal, 20B]
   * "[FLog::ScriptContext] LoaderFacet::disassociateState -- %s"  [@rdata 0x74383c8, ref @0x41fb781, FLog format]
-  * "Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel "  [@rdata 0x7280e40, ref @0x1c44110, literal, 96B]
 
 [Co-Flags na mesma função]
   * FLogScriptContext = 0 (default)
   * FFlagDebugExecutionCountersEnabled = false (default)
-  * DFFlagCheckEngineContextOnInstanceAccess2 = false (default)
-  * FLogCoreScripts = 1 (default) [vizinha em .data]
+  * FLogCoreScripts = 0 (default) [vizinha em .data]
   * FLogWeakThreadRef = 0 (default) [vizinha em .data]
-  * FLogScriptContextClose = 1 (default) [vizinha em .data]
+  * FLogScriptContextClose = 0 (default) [vizinha em .data]
   * FLogScriptContextAdd = 0 (default) [vizinha em .data]
   * FLogLegacyLock = 0 (default) [vizinha em .data]
   * FLogDisableInvalidateOnUnbind = 0 (default) [vizinha em .data]
-  * FLogMegaClusterNetworkInit = 1 (default) [vizinha em .data]
+  * FLogMegaClusterNetworkInit = 0 (default) [vizinha em .data]

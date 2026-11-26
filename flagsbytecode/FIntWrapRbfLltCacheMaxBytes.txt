@@ -9,7 +9,7 @@ Operação  : 0x1c9c64e: mov/math reg, [flag] ; fn=0x1c9c630..0x1c9c75e
     Classe  : RBX::WrapRbf (Inferido)
     Padrão  : FIntWrapRbfLltCacheMaxBytes = 1048576 (default) [int, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : this->field_0x38 - this->field_0x40 > WrapRbfLltCacheMaxBytes > 0 ? WrapRbfLltCacheMaxBytes : this->field_0x40 > param_2
+    Fórmula : this->field_0x38 - this->field_0x40 > (WrapRbfLltCacheMaxBytes > 0 ? WrapRbfLltCacheMaxBytes : 0) || this->field_0x40 > param_2
     Altera  : this->field_0x38, this->field_0x40, this->field_0x48, this->field_0x8
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
@@ -19,10 +19,10 @@ Operação  : 0x1c9c64e: mov/math reg, [flag] ; fn=0x1c9c630..0x1c9c75e
   === [Decompilacao C++ da Funcao 0x1c9c630..0x1c9c75e] ===
     struct RBX::WrapRbf {
       /* +0x0 */ void*   field_0x0;
-      /* +0x8 */ void*   field_0x8;
-      /* +0x38 */ void*   field_0x38;
-      /* +0x40 */ void*   field_0x40;
-      /* +0x48 */ void*   field_0x48;
+      /* +0x8 */ uint64_t field_0x8;
+      /* +0x38 */ uint64_t field_0x38;
+      /* +0x40 */ uint64_t field_0x40;
+      /* +0x48 */ uint64_t field_0x48;
     };
     
     // Flag defaults: WrapRbfLltCacheMaxBytes = 1048576
@@ -30,11 +30,17 @@ Operação  : 0x1c9c64e: mov/math reg, [flag] ; fn=0x1c9c630..0x1c9c75e
       auto* f_0 = this->field_0x0;
       void* i_ebx = f_0->field_0x0;
       if (f_0->field_0x0 != f_0) {
-        void* v_rbx_1;
         do { // L_0x1c9c670
-          if (this->field_0x38 - this->field_0x40 > WrapRbfLltCacheMaxBytes > 0 ? WrapRbfLltCacheMaxBytes : this->field_0x40 > param_2) {
-            if (this->field_0x40 <= param_2) {
-              v_rbx_1 = i_ebx->field_0x0;
+          if (this->field_0x38 - this->field_0x40 > (WrapRbfLltCacheMaxBytes > 0 ? WrapRbfLltCacheMaxBytes : 0) || this->field_0x40 > param_2) {
+            bool cond_1;
+            if (i_ebx->field_0x30 != 0) {
+              cond_1 = this->field_0x40 > param_2;
+            } else {
+              cond_1 = this->field_0x38 - this->field_0x40 > (WrapRbfLltCacheMaxBytes > 0 ? WrapRbfLltCacheMaxBytes : 0);
+            }
+            void* v_rbx_3;
+            if (cond_1 <= 0) {
+              v_rbx_3 = i_ebx->field_0x0;
             } else {
               this->field_0x38 = this->field_0x38 - i_ebx->field_0x18;
               if (i_ebx->field_0x30 != 0) {
@@ -45,21 +51,29 @@ Operação  : 0x1c9c64e: mov/math reg, [flag] ; fn=0x1c9c630..0x1c9c75e
               i_ebx->field_0x8->field_0x0 = i_ebx->field_0x0;
               i_ebx->field_0x0->field_0x8 = i_ebx->field_0x8;
               this->field_0x8--;
-              if (i_ebx->field_0x28 != 0 && atomic_fetch_sub(&i_ebx->field_0x28->field_0x8, 1) == 1) {
-                void* prev_0x28_4 = i_ebx->field_0x28;
-                i_ebx->field_0x28->vfunc_0x0(prev_0x28_4);
-                if (atomic_fetch_sub(&i_ebx->field_0x28->field_0xc, 1) == 1) {
-                  i_ebx->field_0x28->vfunc_0x8(prev_0x28_4);
+              void* v_rbp_2 = i_ebx->field_0x0;
+              if (i_ebx->field_0x28 != 0) {
+                int32_t atomic_2 = atomic_fetch_sub(&i_ebx->field_0x28->field_0x8, 1);
+                if (atomic_2 == 1) {
+                  void* prev_0x0_3 = i_ebx->field_0x0;
+                  void* prev_0x28_4 = i_ebx->field_0x28;
+                  i_ebx->field_0x28->vfunc_0x0(prev_0x28_4);
+                  int32_t atomic_4 = atomic_fetch_sub(&i_ebx->field_0x28->field_0xc, 1);
+                  if (atomic_4 == 1) {
+                    i_ebx->field_0x28->vfunc_0x8(prev_0x28_4);
+                    v_rbp_2 = prev_0x0_3;
+                  } else {
+                    v_rbp_2 = prev_0x0_3;
+                  }
                 }
               }
-              void* prev_0x0_5 = i_ebx->field_0x0;
               call_0x4955ac0(i_ebx);
-              v_rbx_1 = prev_0x0_5;
+              v_rbx_3 = v_rbp_2;
             }
-            i_ebx = v_rbx_1;
+            i_ebx = v_rbx_3;
           }
           return;
-        } while (v_rbx_1 != this->field_0x0); // loop -> L_0x1c9c670
+        } while (i_ebx != this->field_0x0); // loop -> L_0x1c9c670
       }
     }
   
@@ -167,87 +181,133 @@ Operação  : 0x1c9c64e: mov/math reg, [flag] ; fn=0x1c9c630..0x1c9c75e
   === [Decompilacao da Rotina Chamadora (Caller): 0x1c9c760..0x1c9ca99 em RBX::WrapRbf] ===
     struct RBX::WrapRbf {
       /* +0x0 */ void*   field_0x0;
-      /* +0x8 */ void*   field_0x8;
+      /* +0x8 */ uint64_t field_0x8;
       /* +0x10 */ int32_t field_0x10;
       /* +0x14 */ int32_t field_0x14;
       /* +0x18 */ void*   field_0x18;
-      /* +0x20 */ void*   field_0x20;
+      /* +0x20 */ uint64_t field_0x20;
       /* +0x28 */ int32_t field_0x28;
       /* +0x2c */ int32_t field_0x2c;
-      /* +0x38 */ void*   field_0x38;
-      /* +0x40 */ void*   field_0x40;
-      /* +0x48 */ void*   field_0x48;
+      /* +0x38 */ uint64_t field_0x38;
+      /* +0x40 */ uint64_t field_0x40;
+      /* +0x48 */ uint64_t field_0x48;
     };
     
     // Flag defaults: SplitHashNoRehashOnExistingKey = true
-    void RBX::WrapRbf::func_0x1c9c760(RBX::WrapRbf* this, int64_t param_2, void* param_3, void* param_4) {
-      auto local_0x10 = param_2;
-      call_0x18658d0(&this->field_0x10, &local_0x20, &local_0xb8);
+    void RBX::WrapRbf::func_0x1c9c760(RBX::WrapRbf* this, int64_t param_2, void* param_3, int64_t param_4) {
+      void* local_0x20;
+      call_0x18658d0(&this->field_0x10, &local_0x20);
+      uint64_t local_0xd0;
+      uint64_t local_0x28;
       if (local_0x20 == 0 && local_0x28 == 0) {
         void* prev_0x0_4 = param_3->field_0x0;
         param_3->field_0x0 = 0;
         void* prev_0x8_5 = param_3->field_0x8;
         param_3->field_0x8 = 0;
-        auto ret_0x4956040_4 = call_0x4956040(56);
-        if (ret_0x4956040_4 != 0) {
-          ret_0x4956040_4->field_0x10 = local_0xb8;
-          ret_0x4956040_4->field_0x18 = param_4;
-          ret_0x4956040_4->field_0x20 = prev_0x0_4;
-          ret_0x4956040_4->field_0x28 = prev_0x8_5;
-          ret_0x4956040_4->field_0x30 = local_0xd0;
-          this->field_0x8++;
-          auto* f_0 = this->field_0x0;
-          ret_0x4956040_4->field_0x0 = f_0;
-          ret_0x4956040_4->field_0x8 = f_0->field_0x8;
-          f_0->field_0x8 = ret_0x4956040_4;
-          f_0->field_0x8->field_0x0 = ret_0x4956040_4;
-          void* v_rbx_2 = f_0->field_0x8;
-          if (global_0x84a44d6 != 0 && SplitHashNoRehashOnExistingKey) {
-            if (this->field_0x14 == 0) {
-              void* prev_0x8_9 = f_0->field_0x8;
-              call_0x1248ce0(&this->field_0x10, 16);
-              v_rbx_2 = prev_0x8_9;
-            } else {
-              if (this->field_0x10 + this->field_0x18->field_0x8[(1 << this->field_0x2c) * 4] * 4 >= 1 << this->field_0x2c) {
-                void* prev_0x8_8 = this->field_0x0->field_0x8;
-                call_0x12444b0(&this->field_0x10);
-                v_rbx_2 = prev_0x8_8;
+        void* local_0xb0;
+        local_0xb0 = this->field_0x0;
+        if (this->field_0x8 != 0x492492492492492) {
+          local_0x20 = this;
+          local_0x28 = 0;
+          auto ret_0x4956040_4 = call_0x4956040(56);
+          int64_t local_0x68;
+          int64_t local_0x48;
+          int64_t local_0x50;
+          int64_t local_0x58;
+          int64_t local_0x60;
+          if (ret_0x4956040_4 != 0) {
+            ret_0x4956040_4->field_0x10 = param_2;
+            ret_0x4956040_4->field_0x18 = param_4;
+            ret_0x4956040_4->field_0x20 = prev_0x0_4;
+            ret_0x4956040_4->field_0x28 = prev_0x8_5;
+            ret_0x4956040_4->field_0x30 = local_0xd0;
+            this->field_0x8++;
+            ret_0x4956040_4->field_0x0 = local_0xb0;
+            ret_0x4956040_4->field_0x8 = local_0xb0->field_0x8;
+            local_0xb0->field_0x8 = ret_0x4956040_4;
+            local_0xb0->field_0x8->field_0x0 = ret_0x4956040_4;
+            auto* f_0 = this->field_0x0;
+            void* v_rbx_2 = f_0->field_0x8;
+            void* prev_0x8_9;
+            int64_t idx_1;
+            if (global_0x84a44d6 != 0 && SplitHashNoRehashOnExistingKey) {
+              if (this->field_0x14 == 0) {
+                void* prev_0x8_10 = f_0->field_0x8;
+                call_0x1248ce0(&this->field_0x10, 16);
+                v_rbx_2 = prev_0x8_10;
+              } else {
+                auto* f_18 = this->field_0x18;
+                idx_1 = f_18->field_0x8[(1 << (uint8_t)this->field_0x2c) * 4];
+                if (this->field_0x10 + idx_1 * 4 >= 1 << (uint8_t)this->field_0x2c) {
+                  prev_0x8_9 = this->field_0x0->field_0x8;
+                  call_0x12444b0(&this->field_0x10, f_18->field_0x8[(1 << (uint8_t)this->field_0x2c) * 4], this->field_0x10 + idx_1 * 4);
+                  v_rbx_2 = prev_0x8_9;
+                }
               }
+            } else if (this->field_0x10 == this->field_0x14) {
+              int32_t v_rcx_1 = std::clamp(this->field_0x14, 16, 16384);
+              void* prev_0x8_8 = this->field_0x0->field_0x8;
+              call_0x1248ce0(&this->field_0x10, this->field_0x14 + v_rcx_1);
+              v_rbx_2 = prev_0x8_8;
+            } else if (this->field_0x14 != 0) {
+              auto* f_18_2 = this->field_0x18;
+              idx_1 = f_18_2->field_0x8[(1 << (uint8_t)this->field_0x2c) * 4];
+              if (this->field_0x10 + idx_1 * 4 >= 1 << (uint8_t)this->field_0x2c) {
+                prev_0x8_9 = this->field_0x0->field_0x8;
+                call_0x12444b0(&this->field_0x10, f_18_2->field_0x8[(1 << (uint8_t)this->field_0x2c) * 4], this->field_0x10 + idx_1 * 4);
+                v_rbx_2 = prev_0x8_9;
+              }
+            }
+            auto local_0x10 = param_2;
+            uint64_t local_0xb8;
+            call_0x12484c0(&this->field_0x10, &local_0xb0, &local_0xb8, 1);
+            uint64_t local_0xb4;
+            auto* f_18_3 = this->field_0x18;
+            if (local_0xb4 != 0) {
+              void* ptr_11 = ((f_18_3->field_0x0[local_0xb0 * 4] & this->field_0x28) << 4) + this->field_0x20;
+              ptr_11->field_0x0 = 0;
+              ptr_11->field_0x8 = 0;
+            }
+            void* v_rcx_3 = ((f_18_3->field_0x0[local_0xb0 * 4] & this->field_0x28) << 4) + this->field_0x20;
+            if (local_0xb4 != 0) {
+              void* ptr_12 = ((f_18_3->field_0x0[local_0xb0 * 4] & this->field_0x28) << 4) + this->field_0x20;
+              ptr_12->field_0x0 = local_0xb8;
+              v_rcx_3 = ptr_12;
+            }
+            v_rcx_3->field_0x8 = v_rbx_2;
+            auto* f_0_2 = this->field_0x0;
+            auto* f_0_2_8 = f_0_2->field_0x8;
+            this->field_0x38 = this->field_0x38 + f_0_2_8->field_0x18;
+            if (f_0_2_8->field_0x30 != 0) {
+              this->field_0x40 = this->field_0x40 + f_0_2_8->field_0x18;
+              this->field_0x48++;
+              local_0x60 = param_3->field_0x8;
+              local_0x58 = param_3->field_0x0;
+              local_0x50 = param_4;
+              local_0x48 = param_2;
+              local_0x68 = local_0xd0;
+            } else {
+              local_0x60 = param_3->field_0x8;
+              local_0x58 = param_3->field_0x0;
+              local_0x50 = param_4;
+              local_0x48 = param_2;
+              local_0x68 = local_0xd0;
             }
           } else {
-            if (this->field_0x10 == this->field_0x14) {
-              int32_t v_rcx_1 = std::clamp(this->field_0x14, 16, 16384);
-              void* prev_0x8_7 = this->field_0x0->field_0x8;
-              call_0x1248ce0(&this->field_0x10, this->field_0x14 + v_rcx_1);
-              v_rbx_2 = prev_0x8_7;
-            } else if (this->field_0x14 != 0) {
-              if (this->field_0x10 + this->field_0x18->field_0x8[(1 << this->field_0x2c) * 4] * 4 >= 1 << this->field_0x2c) {
-                void* prev_0x8_8 = this->field_0x0->field_0x8;
-                call_0x12444b0(&this->field_0x10);
-                v_rbx_2 = prev_0x8_8;
-              }
-            }
-          }
-          auto local_0xb0 = this->field_0x0;
-          call_0x12484c0(&this->field_0x10, &local_0xb0, &local_0xb8, 1);
-          if (local_0xb4 != 0) {
-            rax->field_0x0 = 0;
-            rax->field_0x8 = 0;
-          }
-          if (local_0xb4 != 0) {
-            rcx->field_0x0 = local_0xb8;
-          }
-          rcx->field_0x8 = v_rbx_2;
-          auto* f_0_2 = this->field_0x0;
-          auto* f_0_2_8 = f_0_2->field_0x8;
-          this->field_0x38 = this->field_0x38 + f_0_2_8->field_0x18;
-          if (f_0_2_8->field_0x30 != 0) {
-            this->field_0x40 = this->field_0x40 + f_0_2_8->field_0x18;
-            this->field_0x48++;
+            local_0x48 = param_2;
+            local_0x50 = param_4;
+            local_0x58 = param_3->field_0x0;
+            local_0x60 = param_3->field_0x8;
+            local_0x68 = local_0xd0;
+            uint64_t local_0x30;
+            call_0x6ca7d0(&local_0x30);
+            call_0x5e066f0(&local_0x30, &sym_0x80cbbc0);
+            call_0x5de6850("list too long");
+            return; // noreturn
           }
         } else {
-          call_0x6ca7d0(&local_0x30);
-          call_0x5e066f0(&local_0x30, &sym_0x80cbbc0);
+          call_0x5de6850("list too long");
+          return; // noreturn
         }
       } else {
         this->field_0x38 = this->field_0x38 - (local_0x20->field_0x10->field_0x8[(local_0x28 + local_0x28) * 8])->field_0x18;
@@ -274,6 +334,7 @@ Operação  : 0x1c9c64e: mov/math reg, [flag] ; fn=0x1c9c630..0x1c9c75e
         }
         call_0x1c9ceb0(this, this->field_0x0, this, local_0x20->field_0x10->field_0x8[(local_0x28 * 2) * 8]);
       }
+      uint64_t local_0xd8;
       call_0x1c9c630(this, local_0xd8);
       if (param_3->field_0x8 != 0) {
         call_0x6daf40(param_3->field_0x8);

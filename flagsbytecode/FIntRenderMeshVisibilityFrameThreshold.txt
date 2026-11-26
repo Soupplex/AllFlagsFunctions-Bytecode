@@ -10,10 +10,11 @@ Operação  : 0x351d60c: mov/math reg, [flag] ; fn=0x351d5d0..0x351d9e6
     Padrão  : FIntRenderMeshVisibilityFrameThreshold = 3 (default) [int, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : param_4 > RenderMeshVisibilityFrameThreshold + param_2->field_0x34
+    Fórmula : param_4 < RenderMeshVisibilityFrameThreshold + param_2->field_0x34
   
   === [Decompilacao C++ da Funcao 0x351d5d0..0x351d9e6] ===
     // Flag defaults: RenderMeshVisibilityFrameThreshold = 3, DebugRenderForceOffMeshPriorityUpdate = false
-    void RBX::RenderMesh::func_0x351d5d0(RBX::RenderMesh* this, int64_t param_2, void* param_3, void* param_4) {
+    void func_0x351d5d0(void* param_2, void* param_3, int64_t param_4) {
       float fxmm0_1;
       if (1.0f > param_2->field_0x760) {
         if (param_4 != param_2->field_0x38) {
@@ -26,37 +27,48 @@ Operação  : 0x351d60c: mov/math reg, [flag] ; fn=0x351d5d0..0x351d9e6
         fxmm0_1 = param_2->field_0x760 - 1.0f;
         param_2->field_0x760 = fxmm0_1;
       }
+      uint64_t local_0x30;
       if (param_2->field_0x778 == 2) {
         if (!DebugRenderForceOffMeshPriorityUpdate) {
           param_2->field_0x764 = param_2->field_0x760;
+          uint64_t local_0x20;
           if (param_2->field_0x2c == 1) {
-            call_0x3534120(param_2, 1.0f, 1.0f, param_4);
-            auto ret_0x35342e0_8 = call_0x35342e0(xmm0);
-            call_0x10f89d0(param_3, param_2->field_0x5d8, ret_0x35342e0_8);
+            local_0x20 = 1;
+            call_0x3534120(param_2, 1.0f, 1.0f, param_4, 1);
+            call_0x35342e0(xmm0);
+            call_0x10f89d0(param_3, param_2->field_0x5d8);
           } else if (param_2->field_0x4d0 - 1 >= 0) {
+            int64_t idx_2 = (param_2->field_0x4d0 - 1) * 2 + 0x151 + (param_2->field_0x4d0 - 1);
+            uint8_t* i_ebp_2 = param_2 + 0x3f0 + (param_2->field_0x4d0 - 1);
+            uint8_t* i_esi_2 = param_2 + idx_2 * 4;
+            int32_t i_edi_2 = param_2->field_0x4d0 - 1;
             do { // L_0x351d790
-              if (i_esi->field_0x0 == 1) {
-                call_0x3534120(param_2, (float)i_edi - param_2->field_0x51c, (float)std::max<uint32_t>(param_2->field_0x4d0, 1), param_4);
-                void* v_rax_9 = param_3->field_0x138;
-                if (param_3->field_0x138 != 0) {
-                  v_rax_9 = param_3->field_0x138->field_0x18;
+              if (i_esi_2->field_0x0 == 1) {
+                local_0x20 = 0;
+                auto ret_0x3534120_5 = call_0x3534120(param_2, (float)i_edi_2 - param_2->field_0x51c, (float)(uint8_t)std::max<uint32_t>(param_2->field_0x4d0, 1), param_4, 0);
+                float fxmm2_7;
+                if (ret_0x3534120_5 >= 0.0) {
+                  float ftmp_1 = (1.0f - ret_0x3534120_5) * 3.5f;
+                  fxmm2_7 = ftmp_1 + 20.0f;
+                } else {
+                  fxmm2_7 = 50.0f - ret_0x3534120_5 * 30.0f;
                 }
-                local_0x30 = param_2->field_0x5c0[i_ebp->field_0x0 * 8];
-                v_rax_9->field_0x10->field_0xf8->vfunc_0x18(v_rax_9->field_0x10->field_0xf8, &local_0x30);
+                local_0x30 = param_2->field_0x5c0[i_ebp_2->field_0x0 * 8];
+                void* v_rax_8 = param_3->field_0x138;
+                if (param_3->field_0x138 != 0) {
+                  v_rax_8 = param_3->field_0x138->field_0x18;
+                }
+                v_rax_8->field_0x10->field_0xf8->vfunc_0x18(v_rax_8->field_0x10->field_0xf8, &local_0x30, fxmm2_7);
               }
-              i_esi -= 12;
-              i_ebp--;
-              i_edi--;
-            } while (i_edi >= 0); // loop -> L_0x351d790
+              i_esi_2 -= 12;
+              i_ebp_2--;
+              i_edi_2--;
+            } while (i_edi_2 >= 0); // loop -> L_0x351d790
           }
           return;
         }
         return;
       }
-      int32_t i_ebp;
-      int64_t local_0x30;
-      uint64_t i_edi;
-      void* i_esi;
       if (isnan(param_2->field_0x764) || isnan(param_2->field_0x760) || param_2->field_0x764 != param_2->field_0x760) {
         float fxmm1_3;
         if (!isnan(fabsf(param_2->field_0x764) + 1.0f) && !isnan(global_0x75a0f30) && fabsf(param_2->field_0x764) + 1.0f == global_0x75a0f30) {
@@ -68,25 +80,24 @@ Operação  : 0x351d60c: mov/math reg, [flag] ; fn=0x351d5d0..0x351d9e6
           param_2->field_0x764 = param_2->field_0x760;
           if (param_2->field_0x40 != 0) {
             if (param_2->field_0x2c == 1) {
-              auto ret_0x3534320_3 = call_0x3534320(param_2, param_2->field_0x2c, 0);
-              call_0x10f89d0(param_3, param_2->field_0x5d8, ret_0x3534320_3);
+              call_0x3534320(param_2);
+              call_0x10f89d0(param_3, param_2->field_0x5d8);
               return;
             }
+            uint64_t local_0x38;
+            local_0x38 = 0.0;
             if (param_2->field_0x4d0 - 1 >= 0) {
-              int64_t idx_1 = (param_2->field_0x4d0 - 1) * 2 + (param_2->field_0x4d0 - 1);
-              void* i_r9d = (uint8_t*)&param_2->field_0x3f0 + (param_2->field_0x4d0 - 1);
+              int64_t idx_1 = (param_2->field_0x4d0 - 1) * 2 + 0x151 + (param_2->field_0x4d0 - 1);
+              uint8_t* i_r9d = param_2 + 0x3f0 + (param_2->field_0x4d0 - 1);
               int32_t i_ecx = 0;
               int32_t i_edx = param_2->field_0x4d0 - 1;
-              void* i_r8d = param_2 + idx_1 * 4;
-              float fstk_6;
+              uint8_t* i_r8d = param_2 + idx_1 * 4;
               uint8_t v_cl_5;
               do { // L_0x351d940
                 v_cl_5 = i_ecx;
                 if (i_r8d->field_0x0 == 1) {
+                  (*(uint32_t*)((uint8_t*)&local_0x38 + i_r9d->field_0x0 * 4)) = *(uint32_t*)((uint8_t*)&local_0x38 + i_r9d->field_0x0 * 4) | 1ULL << i_edx;
                   v_cl_5 = 1;
-                  fstk_6 = 1ULL << i_edx;
-                } else {
-                  fstk_6 = 0.0;
                 }
                 i_r8d -= 12;
                 i_r9d--;
@@ -94,20 +105,24 @@ Operação  : 0x351d60c: mov/math reg, [flag] ; fn=0x351d5d0..0x351d9e6
                 i_ecx = v_cl_5;
               } while (i_edx >= 0); // loop -> L_0x351d940
               if (v_cl_5 == 0) {
+                param_2->field_0x40 = 0;
                 return;
               }
-              i_ebp = 4;
-              i_esi = &param_2->field_0x5c0;
-              i_edi = &local_0x38;
+              int32_t i_ebp = 4;
+              uint8_t* i_esi = param_2 + 0x5c0;
+              uint8_t* i_edi = &local_0x38;
+              float local_0x40 = 0.0;
+              float local_0x44 = 0.0;
+              float local_0x3c = 0.0;
               do { // L_0x351d980
-                if (fstk_6 != 0) {
-                  auto ret_0x3534320_1 = call_0x3534320(param_2, 0, fstk_6, i_r9d);
-                  void* v_rax_8 = param_3->field_0x138;
-                  if (param_3->field_0x138 != 0) {
-                    v_rax_8 = param_3->field_0x138->field_0x18;
-                  }
+                if (i_edi->field_0x0 != 0) {
+                  auto ret_0x3534320_1 = call_0x3534320(param_2);
                   local_0x30 = i_esi->field_0x0;
-                  v_rax_8->field_0x10->field_0xf8->vfunc_0x18(v_rax_8->field_0x10->field_0xf8, &local_0x30, ret_0x3534320_1);
+                  void* v_rax_6 = param_3->field_0x138;
+                  if (param_3->field_0x138 != 0) {
+                    v_rax_6 = param_3->field_0x138->field_0x18;
+                  }
+                  v_rax_6->field_0x10->field_0xf8->vfunc_0x18(v_rax_6->field_0x10->field_0xf8, &local_0x30, ret_0x3534320_1);
                 }
                 i_esi += 8;
                 i_edi += 4;
@@ -115,6 +130,7 @@ Operação  : 0x351d60c: mov/math reg, [flag] ; fn=0x351d5d0..0x351d9e6
               } while (i_ebp != 0); // loop -> L_0x351d980
               return;
             }
+            param_2->field_0x40 = 0;
             return;
           }
           return;
@@ -388,46 +404,47 @@ Operação  : 0x351d60c: mov/math reg, [flag] ; fn=0x351d5d0..0x351d9e6
       /* +0x510 */ int32_t field_0x510;
     };
     
-    float SubObj_0x3534120::func_0x3534120(SubObj_0x3534120* this, float param_2, float param_3, void* param_4) {
-      float fxmm0_1;
+    float SubObj_0x3534120::func_0x3534120(SubObj_0x3534120* this, float param_2, float param_3, int64_t param_4) {
+      float fxmm0_1 = this->field_0x4f8;
       if (1.0f > this->field_0x4f8) {
         fxmm0_1 = 1.0f;
-      } else {
-        fxmm0_1 = this->field_0x4f8;
       }
-      auto ret_0x5e3b1e0_1 = call_0x5e3b1e0(fxmm0_1 / 2500.0f, 0.25f, param_3, xmm3);
-      auto ret_0x5e3b1e0_2 = call_0x5e3b1e0(this, 0.25f, xmm2, xmm3);
-      float fxmm1_3;
+      auto ret_0x5e3b1e0_1 = call_0x5e3b1e0(fxmm0_1 / 2500.0f, 0.25f);
+      float fxmm0_2 = this->field_0x4f0;
+      if (this->field_0x4f0 > 1.0f) {
+        fxmm0_2 = 1.0f;
+      } else if (0.0 > this->field_0x4f0) {
+        fxmm0_2 = 0.0;
+      }
+      auto ret_0x5e3b1e0_2 = call_0x5e3b1e0(fxmm0_2, 0.25f);
+      float fxmm1_4;
+      uint64_t local_0xa0;
       if (local_0xa0 != 0) {
-        fxmm1_3 = 1.0f;
+        fxmm1_4 = 1.0f;
       } else {
         float ftmp_1 = (float)(param_4 - std::min<uint32_t>(this->field_0x510, param_4)) / 60.0f;
-        float fxmm0_2;
+        float fxmm0_3 = ftmp_1;
         if (ftmp_1 > 1.0f) {
-          fxmm0_2 = 1.0f;
+          fxmm0_3 = 1.0f;
         } else if (0.0 > ftmp_1) {
-          fxmm0_2 = 0.0;
-        } else {
-          fxmm0_2 = ftmp_1;
+          fxmm0_3 = 0.0;
         }
-        fxmm1_3 = 1.0f - fxmm0_2;
+        fxmm1_4 = 1.0f - fxmm0_3;
       }
       if (0.0 > param_2) {
         float ftmp_7 = (ret_0x5e3b1e0_2 + min(1.0f / ret_0x5e3b1e0_1, 1.0f)) * 0.4f;
-        float ftmp_8 = (ftmp_7 + fxmm1_3 * 0.2f) * (1.0f / (-param_2 * 2 * -param_2 * 2 + 1.0f));
+        float ftmp_8 = (ftmp_7 + fxmm1_4 * 0.2f) * (1.0f / (-param_2 * 2 * -param_2 * 2 + 1.0f));
         return -(1.0f - ftmp_8);
       }
-      float fxmm6_4;
+      float fxmm6_5 = 1.0f;
       if (param_2 / max(1.0f, param_3) <= 1.0f) {
         if (0.0 > param_2 / max(1.0f, param_3)) {
-          fxmm6_4 = 0.0;
+          fxmm6_5 = 0.0;
         } else {
-          fxmm6_4 = param_2 / max(1.0f, param_3);
+          fxmm6_5 = param_2 / max(1.0f, param_3);
         }
-      } else {
-        fxmm6_4 = 1.0f;
       }
-      float ftmp_4 = (ret_0x5e3b1e0_2 + min(1.0f / ret_0x5e3b1e0_1, 1.0f)) * 0.2f + fxmm1_3 * 0.1f + fxmm6_4 * 0.5f;
+      float ftmp_4 = (ret_0x5e3b1e0_2 + min(1.0f / ret_0x5e3b1e0_1, 1.0f)) * 0.2f + fxmm1_4 * 0.1f + fxmm6_5 * 0.5f;
       return ftmp_4;
     }
   
@@ -546,7 +563,7 @@ Operação  : 0x351d60c: mov/math reg, [flag] ; fn=0x351d5d0..0x351d9e6
     0x35342d4 | c3                       | ret
   
   === [Sub-Rotina Chamada: 0x35342e0..0x353431d via call @0x351d6c2 (Direct Engine Sub-Call)] ===
-    float SubObj_0x35342e0::func_0x35342e0(SubObj_0x35342e0* this) {
+    float func_0x35342e0() {
       if (xmm0 >= 0.0) {
         return (1.0f - xmm0) * 3.5f + 20.0f;
       }
@@ -578,9 +595,9 @@ Operação  : 0x351d60c: mov/math reg, [flag] ; fn=0x351d5d0..0x351d9e6
       /* +0x778 */ uint8_t field_0x778;
     };
     
-    float SubObj_0x3534320::func_0x3534320(SubObj_0x3534320* this, int64_t param_2) {
-      float fxmm0_1;
-      float fxmm0_2;
+    float SubObj_0x3534320::func_0x3534320(SubObj_0x3534320* this, int64_t param_2, int64_t param_3) {
+      float fxmm0_1 = this->field_0x764;
+      float fxmm0_2 = this->field_0x764;
       float fxmm1_3;
       if (this->field_0x764 > 2.0f) {
         fxmm0_1 = 2.0f;
@@ -590,26 +607,30 @@ Operação  : 0x351d60c: mov/math reg, [flag] ; fn=0x351d5d0..0x351d9e6
         fxmm0_2 = 0.0;
         fxmm1_3 = 0.0;
       } else if (this->field_0x764 >= 1.0f) {
-        fxmm0_1 = this->field_0x764;
         fxmm0_2 = fxmm0_1 - 1.0f;
         fxmm1_3 = 2.0f;
       } else {
-        fxmm0_2 = this->field_0x764;
         fxmm1_3 = 0.0;
       }
       if (this->field_0x778 == 2) {
-        auto* f_4d0 = this->field_0x4d0;
-        int32_t v_r9_5 = f_4d0;
-        if (f_4d0 - 1 >= 0) {
-          int32_t i_edx = f_4d0 - 1;
-          void* i_r8d = this + (f_4d0 + (f_4d0 + 0xa7) * 2) * 4;
+        int32_t v_r9_6 = this->field_0x4d0;
+        if (this->field_0x4d0 - 1 >= 0) {
+          int32_t i_edx = this->field_0x4d0 - 1;
+          uint8_t* i_r8d = this + (this->field_0x4d0 + (this->field_0x4d0 + 0xa7) * 2) * 4;
+          int32_t i_r9d = this->field_0x4d0;
           do { // L_0x35343a7
-            if (i_r8d->field_0x0 != 4) break;
+            if (i_r8d->field_0x0 != 4) {
+              v_r9_6 = i_r9d;
+              break;
+            }
             i_r8d -= 12;
+            int32_t prev_i_edx_2 = i_edx;
             i_edx--;
+            i_r9d = prev_i_edx_2;
           } while (i_edx >= 0); // loop -> L_0x35343a7
+          v_r9_6 = i_r9d;
         }
-        auto ret_0x3534120_1 = call_0x3534120(this, (float)v_r9_5 - this->field_0x51c, (float)std::max<uint32_t>(f_4d0, 1), 0);
+        auto ret_0x3534120_1 = call_0x3534120(this, (float)v_r9_6 - this->field_0x51c, (float)(uint8_t)std::max<uint32_t>(this->field_0x4d0, 1), 0, 1);
         if (ret_0x3534120_1 >= 0.0) {
           float ftmp_2 = (1.0f - ret_0x3534120_1) * 3.5f;
           return ftmp_2 + 20.0f;
@@ -617,15 +638,13 @@ Operação  : 0x351d60c: mov/math reg, [flag] ; fn=0x351d5d0..0x351d9e6
         float ftmp_1 = 50.0f - ret_0x3534120_1 * 30.0f;
         return ftmp_1;
       }
-      float fxmm0_4;
+      float fxmm0_4 = fxmm0_2 * 0.5f;
       if ((uint8_t)param_2 == 0) {
-        if ((param_3 & 1ULL << this->field_0x539) < 0) {
+        if ((param_3 & 1ULL << this->field_0x539) != 0) {
           fxmm0_4 = fxmm0_2 * 0.5f + 0.5f;
         } else {
           fxmm0_4 = fxmm0_2 * 0.5f + 1.0f;
         }
-      } else {
-        fxmm0_4 = fxmm0_2 * 0.5f;
       }
       return fxmm1_3 + fxmm0_4 + 20.0f;
     }
@@ -736,9 +755,9 @@ Operação  : 0x351d60c: mov/math reg, [flag] ; fn=0x351d5d0..0x351d9e6
   * DFFlagDebugRenderForceOffMeshPriorityUpdate = false (default)
   * FIntRenderMeshLodBudgetMode = 1 (default) [vizinha em .data]
   * DFFlagRenderFixMeshBatchHiQualCount = true (default) [vizinha em .data]
-  * FFlagUserMM2Experiment = false (default) [vizinha em .data]
+  * FFlagUserMM2Experiment = true (default) [vizinha em .data]
   * FIntDebugRenderMeshStreamingForceState = 0 (default) [vizinha em .data]
   * FFlagRenderMeshStreamingLodGapTelemetry = true (default) [vizinha em .data]
   * DFIntMeshStreamingLODTranscodeRolloutHundredthPercent = 10000 (default) [vizinha em .data]
-  * DFFlagMeshStreamingLODTranscodeRollout = false (default) [vizinha em .data]
+  * DFFlagMeshStreamingLODTranscodeRollout = true (default) [vizinha em .data]
   * FIntRenderMeshLodMediocreQemPercentPerPixel = 400 (default) [vizinha em .data]

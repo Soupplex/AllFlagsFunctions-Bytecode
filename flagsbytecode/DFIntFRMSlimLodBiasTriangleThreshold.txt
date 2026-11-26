@@ -19,7 +19,7 @@ Operação  : 0x48fc6c2: mov/math reg, [flag] ; fn=0x48fc5e0..0x48fc889
     struct RBX::FRMSlimLod {
       /* +0x54 */ int32_t field_0x54;
       /* +0xd8 */ uint8_t field_0xd8;
-      /* +0xdc */ void*   field_0xdc;
+      /* +0xdc */ uint64_t field_0xdc;
       /* +0xe0 */ int32_t field_0xe0;
       /* +0xe4 */ uint8_t field_0xe4;
       /* +0xec */ uint8_t field_0xec;
@@ -58,17 +58,20 @@ Operação  : 0x48fc6c2: mov/math reg, [flag] ; fn=0x48fc5e0..0x48fc889
         if (f_b98 == 0) {
           v_rdx_2 = 0;
         } else {
-          int32_t tmp_1 = ((f_b98->field_0x1 * (21 - this->field_0x54 > 21 ? 21 : max(this->field_0x54, 1)) + 10) / 20 >> 3) + ((uint32_t)((f_b98->field_0x1 * (21 - this->field_0x54 > 21 ? 21 : max(this->field_0x54, 1)) + 10) / 20 >> 3) >> 31);
+          int32_t tmp_1 = (f_b98->field_0x1 * (21 - (this->field_0x54 > 21 ? 21 : max(this->field_0x54, 1))) + 10) / 20 + ((uint32_t)((f_b98->field_0x1 * (21 - (this->field_0x54 > 21 ? 21 : max(this->field_0x54, 1))) + 10) / 20) >> 31);
           v_rdx_2 = tmp_1;
         }
         this->field_0xd8 = (uint8_t)v_rdx_2;
         this->field_0xe4 = 1;
       }
-      double fxmm1_3;
+      double fxmm1_3 = 0.0;
       double fxmm1_4;
       double fxmm2_5;
+      int32_t v_r10_6;
+      void* sel_r8_1;
       auto expr_1 = max(0, FRMSlimLodBiasDrawCallThreshold);
       auto expr_2 = max(0, FRMSlimLodBiasTriangleThreshold);
+      auto expr_3 = max(FRMSlimLodBiasRecoveryPercent, 0);
       if (expr_1 <= 0) {
         if (expr_2 <= 0) {
           if (!FRMSlimLodBias2) {
@@ -80,8 +83,6 @@ Operação  : 0x48fc6c2: mov/math reg, [flag] ; fn=0x48fc5e0..0x48fc889
           this->field_0xe0 = 0;
           return;
         }
-        fxmm1_3 = 0.0;
-        auto expr_3 = max(FRMSlimLodBiasRecoveryPercent, 0);
       } else {
         this->field_0xf8 = (double)this->field_0xf0 / (double)expr_1;
         if (expr_2 > 0) {
@@ -93,32 +94,38 @@ Operação  : 0x48fc6c2: mov/math reg, [flag] ; fn=0x48fc5e0..0x48fc889
           fxmm1_4 = (double)this->field_0xf0 / (double)expr_1;
           fxmm2_5 = 0.0;
         }
-        this->field_0x108 = max(fxmm2_5, fxmm1_4);
-        this->field_0xed = max(fxmm2_5, fxmm1_4) > 1.0;
-        this->field_0xee = ((double)FRMSlimLodBiasRecoveryPercent > 100 ? 100 : expr_3 * 0.01) > max(fxmm2_5, fxmm1_4);
+        sel_r8_1 = fxmm2_5 > fxmm1_4 ? &this->field_0x100 : &this->field_0xf8;
+        this->field_0x108 = sel_r8_1->field_0x0;
+        this->field_0xed = sel_r8_1->field_0x0 > 1.0;
+        this->field_0xee = (double)(FRMSlimLodBiasRecoveryPercent > 100 ? 100 : expr_3) * 0.01 > sel_r8_1->field_0x0;
         if (!FRMSlimLodBias2) {
           this->field_0xd8 = 0;
           this->field_0xdc = 0;
           this->field_0xe4 = 0;
           return;
         }
-        if (max(fxmm2_5, fxmm1_4) > 1.0) {
+        if (sel_r8_1->field_0x0 > 1.0) {
           this->field_0xdc++;
           this->field_0xe0 = 0;
           if (this->field_0xdc >= 100) {
             this->field_0xdc = 0;
-            this->field_0xd8 = (uint8_t)(std::min<uint32_t>((this->field_0xd8 + 1), f_b98 == 0 ? 0 : std::min<uint32_t>(f_b98->field_0x1 + 4, 255)));
+            if (f_b98 == 0) {
+              v_r10_6 = 0;
+            } else {
+              v_r10_6 = f_b98->field_0x1 + 4 > 255 ? 255 : (uint8_t)(f_b98->field_0x1 + 4);
+            }
+            this->field_0xd8 = (uint8_t)((uint8_t)v_r10_6 < (this->field_0xd8 + 1) ? (uint8_t)v_r10_6 : (uint8_t)(this->field_0xd8 + 1));
             return;
           }
           return;
         }
         this->field_0xdc = 0;
-        if (((double)FRMSlimLodBiasRecoveryPercent > 100 ? 100 : expr_3 * 0.01) > max(fxmm2_5, fxmm1_4)) {
+        if ((double)(FRMSlimLodBiasRecoveryPercent > 100 ? 100 : expr_3) * 0.01 > sel_r8_1->field_0x0) {
           this->field_0xe0++;
           if (this->field_0xe0 >= 150) {
             this->field_0xe0 = 0;
             if (this->field_0xd8 != 0) {
-              this->field_0xd8--;
+              this->field_0xd8 = (uint8_t)(this->field_0xd8 - 1);
               return;
             }
           }
@@ -130,33 +137,39 @@ Operação  : 0x48fc6c2: mov/math reg, [flag] ; fn=0x48fc5e0..0x48fc889
       this->field_0x100 = (double)this->field_0xf4 / (double)expr_2;
       fxmm1_4 = fxmm1_3;
       fxmm2_5 = (double)this->field_0xf4 / (double)expr_2;
-      this->field_0x108 = max(fxmm2_5, fxmm1_4);
-      this->field_0xed = max(fxmm2_5, fxmm1_4) > 1.0;
-      this->field_0xee = ((double)FRMSlimLodBiasRecoveryPercent > 100 ? 100 : expr_3 * 0.01) > max(fxmm2_5, fxmm1_4);
+      sel_r8_1 = fxmm2_5 > fxmm1_4 ? &this->field_0x100 : &this->field_0xf8;
+      this->field_0x108 = sel_r8_1->field_0x0;
+      this->field_0xed = sel_r8_1->field_0x0 > 1.0;
+      this->field_0xee = (double)(FRMSlimLodBiasRecoveryPercent > 100 ? 100 : expr_3) * 0.01 > sel_r8_1->field_0x0;
       if (!FRMSlimLodBias2) {
         this->field_0xd8 = 0;
         this->field_0xdc = 0;
         this->field_0xe4 = 0;
         return;
       } else {
-        if (max(fxmm2_5, fxmm1_4) > 1.0) {
+        if (sel_r8_1->field_0x0 > 1.0) {
           this->field_0xdc++;
           this->field_0xe0 = 0;
           if (this->field_0xdc >= 100) {
             this->field_0xdc = 0;
-            this->field_0xd8 = (uint8_t)(std::min<uint32_t>((this->field_0xd8 + 1), f_b98 == 0 ? 0 : std::min<uint32_t>(f_b98->field_0x1 + 4, 255)));
+            if (f_b98 == 0) {
+              v_r10_6 = 0;
+            } else {
+              v_r10_6 = f_b98->field_0x1 + 4 > 255 ? 255 : (uint8_t)(f_b98->field_0x1 + 4);
+            }
+            this->field_0xd8 = (uint8_t)((uint8_t)v_r10_6 < (this->field_0xd8 + 1) ? (uint8_t)v_r10_6 : (uint8_t)(this->field_0xd8 + 1));
             return;
           } else {
             return;
           }
         } else {
           this->field_0xdc = 0;
-          if (((double)FRMSlimLodBiasRecoveryPercent > 100 ? 100 : expr_3 * 0.01) > max(fxmm2_5, fxmm1_4)) {
+          if ((double)(FRMSlimLodBiasRecoveryPercent > 100 ? 100 : expr_3) * 0.01 > sel_r8_1->field_0x0) {
             this->field_0xe0++;
             if (this->field_0xe0 >= 150) {
               this->field_0xe0 = 0;
               if (this->field_0xd8 != 0) {
-                this->field_0xd8--;
+                this->field_0xd8 = (uint8_t)(this->field_0xd8 - 1);
                 return;
               }
             }
@@ -359,7 +372,7 @@ Operação  : 0x48fc6c2: mov/math reg, [flag] ; fn=0x48fc5e0..0x48fc889
   * DFIntFRMSlimLodBiasRecoveryPercent = 0 (default)
   * DFIntRenderCloudsSingleTapCompositeQLCutoff = 6 (default) [vizinha em .data]
   * DFIntRenderCloudsReprojectionQLCutoff = 6 (default) [vizinha em .data]
-  * DFIntPerformanceControlCloseToTargetBuffer = 110 (default) [vizinha em .data]
+  * DFIntPerformanceControlCloseToTargetBuffer = 0 (default) [vizinha em .data]
   * FFlagFRMAddStudioQLGatesForClouds = true (default) [vizinha em .data]
   * DFFlagRenderConstantFogAtLowQL3 = false (default) [vizinha em .data]
   * FFlagFRMLockstepIncludeMsaa4x = false (default) [vizinha em .data]

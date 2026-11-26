@@ -9,8 +9,9 @@ Operação  : 0x2fa7d88: mov/math reg, [flag] ; fn=0x2fa7d50..0x2fa7f53
     Classe  : RBX::LeanDMAsset (Inferido)
     Padrão  : DFIntLeanDMAssetSaveQueueMinDataSize = 1048576 (default) [int, mode=2]
     Papel   : Multiplicador / Escala aplicado sobre limites ou métricas da função
-    Fórmula : (double)LeanDMAssetSaveQueueMinDataSize * 1.5
-    Altera  : this->field_0x0, this->field_0x10, this->field_0x18
+    Fórmula : min(15, LeanDMAssetSaveQueueMinDataSize - 1)
+    Fórmula : (int32_t)((double)LeanDMAssetSaveQueueMinDataSize * 1.5)
+    Altera  : this->field_0x0, this->field_0x10, this->field_0x18, this->field_0x10->field_0x0[ret_0x6fd950_5], this->field_0x10->field_0x1[ret_0x6fd950_5]
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x2fa803b (in fn_0x2fa7f60): call 0x2fa7d50  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
@@ -22,57 +23,100 @@ Operação  : 0x2fa7d88: mov/math reg, [flag] ; fn=0x2fa7d50..0x2fa7f53
     struct RBX::LeanDMAsset {
       /* +0x0 */ uint8_t field_0x0;
       /* +0x10 */ void*   field_0x10;
-      /* +0x18 */ void*   field_0x18;
+      /* +0x18 */ uint64_t field_0x18;
     };
     
     // Flag defaults: LeanDMAssetSaveQueueMinDataSize = 1048576
-    auto RBX::LeanDMAsset::func_0x2fa7d50(RBX::LeanDMAsset* this, int64_t param_2, void* param_3) {
-      auto vret_1 = param_2->vfunc_0x18(param_2);
+    auto RBX::LeanDMAsset::func_0x2fa7d50(RBX::LeanDMAsset* this, void* param_2, int64_t param_3) {
+      int32_t v_r8_1;
+      if ((uint8_t)param_3 != 0) {
+        v_r8_1 = min(15, LeanDMAssetSaveQueueMinDataSize - 1);
+      } else {
+        v_r8_1 = (int32_t)((double)LeanDMAssetSaveQueueMinDataSize * 1.5);
+      }
+      auto vret_1 = param_2->vfunc_0x18(param_2, 0, v_r8_1);
+      uint64_t local_0x80;
+      local_0x80 = vret_1;
       this->field_0x10 = 0;
       this->field_0x18 = 15;
       this->field_0x0 = 0;
       call_0x6f6e10(this, vret_1);
       if (vret_1 > 0) {
-        uint64_t i_r14d = 0x7fffffffffffffff;
+        void* i_r14d = 0x7fffffffffffffff;
         void* i_esi = param_2;
         int32_t i_r15d = 0;
+        int64_t local_0x10 = param_2;
+        int32_t local_0x20 = 1;
         do { // L_0x2fa7e10
           auto vret_3 = i_esi->vfunc_0x10(i_esi);
-          void* v_rsi_4 = i_esi;
-          uint64_t v_r14_5 = i_r14d;
+          void* v_rsi_5 = i_esi;
+          uint64_t v_r14_6 = i_r14d;
           if (this->field_0x10 < this->field_0x18) {
             void* prev_0x10_3 = this->field_0x10;
-            this->field_0x10 = &this->field_0x10->field_0x1;
-            void* v_rcx_3 = this;
+            this->field_0x10++;
+            void* v_rcx_4 = this;
             if (this->field_0x18 >= 16) {
-              v_rcx_3 = this->field_0x0;
+              v_rcx_4 = this->field_0x0;
             }
-            v_rcx_3->field_0x0[prev_0x10_3] = (uint8_t)vret_3;
-            v_rcx_3->field_0x1[prev_0x10_3] = 0;
-          } else {
-            void* v_rsi_1;
-            if ((&this->field_0x10->field_0x1 | 0xf) > i_r14d) {
-              v_rsi_1 = i_r14d;
-            } else if (this->field_0x18 > i_r14d - ((uint64_t)this->field_0x18 >> 1)) {
-              v_rsi_1 = i_r14d;
-            } else {
-              uint64_t sel_rsi_1 = max(&this->field_0x10->field_0x1 | 0xf, ((uint64_t)this->field_0x18 >> 1) + this->field_0x18);
-              v_rsi_1 = sel_rsi_1;
-            }
-            auto ret_0x6fd950_4 = call_0x6fd950(&v_rsi_1->field_0x1);
-            this->field_0x10 = &this->field_0x10->field_0x1;
-            this->field_0x18 = v_rsi_1;
-            std::string::_Tidy_deallocate(this->field_0x0);
-            this->field_0x0 = ret_0x6fd950_4;
-            v_rsi_4 = param_2;
-            v_r14_5 = 0x7fffffffffffffff;
+            v_rcx_4->field_0x0[prev_0x10_3] = (uint8_t)vret_3;
+            v_rcx_4->field_0x1[prev_0x10_3] = 0;
+            L_0x2fa7f1c:
+            i_r15d++;
+            i_r14d = v_r14_6;
+            i_esi = v_rsi_5;
+            L_0x2fa7f2d:
+            return this;
           }
-          i_r15d++;
-          i_r14d = v_r14_5;
-          i_esi = v_rsi_4;
-        } while (i_r15d < vret_1); // loop -> L_0x2fa7e10
+          if (i_r14d - this->field_0x10 < 1) {
+            call_0x6dafa0();
+            return; // noreturn
+          }
+          void* v_rsi_2;
+          if ((this->field_0x10 + 1 | 0xfULL) > i_r14d) {
+            v_rsi_2 = i_r14d;
+          } else if (this->field_0x18 > i_r14d - ((uint64_t)this->field_0x18 >> 1)) {
+            v_rsi_2 = i_r14d;
+          } else {
+            void* sel_rsi_1 = max(this->field_0x10 + 1 | 0xfULL, ((uint64_t)this->field_0x18 >> 1) + this->field_0x18);
+            v_rsi_2 = sel_rsi_1;
+          }
+          void* prev_0x18_1 = this->field_0x18;
+          void* prev_0x10_2 = this->field_0x10;
+          auto ret_0x6fd950_5 = call_0x6fd950(v_rsi_2 + 1);
+          this->field_0x10++;
+          this->field_0x18 = v_rsi_2;
+          uint64_t local_0x78;
+          if (prev_0x18_1 >= 16) {
+            call_0x5e05370(ret_0x6fd950_5, this->field_0x0, prev_0x10_2);
+            this->field_0x10->field_0x0[ret_0x6fd950_5] = (uint8_t)vret_3;
+            this->field_0x10->field_0x1[ret_0x6fd950_5] = 0;
+            void* v_rsi_3 = this->field_0x0;
+            if (prev_0x18_1 + 1 >= 0x1000) {
+              if (this->field_0x0 - this->field_0x0->field_m0x8 < 8 || this->field_0x0 - this->field_0x0->field_m0x8 > 39) {
+                call_0x5e14580();
+                return; // noreturn
+              }
+              v_rsi_3 = this->field_0x0->field_m0x8;
+            }
+            call_0x4955ac0(v_rsi_3);
+            this->field_0x0 = ret_0x6fd950_5;
+            v_rsi_5 = local_0x78;
+            v_r14_6 = 0x7fffffffffffffff;
+            i_r15d++;
+            i_r14d = v_r14_6;
+            i_esi = v_rsi_5;
+            return this;
+          }
+          call_0x5e05370(ret_0x6fd950_5, this, prev_0x10_2);
+          this->field_0x10->field_0x0[ret_0x6fd950_5] = (uint8_t)vret_3;
+          this->field_0x10->field_0x1[ret_0x6fd950_5] = 0;
+          this->field_0x0 = ret_0x6fd950_5;
+          v_rsi_5 = local_0x78;
+          v_r14_6 = 0x7fffffffffffffff;
+          goto L_0x2fa7f1c;
+        } while (i_r15d < local_0x80); // loop -> L_0x2fa7e10
       }
-      return this;
+      goto L_0x2fa7f2d;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -232,18 +276,18 @@ Operação  : 0x2fa7d88: mov/math reg, [flag] ; fn=0x2fa7d50..0x2fa7f53
   
   === [Decompilacao da Rotina Chamadora (Caller): 0x2fa7f60..0x2fa81ad em RBX::LeanDMAsset] ===
     struct RBX::LeanDMAsset {
-      /* +0x0 */ void*   field_0x0;
-      /* +0x8 */ void*   field_0x8;
+      /* +0x0 */ uint64_t field_0x0;
+      /* +0x8 */ uint64_t field_0x8;
       /* +0x10 */ void*   field_0x10;
-      /* +0x18 */ void*   field_0x18;
-      /* +0x20 */ void*   field_0x20;
-      /* +0x28 */ void*   field_0x28;
+      /* +0x18 */ uint64_t field_0x18;
+      /* +0x20 */ uint64_t field_0x20;
+      /* +0x28 */ uint64_t field_0x28;
       /* +0x30 */ void*   field_0x30;
-      /* +0x38 */ void*   field_0x38;
+      /* +0x38 */ uint64_t field_0x38;
     };
     
-    auto RBX::LeanDMAsset::func_0x2fa7f60(RBX::LeanDMAsset* this, int64_t param_2, void* param_3) {
-      this->field_0x0 = call_0x2e13190(this);
+    auto RBX::LeanDMAsset::func_0x2fa7f60(RBX::LeanDMAsset* this, int64_t param_2, int64_t param_3) {
+      this->field_0x0 = call_0x2e13190();
       this->field_0x8 = 0;
       this->field_0x10 = 0;
       this->field_0x18 = 0;
@@ -251,38 +295,56 @@ Operação  : 0x2fa7d88: mov/math reg, [flag] ; fn=0x2fa7d50..0x2fa7f53
       this->field_0x28 = 0;
       this->field_0x30 = 0;
       this->field_0x38 = 0;
-      if (param_3 > (this->field_0x18 - this->field_0x8) >> 3) {
-        call_0x2fa9cf0(this, param_3);
+      if (param_3 > (int64_t)(this->field_0x18 - this->field_0x8) >> 3) {
+        if (param_3 <= 0x1fffffffffffffff) {
+          call_0x2fa9cf0(this, param_3, 1);
+        } else {
+          call_0x6fe2c0(this, 1);
+          return; // noreturn
+        }
       }
-      if (param_3 > (this->field_0x38 - this->field_0x28) >> 3) {
-        call_0x2fa9cf0(&this->field_0x20, param_3);
+      if (param_3 > (int64_t)(this->field_0x38 - this->field_0x28) >> 3) {
+        if (param_3 <= 0x1fffffffffffffff) {
+          call_0x2fa9cf0(&this->field_0x20, param_3, 1);
+        } else {
+          call_0x6fe2c0(this, 1);
+          return; // noreturn
+        }
       }
       if (param_3 > 0) {
         int32_t i_esi = 0;
+        int32_t local_0x20 = 1;
+        void* local_0x40 = this;
         do { // L_0x2fa8030
-          auto ret_0x2fa7d50_5 = call_0x2fa7d50(&local_0x50, param_2, 1);
-          auto ret_0x49745c0_6 = call_0x49745c0(&local_0x28, ret_0x2fa7d50_5);
+          std::string local_0x50;
+          auto ret_0x2fa7d50_6 = call_0x2fa7d50(&local_0x50, param_2, 1);
+          void* local_0x28;
+          auto ret_0x49745c0_7 = call_0x49745c0(&local_0x28, ret_0x2fa7d50_6);
           if (this->field_0x10 != this->field_0x18) {
-            this->field_0x10->field_0x0 = ret_0x49745c0_6->field_0x0;
-            ret_0x49745c0_6->field_0x0->field_0x40++;
+            this->field_0x10->field_0x0 = ret_0x49745c0_7->field_0x0;
+            ret_0x49745c0_7->field_0x0->field_0x40++;
             this->field_0x10 = this->field_0x10 + 8;
           } else {
-            call_0x2fa9fc0(this, this->field_0x10, ret_0x49745c0_6);
+            call_0x2fa9fc0(this, this->field_0x10, ret_0x49745c0_7);
           }
-          if (atomic_fetch_sub(&local_0x28->field_0x40, 1) == 1) {
+          int32_t atomic_9 = atomic_fetch_sub(&local_0x28->field_0x40, 1);
+          if (atomic_9 == 1) {
             call_0x7b3a70(local_0x28, local_0x28);
           }
           std::string::_Tidy_deallocate(local_0x50);
-          auto ret_0x2fa7d50_10 = call_0x2fa7d50(&local_0x70, param_2, 0);
-          auto ret_0x49745c0_11 = call_0x49745c0(&local_0x30, ret_0x2fa7d50_10);
+          std::string local_0x70;
+          auto ret_0x2fa7d50_13 = call_0x2fa7d50(&local_0x70, param_2, 0);
+          void* local_0x30;
+          auto ret_0x49745c0_14 = call_0x49745c0(&local_0x30, ret_0x2fa7d50_13);
           if (this->field_0x30 != this->field_0x38) {
-            this->field_0x30->field_0x0 = ret_0x49745c0_11->field_0x0;
-            ret_0x49745c0_11->field_0x0->field_0x40++;
+            this->field_0x30->field_0x0 = ret_0x49745c0_14->field_0x0;
+            ret_0x49745c0_14->field_0x0->field_0x40++;
             this->field_0x30 = this->field_0x30 + 8;
           } else {
-            call_0x2fa9fc0(&this->field_0x20, this->field_0x30, ret_0x49745c0_11);
+            call_0x2fa9fc0(&this->field_0x20, this->field_0x30, ret_0x49745c0_14);
           }
-          if (atomic_fetch_sub(&local_0x30->field_0x40, 1) == 1) {
+          int32_t atomic_16 = atomic_fetch_sub(&local_0x30->field_0x40, 1);
+          if (atomic_16 == 1) {
             call_0x7b3a70(local_0x30, local_0x30);
           }
           std::string::_Tidy_deallocate(local_0x70);

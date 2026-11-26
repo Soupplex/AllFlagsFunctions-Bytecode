@@ -10,13 +10,14 @@ Operação  : 0x3561ca3: mov/math reg, [flag] ; fn=0x3561b50..0x3561fc8
     Padrão  : FIntDevGlyphAtlasWidth = 2048 (default) [int, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : DevGlyphAtlasWidth > v_r14_1
-    Fórmula : DevGlyphAtlasWidth - 1 & DevGlyphAtlasWidth
+    Fórmula : DevGlyphAtlasWidth < 0
+    Fórmula : (DevGlyphAtlasWidth - 1 & DevGlyphAtlasWidth) != 0
     Altera  : this->field_0xce8, this->field_0xcf0
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x3562fcb (in fn_0x3562e40): call 0x3561b50  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
     [XREF #2 @0x39ece78] Classe  : RBX::DevGlyph (Inferido)
-    [XREF #2 @0x39ece78] Fórmula : call_0x36cd770(ret_0x4956040_2, param_2, 1 << bsr(std::min<uint32_t>(param_3 != 0 ? CoreGlyphAtlasSize : DevGlyphAtlasWidth, v_r8_1)), 1 << bsr(std::min<uint32_t>(param_3 != 0 ? CoreGlyphAtlasSize : DevGlyphAtlasHeight, v_r8_1)))
+    [XREF #2 @0x39ece78] Fórmula : v_r8_1 < ((uint8_t)param_3 != 0 ? CoreGlyphAtlasSize : DevGlyphAtlasWidth) ? v_r8_1 : ((uint8_t)param_3 != 0 ? CoreGlyphAtlasSize : DevGlyphAtlasWidth)
     [XREF #2 @0x39ece78] Altera  : this->field_0x0
   
   === [Decompilacao C++ da Funcao 0x3561b50..0x3561fc8] ===
@@ -24,18 +25,20 @@ Operação  : 0x3561ca3: mov/math reg, [flag] ; fn=0x3561b50..0x3561fc8
       /* +0xd8 */ void*   field_0xd8;
       /* +0xce8 */ void*   field_0xce8;
       /* +0xcf0 */ void*   field_0xcf0;
-      /* +0xcf8 */ void*   field_0xcf8;
-      /* +0xd00 */ void*   field_0xd00;
+      /* +0xcf8 */ uint64_t field_0xcf8;
+      /* +0xd00 */ uint64_t field_0xd00;
       /* +0xd88 */ float   field_0xd88;
     };
     
     // Flag defaults: TexAtlasUpdateLineHeight = 150, EnableFontSubsystem13 = false, DevGlyphAtlasWidth = 2048, DevGlyphAtlasHeight = 4096, AddFontAtlasMipmaps = false, FontAtlasMipsAndRefactor2 = true, CoreGlyphAtlasSize = 2048
     void RBX::TexAtlas::func_0x3561b50(RBX::TexAtlas* this) {
+      void* local_0x40;
+      local_0x40 = 0;
       auto ret_0x4954e70_1 = call_0x4954e70(global_0x84ab458);
       if (EnableFontSubsystem13) {
-        auto local_0x40 = 0;
-        auto ret_0x356b190_12 = call_0x356b190(&local_0x40);
-        call_0x356b230(&this->field_0xcf8, ret_0x356b190_12);
+        auto local_0x48 = ret_0x4954e70_1;
+        auto ret_0x356b190_17 = call_0x356b190(&local_0x40);
+        call_0x356b230(&this->field_0xcf8, ret_0x356b190_17);
         if (local_0x40 != 0) {
           call_0x39ed960(&local_0x40->field_0x8);
           if (local_0x40->field_0x0 != 0) {
@@ -44,8 +47,8 @@ Operação  : 0x3561ca3: mov/math reg, [flag] ; fn=0x3561b50..0x3561fc8
           call_0x4955ac0(local_0x40);
         }
         call_0x39ece00(this->field_0xcf8, this, 0, this->field_0xd88);
-        auto ret_0x356b190_18 = call_0x356b190(&local_0x40);
-        call_0x356b230(&this->field_0xd00, ret_0x356b190_18);
+        auto ret_0x356b190_23 = call_0x356b190(&local_0x40);
+        call_0x356b230(&this->field_0xd00, ret_0x356b190_23);
         if (local_0x40 != 0) {
           call_0x39ed960(&local_0x40->field_0x8);
           if (local_0x40->field_0x0 != 0) {
@@ -62,103 +65,165 @@ Operação  : 0x3561ca3: mov/math reg, [flag] ; fn=0x3561b50..0x3561fc8
           v_r14_1 = vret_2->field_0x4c;
         }
         int32_t v_rdi_2 = DevGlyphAtlasWidth;
-        int32_t i_eax;
         if (DevGlyphAtlasWidth > v_r14_1) {
           if (v_r14_1 < 0) {
             v_rdi_2 = 0;
-          } else if ((v_r14_1 - 1 & v_r14_1) != 0) {
-            int32_t prev_i_eax_2;
-            do { // L_0x3561cc4
-              prev_i_eax_2 = i_eax;
-              i_eax--;
-              i_eax = i_eax & prev_i_eax_2;
-            } while ((i_eax & prev_i_eax_2) != 0); // loop -> L_0x3561cc4
-            v_rdi_2 = prev_i_eax_2;
           } else {
-            v_rdi_2 = v_r14_1;
+            int32_t i_eax_5 = v_r14_1 - 1 & v_r14_1;
+            if ((v_r14_1 - 1 & v_r14_1) != 0) {
+              int32_t prev_i_eax_5_2;
+              do { // L_0x3561cc4
+                prev_i_eax_5_2 = i_eax_5;
+                i_eax_5--;
+                i_eax_5 = i_eax_5 & prev_i_eax_5_2;
+              } while (i_eax_5 != 0); // loop -> L_0x3561cc4
+              v_rdi_2 = prev_i_eax_5_2;
+            } else {
+              v_rdi_2 = v_r14_1;
+            }
           }
         } else if (DevGlyphAtlasWidth < 0) {
           v_rdi_2 = 0;
         } else if ((DevGlyphAtlasWidth - 1 & DevGlyphAtlasWidth) != 0) {
-          i_eax = DevGlyphAtlasWidth - 1 & DevGlyphAtlasWidth;
-          int32_t prev_i_eax_1;
+          int32_t i_eax_2 = DevGlyphAtlasWidth - 1 & DevGlyphAtlasWidth;
+          int32_t prev_i_eax_2_1;
           do { // L_0x3561ce0
-            prev_i_eax_1 = i_eax;
-            i_eax--;
-            i_eax = i_eax & prev_i_eax_1;
-          } while ((i_eax & prev_i_eax_1) != 0); // loop -> L_0x3561ce0
+            prev_i_eax_2_1 = i_eax_2;
+            i_eax_2--;
+            i_eax_2 = i_eax_2 & prev_i_eax_2_1;
+          } while (i_eax_2 != 0); // loop -> L_0x3561ce0
+          v_rdi_2 = prev_i_eax_2_1;
         }
         int32_t v_rsi_3 = DevGlyphAtlasHeight;
         if (DevGlyphAtlasHeight > v_r14_1) {
           if (v_r14_1 < 0) {
             v_rsi_3 = 0;
-          } else if ((v_r14_1 - 1 & v_r14_1) != 0) {
-            int32_t prev_i_eax_4;
-            do { // L_0x3561d08
-              prev_i_eax_4 = i_eax;
-              i_eax--;
-              i_eax = i_eax & prev_i_eax_4;
-            } while ((i_eax & prev_i_eax_4) != 0); // loop -> L_0x3561d08
-            v_rsi_3 = prev_i_eax_4;
           } else {
-            v_rsi_3 = v_r14_1;
+            int32_t i_eax_6 = v_r14_1 - 1 & v_r14_1;
+            if ((v_r14_1 - 1 & v_r14_1) != 0) {
+              int32_t prev_i_eax_6_4;
+              do { // L_0x3561d08
+                prev_i_eax_6_4 = i_eax_6;
+                i_eax_6--;
+                i_eax_6 = i_eax_6 & prev_i_eax_6_4;
+              } while (i_eax_6 != 0); // loop -> L_0x3561d08
+              v_rsi_3 = prev_i_eax_6_4;
+            } else {
+              v_rsi_3 = v_r14_1;
+            }
           }
         } else if (DevGlyphAtlasHeight < 0) {
           v_rsi_3 = 0;
-        } else if ((DevGlyphAtlasHeight - 1 & DevGlyphAtlasHeight) != 0) {
-          int32_t prev_i_eax_3;
-          do { // L_0x3561d21
-            prev_i_eax_3 = i_eax;
-            i_eax--;
-            i_eax = i_eax & prev_i_eax_3;
-          } while ((i_eax & prev_i_eax_3) != 0); // loop -> L_0x3561d21
+        } else {
+          int32_t i_eax_4 = DevGlyphAtlasHeight - 1 & DevGlyphAtlasHeight;
+          if ((DevGlyphAtlasHeight - 1 & DevGlyphAtlasHeight) != 0) {
+            int32_t prev_i_eax_4_3;
+            do { // L_0x3561d21
+              prev_i_eax_4_3 = i_eax_4;
+              i_eax_4--;
+              i_eax_4 = i_eax_4 & prev_i_eax_4_3;
+            } while (i_eax_4 != 0); // loop -> L_0x3561d21
+            v_rsi_3 = prev_i_eax_4_3;
+          }
+        }
+        uint64_t local_0x50;
+        local_0x50 = (int64_t)((float)TexAtlasUpdateLineHeight * this->field_0xd88);
+        int32_t v_r13_4;
+        if (AddFontAtlasMipmaps && FontAtlasMipsAndRefactor2) {
+          v_r13_4 = bsr((v_rsi_3 | v_rdi_2 | 0x1) * 2 + 1);
+        } else {
+          v_r13_4 = 1;
         }
         auto ret_0x4956040_3 = call_0x4956040(272);
-        auto ret_0x6fd950_4 = call_0x6fd950(32);
-        ret_0x6fd950_4->field_0x0 = "VisualEngine Fonts";
-        ret_0x6fd950_4->field_0x10 = global_0x73b46e8;
-        auto ret_0x36cd770_5 = call_0x36cd770(ret_0x4956040_3, this, v_rdi_2, v_rsi_3);
-        void* prev_0xce8_5 = this->field_0xce8;
-        this->field_0xce8 = ret_0x36cd770_5;
-        if (prev_0xce8_5 != 0) {
-          this->field_0xce8->vfunc_0x0(prev_0xce8_5, 1);
-        }
-        std::string::_Tidy_deallocate(ret_0x6fd950_4);
-        int32_t v_r14_7 = v_r14_1;
-        if (CoreGlyphAtlasSize > v_r14_1) {
-          if (v_r14_1 < 0) {
+        uint64_t local_0x60;
+        if (ret_0x4956040_3 != 0) {
+          uint64_t local_0x58;
+          local_0x58 = ret_0x4956040_3;
+          auto ret_0x6fd950_6 = call_0x6fd950(32);
+          uint64_t local_0x70;
+          local_0x70 = 18;
+          uint64_t local_0x78;
+          local_0x78 = 31;
+          ret_0x6fd950_6->field_0x0 = "VisualEngine Fonts";
+          ret_0x6fd950_6->field_0x10 = global_0x73b46e8;
+          ret_0x6fd950_6->field_0x12 = 0;
+          local_0x60 = ret_0x6fd950_6;
+          local_0x40 = 1;
+          uint64_t local_0x38;
+          local_0x38 = &local_0x60;
+          uint64_t local_0x30;
+          local_0x30 = 1;
+          uint64_t local_0x28;
+          local_0x28 = v_r13_4;
+          uint64_t local_0x20;
+          local_0x20 = local_0x50;
+          auto ret_0x36cd770_7 = call_0x36cd770(ret_0x4956040_3, this, v_rdi_2, v_rsi_3, local_0x50, v_r13_4, 1, &local_0x60, 1);
+          void* prev_0xce8_5 = this->field_0xce8;
+          this->field_0xce8 = ret_0x36cd770_7;
+          if (prev_0xce8_5 != 0) {
+            this->field_0xce8->vfunc_0x0(prev_0xce8_5, 1);
+          }
+          std::string::_Tidy_deallocate(local_0x60);
+          int32_t v_r14_7 = v_r14_1;
+          if (CoreGlyphAtlasSize > v_r14_1) {
+            if (v_r14_1 < 0) {
+              v_r14_7 = 0;
+            } else {
+              int32_t i_eax_3 = v_r14_1 - 1 & v_r14_1;
+              if ((v_r14_1 - 1 & v_r14_1) != 0) {
+                int32_t prev_i_eax_3_7;
+                do { // L_0x3561e72
+                  prev_i_eax_3_7 = i_eax_3;
+                  i_eax_3--;
+                  i_eax_3 = i_eax_3 & prev_i_eax_3_7;
+                } while (i_eax_3 != 0); // loop -> L_0x3561e72
+                v_r14_7 = prev_i_eax_3_7;
+              }
+            }
+          } else if (CoreGlyphAtlasSize < 0) {
             v_r14_7 = 0;
-          } else if ((v_r14_1 - 1 & v_r14_1) != 0) {
-            int32_t prev_i_eax_7;
-            do { // L_0x3561e72
-              prev_i_eax_7 = i_eax;
-              i_eax--;
-              i_eax = i_eax & prev_i_eax_7;
-            } while ((i_eax & prev_i_eax_7) != 0); // loop -> L_0x3561e72
-            v_r14_7 = prev_i_eax_7;
+          } else {
+            int32_t v_rcx_6 = CoreGlyphAtlasSize;
+            if ((CoreGlyphAtlasSize - 1 & CoreGlyphAtlasSize) != 0) {
+              int32_t i_eax = CoreGlyphAtlasSize - 1 & CoreGlyphAtlasSize;
+              int32_t prev_i_eax_6;
+              do { // L_0x3561e90
+                prev_i_eax_6 = i_eax;
+                i_eax--;
+                i_eax = i_eax & prev_i_eax_6;
+              } while (i_eax != 0); // loop -> L_0x3561e90
+              v_rcx_6 = prev_i_eax_6;
+            }
+            v_r14_7 = v_rcx_6;
           }
-        } else if (CoreGlyphAtlasSize < 0) {
-          v_r14_7 = 0;
+          auto ret_0x4956040_10 = call_0x4956040(272);
+          if (ret_0x4956040_10 != 0) {
+            local_0x58 = ret_0x4956040_10;
+            local_0x70 = 0;
+            local_0x78 = 15;
+            local_0x60 = 0;
+            local_0x40 = 2;
+            local_0x38 = &local_0x60;
+            local_0x30 = 0;
+            local_0x28 = 1;
+            local_0x20 = local_0x50;
+            auto ret_0x36cd770_13 = call_0x36cd770(ret_0x4956040_10, this, v_r14_7, v_r14_7, local_0x50, 1, 0, &local_0x60, 2);
+            void* prev_0xcf0_8 = this->field_0xcf0;
+            this->field_0xcf0 = ret_0x36cd770_13;
+            if (prev_0xcf0_8 != 0) {
+              this->field_0xcf0->vfunc_0x0(prev_0xcf0_8, 1);
+            }
+            std::string::_Tidy_deallocate(local_0x60);
+          } else {
+            call_0x6ca7d0(&local_0x60);
+            call_0x5e066f0(&local_0x60, &sym_0x80cbbc0);
+            return; // noreturn
+          }
         } else {
-          int32_t v_rcx_6 = CoreGlyphAtlasSize;
-          if ((CoreGlyphAtlasSize - 1 & CoreGlyphAtlasSize) != 0) {
-            int32_t prev_i_eax_6;
-            do { // L_0x3561e90
-              prev_i_eax_6 = i_eax;
-              i_eax--;
-              i_eax = i_eax & prev_i_eax_6;
-            } while ((i_eax & prev_i_eax_6) != 0); // loop -> L_0x3561e90
-          }
-          v_r14_7 = v_rcx_6;
+          call_0x6ca7d0(&local_0x60);
+          call_0x5e066f0(&local_0x60, &sym_0x80cbbc0);
+          return; // noreturn
         }
-        auto ret_0x4956040_8 = call_0x4956040(272);
-        auto ret_0x36cd770_9 = call_0x36cd770(ret_0x4956040_8, this, v_r14_7, v_r14_7);
-        void* prev_0xcf0_8 = this->field_0xcf0;
-        this->field_0xcf0 = ret_0x36cd770_9;
-        if (prev_0xcf0_8 != 0) {
-          this->field_0xcf0->vfunc_0x0(prev_0xcf0_8, 1);
-        }
-        std::string::_Tidy_deallocate(0);
       }
       call_0x4954e70(ret_0x4954e70_1);
     }
@@ -510,15 +575,26 @@ Operação  : 0x3561ca3: mov/math reg, [flag] ; fn=0x3561b50..0x3561fc8
   
   === [Sub-Rotina Chamada: 0x356b190..0x356b222 via call @0x3561bad (Direct Engine Sub-Call)] ===
     struct SubObj_0x356b190 {
-      /* +0x0 */ void*   field_0x0;
+      /* +0x0 */ uint64_t field_0x0;
     };
     
     auto SubObj_0x356b190::func_0x356b190(SubObj_0x356b190* this) {
       auto ret_0x4956040_1 = call_0x4956040(56);
-      ret_0x4956040_1->field_0x28 = call_0x2e13190();
-      ret_0x4956040_1->field_0x30 = 1;
-      this->field_0x0 = ret_0x4956040_1;
-      return this;
+      if (ret_0x4956040_1 != 0) {
+        ret_0x4956040_1->field_0x0 = 0;
+        (ret_0x4956040_1 + 8)->field_0x20 = call_0x2e13190();
+        (ret_0x4956040_1 + 8)->field_0x10 = 0;
+        (ret_0x4956040_1 + 8)->field_0x0 = 0;
+        (ret_0x4956040_1 + 8)->field_0x8 = 0;
+        (ret_0x4956040_1 + 8)->field_0x18 = 0;
+        ret_0x4956040_1->field_0x30 = 1;
+        this->field_0x0 = ret_0x4956040_1;
+        return this;
+      }
+      uint64_t local_0x20;
+      call_0x6ca7d0(&local_0x20);
+      call_0x5e066f0(&local_0x20, &sym_0x80cbbc0);
+      return; // noreturn
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x356b190..0x356b222)] ===
@@ -565,16 +641,18 @@ Operação  : 0x3561ca3: mov/math reg, [flag] ; fn=0x3561b50..0x3561fc8
       /* +0x0 */ void*   field_0x0;
     };
     
-    auto SubObj_0x356b230::func_0x356b230(SubObj_0x356b230* this, int64_t param_2) {
+    auto SubObj_0x356b230::func_0x356b230(SubObj_0x356b230* this, void* param_2) {
       if (this != param_2) {
-        void* prev_0x0_1 = this->field_0x0;
-        this->field_0x0 = param_2->field_0x0;
-        if (prev_0x0_1 != 0) {
+        void* prev_0x0_1 = param_2->field_0x0;
+        param_2->field_0x0 = 0;
+        void* prev_0x0_2 = this->field_0x0;
+        this->field_0x0 = prev_0x0_1;
+        if (prev_0x0_2 != 0) {
           call_0x39ed960(&this->field_0x0->field_0x8);
           if (this->field_0x0->field_0x0 != 0) {
             this->field_0x0->field_0x0->vfunc_0x0(this->field_0x0->field_0x0, 1);
           }
-          call_0x4955ac0(prev_0x0_1);
+          call_0x4955ac0(prev_0x0_2);
         }
       }
       return this;
@@ -619,28 +697,28 @@ Operação  : 0x3561ca3: mov/math reg, [flag] ; fn=0x3561b50..0x3561fc8
       /* +0x0 */ void*   field_0x0;
       /* +0x1c */ int32_t field_0x1c;
       /* +0x40 */ uint8_t field_0x40;
-      /* +0x48 */ void*   field_0x48;
+      /* +0x48 */ uint64_t field_0x48;
       /* +0x50 */ void*   field_0x50;
-      /* +0x58 */ void*   field_0x58;
-      /* +0x60 */ void*   field_0x60;
+      /* +0x58 */ uint64_t field_0x58;
+      /* +0x60 */ uint64_t field_0x60;
       /* +0x68 */ void*   field_0x68;
-      /* +0x70 */ void*   field_0x70;
-      /* +0x78 */ void*   field_0x78;
+      /* +0x70 */ uint64_t field_0x70;
+      /* +0x78 */ uint64_t field_0x78;
       /* +0x80 */ void*   field_0x80;
-      /* +0x88 */ void*   field_0x88;
-      /* +0x90 */ void*   field_0x90;
+      /* +0x88 */ uint64_t field_0x88;
+      /* +0x90 */ uint64_t field_0x90;
       /* +0x98 */ void*   field_0x98;
-      /* +0xa0 */ void*   field_0xa0;
+      /* +0xa0 */ uint64_t field_0xa0;
       /* +0xa8 */ int32_t field_0xa8;
       /* +0xac */ int32_t field_0xac;
-      /* +0xb0 */ void*   field_0xb0;
+      /* +0xb0 */ uint64_t field_0xb0;
       /* +0xb8 */ int32_t field_0xb8;
-      /* +0xbc */ void*   field_0xbc;
+      /* +0xbc */ uint64_t field_0xbc;
       /* +0xc0 */ int32_t field_0xc0;
       /* +0xc8 */ int32_t field_0xc8;
-      /* +0xd0 */ void*   field_0xd0;
-      /* +0xd8 */ void*   field_0xd8;
-      /* +0xe0 */ void*   field_0xe0;
+      /* +0xd0 */ uint64_t field_0xd0;
+      /* +0xd8 */ uint64_t field_0xd8;
+      /* +0xe0 */ uint64_t field_0xe0;
       /* +0xe8 */ int32_t field_0xe8;
       /* +0xec */ int32_t field_0xec;
       /* +0xf0 */ int32_t field_0xf0;
@@ -654,7 +732,19 @@ Operação  : 0x3561ca3: mov/math reg, [flag] ; fn=0x3561b50..0x3561fc8
     };
     
     // Flag defaults: FontAtlasMipsAndRefactor2 = true
-    auto RBX::Graphics::TextureAtlas::func_0x36cd770(RBX::Graphics::TextureAtlas* this, int64_t param_2, void* param_3, void* param_4) {
+    auto RBX::Graphics::TextureAtlas::func_0x36cd770(RBX::Graphics::TextureAtlas* this, void* param_2, int64_t param_3, int64_t param_4) {
+      void* local_0x80;
+      local_0x80 = param_2;
+      uint64_t local_0xd8;
+      local_0xd8 = this;
+      uint64_t local_0x74;
+      uint64_t local_0x2b0;
+      local_0x74 = local_0x2b0;
+      void* local_0x90;
+      uint64_t local_0x2c8;
+      local_0x90 = local_0x2c8;
+      uint64_t local_0x70;
+      local_0x70 = 0;
       call_0x270ea70(this, param_2->field_0xd8);
       this->field_0x0 = &sym_0x70b1db0;
       this->field_0x40 = 0;
@@ -685,318 +775,543 @@ Operação  : 0x3561ca3: mov/math reg, [flag] ; fn=0x3561b50..0x3561fc8
       this->field_0x100 = local_0x2b0;
       this->field_0x104 = 65535;
       this->field_0x106 = 0;
+      uint64_t local_0x2c0;
       this->field_0x107 = local_0x2c0;
+      uint64_t local_0x2b8;
       this->field_0x108 = local_0x2b8;
       this->field_0xe8 = param_4 - 1;
-      this->field_0x48 = call_0x4956040((local_0x2b0 + local_0x2b0) * this->field_0xa8);
-      int32_t v_rdi_45;
-      if (FontAtlasMipsAndRefactor2) {
-        auto vret_13 = param_2->field_0xd8->vfunc_0xe8(param_2->field_0xd8);
-        if (vret_13->field_0x2d == 0) {
-          this->field_0x108 = 1;
-        }
-        if ((local_0x2b0 & local_0x2b0 - 1) != 0) {
-          auto vret_14 = param_2->field_0xd8->vfunc_0xe8();
-          if (vret_14->field_0x2c == 0) {
+      auto ret_0x4956040_2 = call_0x4956040(local_0x2b0 * this->field_0xa8 * 2);
+      uint64_t local_0xe0;
+      if (ret_0x4956040_2 != 0) {
+        this->field_0x48 = ret_0x4956040_2;
+        int32_t v_rdi_32;
+        uint64_t local_0x198;
+        uint64_t local_0x178;
+        uint64_t local_0x188;
+        uint64_t local_0x190;
+        uint64_t local_0x58;
+        uint64_t local_0x50;
+        uint64_t local_0x1a0;
+        uint64_t local_0x48;
+        uint64_t local_0x1a4;
+        uint64_t local_0x38;
+        uint64_t local_0x30;
+        uint64_t local_0x28;
+        uint64_t local_0x20;
+        uint64_t local_0xa8;
+        uint64_t local_0x19c;
+        uint64_t local_0xe8;
+        uint64_t local_0xb0;
+        uint64_t local_0x88;
+        uint64_t local_0x40;
+        if (FontAtlasMipsAndRefactor2) {
+          auto vret_15 = param_2->field_0xd8->vfunc_0xe8(param_2->field_0xd8);
+          if (vret_15->field_0x2d == 0) {
             this->field_0x108 = 1;
           }
-        }
-        param_2->field_0xd8->vfunc_0x1a8(param_2->field_0xd8, &local_0xa8, 0, 0);
-        auto ret_0x35a9770_16 = call_0x35a9770(&local_0xe0, &local_0xa8, 5);
-        this->field_0x50 = ret_0x35a9770_16->field_0x0;
-        void* prev_0x58_6 = this->field_0x58;
-        this->field_0x58 = ret_0x35a9770_16->field_0x8;
-        if (prev_0x58_6 != 0) {
-          call_0x6daf40(prev_0x58_6);
-        }
-        if (local_0xe8 != 0) {
-          call_0x6daf40(local_0xe8);
-        }
-        if (local_0xb0 != 0) {
-          call_0x6daf40(local_0xb0);
-        }
-        std::string::_Tidy_deallocate(0);
-        if (this->field_0x108 > 1 && FontAtlasMipsAndRefactor2) {
-          int32_t i_edi = 1;
-          do { // L_0x36cdac1
-            void* v_rcx_14;
-            if (this->field_0x50 != 0) {
-              void* sel_rcx_2 = this->field_0x50->field_0x10 != 0 ? this->field_0x50->field_0x10 : this->field_0x50;
-              v_rcx_14 = sel_rcx_2;
-            } else {
-              v_rcx_14 = &sym_0x8c6f990;
+          if ((local_0x2b0 & local_0x2b0 - 1) != 0) {
+            auto vret_16 = local_0x80->field_0xd8->vfunc_0xe8();
+            if (vret_16->field_0x2c == 0) {
+              this->field_0x108 = 1;
             }
-            if (v_rcx_14->field_0x8 != 0) {
-              v_rcx_14->field_0x8->field_0x8++;
-            }
-            auto local_0xf8 = v_rcx_14->field_0x0;
-            auto ret_0x270cd90_21 = call_0x270cd90(param_2->field_0xd8, &local_0x158, &local_0xf8, &local_0x118);
-            if (this->field_0x80 != this->field_0x88) {
-              this->field_0x80->field_0x0 = ret_0x270cd90_21->field_0x0;
-              this->field_0x80->field_0x8 = ret_0x270cd90_21->field_0x8;
-              this->field_0x80 = this->field_0x80 + 0x10;
-            } else {
-              call_0x82b260(&this->field_0x78, this->field_0x80, ret_0x270cd90_21);
-            }
-            if (local_0x160 != 0) {
-              call_0x6daf40(local_0x160);
-            }
-            if (local_0x100 != 0) {
-              call_0x6daf40(local_0x100);
-            }
-            if (local_0x120 != 0) {
-              call_0x6daf40(local_0x120);
-            }
-            std::string::_Tidy_deallocate(0);
-            i_edi++;
-          } while (i_edi < this->field_0x108); // loop -> L_0x36cdac1
-          if (this->field_0x108 != 1) {
-            int32_t i_r15d = 15;
-            void* i_r12d = param_2;
-            do { // L_0x36cdc50
-              int32_t v_rdi_24;
-              void* v_r12_25;
-              int32_t v_r15_26 = i_r15d;
-              if (local_0x2c8->field_0x10 == 0) {
-                void* prev_0xd8_10 = i_r12d->field_0xd8;
-                void* prev_0x10_11 = local_0x2c8->field_0x10;
-                auto ret_0x6fd950_30 = call_0x6fd950(local_0x2c8->field_0x10 + 0x20);
-                memcpy(ret_0x6fd950_30, "Unnamed TextureAtlas", 20);
-                ret_0x6fd950_30->field_0x14 = (uint8_t)prev_0x10_11;
-                v_rdi_24 = i_edi | 0x1;
-                v_r12_25 = prev_0xd8_10;
+          }
+          local_0x188 = 0;
+          local_0x190 = 15;
+          local_0x178 = 0;
+          local_0x58 = &local_0x178;
+          local_0x50 = 15;
+          local_0x48 = 1;
+          local_0x40 = 1;
+          local_0x38 = this->field_0x108;
+          local_0x30 = 1;
+          local_0x28 = this->field_0xac;
+          local_0x20 = this->field_0xa8;
+          local_0x80->field_0xd8->vfunc_0x1a8(local_0x80->field_0xd8, &local_0xa8, 0, 0, this->field_0xa8, this->field_0xac, 1, this->field_0x108, 1, 1);
+          local_0x70 = 64;
+          auto ret_0x35a9770_18 = call_0x35a9770(&local_0xe0, &local_0xa8, 5);
+          void* prev_0x0_9 = ret_0x35a9770_18->field_0x0;
+          ret_0x35a9770_18->field_0x0 = 0;
+          void* prev_0x8_10 = ret_0x35a9770_18->field_0x8;
+          ret_0x35a9770_18->field_0x8 = 0;
+          this->field_0x50 = prev_0x0_9;
+          void* prev_0x58_11 = this->field_0x58;
+          this->field_0x58 = prev_0x8_10;
+          if (prev_0x58_11 != 0) {
+            call_0x6daf40(prev_0x58_11);
+          }
+          if (local_0xe8 != 0) {
+            call_0x6daf40(local_0xe8);
+          }
+          if (local_0xb0 != 0) {
+            call_0x6daf40(local_0xb0);
+          }
+          std::string::_Tidy_deallocate(local_0x178);
+          if (this->field_0x108 > 1 && FontAtlasMipsAndRefactor2) {
+            local_0x88 = bsr((param_4 | param_3 | 0x1) * 2 + 1);
+            int32_t i_edi = 1;
+            do { // L_0x36cdac1
+              uint64_t local_0x1f8;
+              local_0x1f8 = 0;
+              uint64_t local_0x208;
+              local_0x208 = 0;
+              uint64_t local_0x210;
+              local_0x210 = 15;
+              local_0x1f8 = 0;
+              uint64_t local_0x118;
+              local_0x118 = 0.0;
+              uint64_t local_0x128;
+              local_0x128 = 0;
+              uint64_t local_0x12c;
+              local_0x12c = 1;
+              void* v_rcx_11;
+              if (this->field_0x50 != 0) {
+                void* sel_rcx_2 = this->field_0x50->field_0x10 != 0 ? &this->field_0x50->field_0x10 : this->field_0x50;
+                v_rcx_11 = sel_rcx_2;
               } else {
-                void* v_r15_16 = local_0x2c8;
-                if (local_0x2c8->field_0x18 >= 16) {
-                  v_r15_16 = local_0x2c8->field_0x0;
-                }
-                void* v_r12_18 = i_r12d->field_0xd8;
-                if (local_0x2c8->field_0x10 >= 16) {
-                  void* sel_rbx_3 = min(local_0x2c8->field_0x10 | 0xf, 0x7fffffffffffffff);
-                  void* prev_0xd8_8 = i_r12d->field_0xd8;
-                  auto ret_0x6fd950_28 = call_0x6fd950(&sel_rbx_3->field_0x1);
-                  call_0x5e05370(ret_0x6fd950_28, v_r15_16, &local_0x2c8->field_0x10->field_0x1);
-                  v_r12_18 = prev_0xd8_8;
-                }
-                v_rdi_24 = i_edi | 0x2;
-                v_r12_25 = v_r12_18;
-                v_r15_26 = 15;
+                v_rcx_11 = &sym_0x8c6f990;
               }
-              v_r12_25->vfunc_0x1a8(v_r12_25, &local_0x98, 0, 0);
-              if (this->field_0x68 != this->field_0x70) {
-                this->field_0x68->field_0x0 = local_0x98;
-                this->field_0x68->field_0x8 = local_0xa0;
-                this->field_0x68 = this->field_0x68 + 0x10;
+              if (v_rcx_11->field_0x8 != 0) {
+                v_rcx_11->field_0x8->field_0x8++;
+              }
+              uint64_t local_0xf8;
+              local_0xf8 = v_rcx_11->field_0x0;
+              uint64_t local_0x100;
+              local_0x100 = v_rcx_11->field_0x8;
+              uint64_t local_0x108;
+              local_0x108 = 0;
+              uint64_t local_0x10c;
+              local_0x10c = 1;
+              uint64_t local_0x110;
+              local_0x110 = i_edi;
+              local_0x20 = &local_0x1f8;
+              uint64_t local_0x158;
+              auto ret_0x270cd90_24 = call_0x270cd90(local_0x80->field_0xd8, &local_0x158, &local_0xf8, &local_0x118, &local_0x1f8);
+              if (this->field_0x80 != this->field_0x88) {
+                this->field_0x80->field_0x0 = ret_0x270cd90_24->field_0x0;
+                this->field_0x80->field_0x8 = ret_0x270cd90_24->field_0x8;
+                ret_0x270cd90_24->field_0x0 = 0;
+                ret_0x270cd90_24->field_0x8 = 0;
+                this->field_0x80 = this->field_0x80 + 0x10;
               } else {
-                call_0x82b260(&this->field_0x60, this->field_0x68, &local_0x98);
+                call_0x82b260(&this->field_0x78, this->field_0x80, ret_0x270cd90_24);
               }
-              if (local_0xa0 != 0) {
-                if (atomic_fetch_sub(&local_0xa0->field_0x8, 1) == 1) {
-                  local_0xa0->vfunc_0x0(local_0xa0);
-                  if (atomic_fetch_sub(&local_0xa0->field_0xc, 1) == 1) {
+              uint64_t local_0x160;
+              if (local_0x160 != 0) {
+                call_0x6daf40(local_0x160);
+              }
+              if (local_0x100 != 0) {
+                call_0x6daf40(local_0x100);
+              }
+              uint64_t local_0x120;
+              if (local_0x120 != 0) {
+                call_0x6daf40(local_0x120);
+              }
+              std::string::_Tidy_deallocate(local_0x1f8);
+              i_edi++;
+            } while (i_edi < this->field_0x108); // loop -> L_0x36cdac1
+            uint64_t local_0x78;
+            local_0x78 = (uint32_t)this->field_0xa8 >> 1;
+            uint64_t local_0x7c;
+            local_0x7c = (uint32_t)(local_0x74 + 1) >> 1;
+            local_0x74 = 0;
+            if (this->field_0x108 != 1) {
+              uint64_t i_ebx = (uint32_t)this->field_0xa8 >> 1;
+              uint8_t* i_r15d = 15;
+              int32_t i_edi_2 = local_0x70;
+              void* i_r12d = local_0x80;
+              do { // L_0x36cdc50
+                void* v_rcx_17;
+                int32_t v_rbx_18 = i_ebx;
+                int32_t v_rdi_19;
+                void* v_r12_20;
+                int32_t v_r15_21 = i_r15d;
+                uint64_t local_0x1d8;
+                uint64_t local_0x1b8;
+                uint64_t local_0x1c8;
+                uint64_t local_0x1d0;
+                if (local_0x90->field_0x10 == 0) {
+                  local_0x1d8 = 0;
+                  uint64_t local_0x1e8;
+                  local_0x1e8 = 0;
+                  uint64_t local_0x1f0;
+                  local_0x1f0 = i_r15d;
+                  local_0x1d8 = (uint8_t)local_0x90->field_0x10;
+                  void* prev_0xd8_17 = i_r12d->field_0xd8;
+                  auto prev_0x10_18 = local_0x90->field_0x10;
+                  auto ret_0x6fd950_33 = call_0x6fd950(prev_0x10_18 + 0x20);
+                  local_0x1e8 = 20;
+                  local_0x1f0 = 31;
+                  memcpy(ret_0x6fd950_33, "Unnamed TextureAtlas", 20);
+                  ret_0x6fd950_33->field_0x14 = (uint8_t)prev_0x10_18;
+                  local_0x1d8 = ret_0x6fd950_33;
+                  v_rcx_17 = &local_0x1d8;
+                  v_rdi_19 = i_edi_2 | 0x1;
+                  v_r12_20 = prev_0xd8_17;
+                } else {
+                  local_0x1b8 = 0;
+                  local_0x1c8 = 0;
+                  local_0x1d0 = 0;
+                  void* v_r15_13 = local_0x90;
+                  if (local_0x90->field_0x18 >= 16) {
+                    v_r15_13 = local_0x90->field_0x0;
+                  }
+                  int32_t v_rbx_14 = i_ebx;
+                  void* v_r12_15 = i_r12d->field_0xd8;
+                  void* v_r14_16 = local_0x90->field_0x10;
+                  if (local_0x90->field_0x10 < 16) {
+                    local_0x1b8 = v_r15_13->field_0x0;
+                    local_0x1d0 = 15;
+                    uint64_t local_0x1bc;
+                    local_0x1bc = v_r15_13->field_0x4;
+                    uint64_t local_0x1c0;
+                    local_0x1c0 = v_r15_13->field_0x8;
+                    uint64_t local_0x1c4;
+                    local_0x1c4 = v_r15_13->field_0xc;
+                  } else {
+                    void* sel_rbx_3 = min(local_0x90->field_0x10 | 0xfULL, 0x7fffffffffffffff);
+                    void* prev_0xd8_15 = i_r12d->field_0xd8;
+                    void* prev_0x10_16 = local_0x90->field_0x10;
+                    auto ret_0x6fd950_31 = call_0x6fd950(sel_rbx_3 + 1);
+                    local_0x1b8 = ret_0x6fd950_31;
+                    call_0x5e05370(ret_0x6fd950_31, v_r15_13, prev_0x10_16 + 1);
+                    local_0x1d0 = sel_rbx_3;
+                    v_rbx_14 = local_0x78;
+                    v_r12_15 = prev_0xd8_15;
+                    v_r14_16 = prev_0x10_16;
+                  }
+                  local_0x1c8 = v_r14_16;
+                  v_rcx_17 = &local_0x1b8;
+                  v_rbx_18 = v_rbx_14;
+                  v_rdi_19 = i_edi_2 | 0x2;
+                  v_r12_20 = v_r12_15;
+                  v_r15_21 = 15;
+                }
+                local_0x70 = v_rdi_19;
+                local_0x58 = v_rcx_17;
+                local_0x50 = 3;
+                local_0x48 = 1;
+                local_0x40 = 1;
+                local_0x38 = 1;
+                local_0x30 = 1;
+                local_0x28 = local_0x7c;
+                local_0x20 = v_rbx_18;
+                uint64_t local_0x98;
+                v_r12_20->vfunc_0x1a8(v_r12_20, &local_0x98, 0, 0, v_rbx_18, local_0x7c, 1, 1, 1, 1);
+                local_0x70 = v_rdi_19 | 1ULL << 7;
+                void* local_0xa0;
+                if (this->field_0x68 != this->field_0x70) {
+                  this->field_0x68->field_0x0 = local_0x98;
+                  this->field_0x68->field_0x8 = local_0xa0;
+                  local_0x98 = 0.0;
+                  this->field_0x68 = this->field_0x68 + 0x10;
+                  uint64_t local_0xa4;
+                  local_0xa4 = 0.0;
+                  uint64_t local_0x9c;
+                  local_0x9c = 0.0;
+                  local_0xa0 = 0.0;
+                } else {
+                  call_0x82b260(&this->field_0x60, this->field_0x68, &local_0x98);
+                }
+                int32_t v_rdi_22 = v_rdi_19 | 1ULL << 7;
+                if (local_0xa0 != 0) {
+                  int32_t atomic_36 = atomic_fetch_sub(&local_0xa0->field_0x8, 1);
+                  if (atomic_36 == 1) {
+                    local_0xa0->vfunc_0x0(local_0xa0);
+                    int32_t atomic_38 = atomic_fetch_sub(&local_0xa0->field_0xc, 1);
+                    if (atomic_38 == 1) {
                     local_0xa0->vfunc_0x8(local_0xa0);
+                    }
                   }
+                  v_rdi_22 = local_0x70;
                 }
-              }
-              int32_t v_rdi_35 = v_rdi_24;
-              int32_t stk_36;
-              if (((uint8_t)v_rdi_24 & 0x2) != 0) {
-                std::string::_Tidy_deallocate(local_0x1b8);
-                v_rdi_35 = v_rdi_24 & 0xfffffffd;
-                stk_36 = v_rdi_24 & 0xfffffffd;
-              }
-              stk_36 = v_rdi_24;
-              int32_t v_rdi_38 = v_rdi_35;
-              int32_t stk_39;
-              if (((uint8_t)v_rdi_35 & 0x1) != 0) {
-                std::string::_Tidy_deallocate(local_0x1d8);
-              } else {
-                stk_39 = stk_36;
-              }
-              int32_t v_rdi_40 = v_rdi_38;
-              if (this->field_0x68->field_m0x8 != 0) {
-                this->field_0x68->field_m0x8->field_0x8++;
-                v_rdi_40 = stk_39;
-              }
-              auto local_0xb8 = this->field_0x68->field_m0x10;
-              auto local_0x138 = 0.0;
-              auto local_0x13c = 0.0;
-              auto local_0x140 = 0.0;
-              auto local_0x144 = 0.0;
-              auto local_0x14c = 1;
-              auto ret_0x270cd90_38 = call_0x270cd90(param_2->field_0xd8, &local_0x168, &local_0xb8, &local_0x138);
-              if (this->field_0x98 != this->field_0xa0) {
-                this->field_0x98->field_0x0 = ret_0x270cd90_38->field_0x0;
-                this->field_0x98->field_0x8 = ret_0x270cd90_38->field_0x8;
-                this->field_0x98 = this->field_0x98 + 0x10;
-              } else {
-                call_0x82b260(&this->field_0x90, this->field_0x98, ret_0x270cd90_38);
-              }
-              int32_t v_rdi_41 = v_rdi_40;
-              if (local_0x170 != 0) {
-                if (atomic_fetch_sub(&local_0x170->field_0x8, 1) == 1) {
-                  local_0x170->vfunc_0x0(local_0x170);
-                  if (atomic_fetch_sub(&local_0x170->field_0xc, 1) == 1) {
+                int32_t v_rdi_24 = v_rdi_22;
+                if (((uint8_t)v_rdi_22 & 0x2) != 0) {
+                  local_0x70 = v_rdi_22 & 0xfffffffd;
+                  std::string::_Tidy_deallocate(local_0x1b8);
+                  local_0x1c8 = 0;
+                  local_0x1d0 = v_r15_21;
+                  local_0x1b8 = 0;
+                  v_rdi_24 = v_rdi_22 & 0xfffffffd;
+                }
+                int32_t v_rdi_26 = v_rdi_24;
+                if (((uint8_t)v_rdi_24 & 0x1) != 0) {
+                  local_0x70 = v_rdi_24 & 0xfffffffe;
+                  std::string::_Tidy_deallocate(local_0x1d8);
+                }
+                uint64_t local_0x218;
+                local_0x218 = 0;
+                uint64_t local_0x228;
+                local_0x228 = 0;
+                uint64_t local_0x230;
+                local_0x230 = v_r15_21;
+                local_0x218 = 0;
+                uint64_t local_0x138;
+                local_0x138 = 0.0;
+                uint64_t local_0x148;
+                local_0x148 = 0;
+                uint64_t local_0x14c;
+                local_0x14c = 1;
+                int32_t v_rdi_27 = v_rdi_26;
+                if (this->field_0x68->field_m0x8 != 0) {
+                  this->field_0x68->field_m0x8->field_0x8++;
+                  v_rdi_27 = local_0x70;
+                }
+                uint64_t local_0xb8;
+                local_0xb8 = this->field_0x68->field_m0x10;
+                void* local_0xc0;
+                local_0xc0 = this->field_0x68->field_m0x8;
+                uint64_t local_0xc8;
+                local_0xc8 = 0;
+                uint64_t local_0xcc;
+                local_0xcc = 1;
+                local_0x20 = &local_0x218;
+                uint64_t local_0x168;
+                auto ret_0x270cd90_44 = call_0x270cd90(local_0x80->field_0xd8, &local_0x168, &local_0xb8, &local_0x138, &local_0x218);
+                if (this->field_0x98 != this->field_0xa0) {
+                  this->field_0x98->field_0x0 = ret_0x270cd90_44->field_0x0;
+                  this->field_0x98->field_0x8 = ret_0x270cd90_44->field_0x8;
+                  ret_0x270cd90_44->field_0x0 = 0;
+                  ret_0x270cd90_44->field_0x8 = 0;
+                  this->field_0x98 = this->field_0x98 + 0x10;
+                } else {
+                  call_0x82b260(&this->field_0x90, this->field_0x98, ret_0x270cd90_44);
+                }
+                int32_t v_rdi_28 = v_rdi_27;
+                void* local_0x170;
+                if (local_0x170 != 0) {
+                  int32_t atomic_46 = atomic_fetch_sub(&local_0x170->field_0x8, 1);
+                  if (atomic_46 == 1) {
+                    local_0x170->vfunc_0x0(local_0x170);
+                    int32_t atomic_48 = atomic_fetch_sub(&local_0x170->field_0xc, 1);
+                    if (atomic_48 == 1) {
                     local_0x170->vfunc_0x8(local_0x170);
+                    }
                   }
+                  v_rdi_28 = local_0x70;
                 }
-                v_rdi_41 = stk_39;
-              }
-              int32_t v_rdi_42 = v_rdi_41;
-              if (local_0xc0 != 0) {
-                if (atomic_fetch_sub(&local_0xc0->field_0x8, 1) == 1) {
-                  local_0xc0->vfunc_0x0(local_0xc0);
-                  if (atomic_fetch_sub(&local_0xc0->field_0xc, 1) == 1) {
+                int32_t v_rdi_29 = v_rdi_28;
+                if (local_0xc0 != 0) {
+                  int32_t atomic_50 = atomic_fetch_sub(&local_0xc0->field_0x8, 1);
+                  if (atomic_50 == 1) {
+                    local_0xc0->vfunc_0x0(local_0xc0);
+                    int32_t atomic_52 = atomic_fetch_sub(&local_0xc0->field_0xc, 1);
+                    if (atomic_52 == 1) {
                     local_0xc0->vfunc_0x8();
+                    }
                   }
+                  v_rdi_29 = local_0x70;
                 }
-                v_rdi_42 = stk_39;
-              }
-              int32_t v_rdi_43 = v_rdi_42;
-              if (local_0x140 != 0) {
-                if (atomic_fetch_sub(&local_0x140->field_0x8, 1) == 1) {
-                  local_0x140->vfunc_0x0(local_0x140);
-                  if (atomic_fetch_sub(&local_0x140->field_0xc, 1) == 1) {
+                int32_t v_rdi_30 = v_rdi_29;
+                void* local_0x140;
+                if (local_0x140 != 0) {
+                  int32_t atomic_54 = atomic_fetch_sub(&local_0x140->field_0x8, 1);
+                  if (atomic_54 == 1) {
+                    local_0x140->vfunc_0x0(local_0x140);
+                    int32_t atomic_56 = atomic_fetch_sub(&local_0x140->field_0xc, 1);
+                    if (atomic_56 == 1) {
                     local_0x140->vfunc_0x8(local_0x140);
+                    }
                   }
+                  v_rdi_30 = local_0x70;
                 }
-                v_rdi_43 = stk_39;
-              }
-              std::string::_Tidy_deallocate(0);
-              if (ecx + 1 >= this->field_0x108 - 1) break;
-              i_r15d = v_r15_26;
-              i_edi = v_rdi_43;
-              i_r12d = param_2;
-            } while (true); // loop -> L_0x36cdc50
+                std::string::_Tidy_deallocate(local_0x218);
+                auto mem_23_23 = local_0x78;
+                local_0x78 = (uint32_t)(local_0x78 + 1) >> 1;
+                local_0x7c = (uint32_t)(local_0x7c + 1) >> 1;
+                auto mem_25_25 = local_0x74;
+                local_0x74++;
+                if (mem_25_25 + 1 >= this->field_0x108 - 1) {
+                  v_rdi_32 = v_rdi_30;
+                  break;
+                }
+                i_ebx = (uint32_t)(mem_23_23 + 1) >> 1;
+                i_r15d = v_r15_21;
+                i_edi_2 = v_rdi_30;
+                i_r12d = local_0x80;
+              } while (true); // loop -> L_0x36cdc50
+            } else {
+              v_rdi_32 = local_0x70;
+            }
           } else {
-            v_rdi_45 = 64;
+            v_rdi_32 = 64;
           }
         } else {
-          v_rdi_45 = 64;
-        }
-      } else {
-        int32_t v_rdi_6;
-        void* v_r12_8;
-        if (local_0x2c8->field_0x10 == 0) {
-          void* prev_0xd8_3 = param_2->field_0xd8;
-          void* prev_0x10_4 = local_0x2c8->field_0x10;
-          auto ret_0x6fd950_5 = call_0x6fd950(local_0x2c8->field_0x10 + 0x20);
-          memcpy(ret_0x6fd950_5, "Unnamed TextureAtlas", 20);
-          ret_0x6fd950_5->field_0x14 = (uint8_t)prev_0x10_4;
-          v_rdi_6 = 4;
-          v_r12_8 = prev_0xd8_3;
-        } else {
-          void* v_r15_1 = local_0x2c8;
-          if (local_0x2c8->field_0x18 >= 16) {
-            v_r15_1 = local_0x2c8->field_0x0;
-          }
-          void* v_r12_2 = param_2->field_0xd8;
-          if (local_0x2c8->field_0x10 >= 16) {
-            void* sel_rbx_1 = min(local_0x2c8->field_0x10 | 0xf, 0x7fffffffffffffff);
-            void* prev_0xd8_1 = param_2->field_0xd8;
-            auto ret_0x6fd950_3 = call_0x6fd950(&sel_rbx_1->field_0x1);
-            call_0x5e05370(ret_0x6fd950_3, v_r15_1, &local_0x2c8->field_0x10->field_0x1);
-            v_r12_2 = prev_0xd8_1;
-          }
-          v_rdi_6 = 8;
-          v_r12_8 = v_r12_2;
-        }
-        v_r12_8->vfunc_0x1a8(v_r12_8, &local_0xa8, 0, 0);
-        auto ret_0x35a9770_7 = call_0x35a9770(&local_0xe0, &local_0xa8, 5);
-        this->field_0x50 = ret_0x35a9770_7->field_0x0;
-        void* prev_0x58_5 = this->field_0x58;
-        this->field_0x58 = ret_0x35a9770_7->field_0x8;
-        if (prev_0x58_5 != 0) {
-          call_0x6daf40(prev_0x58_5);
-        }
-        if (local_0xe8 != 0) {
-          call_0x6daf40(local_0xe8);
-        }
-        if (local_0xb0 != 0) {
-          call_0x6daf40(local_0xb0);
-        }
-        int32_t v_rdi_10 = v_rdi_6;
-        if (((uint8_t)v_rdi_6 & 0x8) != 0) {
-          std::string::_Tidy_deallocate(local_0x198);
-          v_rdi_10 = v_rdi_6 & 0xfffffff7;
-        }
-        if (((uint8_t)v_rdi_10 & 0x4) != 0) {
-          if (local_0x190 >= 16) {
-            void* v_rcx_12 = local_0x178;
-            call_0x4955ac0(v_rcx_12);
-            v_rdi_45 = v_rdi_10 & 0xfffffffb;
+          int32_t v_rdi_4;
+          void* v_r8_5;
+          void* v_r12_6;
+          uint64_t local_0x1a8;
+          uint64_t local_0x1b0;
+          if (local_0x90->field_0x10 == 0) {
+            local_0x188 = 0;
+            local_0x190 = 15;
+            local_0x178 = (uint8_t)local_0x90->field_0x10;
+            void* prev_0xd8_3 = param_2->field_0xd8;
+            auto prev_0x10_4 = local_0x90->field_0x10;
+            auto ret_0x6fd950_7 = call_0x6fd950(prev_0x10_4 + 0x20);
+            local_0x188 = 20;
+            local_0x190 = 31;
+            memcpy(ret_0x6fd950_7, "Unnamed TextureAtlas", 20);
+            ret_0x6fd950_7->field_0x14 = (uint8_t)prev_0x10_4;
+            local_0x178 = ret_0x6fd950_7;
+            v_rdi_4 = 4;
+            v_r8_5 = &local_0x178;
+            v_r12_6 = prev_0xd8_3;
           } else {
-            v_rdi_45 = v_rdi_10 & 0xfffffffb;
+            local_0x198 = 0;
+            local_0x1a8 = 0;
+            local_0x1b0 = 0;
+            void* v_r15_1 = local_0x90;
+            if (local_0x90->field_0x18 >= 16) {
+              v_r15_1 = local_0x90->field_0x0;
+            }
+            void* v_r12_2 = param_2->field_0xd8;
+            void* v_r14_3 = local_0x90->field_0x10;
+            if (local_0x90->field_0x10 < 16) {
+              local_0x198 = v_r15_1->field_0x0;
+              local_0x1b0 = 15;
+              local_0x19c = v_r15_1->field_0x4;
+              local_0x1a0 = v_r15_1->field_0x8;
+              local_0x1a4 = v_r15_1->field_0xc;
+            } else {
+              void* sel_rbx_1 = min(local_0x90->field_0x10 | 0xfULL, 0x7fffffffffffffff);
+              void* prev_0xd8_1 = param_2->field_0xd8;
+              void* prev_0x10_2 = local_0x90->field_0x10;
+              auto ret_0x6fd950_5 = call_0x6fd950(sel_rbx_1 + 1);
+              local_0x198 = ret_0x6fd950_5;
+              call_0x5e05370(ret_0x6fd950_5, v_r15_1, prev_0x10_2 + 1);
+              local_0x1b0 = sel_rbx_1;
+              v_r12_2 = prev_0xd8_1;
+              v_r14_3 = prev_0x10_2;
+            }
+            local_0x1a8 = v_r14_3;
+            v_rdi_4 = 8;
+            v_r8_5 = &local_0x198;
+            v_r12_6 = v_r12_2;
           }
+          local_0x70 = v_rdi_4;
+          local_0x58 = v_r8_5;
+          local_0x50 = 13;
+          local_0x48 = 1;
+          local_0x40 = 1;
+          local_0x38 = 1;
+          local_0x30 = 1;
+          local_0x28 = this->field_0xac;
+          local_0x20 = this->field_0xa8;
+          v_r12_6->vfunc_0x1a8(v_r12_6, &local_0xa8, 0, 0, this->field_0xa8, this->field_0xac, 1, 1, 1, 1);
+          local_0x70 = v_rdi_4 | 1ULL << 8;
+          auto ret_0x35a9770_9 = call_0x35a9770(&local_0xe0, &local_0xa8, 5);
+          void* prev_0x0_5 = ret_0x35a9770_9->field_0x0;
+          ret_0x35a9770_9->field_0x0 = 0;
+          void* prev_0x8_6 = ret_0x35a9770_9->field_0x8;
+          ret_0x35a9770_9->field_0x8 = 0;
+          this->field_0x50 = prev_0x0_5;
+          void* prev_0x58_7 = this->field_0x58;
+          this->field_0x58 = prev_0x8_6;
+          if (prev_0x58_7 != 0) {
+            call_0x6daf40(prev_0x58_7);
+          }
+          if (local_0xe8 != 0) {
+            call_0x6daf40(local_0xe8);
+          }
+          if (local_0xb0 != 0) {
+            call_0x6daf40(local_0xb0);
+          }
+          int32_t v_rdi_8 = v_rdi_4 | 1ULL << 8;
+          if (((uint8_t)(v_rdi_4 | (1ULL << 8)) & 0x8) != 0) {
+            local_0x70 = (v_rdi_4 | 1ULL << 8) & 0xfffffff7;
+            std::string::_Tidy_deallocate(local_0x198);
+            local_0x1a8 = 0;
+            local_0x1b0 = 15;
+            local_0x198 = 0;
+            v_rdi_8 = (v_rdi_4 | 1ULL << 8) & 0xfffffff7;
+          }
+          if (((uint8_t)v_rdi_8 & 0x4) != 0) {
+            local_0x70 = v_rdi_8 & 0xfffffffb;
+            std::string::_Tidy_deallocate(local_0x178);
+          } else {
+            v_rdi_32 = v_rdi_8;
+          }
+        }
+        void* v_rcx_34;
+        if (this->field_0x50 != 0) {
+          void* sel_rcx_4 = this->field_0x50->field_0x10 != 0 ? &this->field_0x50->field_0x10 : this->field_0x50;
+          v_rcx_34 = sel_rcx_4;
         } else {
-          v_rdi_45 = v_rdi_10;
+          v_rcx_34 = &sym_0x8c6f990;
         }
-      }
-      void* v_rcx_54;
-      if (this->field_0x50 != 0) {
-        void* sel_rcx_4 = this->field_0x50->field_0x10 != 0 ? this->field_0x50->field_0x10 : this->field_0x50;
-        v_rcx_54 = sel_rcx_4;
-      } else {
-        v_rcx_54 = &sym_0x8c6f990;
-      }
-      this->field_0x1c = v_rcx_54->field_0x0->field_0x1c;
-      void* v_rbx_58;
-      int32_t v_rdi_59;
-      void* v_r14_61;
-      if (local_0x2c8->field_0x10 == 0) {
-        auto ret_0x6fd950_49 = call_0x6fd950(local_0x2c8->field_0x10 + 0x20);
-        memcpy(ret_0x6fd950_49, "Unnamed TextureAtlas", 20);
-        v_rbx_58 = ret_0x6fd950_49;
-        v_rdi_59 = v_rdi_45 | 0x10;
-        v_r14_61 = local_0x198;
-      } else {
-        void* v_r12_55 = local_0x2c8;
-        if (local_0x2c8->field_0x18 >= 16) {
-          v_r12_55 = local_0x2c8->field_0x0;
-        }
-        void* v_r14_56;
-        if (local_0x2c8->field_0x10 < 16) {
-          v_r14_56 = v_r12_55->field_0x0;
+        this->field_0x1c = v_rcx_34->field_0x0->field_0x1c;
+        void* v_rbx_40;
+        int32_t v_rdi_41;
+        void* v_r14_43;
+        if (local_0x90->field_0x10 == 0) {
+          auto prev_0x10_27 = local_0x90->field_0x10;
+          auto ret_0x6fd950_61 = call_0x6fd950(prev_0x10_27 + 0x20);
+          local_0x188 = 20;
+          local_0x190 = 31;
+          memcpy(ret_0x6fd950_61, "Unnamed TextureAtlas", 20);
+          local_0x178 = ret_0x6fd950_61;
+          v_rbx_40 = ret_0x6fd950_61;
+          v_rdi_41 = v_rdi_32 | 0x10;
+          v_r14_43 = local_0x198;
         } else {
-          void* sel_r15_5 = min(local_0x2c8->field_0x10 | 0xf, 0x7fffffffffffffff);
-          auto ret_0x6fd950_47 = call_0x6fd950(&sel_r15_5->field_0x1);
-          call_0x5e05370(ret_0x6fd950_47, v_r12_55, &local_0x2c8->field_0x10->field_0x1);
-          v_r14_56 = ret_0x6fd950_47;
+          void* v_r12_35 = local_0x90;
+          if (local_0x90->field_0x18 >= 16) {
+            v_r12_35 = local_0x90->field_0x0;
+          }
+          void* v_r14_37;
+          if (local_0x90->field_0x10 < 16) {
+            local_0x198 = v_r12_35->field_0x0;
+            v_r14_37 = local_0x198;
+            local_0x19c = v_r12_35->field_0x4;
+            local_0x1a0 = v_r12_35->field_0x8;
+            local_0x1a4 = v_r12_35->field_0xc;
+          } else {
+            void* sel_r15_5 = min(local_0x90->field_0x10 | 0xfULL, 0x7fffffffffffffff);
+            void* prev_0x10_26 = local_0x90->field_0x10;
+            auto ret_0x6fd950_59 = call_0x6fd950(sel_r15_5 + 1);
+            call_0x5e05370(ret_0x6fd950_59, v_r12_35, prev_0x10_26 + 1);
+            v_r14_37 = ret_0x6fd950_59;
+          }
+          v_rbx_40 = local_0x178;
+          v_rdi_41 = v_rdi_32 | 0x20;
+          v_r14_43 = v_r14_37;
         }
-        v_rbx_58 = local_0x178;
-        v_rdi_59 = v_rdi_45 | 0x20;
-        v_r14_61 = v_r14_56;
-      }
-      if (((uint8_t)v_rdi_59 & 0x20) != 0) {
-        std::string::_Tidy_deallocate(v_r14_61);
-      }
-      std::string::_Tidy_deallocate(v_rbx_58);
-      int32_t v_rsi_70 = 0;
-      if (global_0x84c408c >= 1024) {
-        call_0x494e780();
-      } else {
-        auto ret_0x4954c10_53 = call_0x4954c10();
-        int32_t v_rcx_69;
-        if (ret_0x4954c10_53 != 0) {
-          auto prev_0x0_16 = ret_0x4954c10_53->field_0x0;
-          ret_0x4954c10_53->field_0x0 = (ret_0x4954c10_53->field_0x0 ^ r8) & 0x3ff ^ ret_0x4954c10_53->field_0x0;
-          v_rcx_69 = prev_0x0_16;
+        if (((uint8_t)v_rdi_41 & 0x20) != 0) {
+          local_0x70 = v_rdi_41 & 0xffffffdf;
+          std::string::_Tidy_deallocate(v_r14_43);
+        }
+        std::string::_Tidy_deallocate(v_rbx_40);
+        int32_t v_rsi_51 = 0;
+        if (global_0x84c408c >= 1024) {
+          call_0x494e780();
         } else {
-          v_rcx_69 = call_0x4954d30(r8, 1023);
+          auto ret_0x4954c10_65 = call_0x4954c10();
+          int32_t v_rcx_50;
+          if (ret_0x4954c10_65 != 0) {
+            auto prev_0x0_28 = ret_0x4954c10_65->field_0x0;
+            ret_0x4954c10_65->field_0x0 = (ret_0x4954c10_65->field_0x0 ^ global_0x84c408c) & 0x3ff ^ ret_0x4954c10_65->field_0x0;
+            v_rcx_50 = prev_0x0_28;
+          } else {
+            v_rcx_50 = call_0x4954d30(global_0x84c408c, 1023);
+          }
+          v_rsi_51 = v_rcx_50 & 0x3ff;
         }
-        v_rsi_70 = v_rcx_69 & 0x3ff;
+        local_0x88 = v_rsi_51;
+        if (this->field_0xc0 < 1024) {
+          call_0x36d1120(&this->field_0xb0, 1024);
+        }
+        call_0x36ce730(this);
+        auto ret_0x4954c10_70 = call_0x4954c10();
+        if (ret_0x4954c10_70 != 0) {
+          ret_0x4954c10_70->field_0x0 = ret_0x4954c10_70->field_0x0 & 0xfffffc00 | v_rsi_51;
+        } else {
+          call_0x4954d30(v_rsi_51, 1023);
+        }
+        return this;
       }
-      if (this->field_0xc0 < 1024) {
-        call_0x36d1120(&this->field_0xb0, 1024);
-      }
-      call_0x36ce730(this);
-      auto ret_0x4954c10_58 = call_0x4954c10();
-      if (ret_0x4954c10_58 != 0) {
-        ret_0x4954c10_58->field_0x0 = ret_0x4954c10_58->field_0x0 & 0xfffffc00 | v_rsi_70;
-      } else {
-        call_0x4954d30(v_rsi_70, 1023);
-      }
-      return this;
+      call_0x6ca7d0(&local_0xe0);
+      call_0x5e066f0(&local_0xe0, &sym_0x80cbbc0);
+      return; // noreturn
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x36cd770..0x36ce5ef)] ===
@@ -1950,39 +2265,66 @@ Operação  : 0x3561ca3: mov/math reg, [flag] ; fn=0x3561b50..0x3561fc8
     };
     
     // Flag defaults: DevGlyphAtlasWidth = 2048, DevGlyphAtlasHeight = 4096, CoreGlyphAtlasSize = 2048, TexAtlasUpdateLineHeight = 150, AddFontAtlasMipmaps = false, FontAtlasMipsAndRefactor2 = true
-    void RBX::DevGlyph::func_0x39ece00(RBX::DevGlyph* this, int64_t param_2, void* param_3, float param_4) {
+    void RBX::DevGlyph::func_0x39ece00(RBX::DevGlyph* this, void* param_2, int64_t param_3, float param_4) {
+      uint64_t local_0x40;
+      local_0x40 = 0;
       int32_t v_r8_1 = 2048;
       if (param_2->field_0xd8 != 0) {
         auto vret_1 = param_2->field_0xd8->vfunc_0xe8(param_2->field_0xd8, param_2, 2048);
         v_r8_1 = vret_1->field_0x4c;
       }
-      void* sel_rbx_1 = param_3 != 0 ? "GlyphAtlas for CoreGui" : "GlyphAtlas for UGC";
+      int32_t tmp_1 = v_r8_1 < ((uint8_t)param_3 != 0 ? CoreGlyphAtlasSize : DevGlyphAtlasWidth) ? v_r8_1 : ((uint8_t)param_3 != 0 ? CoreGlyphAtlasSize : DevGlyphAtlasWidth);
+      int32_t tmp_2 = v_r8_1 < ((uint8_t)param_3 != 0 ? CoreGlyphAtlasSize : DevGlyphAtlasHeight) ? v_r8_1 : ((uint8_t)param_3 != 0 ? CoreGlyphAtlasSize : DevGlyphAtlasHeight);
+      uint64_t local_0x48;
+      local_0x48 = (int64_t)((float)TexAtlasUpdateLineHeight * param_4);
+      int32_t v_r14_2;
+      if (AddFontAtlasMipmaps && FontAtlasMipsAndRefactor2 && (uint8_t)param_3 == 0) {
+        int64_t idx_1 = 1 << (uint8_t)bsr(tmp_2) | 1 << (uint8_t)bsr(tmp_1) | 0x1;
+        v_r14_2 = bsr(idx_1 * 2 + 1);
+      } else {
+        v_r14_2 = 1;
+      }
+      void* sel_rbx_2 = (uint8_t)param_3 != 0 ? "GlyphAtlas for CoreGui" : "GlyphAtlas for UGC";
       auto ret_0x4956040_2 = call_0x4956040(272);
-      uint64_t i_r8d = -1;
-      do { // L_0x39ecf50
-        i_r8d++;
-      } while (sel_rbx_1->field_0x0[i_r8d] != 0); // loop -> L_0x39ecf50
-      auto local_0x70 = 0;
-      call_0x6f7000(&local_0x70, sel_rbx_1, i_r8d);
-      auto ret_0x36cd770_4 = call_0x36cd770(ret_0x4956040_2, param_2, 1 << bsr(std::min<uint32_t>(param_3 != 0 ? CoreGlyphAtlasSize : DevGlyphAtlasWidth, v_r8_1)), 1 << bsr(std::min<uint32_t>(param_3 != 0 ? CoreGlyphAtlasSize : DevGlyphAtlasHeight, v_r8_1)));
-      std::string::_Tidy_deallocate(local_0x70);
-      void* v_rbx_4 = ret_0x36cd770_4;
-      void* v_rdi_5 = ret_0x36cd770_4;
-      if (this != &local_0x48) {
-        void* prev_0x0_2 = this->field_0x0;
-        this->field_0x0 = ret_0x36cd770_4;
-        if (prev_0x0_2 != 0) {
-          this->field_0x0->vfunc_0x0(prev_0x0_2, 1);
-          v_rbx_4 = 0;
-          v_rdi_5 = 0;
-        } else {
-          v_rbx_4 = 0;
-          v_rdi_5 = 0;
+      if (ret_0x4956040_2 != 0) {
+        uint64_t local_0x70;
+        local_0x70 = 0;
+        uint64_t i_r8d = -1;
+        do { // L_0x39ecf50
+          i_r8d++;
+        } while (sel_rbx_2->field_0x0[i_r8d] != 0); // loop -> L_0x39ecf50
+        auto local_0x80 = 0;
+        auto local_0x88 = 15;
+        call_0x6f7000(&local_0x70, sel_rbx_2, i_r8d);
+        local_0x40 = 1;
+        auto ret_0x36cd770_4 = call_0x36cd770(ret_0x4956040_2, param_2, 1 << (uint8_t)bsr(tmp_1), 1 << (uint8_t)bsr(tmp_2), local_0x48, v_r14_2, (uint8_t)param_3 ^ 0x1, &local_0x70, 1);
+        local_0x48 = ret_0x36cd770_4;
+        local_0x40 = 2;
+        std::string::_Tidy_deallocate(local_0x70);
+        void* v_rbx_4 = ret_0x36cd770_4;
+        int64_t v_rdi_5 = ret_0x36cd770_4;
+        if (this != &local_0x48) {
+          void* prev_0x0_3 = this->field_0x0;
+          this->field_0x0 = ret_0x36cd770_4;
+          if (prev_0x0_3 != 0) {
+            this->field_0x0->vfunc_0x0(prev_0x0_3, 1);
+            v_rbx_4 = 0;
+            v_rdi_5 = 0;
+          } else {
+            v_rbx_4 = 0;
+            v_rdi_5 = 0;
+          }
         }
+        if (v_rdi_5 != 0) {
+          v_rbx_4->vfunc_0x0(v_rbx_4, 1);
+          return;
+        }
+        return;
       }
-      if (v_rdi_5 != 0) {
-        v_rbx_4->vfunc_0x0(v_rbx_4, 1);
-      }
+      uint64_t local_0x58;
+      call_0x6ca7d0(&local_0x58);
+      call_0x5e066f0(&local_0x58, &sym_0x80cbbc0);
+      return; // noreturn
     }
   
   === [Instrucoes x86-64 do XREF Runtime #2 (0x39ece00..0x39ed07b)] ===
@@ -2165,7 +2507,7 @@ Operação  : 0x3561ca3: mov/math reg, [flag] ; fn=0x3561b50..0x3561fc8
       /* +0xdd8 */ void*   field_0xdd8;
     };
     
-    // Flag defaults: DebugOverrideDPIScale = false, DebugCustomDPIScale = 1, Graphics = 6, UITextureUsingNewJobFlow7 = false, UITextureRendererRedirectToMigration = false, UITextureRendererCoreEnabled3 = false, RelayoutTextOnScaleChange = false, EnableFontSubsystem13 = false
+    // Flag defaults: DebugOverrideDPIScale = true, DebugCustomDPIScale = 1, Graphics = 0, UITextureUsingNewJobFlow7 = false, UITextureRendererRedirectToMigration = false, UITextureRendererCoreEnabled3 = false, RelayoutTextOnScaleChange = false, EnableFontSubsystem13 = false
     void RBX::TexAtlas::func_0x3562e40(RBX::TexAtlas* this, float param_2) {
       if (DebugOverrideDPIScale) {
         if (isnan(param_2) || isnan((float)DebugCustomDPIScale) || param_2 != (float)DebugCustomDPIScale) {
@@ -2174,7 +2516,7 @@ Operação  : 0x3561ca3: mov/math reg, [flag] ; fn=0x3561b50..0x3561fc8
       }
       if (isnan(param_2) || isnan(this->field_0xd88) || param_2 != this->field_0xd88) {
         if ((uint8_t)Graphics >= 6 && (uint8_t)((uint64_t)Graphics >> 8) >= 3) {
-          FLog::Log("[FLog::Graphics] Setting screen DPI scale to %.2f (was %.2f)");
+          FLog::Log("[FLog::Graphics] Setting screen DPI scale to %.2f (was %.2f)", (double)param_2, (double)this->field_0xd88);
         }
         this->field_0xd88 = param_2;
         auto* f_c20 = this->field_0xc20;
@@ -2184,7 +2526,7 @@ Operação  : 0x3561ca3: mov/math reg, [flag] ; fn=0x3561b50..0x3561fc8
           f_c20_188_30->field_0x4 = f_c20_188_30->field_0x4 | 0x4;
         }
         auto* f_dd8 = this->field_0xdd8;
-        void* sel_rcx_1 = f_dd8 == 0 ? 0 : f_dd8->field_0x1f0;
+        void* sel_rcx_1 = f_dd8 == 0 ? 0 : &f_dd8->field_0x1f0;
         int64_t v_rdi_2 = 0;
         if (sel_rcx_1 != 0) {
           auto ret_0xe29720_1 = call_0xe29720(sel_rcx_1);
@@ -2197,9 +2539,9 @@ Operação  : 0x3561ca3: mov/math reg, [flag] ; fn=0x3561b50..0x3561fc8
         }
         auto* f_dd8_2 = this->field_0xdd8;
         if (f_dd8_2 != 0) {
-          auto ret_0x110ee80_3 = call_0x110ee80(f_dd8_2->field_0x240 & 0xfffffff8);
+          auto ret_0x110ee80_3 = call_0x110ee80(f_dd8_2->field_0x240 & 0xfffffffffffffff8ULL);
           if ((uint8_t)ret_0x110ee80_3 != 0) {
-            auto ret_0x110efc0_4 = call_0x110efc0(this->field_0xdd8->field_0x240 & 0xfffffff8);
+            auto ret_0x110efc0_4 = call_0x110efc0(this->field_0xdd8->field_0x240 & 0xfffffffffffffff8ULL);
             ret_0x110efc0_4->field_0x10->field_0x78 = param_2;
             if (ret_0x110efc0_4->field_0x10->field_0x8 != 0) {
               ret_0x110efc0_4->field_0x10->field_0x8->field_0x30 = param_2 * ret_0x110efc0_4->field_0x10->field_0x7c;
@@ -2228,13 +2570,13 @@ Operação  : 0x3561ca3: mov/math reg, [flag] ; fn=0x3561b50..0x3561fc8
   * FFlagAddFontAtlasMipmaps = false (default)
   * FFlagFontAtlasMipsAndRefactor2 = true (default)
   * FIntCoreGlyphAtlasSize = 2048 (default)
-  * DFFlagDebugOverrideDPIScale = false (default)
+  * DFFlagDebugOverrideDPIScale = true (default)
   * DFIntDebugCustomDPIScale = 1 (default)
-  * FLogGraphics = 6 (default)
+  * FLogGraphics = 0 (default)
   * FFlagUITextureUsingNewJobFlow7 = false (default)
   * FFlagUITextureRendererRedirectToMigration = false (default)
   * FFlagUITextureRendererCoreEnabled3 = false (default)
   * FFlagRelayoutTextOnScaleChange = false (default)
   * FFlagDebugRenderCleanCacheOnInit = false (default) [vizinha em .data]
   * FFlagRenderEnableMultiVE = true (default) [vizinha em .data]
-  * FIntDeviceRecoveryEventsThrottleHundredthsPercent = 5000 (default) [vizinha em .data]
+  * FIntDeviceRecoveryEventsThrottleHundredthsPercent = 0 (default) [vizinha em .data]

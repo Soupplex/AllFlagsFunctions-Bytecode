@@ -7,10 +7,10 @@ Operação  : 0x1923a11: cmp dword [flag], imm ; fn=0x1923770..0x1923bcc
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::AnimationLod)] ===
     Classe  : RBX::AnimationLod (Inferido)
-    Padrão  : DFIntAnimationLodStatSampleRatePerTenThousand = 1 (default) [int, mode=2]
+    Padrão  : DFIntAnimationLodStatSampleRatePerTenThousand = 0 (default) [int, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : AnimationLodStatSampleRatePerTenThousand > 0
-    Fórmula : tmp_10 - ((uint32_t)((uint32_t)(uint64_t)i_r9d >> 45 ^ (uint64_t)i_r9d >> 27 >> ((uint64_t)i_r9d >> 59)) >> 13) * 10000 < AnimationLodStatSampleRatePerTenThousand
+    Fórmula : tmp_10 - ((uint32_t)mulhi(0xd1b71759ULL, tmp_10) >> 13) * 10000 < AnimationLodStatSampleRatePerTenThousand
     Altera  : this->field_0x6dc, this->field_0x6b8, this->field_0x6e0, this->field_0x6bc, this->field_0x6c0, this->field_0x6e4
   
   === [Decompilacao C++ da Funcao 0x1923770..0x1923bcc] ===
@@ -34,8 +34,10 @@ Operação  : 0x1923a11: cmp dword [flag], imm ; fn=0x1923770..0x1923bcc
       /* +0x6f8 */ int32_t field_0x6f8;
     };
     
-    // Flag defaults: AnimationLodStatSampleRatePerTenThousand = 1
+    // Flag defaults: AnimationLodStatSampleRatePerTenThousand = 0
     void RBX::AnimationLod::func_0x1923770(RBX::AnimationLod* this, float param_2, float param_3, float param_4) {
+      void* local_0x20;
+      local_0x20 = &this->field_0x70;
       call_0x2e12fd0(&this->field_0x70);
       this->field_0x6dc++;
       float ftmp_1 = (param_4 - this->field_0x6b8) / (float)this->field_0x6dc;
@@ -47,16 +49,20 @@ Operação  : 0x1923a11: cmp dword [flag], imm ; fn=0x1923770..0x1923bcc
         float ftmp_3 = (param_3 - this->field_0x6c0) * (1.0f / (float)this->field_0x6e0);
         this->field_0x6c0 = ftmp_3 + this->field_0x6c0;
       }
+      uint64_t local_0xc0;
       if (local_0xc0 > 0.0) {
         this->field_0x6e4++;
         float ftmp_4 = (local_0xc0 - this->field_0x6c4) / (float)this->field_0x6e4;
         this->field_0x6c4 = ftmp_4 + this->field_0x6c4;
       }
+      uint64_t local_0xc8;
       if (local_0xc8 > 0.0) {
         this->field_0x6e8++;
         float ftmp_5 = (local_0xc8 - this->field_0x6c8) / (float)this->field_0x6e8;
         this->field_0x6c8 = ftmp_5 + this->field_0x6c8;
       }
+      uint64_t local_0xd8;
+      void* local_0xd0;
       if (local_0xd0->field_0x0 > 0) {
         this->field_0x6ec++;
         float ftmp_7 = ((float)local_0xd0->field_0x0 / local_0xd8 * 100.0f - this->field_0x6cc) / (float)this->field_0x6ec;
@@ -77,8 +83,9 @@ Operação  : 0x1923a11: cmp dword [flag], imm ; fn=0x1923770..0x1923bcc
         float ftmp_13 = ((float)local_0xd0->field_0xc / local_0xd8 * 100.0f - this->field_0x6d8) / (float)this->field_0x6f8;
         this->field_0x6d8 = ftmp_13 + this->field_0x6d8;
       }
+      void* v_rdi_1 = &this->field_0x70;
       if (AnimationLodStatSampleRatePerTenThousand > 0) {
-        if (global_0x8df6e80 > rbp->field_0x58->field_0x0->field_0x0[40]) {
+        if (global_0x8df6e80 > __readgsqword(0x58)->field_0x0->field_0x0[40]) {
           call_0x12e0(&sym_0x8df6e80);
           if (global_0x8df6e80 == -1) {
             global_0x8df6e88 = call_0x4975300();
@@ -86,11 +93,10 @@ Operação  : 0x1923a11: cmp dword [flag], imm ; fn=0x1923770..0x1923bcc
           }
         }
         uint64_t i_r9d = global_0x8df6e88;
-        while (atomic_cas(&global_0x8df6e88, i_r9d, i_r9d * 0x5851f42d4c957f2d + 0x69) != 0) {
+        while (!atomic_cas(&global_0x8df6e88, i_r9d, i_r9d * 0x5851f42d4c957f2d + 0x69)) {
         }
-        auto expr_1 = (uint64_t)i_r9d >> 45 ^ (uint64_t)i_r9d >> 27;
-        int32_t tmp_10 = expr_1 << (-((uint64_t)i_r9d >> 59) & 0x1f) | (uint32_t)expr_1 >> ((uint64_t)i_r9d >> 59);
-        if (tmp_10 - ((uint32_t)((uint32_t)expr_1 >> ((uint64_t)i_r9d >> 59)) >> 13) * 10000 < AnimationLodStatSampleRatePerTenThousand) {
+        int32_t tmp_10 = ((uint64_t)i_r9d >> 45 ^ (uint64_t)i_r9d >> 27) << (uint8_t)((-((uint64_t)i_r9d >> 59)) & 0x1f) | (uint32_t)((uint64_t)i_r9d >> 45 ^ (uint64_t)i_r9d >> 27) >> (uint8_t)((uint64_t)i_r9d >> 59);
+        if (tmp_10 - ((uint32_t)mulhi(0xd1b71759ULL, tmp_10) >> 13) * 10000 < AnimationLodStatSampleRatePerTenThousand) {
           call_0x192ea30(&this->field_0x640, param_4, &sym_0x8160098);
           if (param_2 > 0.0) {
             call_0x192ea30(&this->field_0x658, param_2, &sym_0x81600b0);
@@ -103,10 +109,10 @@ Operação  : 0x1923a11: cmp dword [flag], imm ; fn=0x1923770..0x1923bcc
             call_0x192ea30(&this->field_0x6a0, local_0xc8, &sym_0x81600f8);
           }
         }
+        v_rdi_1 = local_0x20;
       }
-      auto* f_70 = this->field_0x70;
-      if (f_70 != 3 || atomic_cas(&&f_70->field_0x0, f_70, 1) != 0) {
-        call_0xdac0(&this->field_0x70);
+      if (v_rdi_1->field_0x0 != 3 || !atomic_cas(&local_0x20->field_0x0, v_rdi_1->field_0x0, 1)) {
+        call_0xdac0(local_0x20);
       }
     }
   
@@ -373,51 +379,86 @@ Operação  : 0x1923a11: cmp dword [flag], imm ; fn=0x1923770..0x1923bcc
   
   === [Sub-Rotina Chamada: 0x192ea30..0x192ec81 via call @0x1923acb (Direct Engine Sub-Call)] ===
     struct SubObj_0x192ea30 {
-      /* +0x0 */ void*   field_0x0;
+      /* +0x0 */ uint64_t field_0x0;
       /* +0x8 */ void*   field_0x8;
-      /* +0x10 */ void*   field_0x10;
+      /* +0x10 */ uint64_t field_0x10;
     };
     
     // Flag defaults: AnimationTelemetryStatBatchSize = 2000
-    void SubObj_0x192ea30::func_0x192ea30(SubObj_0x192ea30* this, float param_2, void* param_3) {
+    void SubObj_0x192ea30::func_0x192ea30(SubObj_0x192ea30* this, float param_2, int64_t param_3) {
+      uint64_t local_0x10;
+      local_0x10 = param_2;
       if (this->field_0x8 != this->field_0x10) {
         this->field_0x8->field_0x0 = param_2;
-        this->field_0x8 = &this->field_0x8->field_0x4;
+        this->field_0x8 = this->field_0x8 + 4;
       } else {
-        auto local_0x10 = param_2;
+        uint64_t local_0xa8;
         call_0x9b5c00(this, this->field_0x8, &local_0xa8);
       }
-      if ((this->field_0x8 - this->field_0x0) >> 2 >= AnimationTelemetryStatBatchSize) {
+      if ((int64_t)(this->field_0x8 - this->field_0x0) >> 2 >= AnimationTelemetryStatBatchSize) {
+        void* local_0x20;
         call_0x72d1f0(&local_0x20, this);
+        uint64_t local_0x40;
+        local_0x40 = &local_0x20;
+        uint64_t local_0x78;
+        local_0x78 = 0;
         auto ret_0x4956380_3 = call_0x4956380(32, 8);
-        ret_0x4956380_3->field_0x0 = local_0x20;
+        uint64_t local_0x60;
+        local_0x60 = ret_0x4956380_3;
+        uint64_t local_0x30;
+        void* mem_2_2 = local_0x30;
+        local_0x30 = 0;
+        void* mem_3_3 = local_0x20;
+        local_0x20 = 0;
+        ret_0x4956380_3->field_0x0 = mem_3_3;
+        uint64_t local_0x28;
         ret_0x4956380_3->field_0x8 = local_0x28;
-        ret_0x4956380_3->field_0x10 = local_0x30;
+        ret_0x4956380_3->field_0x10 = mem_2_2;
         ret_0x4956380_3->field_0x18 = param_3;
-        if (0) {
-          void* v_rcx_1 = 0;
+        local_0x78 = (&sym_0x702f098 | 0x4ULL) & 0xfffffffffffffffdULL;
+        if (local_0x20 != 0) {
+          void* v_rcx_1 = local_0x20;
+          if (((int64_t)(local_0x30 - local_0x20) >> 2) * 4 >= 0x1000) {
+            if (local_0x20 - local_0x20->field_m0x8 < 8 || local_0x20 - local_0x20->field_m0x8 > 39) {
+              call_0x5e14580();
+              return; // noreturn
+            } else {
+              v_rcx_1 = local_0x20->field_m0x8;
+            }
+          }
           call_0x4955ac0(v_rcx_1);
+          local_0x20 = 0.0;
+          local_0x30 = 0;
         }
-        if (global_0x8da5d90 > rbp->field_0x58->field_0x0->field_0x0[40]) {
+        int64_t local_0x70;
+        int64_t local_0x68;
+        if (global_0x8da5d90 > __readgsqword(0x58)->field_0x0->field_0x0[40]) {
           call_0x12e0(&sym_0x8da5d90);
           if (global_0x8da5d90 == -1) {
-            auto ret_0x4956040_6 = call_0x4956040(552);
-            if (ret_0x4956040_6 != 0) {
-              global_0x8da5d98 = call_0x2931010(ret_0x4956040_6);
+            auto ret_0x4956040_7 = call_0x4956040(552);
+            if (ret_0x4956040_7 != 0) {
+              local_0x40 = ret_0x4956040_7;
+              global_0x8da5d98 = call_0x2931010(ret_0x4956040_7);
               call_0x14f0(&sym_0x8da5d90);
             } else {
+              local_0x68 = 32;
+              local_0x70 = 8;
+              uint64_t local_0x48;
               call_0x6ca7d0(&local_0x48);
               call_0x5e066f0(&local_0x48, &sym_0x80cbbc0);
+              return; // noreturn
             }
           }
         }
-        auto local_0x60 = ret_0x4956380_3;
+        local_0x68 = 32;
+        local_0x70 = 8;
         call_0x2934520(global_0x8da5d98, "AnimatorAnalytics", &local_0x60, 0);
-        if ((local_0x78 & 0xfffffffc & 0xfffffff8) != 0) {
-          if ((~((local_0x78 & 0xfffffffc) >> 2) & 0x1) == 0) {
-            ((local_0x78 & 0xfffffffc) & 0xfffffff8)->vfunc_0x10(local_0x60);
+        if ((local_0x78 & 0xfffffffffffffffcULL & 0xfffffffffffffff8ULL) != 0) {
+          if (((uint8_t)(~((int8_t)(uint8_t)(local_0x78 & 0xfffffffffffffffcULL) >> 2)) & 0x1) == 0) {
+            void* sel_rcx_1 = ((int8_t)(uint8_t)local_0x78 >> 1 & 0x1) == 0 ? local_0x60 : &local_0x60;
+            (*((local_0x78 & 0xfffffffffffffffcULL) & 0xfffffffffffffff8ULL)->field_0x10)(sel_rcx_1);
           }
-          if (((uint8_t)local_0x78 >> 1 & 0x1) == 0) {
+          if (((int8_t)(uint8_t)local_0x78 >> 1 & 0x1) == 0) {
             call_0x4955ac0(local_0x60);
           }
         }
@@ -589,7 +630,7 @@ Operação  : 0x1923a11: cmp dword [flag], imm ; fn=0x1923770..0x1923bcc
   * FIntAnimationTelemetryStatBatchSize = 2000 (default)
   * FFlagReportRigDescriptionCountTelemetry = true (default) [vizinha em .data]
   * FFlagAnimationGraphGenericPoseNodeTelemetry = true (default) [vizinha em .data]
-  * FFlagEnableAnimatorApiTelemetryToGrafana = true (default) [vizinha em .data]
+  * FFlagEnableAnimatorApiTelemetryToGrafana = false (default) [vizinha em .data]
   * DFIntAnimatorTelemetryCollectionRate = 100 (default) [vizinha em .data]
   * DFIntReplicateStreamAnimationCollectionRate = 100 (default) [vizinha em .data]
   * DFIntReplicateAnimationCollectionRate = 100 (default) [vizinha em .data]

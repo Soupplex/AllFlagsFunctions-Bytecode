@@ -7,7 +7,7 @@ Operação  : 0x5bb9565: mov/math reg, [flag] ; fn=0x5bb9350..0x5bb96f6
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::ISRPriorityUse)] ===
     Classe  : RBX::ISRPriorityUse (Inferido)
-    Padrão  : DFIntISRMinVelocityPriorityComponentHundredth = 50 (default) [int, mode=2]
+    Padrão  : DFIntISRMinVelocityPriorityComponentHundredth = 500000 (default) [int, mode=2]
     Papel   : Parâmetro de configuração lido diretamente pela rotina
     Fórmula : ISRMinVelocityPriorityComponentHundredth
   
@@ -22,127 +22,126 @@ Operação  : 0x5bb9565: mov/math reg, [flag] ; fn=0x5bb9350..0x5bb96f6
       /* +0x18 */ int32_t field_0x18;
     };
     
-    // Flag defaults: ISRPriorityUseLinearDistance = false, ISRPriorityUseConfigurableDistanceAndSize = true, DistanceWeightTuneInNewAlgosHundredths = 10, ISRIgnoreFarAwayObjectsMultiplier = 10, SupportISRSubChannels = false, ISRIgnoreObjectsTooFarAway = false, ISRMinVelocityPriorityComponentHundredth = 50, ISRPriorityMinDistanceHundredths = 1000
-    void RBX::ISRPriorityUse::func_0x5bb9350(RBX::ISRPriorityUse* this, int64_t param_2, void* param_3, void* param_4) {
+    // Flag defaults: ISRPriorityUseLinearDistance = false, ISRPriorityUseConfigurableDistanceAndSize = true, DistanceWeightTuneInNewAlgosHundredths = 10, ISRIgnoreFarAwayObjectsMultiplier = 10, SupportISRSubChannels = true, ISRIgnoreObjectsTooFarAway = false, ISRMinVelocityPriorityComponentHundredth = 500000, ISRPriorityMinDistanceHundredths = 1000
+    void RBX::ISRPriorityUse::func_0x5bb9350(RBX::ISRPriorityUse* this, void* param_2, void* param_3, void* param_4) {
       if (this->field_0x18 != 0) {
-        int64_t idx_1 = (param_3->field_0x0 * 37 & this->field_0x18 - 1) + (param_3->field_0x0 * 37 & this->field_0x18 - 1) * 4;
-        auto* f_8 = this->field_0x8;
-        void* i_eax = f_8->field_0x0[idx_1 * 8];
+        auto expr_2 = param_3->field_0x0 * 37 & this->field_0x18 - 1;
+        int64_t idx_1 = expr_2 * 5;
+        uint64_t i_eax = this->field_0x8->field_0x0[expr_2 * 5 * 8];
         int32_t i_r10d = param_3->field_0x0 * 37 & this->field_0x18 - 1;
         int32_t i_edx = 1;
-        void* v_rbx_1 = f_8 + idx_1 * 8;
-        if (param_3->field_0x0 != f_8->field_0x0[idx_1 * 8]) {
-          int64_t idx_2;
+        void* v_rbx_2 = this->field_0x8 + idx_1 * 8;
+        if (param_3->field_0x0 != this->field_0x8->field_0x0[expr_2 * 5 * 8]) {
           do { // L_0x5bb9395
-            if (i_eax == -1) break;
+            if (i_eax == -1) {
+              L_0x5bb93c9:
+              param_2->field_0x0 = (float)ISRFallbackPriorityValueHundredths / 100.0f;
+              return;
+            }
             int32_t prev_i_edx_1 = i_edx;
             i_edx++;
-            idx_2 = (i_r10d + prev_i_edx_1 & this->field_0x18 - 1) + (i_r10d + prev_i_edx_1 & this->field_0x18 - 1) * 4;
-            i_eax = f_8->field_0x0[idx_2 * 8];
+            i_eax = this->field_0x8->field_0x0[(i_r10d + prev_i_edx_1 & this->field_0x18 - 1) * 5 * 8];
             i_r10d = i_r10d + prev_i_edx_1 & this->field_0x18 - 1;
-          } while (param_3->field_0x0 != f_8->field_0x0[idx_2 * 8]); // loop -> L_0x5bb9395
+          } while (param_3->field_0x0 != i_eax); // loop -> L_0x5bb9395
+          v_rbx_2 = this->field_0x8 + i_r10d * 5 * 8;
         }
-        if (v_rbx_1 != f_8 + (this->field_0x18 + this->field_0x18 * 4) * 8) {
-          if (v_rbx_1->field_0x8 != 0) {
+        if (v_rbx_2 != this->field_0x8 + this->field_0x18 * 5 * 8) {
+          if (v_rbx_2->field_0x8 != 0) {
             param_2->field_0x0 = (float)ISRFallbackPriorityValueHundredths / 100.0f;
             return;
           }
-          float fxmm0_18;
-          auto expr_1 = param_4->field_0xc * ISRIgnoreFarAwayObjectsMultiplier * param_4->field_0xc * ISRIgnoreFarAwayObjectsMultiplier;
-          auto expr_2 = (float)DistanceWeightTuneInNewAlgosHundredths;
-          auto expr_3 = ISRMinVelocityPriorityComponentHundredth;
+          float fxmm0_20;
+          uint64_t local_0x80;
+          auto expr_3 = (float)DistanceWeightTuneInNewAlgosHundredths;
+          auto expr_4 = ISRMinVelocityPriorityComponentHundredth;
           if (ISRPriorityUseConfigurableDistanceAndSize) {
-            float fxmm6_9;
-            if (!isnan(expr_2) && expr_2 == 0.0) {
-              fxmm6_9 = 100.0f;
-            } else {
-              fxmm6_9 = expr_2;
+            int32_t v_r8_10 = std::clamp(ISRPriorityMinDistanceHundredths, 0, 1000000);
+            float fxmm6_11 = expr_3;
+            if (!isnan(expr_3) && (float)DistanceWeightTuneInNewAlgosHundredths == 0.0) {
+              fxmm6_11 = 100.0f;
             }
-            float ftmp_7 = param_4->field_0x4 - v_rbx_1->field_0x20;
-            float ftmp_8 = param_4->field_0x0 - v_rbx_1->field_0x1c;
-            float ftmp_9 = param_4->field_0x8 - v_rbx_1->field_0x24;
+            float ftmp_7 = param_4->field_0x4 - v_rbx_2->field_0x20;
+            float ftmp_8 = param_4->field_0x0 - v_rbx_2->field_0x1c;
+            float ftmp_9 = param_4->field_0x8 - v_rbx_2->field_0x24;
             float ftmp_10 = ftmp_7 * ftmp_7 + ftmp_8 * ftmp_8;
-            if (SupportISRSubChannels && ISRIgnoreObjectsTooFarAway && local_0x80 - 1 <= 1 && param_4->field_0x10 != 0) {
-              float fxmm0_12 = (float)(uint64_t)expr_1;
-              if (ftmp_10 + ftmp_9 * ftmp_9 <= fxmm0_12) {
+            if (SupportISRSubChannels && ISRIgnoreObjectsTooFarAway && (uint8_t)(local_0x80 - 1) <= 1 && param_4->field_0x10 != 0) {
+              float fxmm0_14 = (float)(uint64_t)(param_4->field_0xc * ISRIgnoreFarAwayObjectsMultiplier * param_4->field_0xc * ISRIgnoreFarAwayObjectsMultiplier);
+              if (ftmp_10 + ftmp_9 * ftmp_9 <= fxmm0_14) {
                 L_0x5bb94ed:
                 float ftmp_11 = max(1e-06f, ftmp_10 + ftmp_9 * ftmp_9);
-                auto ret_0x5bb92b0_2 = call_0x5bb92b0(ftmp_11 * (fxmm6_9 / 100.0f), v_rbx_1->field_0x10);
+                auto ret_0x5bb92b0_2 = call_0x5bb92b0(ftmp_11 * (fxmm6_11 / 100.0f), v_rbx_2->field_0x10);
                 param_2->field_0x4 = (uint8_t)ret_0x5bb92b0_2;
-                float ftmp_12 = max(0.001f, (float)r8 / 100.0f);
-                float fxmm1_15;
-                if ((uint8_t)r10 != 0) {
-                  if (0.0 <= max(ftmp_12 * ftmp_12, xmm5)) {
-                    fxmm1_15 = sqrtf(max(ftmp_12 * ftmp_12, xmm5));
+                float ftmp_12 = max(0.001f, (float)v_r8_10 / 100.0f);
+                auto expr_1 = max(ftmp_12 * ftmp_12, ftmp_10 + ftmp_9 * ftmp_9);
+                float fxmm1_17 = expr_1;
+                if (ISRPriorityUseLinearDistance) {
+                  float ftmp_13 = expr_1;
+                  if (0.0 <= ftmp_13) {
+                    fxmm1_17 = sqrtf(ftmp_13);
                   } else {
-                    fxmm1_15 = call_0x609e228(max(ftmp_12 * ftmp_12, xmm5));
+                    fxmm1_17 = call_0x609e228(ftmp_13);
                   }
-                } else {
-                  fxmm1_15 = max(ftmp_12 * ftmp_12, xmm5);
                 }
-                int32_t v_rax_16 = std::clamp(expr_3, 100, 100000);
-                float fxmm0_17;
-                if ((float)v_rax_16 / 100.0f <= v_rbx_1->field_0x18) {
-                  fxmm0_17 = v_rbx_1->field_0x18;
-                } else {
-                  fxmm0_17 = (float)v_rax_16 / 100.0f;
+                int32_t v_rax_18 = std::clamp(expr_4, 100, 100000);
+                float fxmm0_19 = (float)v_rax_18 / 100.0f;
+                if ((float)v_rax_18 / 100.0f <= v_rbx_2->field_0x18) {
+                  fxmm0_19 = v_rbx_2->field_0x18;
                 }
-                float ftmp_13 = fxmm1_15 * (fxmm6_9 / 100.0f);
-                fxmm0_18 = (fxmm0_17 * ISRPriorityUseLinearNOURadius ? v_rbx_1->field_0x14 : v_rbx_1->field_0x10) * v_rbx_1->field_0xc / ftmp_13;
+                float ftmp_14 = fxmm1_17 * (fxmm6_11 / 100.0f);
+                fxmm0_20 = fxmm0_19 * (ISRPriorityUseLinearNOURadius ? v_rbx_2->field_0x14 : v_rbx_2->field_0x10) * v_rbx_2->field_0xc / ftmp_14;
                 L_0x5bb96ca:
-                param_2->field_0x0 = fxmm0_18;
+                param_2->field_0x0 = fxmm0_20;
               }
             } else {
               goto L_0x5bb94ed;
             }
           } else {
-            float fxmm3_2;
-            if (!isnan(expr_2) && expr_2 == 0.0) {
-              fxmm3_2 = 100.0f;
-            } else {
-              fxmm3_2 = expr_2;
+            float fxmm3_3 = expr_3;
+            if (!isnan(expr_3) && (float)DistanceWeightTuneInNewAlgosHundredths == 0.0) {
+              fxmm3_3 = 100.0f;
             }
-            float ftmp_1 = param_4->field_0x4 - v_rbx_1->field_0x20;
-            float ftmp_2 = param_4->field_0x0 - v_rbx_1->field_0x1c;
-            float ftmp_3 = param_4->field_0x8 - v_rbx_1->field_0x24;
+            float ftmp_1 = param_4->field_0x4 - v_rbx_2->field_0x20;
+            float ftmp_2 = param_4->field_0x0 - v_rbx_2->field_0x1c;
+            float ftmp_3 = param_4->field_0x8 - v_rbx_2->field_0x24;
             float ftmp_4 = ftmp_1 * ftmp_1 + ftmp_2 * ftmp_2;
-            if (SupportISRSubChannels && ISRIgnoreObjectsTooFarAway && local_0x80 - 1 <= 1 && param_4->field_0x10 != 0) {
-              float fxmm0_5 = (float)(uint64_t)expr_1;
-              if (ftmp_4 + ftmp_3 * ftmp_3 <= fxmm0_5) {
-                float ftmp_5 = max(1e-06f, ftmp_4 + ftmp_3 * ftmp_3);
-                auto ret_0x5bb92b0_1 = call_0x5bb92b0(ftmp_5 * (fxmm3_2 / 100.0f), v_rbx_1->field_0x10);
+            float ftmp_6;
+            float fxmm0_9;
+            int32_t v_rax_8;
+            float ret_0x5bb92b0_1;
+            float ftmp_5;
+            if (SupportISRSubChannels && ISRIgnoreObjectsTooFarAway && (uint8_t)(local_0x80 - 1) <= 1 && param_4->field_0x10 != 0) {
+              float fxmm0_6 = (float)(uint64_t)(param_4->field_0xc * ISRIgnoreFarAwayObjectsMultiplier * param_4->field_0xc * ISRIgnoreFarAwayObjectsMultiplier);
+              if (ftmp_4 + ftmp_3 * ftmp_3 <= fxmm0_6) {
+                ftmp_5 = max(1e-06f, ftmp_4 + ftmp_3 * ftmp_3);
+                ret_0x5bb92b0_1 = call_0x5bb92b0(ftmp_5 * (fxmm3_3 / 100.0f), v_rbx_2->field_0x10);
                 param_2->field_0x4 = (uint8_t)ret_0x5bb92b0_1;
-                int32_t v_rax_7 = std::clamp(expr_3, 100, 100000);
-                float fxmm0_8;
-                if ((float)v_rax_7 / xmm5 <= v_rbx_1->field_0x18) {
-                  fxmm0_8 = v_rbx_1->field_0x18;
-                } else {
-                  fxmm0_8 = (float)v_rax_7 / xmm5;
+                v_rax_8 = std::clamp(expr_4, 100, 100000);
+                fxmm0_9 = (float)v_rax_8 / 100.0f;
+                if ((float)v_rax_8 / 100.0f <= v_rbx_2->field_0x18) {
+                  fxmm0_9 = v_rbx_2->field_0x18;
                 }
-                float ftmp_6 = fxmm0_8 * v_rbx_1->field_0x10 * v_rbx_1->field_0xc;
-                fxmm0_18 = ftmp_6 / xmm4;
-                param_2->field_0x0 = fxmm0_18;
+                ftmp_6 = fxmm0_9 * v_rbx_2->field_0x10 * v_rbx_2->field_0xc;
+                fxmm0_20 = ftmp_6 / (ftmp_5 * (fxmm3_3 / 100.0f));
+                param_2->field_0x0 = fxmm0_20;
               }
             } else {
-              float ftmp_5 = max(1e-06f, ftmp_4 + ftmp_3 * ftmp_3);
-              auto ret_0x5bb92b0_1 = call_0x5bb92b0(ftmp_5 * (fxmm3_2 / 100.0f), v_rbx_1->field_0x10);
+              ftmp_5 = max(1e-06f, ftmp_4 + ftmp_3 * ftmp_3);
+              ret_0x5bb92b0_1 = call_0x5bb92b0(ftmp_5 * (fxmm3_3 / 100.0f), v_rbx_2->field_0x10);
               param_2->field_0x4 = (uint8_t)ret_0x5bb92b0_1;
-              int32_t v_rax_7 = std::clamp(expr_3, 100, 100000);
-              float fxmm0_8;
-              if ((float)v_rax_7 / xmm5 <= v_rbx_1->field_0x18) {
-                fxmm0_8 = v_rbx_1->field_0x18;
-              } else {
-                fxmm0_8 = (float)v_rax_7 / xmm5;
+              v_rax_8 = std::clamp(expr_4, 100, 100000);
+              fxmm0_9 = (float)v_rax_8 / 100.0f;
+              if ((float)v_rax_8 / 100.0f <= v_rbx_2->field_0x18) {
+                fxmm0_9 = v_rbx_2->field_0x18;
               }
-              float ftmp_6 = fxmm0_8 * v_rbx_1->field_0x10 * v_rbx_1->field_0xc;
-              fxmm0_18 = ftmp_6 / xmm4;
+              ftmp_6 = fxmm0_9 * v_rbx_2->field_0x10 * v_rbx_2->field_0xc;
+              fxmm0_20 = ftmp_6 / (ftmp_5 * (fxmm3_3 / 100.0f));
               goto L_0x5bb96ca;
             }
           }
           return;
         }
       }
-      param_2->field_0x0 = (float)ISRFallbackPriorityValueHundredths / 100.0f;
+      goto L_0x5bb93c9;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -413,33 +412,43 @@ Operação  : 0x5bb9565: mov/math reg, [flag] ; fn=0x5bb9350..0x5bb96f6
     0x5bb96f5 | c3                       | ret
   
   === [Decompilacao da Rotina Chamadora (Caller): 0x5bb9170..0x5bb92a9 em RBX::ISRPriorityUse] ===
-    // Flag defaults: SupportISRSubChannels = false, ISRIgnoreObjectsTooFarAway = false
-    void RBX::ISRPriorityUse::func_0x5bb9170(RBX::ISRPriorityUse* this, int64_t param_2, void* param_3) {
+    // Flag defaults: SupportISRSubChannels = true, ISRIgnoreObjectsTooFarAway = false
+    void RBX::ISRPriorityUse::func_0x5bb9170(RBX::ISRPriorityUse* this, void* param_2, int64_t param_3) {
+      uint64_t local_0x20;
       if (SupportISRSubChannels && ISRIgnoreObjectsTooFarAway) {
         if (param_2->field_0x0 != param_2->field_0x8) {
+          uint8_t* i_ebx_2 = param_2->field_0x0;
           void* prev_0x8_4;
           do { // L_0x5bb91c0
+            local_0x20 = i_ebx_2->field_0x10;
             prev_0x8_4 = param_2->field_0x8;
-            auto ret_0x5bb9350_2 = call_0x5bb9350(this, i_ebx + 8, i_ebx, param_3);
+            auto ret_0x5bb9350_2 = call_0x5bb9350(this, i_ebx_2 + 8, i_ebx_2);
             if ((uint8_t)ret_0x5bb9350_2 == 0) break;
-            i_ebx += 0x18;
-          } while (i_ebx != prev_0x8_4); // loop -> L_0x5bb91c0
-          if (i_ebx != prev_0x8_4) {
-            if (i_ebx + 0x18 != prev_0x8_4) {
-              void* i_edi = i_ebx + 0x18;
+            i_ebx_2 += 0x18;
+          } while (i_ebx_2 != prev_0x8_4); // loop -> L_0x5bb91c0
+          if (i_ebx_2 != prev_0x8_4) {
+            void* v_rbx_1 = i_ebx_2;
+            if (i_ebx_2 + 0x18 != prev_0x8_4) {
+              uint8_t* i_ebx_3 = i_ebx_2;
+              uint8_t* i_edi = i_ebx_2 + 0x18;
               do { // L_0x5bb9200
-                auto ret_0x5bb9350_3 = call_0x5bb9350(this, i_edi + 8, i_edi, param_3);
+                local_0x20 = i_edi->field_0x10;
+                auto ret_0x5bb9350_3 = call_0x5bb9350(this, i_edi + 8, i_edi);
                 if ((uint8_t)ret_0x5bb9350_3 != 0) {
-                  i_ebx->field_0x0 = i_edi->field_0x0;
-                  i_ebx->field_0x10 = i_edi->field_0x10;
-                  i_ebx += 0x18;
+                  i_ebx_3->field_0x0 = i_edi->field_0x0;
+                  i_ebx_3->field_0x4 = i_edi->field_0x4;
+                  i_ebx_3->field_0x8 = i_edi->field_0x8;
+                  i_ebx_3->field_0xc = i_edi->field_0xc;
+                  i_ebx_3->field_0x10 = i_edi->field_0x10;
+                  i_ebx_3 += 0x18;
                 }
                 i_edi += 0x18;
               } while (i_edi != prev_0x8_4); // loop -> L_0x5bb9200
+              v_rbx_1 = i_ebx_3;
             }
-            if (i_ebx != prev_0x8_4) {
-              call_0x5e05370(i_ebx, prev_0x8_4, param_2->field_0x8 - prev_0x8_4);
-              param_2->field_0x8 = param_2->field_0x8 - prev_0x8_4 + i_ebx;
+            if (v_rbx_1 != prev_0x8_4) {
+              call_0x5e05370(v_rbx_1, prev_0x8_4, param_2->field_0x8 - prev_0x8_4);
+              param_2->field_0x8 = param_2->field_0x8 - prev_0x8_4 + v_rbx_1;
               return;
             }
           }
@@ -447,13 +456,13 @@ Operação  : 0x5bb9565: mov/math reg, [flag] ; fn=0x5bb9350..0x5bb96f6
         }
         return;
       }
-      void* i_ebx;
       if (param_2->field_0x0 != param_2->field_0x8) {
-        i_ebx = param_2->field_0x0;
+        uint64_t i_ebx = param_2->field_0x0;
         void* prev_0x8_2;
         do { // L_0x5bb9270
+          local_0x20 = 0;
           prev_0x8_2 = param_2->field_0x8;
-          call_0x5bb9350(this, i_ebx + 8, i_ebx, param_3);
+          call_0x5bb9350(this, i_ebx + 8, i_ebx);
           i_ebx += 0x18;
         } while (i_ebx != prev_0x8_2); // loop -> L_0x5bb9270
       }
@@ -463,17 +472,17 @@ Operação  : 0x5bb9565: mov/math reg, [flag] ; fn=0x5bb9350..0x5bb96f6
   (Nenhuma string literal direta neste bloco)
 
 [Co-Flags na mesma função]
-  * DFIntISRFallbackPriorityValueHundredths = 100 (default)
+  * DFIntISRFallbackPriorityValueHundredths = 500000 (default)
   * DFFlagISRPriorityUseConfigurableDistanceAndSize = true (default)
   * DFIntISRPriorityMinDistanceHundredths = 1000 (default)
   * DFFlagISRPriorityUseLinearNOURadius = true (default)
   * DFFlagISRPriorityUseLinearDistance = false (default)
   * DFIntDistanceWeightTuneInNewAlgosHundredths = 10 (default)
   * DFIntISRIgnoreFarAwayObjectsMultiplier = 10 (default)
-  * FFlagSupportISRSubChannels = false (default)
+  * FFlagSupportISRSubChannels = true (default)
   * FFlagISRIgnoreObjectsTooFarAway = false (default)
-  * DFIntISRPropLOD2Threshold = 500 (default) [vizinha em .data]
-  * DFIntISRPropLOD3Threshold = 1000 (default) [vizinha em .data]
-  * DFIntISRMaxInstancesPerPacketDeserializeSanityCheck = 2000 (default) [vizinha em .data]
+  * DFIntISRPropLOD2Threshold = 8000 (default) [vizinha em .data]
+  * DFIntISRPropLOD3Threshold = 2147483647 (default) [vizinha em .data]
+  * DFIntISRMaxInstancesPerPacketDeserializeSanityCheck = 4000 (default) [vizinha em .data]
   * DFIntListenerOpenWaitMs = 1000 (default) [vizinha em .data]
   * DFFlagCompressedPVUsePackedVector = true (default) [vizinha em .data]

@@ -7,12 +7,12 @@ Operação  : 0x727ab0: cmp byte [flag], imm8 ; fn=0x727aa0..0x727b3e
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::HandleAlt)] ===
     Classe  : RBX::HandleAlt (Inferido)
-    Padrão  : FFlagHandleAltEnterFullscreenManually = true (default) [bool, mode=1]
+    Padrão  : FFlagHandleAltEnterFullscreenManually = false (default) [bool, mode=1]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
     Fórmula : HandleAltEnterFullscreenManually && param_2 == 260
     Altera  : this->field_0x360->field_0x33
     [XREF #2 @0x15fed9a] Classe  : RBX::HandleAlt (Inferido)
-    [XREF #2 @0x15fed9a] Fórmula : HandleAltEnterFullscreenManually
+    [XREF #2 @0x15fed9a] Fórmula : !HandleAltEnterFullscreenManually
     [XREF #3 @0x270f741] Classe  : RBX::HandleAlt (Inferido)
     [XREF #3 @0x270f741] Fórmula : HandleAltEnterFullscreenManually
     [XREF #4 @0x27104ca] Classe  : RBX::HandleAlt (Inferido)
@@ -23,27 +23,22 @@ Operação  : 0x727ab0: cmp byte [flag], imm8 ; fn=0x727aa0..0x727b3e
       /* +0x360 */ void*   field_0x360;
     };
     
-    // Flag defaults: HandleAltEnterFullscreenManually = true
-    auto RBX::HandleAlt::func_0x727aa0(RBX::HandleAlt* this, int64_t param_2, void* param_3, void* param_4) {
+    // Flag defaults: HandleAltEnterFullscreenManually = false
+    auto RBX::HandleAlt::func_0x727aa0(RBX::HandleAlt* this, int64_t param_2, int64_t param_3, int64_t param_4) {
       auto* f_360 = this->field_0x360;
       if (f_360 != 0) {
         if (HandleAltEnterFullscreenManually && param_2 == 260) {
-          if (param_3 == 13 && ((uint64_t)param_4 >> 16 & 1ULL << 13) < 0) {
+          if (param_3 == 13 && ((uint64_t)param_4 >> 16 & 1ULL << 13) != 0) {
             call_0x15feca0(f_360, f_360->field_0x30 == 0);
             return 1;
           }
-          auto* f_360_2 = this->field_0x360;
-        } else {
-          if (param_2 == 6) {
-            f_360_2->field_0x33 = &param_3->field_m0x1 <= 1;
-          }
+        } else if (param_2 == 6) {
+          this->field_0x360->field_0x33 = param_3 >= 1 && param_3 <= 2;
         }
-        if (f_360_2->field_0xa0 != 0 && (param_2 != 258 || f_360_2->field_0x33 != 0)) {
-          return tailcall_0x161a2e0(f_360_2->field_0xa0, param_2, param_3, param_4);
+        if (this->field_0x360->field_0xa0 != 0 && (param_2 != 258 || this->field_0x360->field_0x33 != 0)) {
+          return tailcall_0x161a2e0(this->field_0x360->field_0xa0, param_2, param_3, param_4);
         }
         return 0;
-      }
-      switch (eax) {
       }
     }
   
@@ -97,16 +92,25 @@ Operação  : 0x727ab0: cmp byte [flag], imm8 ; fn=0x727aa0..0x727b3e
     0x727b37 | 48 ff 25 3a 1a d1 05     | jmp qword ptr [rip + 0x5d11a3a]
   
   === [Decompilacao C++ do XREF Runtime #2: 0x15fed90..0x15fee26 (insn @0x15fed9a: cmp byte [flag], imm8)] ===
-    // Flag defaults: HandleAltEnterFullscreenManually = true, RobloxWndInit = 1
+    // Flag defaults: HandleAltEnterFullscreenManually = false, RobloxWndInit = 0
     void RBX::HandleAlt::func_0x15fed90(RBX::HandleAlt* this, int64_t param_2) {
-      auto vret_1 = (&local_0x50)->vfunc(&local_0x50);
-      if (vret_1 == 0 && local_0x50 >= 3 && local_0x50 <= 4) {
-        if ((uint8_t)RobloxWndInit >= 6 && (uint8_t)((uint64_t)RobloxWndInit >> 8) >= 3) {
-          FLog::Log("[FLog::RobloxWndInit] Alt-enter fullscreen is on, ignoring view-aware fullscreen switch");
+      if (!HandleAltEnterFullscreenManually) {
+        uint64_t local_0x50;
+        auto vret_1 = (*global_0x6439108)(&local_0x50);
+        if (vret_1 == 0 && local_0x50 >= 3 && local_0x50 <= 4) {
+          if ((uint8_t)RobloxWndInit >= 6 && (uint8_t)((uint64_t)RobloxWndInit >> 8) >= 3) {
+            local_0x50 = "[FLog::RobloxWndInit] Alt-enter fullscreen is on, ignoring view-aware fullscreen switch";
+            auto local_0x20 = RobloxWndInit;
+            auto local_0x24 = *(uint32_t*)((uint8_t*)&RobloxWndInit + 0x4);
+            auto local_0x28 = *(uint32_t*)((uint8_t*)&RobloxWndInit + 0x8);
+            auto local_0x2c = *(uint32_t*)((uint8_t*)&RobloxWndInit + 0xc);
+            call_0x4971a90(&local_0x20, local_0x50 - 0x51aeb3, 0, 0);
+            return;
+          }
           return;
         }
-        return;
       }
+      call_0x15feca0(this, param_2);
     }
   
   === [Instrucoes x86-64 do XREF Runtime #2 (0x15fed90..0x15fee26)] ===
@@ -156,30 +160,74 @@ Operação  : 0x727ab0: cmp byte [flag], imm8 ; fn=0x727aa0..0x727b3e
   
   === [Decompilacao C++ do XREF Runtime #3: 0x270f640..0x270f891 (insn @0x270f741: cmp [flag], reg)] ===
     struct RBX::HandleAlt {
-      /* +0x0 */ void*   field_0x0;
+      /* +0x0 */ uint64_t field_0x0;
     };
     
-    // Flag defaults: HandleAltEnterFullscreenManually = true, Graphics = 6
-    bool RBX::HandleAlt::func_0x270f640(RBX::HandleAlt* this, int64_t param_2, void* param_3, void* param_4) {
-      auto local_0x40 = 0;
-      this->vfunc_0x0(this, &sym_0x72de438, &local_0x40);
-      auto local_0x70 = param_4;
-      auto local_0x74 = local_0x120;
-      auto local_0x78 = 28;
-      auto vret_2 = local_0x40->vfunc_0x78(local_0x40, param_2, param_3, &local_0x70);
-      local_0x40->vfunc_0x10(local_0x40);
-      if (vret_2 >= 0) {
-        if (HandleAltEnterFullscreenManually) {
-          auto vret_4 = this->vfunc_0x40(this, param_3, 7);
-          if (vret_4 < 0) {
-            call_0x27193f0(vret_4, param_2, 363, "DeviceWin32");
-            if ((uint8_t)Graphics >= 6 && (uint8_t)((uint64_t)Graphics >> 8) >= 3) {
-              FLog::Log("[FLog::Graphics] MakeWindowAssociation failed with error code %X\n");
+    // Flag defaults: HandleAltEnterFullscreenManually = false, Graphics = 0
+    auto RBX::HandleAlt::func_0x270f640(RBX::HandleAlt* this, int64_t param_2, int64_t param_3, int64_t param_4) {
+      void* local_0x40;
+      void* mem_1_1 = local_0x40;
+      local_0x40 = 0;
+      auto vret_1 = this->vfunc_0x0(this, &sym_0x72de438, &mem_1_1);
+      uint64_t local_0x50;
+      if (vret_1 >= 0) {
+        uint64_t local_0x8c;
+        local_0x8c = 1;
+        uint64_t local_0x70;
+        local_0x70 = param_4;
+        uint64_t local_0x94;
+        local_0x94 = 0;
+        uint64_t local_0x128;
+        if (local_0x128 != 0) {
+          local_0x94 = 4;
+          local_0x8c = 2;
+        }
+        void* local_0x48;
+        local_0x48 = 0;
+        uint64_t local_0x120;
+        auto local_0x74 = local_0x120;
+        auto local_0x78 = 28;
+        auto local_0x80 = 1;
+        auto local_0x88 = 32;
+        auto local_0x9c = 0;
+        auto vret_5 = local_0x40->vfunc_0x78(local_0x40, param_2, param_3, &local_0x70, 0, 0, &local_0x48);
+        local_0x40->vfunc_0x10(local_0x40);
+        local_0x40 = 0;
+        if (vret_5 < 0) {
+          if (vret_5 == -2147024882) {
+            call_0x4971090(2, &sym_0x6647145);
+            return; // noreturn
+          } else {
+            call_0x27193f0(vret_5, param_2, 351, "DeviceWin32");
+            call_0x49738e0(&local_0x50, "Unable to create DXGI swapchain: %x", vret_5, param_4);
+            call_0x5e066f0(&local_0x50, &sym_0x80cc8c0);
+            return; // noreturn
+          }
+        } else {
+          if (HandleAltEnterFullscreenManually) {
+            auto vret_7 = this->vfunc_0x40(this, param_3, 7);
+            if (vret_7 < 0) {
+              call_0x27193f0(vret_7, param_2, 363, "DeviceWin32");
+              if ((uint8_t)Graphics >= 6 && (uint8_t)((uint64_t)Graphics >> 8) >= 3) {
+                local_0x50 = "[FLog::Graphics] MakeWindowAssociation failed with error code %X\\n";
+                float mem_3_3 = local_0x50;
+                local_0x50 = Graphics;
+                call_0x4971a90(&mem_3_3, mem_3_3 - 0x5d347c, vret_7, param_4);
+              }
             }
           }
+          auto local_0xa0 = 1.0f;
+          auto local_0xa4 = 1.0f;
+          auto local_0xa8 = 1.0f;
+          auto local_0xac = 1.0f;
+          local_0x48->vfunc_0xc8(local_0x48, &local_0xa0);
+          return local_0x48;
         }
-        0->vfunc_0xc8(0, &local_0xa0);
-        return false;
+      } else {
+        call_0x27193f0(vret_1, param_2, 302, "IDXGIFactory2 Unavailable");
+        call_0x49738e0(&local_0x50, "Expected IDXGIFactory2 support because of Win10 minspec.", param_3, param_4);
+        call_0x5e066f0(&local_0x50, &sym_0x80cc8c0);
+        return; // noreturn
       }
     }
   
@@ -332,33 +380,73 @@ Operação  : 0x727ab0: cmp byte [flag], imm8 ; fn=0x727aa0..0x727b3e
     struct RBX::HandleAlt {
       /* +0x162 */ uint8_t field_0x162;
       /* +0x178 */ void*   field_0x178;
-      /* +0x180 */ void*   field_0x180;
+      /* +0x180 */ uint64_t field_0x180;
     };
     
-    // Flag defaults: HandleAltEnterFullscreenManually = true, GraphicsD3D11FlipDiscard2 = false, Graphics = 6
+    // Flag defaults: HandleAltEnterFullscreenManually = false, GraphicsD3D11FlipDiscard2 = true, Graphics = 0
     auto RBX::HandleAlt::func_0x27103c0(RBX::HandleAlt* this, int64_t param_2) {
-      param_2->vfunc(param_2, &local_0x90);
-      void* v_rbx_6;
-      uint64_t v_rcx_1;
+      uint64_t local_0x90;
+      float mem_1_1 = local_0x90;
+      local_0x90 = 0.0;
+      (*global_0x64396c8)(param_2, &mem_1_1);
+      void* v_rcx_2;
+      void* v_rbx_3;
       if (GraphicsD3D11FlipDiscard2) {
-        v_rbx_6 = call_0x270f640(this->field_0x178, this->field_0x180, param_2, max(local_0x98 - local_0x90, 1));
+        auto ret_0x270f640_10 = call_0x270f640(this->field_0x178, this->field_0x180, param_2, max(-local_0x90, 1), max(0, 1), this->field_0x162);
+        void* prev_0x178_5 = this->field_0x178;
+        v_rcx_2 = prev_0x178_5;
+        v_rbx_3 = ret_0x270f640_10;
+        uint64_t local_0x28;
+        local_0x28 = this->field_0x162;
+        uint64_t local_0x20;
+        local_0x20 = max(0, 1);
       } else {
-        auto* f_178 = this->field_0x178;
-        void* prev_0x178_1 = f_178;
-        auto local_0x40 = max(local_0x98 - local_0x90, 1);
-        auto local_0x44 = max(local_0x9c - local_0x94, 1);
+        uint64_t local_0x30;
+        void* mem_2_2 = local_0x30;
+        local_0x30 = 0;
+        void* prev_0x178_3 = this->field_0x178;
+        auto local_0x40 = max(-local_0x90, 1);
+        auto local_0x44 = max(0, 1);
+        auto local_0x48 = 0;
         auto local_0x4c = 1;
         auto local_0x50 = 28;
-        auto local_0x30 = 0;
-        auto vret_2 = f_178->vfunc_0x50(prev_0x178_1, this->field_0x180, &local_0x40, &local_0x30);
-        if (vret_2 >= 0) {
+        auto local_0x54 = 0;
+        auto local_0x5c = 1;
+        auto local_0x64 = 32;
+        auto local_0x68 = 1;
+        auto local_0x70 = param_2;
+        auto local_0x78 = 1;
+        auto local_0x80 = 0;
+        auto local_0x94 = 0.0;
+        auto local_0x98 = 0.0;
+        auto local_0x9c = 0.0;
+        auto vret_2 = this->field_0x178->vfunc_0x50(prev_0x178_3, this->field_0x180, &local_0x40, &mem_2_2);
+        if (vret_2 < 0) {
+          if (vret_2 != -0x7ff8fff2) {
+            call_0x27193f0(vret_2, param_2, 419, "DeviceWin32");
+            call_0x49738e0(&local_0x90, "Unable to create DXGI swapchain: %x", vret_2, 0);
+            call_0x5e066f0(&local_0x90, &sym_0x80cc8c0);
+            return; // noreturn
+          } else {
+            call_0x4971090(2, &sym_0x6647145);
+            return; // noreturn
+          }
+        } else {
+          uint64_t v_rcx_1;
           if (HandleAltEnterFullscreenManually) {
-            auto vret_3 = this->field_0x178->vfunc_0x40(prev_0x178_1, param_2, 7);
+            auto vret_3 = this->field_0x178->vfunc_0x40(prev_0x178_3, param_2, 7);
             if (vret_3 < 0) {
-              call_0x27193f0(vret_3, param_2, 431, "DeviceWin32");
+              call_0x27193f0(vret_3, param_2, 431, "0x%x)");
               if ((uint8_t)Graphics >= 6) {
                 if ((uint8_t)((uint64_t)Graphics >> 8) >= 3) {
-                  FLog::Log("[FLog::Graphics] MakeWindowAssociation failed with error code %X\n");
+                  local_0x90 = "[FLog::Graphics] MakeWindowAssociation failed with error code %X\\n";
+                  float mem_4_4 = local_0x90;
+                  local_0x90 = Graphics;
+                  local_0x94 = *(uint32_t*)((uint8_t*)&Graphics + 0x4);
+                  local_0x98 = *(uint32_t*)((uint8_t*)&Graphics + 0x8);
+                  local_0x9c = *(uint32_t*)((uint8_t*)&Graphics + 0xc);
+                  call_0x4971a90(&mem_4_4, mem_4_4 - 0x6e9df0, vret_3, 0);
+                  v_rcx_1 = &mem_4_4;
                 } else {
                   v_rcx_1 = (uint64_t)Graphics >> 8;
                 }
@@ -367,12 +455,13 @@ Operação  : 0x727ab0: cmp byte [flag], imm8 ; fn=0x727aa0..0x727b3e
               }
             }
           }
-          v_rbx_6 = local_0x30;
+          v_rcx_2 = v_rcx_1;
+          v_rbx_3 = local_0x30;
         }
       }
-      auto ret_0x27191e0_6 = call_0x27191e0(v_rcx_1, v_rbx_6);
-      call_0x4955c30(global_0x84b6d6c, 1, param_3, ret_0x27191e0_6);
-      return v_rbx_6;
+      auto ret_0x27191e0_11 = call_0x27191e0(v_rcx_2, v_rbx_3);
+      call_0x4955c30(global_0x84b6d6c, 1, 0, ret_0x27191e0_11);
+      return v_rbx_3;
     }
   
   === [Instrucoes x86-64 do XREF Runtime #4 (0x27103c0..0x27105cf)] ===
@@ -454,7 +543,7 @@ Operação  : 0x727ab0: cmp byte [flag], imm8 ; fn=0x727aa0..0x727b3e
     0x27104ec | 8b d8                    | mov ebx, eax
     0x27104ee | 85 c0                    | test eax, eax
     0x27104f0 | 79 56                    | jns 0x2710548
-    0x27104f2 | 4c 8d 0d d7 d8 bc 04     | lea r9, [rip + 0x4bcd8d7] ; "DeviceWin32"
+    0x27104f2 | 4c 8d 0d d7 d8 bc 04     | lea r9, [rip + 0x4bcd8d7] ; "0x%x)"
     0x27104f9 | 41 b8 af 01 00 00        | mov r8d, 0x1af
     0x27104ff | 8b c8                    | mov ecx, eax
     0x2710501 | e8 ea 8e 00 00           | call 0x27193f0
@@ -518,9 +607,9 @@ Operação  : 0x727ab0: cmp byte [flag], imm8 ; fn=0x727aa0..0x727b3e
   * "Unable to create DXGI swapchain: %x"  [@rdata 0x72ddca0, ref @0x270f871, literal, 35B]
 
 [Co-Flags na mesma função]
-  * FLogRobloxWndInit = 1 (default)
-  * FLogGraphics = 6 (default)
-  * FFlagGraphicsD3D11FlipDiscard2 = false (default)
+  * FLogRobloxWndInit = 0 (default)
+  * FLogGraphics = 0 (default)
+  * FFlagGraphicsD3D11FlipDiscard2 = true (default)
   * FFlagDebugVulkanValidationExtensions = false (default) [vizinha em .data]
   * FFlagDebugLoadRenderDoc = false (default) [vizinha em .data]
   * FFlagOffscreenRenderingEnabled = false (default) [vizinha em .data]

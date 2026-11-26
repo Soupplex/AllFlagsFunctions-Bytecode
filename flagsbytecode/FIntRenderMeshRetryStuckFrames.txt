@@ -8,7 +8,8 @@ Operação  : 0x362bc49: mov/math reg, [flag] ; fn=0x362bb30..0x362c1de
   === [Resumo do Efeito da FFlag no Engine (RBX::RenderMesh)] ===
     Classe  : RBX::RenderMesh (Inferido)
     Padrão  : FIntRenderMeshRetryStuckFrames = 600 (default) [int, mode=1]
-    Papel   : Parâmetro de configuração lido diretamente pela rotina
+    Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
+    Fórmula : this->field_0x98->field_0x2c == 5 && this->field_0x8->field_0x10->field_0xb40->field_0x38 - this->field_0x98->field_0x38 > ((uint64_t)this->field_0x98 >> 4 & 0x7) + (this->field_0x98->field_0x3c + 1) * RenderMeshRetryStuckFrames && atomic_cas(&this->field_0x98->field_0x2c, 5, 0)
     Altera  : this->field_0x98->field_0x3c, this->field_0x80, this->field_0x8->field_0x3c, this->field_0x8->field_0x10->field_0xbe8->field_0x728->field_0x51
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
@@ -17,9 +18,9 @@ Operação  : 0x362bc49: mov/math reg, [flag] ; fn=0x362bb30..0x362c1de
   === [Decompilacao C++ da Funcao 0x362bb30..0x362c1de] ===
     struct RBX::RenderMesh {
       /* +0x8 */ void*   field_0x8;
-      /* +0x80 */ int32_t field_0x80;
-      /* +0x88 */ int32_t field_0x88;
-      /* +0x98 */ void*   field_0x98;
+      /* +0x80 */ uint8_t field_0x80;
+      /* +0x88 */ uint8_t field_0x88;
+      /* +0x98 */ uint64_t field_0x98;
       /* +0xa8 */ void*   field_0xa8;
       /* +0xb8 */ float   field_0xb8;
       /* +0xbc */ float   field_0xbc;
@@ -29,77 +30,199 @@ Operação  : 0x362bc49: mov/math reg, [flag] ; fn=0x362bb30..0x362c1de
       /* +0xcc */ float   field_0xcc;
     };
     
-    // Flag defaults: RenderMeshRetryMaxCount = 3, RenderMeshRetryStuckFrames = 600, RenderFixShadowOnMeshStreamIn = false, Graphics = 6
+    // Flag defaults: RenderMeshRetryMaxCount = 3, RenderMeshRetryStuckFrames = 600, RenderFixShadowOnMeshStreamIn = false, Graphics = 0
     void RBX::RenderMesh::func_0x362bb30(RBX::RenderMesh* this) {
+      uint64_t local_0x20;
       auto* f_98 = this->field_0x98;
-      if ((this->field_0x80 & 0x2) != 0 && f_98 != 0 && f_98->field_0x3c < (f_98->field_0x4d0 < (uint8_t)1 ? 1 : f_98->field_0x4d0) * RenderMeshRetryMaxCount) {
+      if ((this->field_0x80 & 0x2) != 0 && f_98 != 0 && f_98->field_0x3c < (uint8_t)(f_98->field_0x4d0 < (uint8_t)1 ? 1 : f_98->field_0x4d0) * RenderMeshRetryMaxCount) {
         if (f_98->field_0x2c == 0) {
+          atomic_exchange(&f_98->field_0x38, this->field_0x8->field_0x10->field_0xb40->field_0x38);
+          auto* f_98_2 = this->field_0x98;
+          local_0x20 = f_98_2->field_0x760;
+          uint64_t local_0x90;
           auto* f_8 = this->field_0x8;
-          f_8->field_0x10->field_0xc10->vfunc_0x20(f_8->field_0x10->field_0xc10, &local_0x90, &f_98->field_0x48, 0);
+          f_8->field_0x10->field_0xc10->vfunc_0x20(f_8->field_0x10->field_0xc10, &local_0x90, &f_98_2->field_0x48, 0, f_98_2->field_0x760);
+          uint64_t local_0x98;
           if (local_0x98 != 0) {
             call_0x6daf40(local_0x98);
           }
-          auto* f_98_2 = this->field_0x98;
-        } else if (f_98_2->field_0x2c == 5 && this->field_0x8->field_0x10->field_0xb40->field_0x38 - f_98_2->field_0x38 > ((uint64_t)f_98_2 >> 4 & 0x7) + (f_98_2->field_0x3c + 1) * RenderMeshRetryStuckFrames && atomic_cas(&f_98_2->field_0x2c, 5, 0) == 0) {
+        } else if (this->field_0x98->field_0x2c == 5 && this->field_0x8->field_0x10->field_0xb40->field_0x38 - this->field_0x98->field_0x38 > ((uint64_t)this->field_0x98 >> 4 & 0x7) + (this->field_0x98->field_0x3c + 1) * RenderMeshRetryStuckFrames && atomic_cas(&this->field_0x98->field_0x2c, 5, 0)) {
+          atomic_exchange(&this->field_0x98->field_0x38, this->field_0x8->field_0x10->field_0xb40->field_0x38);
           this->field_0x98->field_0x3c++;
         }
       }
-      uint64_t i_eax;
       if ((this->field_0x80 & 0x2) != 0 && this->field_0x98 != 0 && this->field_0x98->field_0x2c == 4) {
         this->field_0x80 = this->field_0x80 & 0xfffffffd;
         auto* f_8_2 = this->field_0x8;
-        f_8_2->field_0x3c = f_8_2->field_0x10->field_0xb40->field_0x38 + 1;
-        if (f_8_2->field_0x10->field_0xb40->field_0x540->field_0xcc8 != 0) {
-          f_8_2->field_0x10->field_0xb40->field_0x540->field_0xcc8->vfunc_0x30(f_8_2->field_0x10->field_0xb40->field_0x540->field_0xcc8, &this->field_0xb8, 0);
+        auto* f_8_2_10 = f_8_2->field_0x10;
+        auto* f_8_2_10_b40 = f_8_2_10->field_0xb40;
+        f_8_2->field_0x3c = f_8_2_10_b40->field_0x38 + 1;
+        if (f_8_2_10_b40->field_0x540->field_0xcc8 != 0) {
+          f_8_2_10_b40->field_0x540->field_0xcc8->vfunc_0x30(f_8_2_10_b40->field_0x540->field_0xcc8, &this->field_0xb8, 0);
         }
-        auto* f_8_3 = this->field_0x8;
-        auto* f_8_3_10 = f_8_3->field_0x10;
-        auto* f_8_3_10_be8 = f_8_3_10->field_0xbe8;
-        if (f_8_3_10 != 0 && f_8_3_10_be8 != 0 && f_8_3_10_be8->field_0x728 != 0 && f_8_3_10_be8->field_0x728->field_0x51 == 0) {
-          int32_t tmp_1 = movmsk(f_8_3_10_be8->field_0x728->field_0x64 < this->field_0xb8 | this->field_0xc4 < f_8_3_10_be8->field_0x728->field_0x58);
+        if (this->field_0x8->field_0x10 != 0 && this->field_0x8->field_0x10->field_0xbe8 != 0 && this->field_0x8->field_0x10->field_0xbe8->field_0x728 != 0 && this->field_0x8->field_0x10->field_0xbe8->field_0x728->field_0x51 == 0) {
+          int32_t tmp_1 = movmsk(this->field_0x8->field_0x10->field_0xbe8->field_0x728->field_0x64 < this->field_0xb8 | this->field_0xc4 < this->field_0x8->field_0x10->field_0xbe8->field_0x728->field_0x58);
           if (((uint8_t)tmp_1 & 0x7) == 0) {
-            f_8_3_10_be8->field_0x728->field_0x51 = (uint8_t)1;
+            this->field_0x8->field_0x10->field_0xbe8->field_0x728->field_0x51 = (uint8_t)1;
           }
         }
         if (RenderFixShadowOnMeshStreamIn) {
-          if (f_8_3_10_be8->field_0x760 != 0) {
-            void* v_rdi_2 = f_8_3_10_be8->field_0x760;
+          uint64_t local_0x80;
+          uint64_t local_0x70;
+          uint64_t local_0x60;
+          uint64_t local_0x40;
+          uint64_t local_0x48;
+          uint64_t local_0x58;
+          uint64_t local_0x50;
+          uint64_t local_0x30;
+          if (this->field_0x8->field_0x10->field_0xbe8->field_0x760 != 0) {
+            void* v_rdi_2 = this->field_0x8->field_0x10->field_0xbe8->field_0x760;
             if ((uint8_t)Graphics >= 6) {
               if ((uint8_t)((uint64_t)Graphics >> 8) >= 4) {
+                local_0x30 = "[FLog::Graphics] RenderFixShadowOnMeshStreamIn: mesh ready, queuing shadow invalidation bounds=({},{},{})-({},{},{})";
+                local_0x50 = local_0x30 - 0x3e6a00c;
+                uint64_t i_eax_2 = -1;
                 do { // L_0x362bdf0
-                  i_eax++;
-                } while (rcx[i_eax] != 0); // loop -> L_0x362bdf0
-                void* prev_0x760_2 = f_8_3_10_be8->field_0x760;
-                FLog::Log("[FLog::Graphics] RenderFixShadowOnMeshStreamIn: mesh ready, queuing shadow invalidation bounds=(");
-                v_rdi_2 = prev_0x760_2;
+                  i_eax_2++;
+                } while ((local_0x30 - 0x3e6a00c)[i_eax_2] != 0); // loop -> L_0x362bdf0
+                local_0x58 = i_eax_2;
+                uint64_t local_0x120;
+                local_0x48 = &local_0x120;
+                local_0x40 = 10066329;
+                local_0x20 = (uint8_t)1;
+                local_0x80 = local_0x40;
+                local_0x60 = Graphics;
+                local_0x70 = local_0x50;
+                void* prev_0x760_8 = this->field_0x8->field_0x10->field_0xbe8->field_0x760;
+                FLog::Log("[FLog::Graphics] RenderFixShadowOnMeshStreamIn: mesh ready, queuing shadow invalidation bounds=({},{},{})-({},{},{})", local_0x40);
+                v_rdi_2 = prev_0x760_8;
               }
             }
+            uint64_t local_0x110;
+            uint64_t local_0xd0;
             if (v_rdi_2->field_0xc8 != v_rdi_2->field_0xd0) {
-              void* i_ecx = v_rdi_2->field_0xc8;
+              uint8_t* i_ecx = v_rdi_2->field_0xc8;
               do { // L_0x362bf10
-                if ((pmovmskb(64.0f + i_ecx->field_0x30 < this->field_0xb8 | this->field_0xc4 < i_ecx->field_0x20 - 64.0f) & 0xfff) == 0) break;
+                if ((pmovmskb(64.0f + i_ecx->field_0x30 < this->field_0xb8 | this->field_0xc4 < i_ecx->field_0x20 - 64.0f) & 0xfff) == 0) {
+                  i_ecx->field_0x20 = min(i_ecx->field_0x20, this->field_0xb8);
+                  i_ecx->field_0x24 = min(i_ecx->field_0x24, this->field_0xbc);
+                  i_ecx->field_0x28 = min(i_ecx->field_0x28, this->field_0xc0);
+                  i_ecx->field_0x2c = min(i_ecx->field_0x2c, this->field_0xc4);
+                  i_ecx->field_0x30 = max(i_ecx->field_0x30, this->field_0xc4);
+                  i_ecx->field_0x34 = max(i_ecx->field_0x34, this->field_0xc8);
+                  i_ecx->field_0x38 = max(i_ecx->field_0x38, this->field_0xcc);
+                  i_ecx->field_0x3c = max(i_ecx->field_0x3c, this->field_0xcc);
+                  i_ecx->field_0x0 = i_ecx->field_0x20;
+                  i_ecx->field_0x4 = i_ecx->field_0x24;
+                  i_ecx->field_0x8 = i_ecx->field_0x28;
+                  i_ecx->field_0xc = i_ecx->field_0x2c;
+                  i_ecx->field_0x10 = i_ecx->field_0x30;
+                  i_ecx->field_0x14 = i_ecx->field_0x34;
+                  i_ecx->field_0x18 = i_ecx->field_0x38;
+                  i_ecx->field_0x1c = i_ecx->field_0x3c;
+                  break;
+                }
                 i_ecx += 0x50;
               } while (i_ecx != v_rdi_2->field_0xd0); // loop -> L_0x362bf10
+              local_0xd0 = this->field_0xb8;
+              local_0x110 = 1;
+              int64_t local_0x108;
+              int64_t local_0xf8;
+              int64_t local_0xf4;
+              int64_t local_0xf0;
+              int64_t local_0xec;
+              int64_t local_0xd4;
+              int64_t local_0x10c;
+              int64_t local_0xdc;
+              int64_t local_0x104;
+              int64_t local_0xe4;
+              int64_t local_0x118;
+              int64_t local_0xd8;
+              int64_t local_0xe0;
+              int64_t local_0xe8;
+              int64_t local_0xfc;
+              int64_t local_0x100;
               if (v_rdi_2->field_0xd0 != v_rdi_2->field_0xd8) {
+                L_0x362bf6a:
                 v_rdi_2->field_0xd0->field_0x0 = this->field_0xb8;
+                v_rdi_2->field_0xd0->field_0x4 = this->field_0xbc;
+                v_rdi_2->field_0xd0->field_0x8 = this->field_0xc0;
+                v_rdi_2->field_0xd0->field_0xc = this->field_0xc4;
                 v_rdi_2->field_0xd0->field_0x10 = this->field_0xc4;
+                v_rdi_2->field_0xd0->field_0x14 = this->field_0xc8;
+                v_rdi_2->field_0xd0->field_0x18 = this->field_0xcc;
+                v_rdi_2->field_0xd0->field_0x1c = this->field_0xcc;
                 v_rdi_2->field_0xd0->field_0x20 = this->field_0xb8;
+                v_rdi_2->field_0xd0->field_0x24 = this->field_0xbc;
+                v_rdi_2->field_0xd0->field_0x28 = this->field_0xc0;
+                v_rdi_2->field_0xd0->field_0x2c = this->field_0xc4;
                 v_rdi_2->field_0xd0->field_0x30 = this->field_0xc4;
-                v_rdi_2->field_0xd0->field_0x40 = 1;
+                v_rdi_2->field_0xd0->field_0x34 = this->field_0xc8;
+                v_rdi_2->field_0xd0->field_0x38 = this->field_0xcc;
+                v_rdi_2->field_0xd0->field_0x3c = this->field_0xcc;
+                v_rdi_2->field_0xd0->field_0x40 = local_0x110;
+                v_rdi_2->field_0xd0->field_0x48 = -1;
                 v_rdi_2->field_0xd0 = v_rdi_2->field_0xd0 + 0x50;
+                local_0xe8 = this->field_0xcc;
+                local_0xe0 = this->field_0xc4;
+                local_0xd8 = this->field_0xc0;
+                local_0x118 = -1;
+                local_0xe4 = this->field_0xc8;
+                local_0xdc = this->field_0xc4;
+                local_0xd4 = this->field_0xbc;
+                local_0xec = this->field_0xcc;
+                local_0xf0 = this->field_0xb8;
+                local_0xf4 = this->field_0xbc;
+                local_0xf8 = this->field_0xc0;
+                local_0xfc = this->field_0xc4;
+                local_0x100 = this->field_0xc4;
+                local_0x104 = this->field_0xc8;
+                local_0x108 = this->field_0xcc;
+                local_0x10c = this->field_0xcc;
               } else {
+                L_0x362bfb4:
+                local_0xd4 = this->field_0xbc;
+                local_0xd8 = this->field_0xc0;
+                local_0xdc = this->field_0xc4;
+                local_0xe0 = this->field_0xc4;
+                local_0xe4 = this->field_0xc8;
+                local_0xe8 = this->field_0xcc;
+                local_0xec = this->field_0xcc;
+                local_0xf0 = this->field_0xb8;
+                local_0xf4 = this->field_0xbc;
+                local_0xf8 = this->field_0xc0;
+                local_0xfc = this->field_0xc4;
+                local_0x100 = this->field_0xc4;
+                local_0x104 = this->field_0xc8;
+                local_0x108 = this->field_0xcc;
+                local_0x10c = this->field_0xcc;
+                local_0x118 = -1;
                 call_0x37fd790(&v_rdi_2->field_0xc8, v_rdi_2->field_0xd0, &local_0xd0);
               }
-            } else if (v_rdi_2->field_0xd0 != v_rdi_2->field_0xd8) {
-              goto L_0x362bf6a;
             } else {
-              call_0x37fd790(&v_rdi_2->field_0xc8, v_rdi_2->field_0xd0, &local_0xd0);
+              local_0xd0 = this->field_0xb8;
+              local_0x110 = 1;
+              if (v_rdi_2->field_0xd0 != v_rdi_2->field_0xd8) {
+                goto L_0x362bf6a;
+              } else {
+                goto L_0x362bfb4;
+              }
             }
           } else if ((uint8_t)Graphics >= 6 && (uint8_t)((uint64_t)Graphics >> 8) >= 3) {
-            i_eax = -1;
+            local_0x30 = "[FLog::Graphics] RenderFixShadowOnMeshStreamIn: mesh ready but DispatchScene is null";
+            local_0x40 = local_0x30 - 0x3e7e7cd;
+            uint64_t i_eax = -1;
             do { // L_0x362c000
               i_eax++;
-            } while (rcx[i_eax] != 0); // loop -> L_0x362c000
+            } while ((local_0x30 - 0x3e7e7cd)[i_eax] != 0); // loop -> L_0x362c000
+            local_0x48 = i_eax;
+            uint64_t local_0xc0;
+            local_0x58 = &local_0xc0;
+            local_0x50 = 0;
+            local_0x80 = local_0x50;
+            local_0x20 = (uint8_t)1;
+            local_0x70 = local_0x40;
+            local_0x60 = Graphics;
             FLog::Log("[FLog::Graphics] RenderFixShadowOnMeshStreamIn: mesh ready but DispatchScene is null");
           }
         }
@@ -107,47 +230,59 @@ Operação  : 0x362bc49: mov/math reg, [flag] ; fn=0x362bb30..0x362c1de
         if ((this->field_0x88 & 0x20) == 0 && f_98_3->field_0x43 > (uint8_t)1) {
           this->field_0x80 = this->field_0x80 | 0x20;
         }
-        auto ret_0x3533f00_5 = call_0x3533f00(f_98_3);
-        if ((uint8_t)ret_0x3533f00_5 != 0) {
+        auto ret_0x3533f00_7 = call_0x3533f00(f_98_3);
+        if ((uint8_t)ret_0x3533f00_7 != 0) {
           this->field_0x80 = this->field_0x80 | 0x20;
         }
       }
       if (((uint8_t)this->field_0x80 & 0x4) != 0) {
+        int32_t tmp_16;
         if (this->field_0xa8->field_0x0 != this->field_0xa8->field_0x8) {
-          void* i_r8d = this->field_0xa8->field_0x0;
+          uint8_t* i_r8d = this->field_0xa8->field_0x0;
           do { // L_0x362c0d0
             if (i_r8d->field_0x40 != i_r8d->field_0x48) {
+              uint8_t* i_eax_3 = i_r8d->field_0x40;
               do { // L_0x362c0e0
-                if (i_eax->field_0x0 == 0 || i_eax->field_0x0->field_0x90 != 1) {
-                  i_eax += 0x20;
+                if (i_eax_3->field_0x0 == 0 || i_eax_3->field_0x0->field_0x90 != 1) {
+                  i_eax_3 += 0x20;
                   i_r8d += 0x88;
                   if (i_r8d != this->field_0xa8->field_0x8) break;
                   this->field_0x80 = this->field_0x80 & 0xfffffffb;
-                  auto* f_8_4 = this->field_0x8;
-                  f_8_4->field_0x3c = f_8_4->field_0x10->field_0xb40->field_0x38 + 1;
-                  if (f_8_4->field_0x10->field_0xb40->field_0x540->field_0xcc8 == 0) break;
-                  f_8_4->field_0x10->field_0xb40->field_0x540->field_0xcc8->vfunc_0x30(f_8_4->field_0x10->field_0xb40->field_0x540->field_0xcc8, &this->field_0xb8, 0);
+                  auto* f_8_3 = this->field_0x8;
+                  auto* f_8_3_10 = f_8_3->field_0x10;
+                  f_8_3->field_0x3c = f_8_3_10->field_0xb40->field_0x38 + 1;
+                  if (f_8_3_10->field_0xb40->field_0x540->field_0xcc8 == 0) {
+                    if (f_8_3_10 != 0 && f_8_3_10->field_0xbe8 != 0 && f_8_3_10->field_0xbe8->field_0x728 != 0 && f_8_3_10->field_0xbe8->field_0x728->field_0x51 == 0) {
+                    tmp_16 = movmsk(f_8_3_10->field_0xbe8->field_0x728->field_0x64 < this->field_0xb8 | this->field_0xc4 < f_8_3_10->field_0xbe8->field_0x728->field_0x58);
+                    if (((uint8_t)tmp_16 & 0x7) == 0) {
+                    f_8_3_10->field_0xbe8->field_0x728->field_0x51 = 1;
+                    return;
+                    }
+                    return;
+                    }
+                    return;
+                  }
+                  f_8_3_10->field_0xb40->field_0x540->field_0xcc8->vfunc_0x30(f_8_3_10->field_0xb40->field_0x540->field_0xcc8, &this->field_0xb8, 0, this->field_0xa8->field_0x8);
                   break;
                 }
                 return;
-              } while (i_eax != i_r8d->field_0x48); // loop -> L_0x362c0e0
+              } while (i_eax_3 != i_r8d->field_0x48); // loop -> L_0x362c0e0
             }
             i_r8d += 0x88;
           } while (i_r8d != this->field_0xa8->field_0x8); // loop -> L_0x362c0d0
         }
         this->field_0x80 = this->field_0x80 & 0xfffffffb;
-        auto* f_8_5 = this->field_0x8;
-        f_8_5->field_0x3c = f_8_5->field_0x10->field_0xb40->field_0x38 + 1;
-        if (f_8_5->field_0x10->field_0xb40->field_0x540->field_0xcc8 != 0) {
-          f_8_5->field_0x10->field_0xb40->field_0x540->field_0xcc8->vfunc_0x30(f_8_5->field_0x10->field_0xb40->field_0x540->field_0xcc8, &this->field_0xb8, 0);
+        auto* f_8_4 = this->field_0x8;
+        auto* f_8_4_10 = f_8_4->field_0x10;
+        f_8_4->field_0x3c = f_8_4_10->field_0xb40->field_0x38 + 1;
+        if (f_8_4_10->field_0xb40->field_0x540->field_0xcc8 != 0) {
+          f_8_4_10->field_0xb40->field_0x540->field_0xcc8->vfunc_0x30(f_8_4_10->field_0xb40->field_0x540->field_0xcc8, &this->field_0xb8, 0, this->field_0xa8->field_0x8);
         }
-        auto* f_8_6 = this->field_0x8;
-        auto* f_8_6_10 = f_8_6->field_0x10;
-        auto* f_8_6_10_be8 = f_8_6_10->field_0xbe8;
-        if (f_8_6_10 != 0 && f_8_6_10_be8 != 0 && f_8_6_10_be8->field_0x728 != 0 && f_8_6_10_be8->field_0x728->field_0x51 == 0) {
-          int32_t tmp_7 = movmsk(f_8_6_10_be8->field_0x728->field_0x64 < this->field_0xb8 | this->field_0xc4 < f_8_6_10_be8->field_0x728->field_0x58);
-          if (((uint8_t)tmp_7 & 0x7) == 0) {
-            f_8_6_10_be8->field_0x728->field_0x51 = 1;
+        auto* f_8_5 = this->field_0x8;
+        if (f_8_5->field_0x10 != 0 && f_8_5->field_0x10->field_0xbe8 != 0 && f_8_5->field_0x10->field_0xbe8->field_0x728 != 0 && f_8_5->field_0x10->field_0xbe8->field_0x728->field_0x51 == 0) {
+          tmp_16 = movmsk(f_8_5->field_0x10->field_0xbe8->field_0x728->field_0x64 < this->field_0xb8 | this->field_0xc4 < f_8_5->field_0x10->field_0xbe8->field_0x728->field_0x58);
+          if (((uint8_t)tmp_16 & 0x7) == 0) {
+            f_8_5->field_0x10->field_0xbe8->field_0x728->field_0x51 = 1;
             return;
           }
           return;
@@ -312,7 +447,7 @@ Operação  : 0x362bc49: mov/math reg, [flag] ; fn=0x362bb30..0x362c1de
     0x362bdb3 | 48 c1 e8 08              | shr rax, 0x8
     0x362bdb7 | 3c 04                    | cmp al, 0x4
     0x362bdb9 | 0f 82 1c 01 00 00        | jb 0x362bedb
-    0x362bdbf | 48 8d 05 e6 e9 bf 07     | lea rax, [rip + 0x7bfe9e6] ; "[FLog::Graphics] RenderFixShadowOnMeshStreamIn: mesh ready, queuing shadow invalidation bounds=("
+    0x362bdbf | 48 8d 05 e6 e9 bf 07     | lea rax, [rip + 0x7bfe9e6] ; "[FLog::Graphics] RenderFixShadowOnMeshStreamIn: mesh ready, queuing shadow invalidation bounds=({},{},{})-({},{},{})"
     0x362bdc6 | 0f 29 b4 24 90 01 00 00  | movaps xmmword ptr [rsp + 0x190], xmm6
     0x362bdce | 48 89 44 24 30           | mov qword ptr [rsp + 0x30], rax
     0x362bdd3 | 48 c7 c0 ff ff ff ff     | mov rax, -0x1
@@ -570,10 +705,10 @@ Operação  : 0x362bc49: mov/math reg, [flag] ; fn=0x362bb30..0x362c1de
       /* +0x4d0 */ uint8_t field_0x4d0;
     };
     
-    // Flag defaults: SolidMeshLODTranscode = false
+    // Flag defaults: SolidMeshLODTranscode = true
     bool SubObj_0x3533f00::func_0x3533f00(SubObj_0x3533f00* this) {
       if (SolidMeshLODTranscode) {
-        if ((uint8_t)(this->field_0x48 - 13) > 2 && (this->field_0x48 - 12 & 0xfb) != 0) {
+        if ((uint8_t)(this->field_0x48 - 13) > 2 && ((uint8_t)(this->field_0x48 - 12) & 0xfb) != 0) {
           return false;
         }
       } else if ((uint8_t)(this->field_0x48 - 13) > 2) {
@@ -609,10 +744,10 @@ Operação  : 0x362bc49: mov/math reg, [flag] ; fn=0x362bb30..0x362c1de
   === [Decompilacao da Rotina Chamadora (Caller): 0x362cb10..0x362da2b em RBX::RenderMesh] ===
     struct RBX::RenderMesh {
       /* +0x8 */ void*   field_0x8;
-      /* +0x10 */ void*   field_0x10;
+      /* +0x10 */ int32_t field_0x10;
       /* +0x70 */ void*   field_0x70;
-      /* +0x80 */ int32_t field_0x80;
-      /* +0x88 */ int32_t field_0x88;
+      /* +0x80 */ uint8_t field_0x80;
+      /* +0x88 */ uint8_t field_0x88;
       /* +0x8c */ int32_t field_0x8c;
       /* +0x90 */ int32_t field_0x90;
       /* +0x94 */ int32_t field_0x94;
@@ -625,33 +760,567 @@ Operação  : 0x362bc49: mov/math reg, [flag] ; fn=0x362bb30..0x362c1de
       /* +0xcc */ float   field_0xcc;
       /* +0x148 */ void*   field_0x148;
       /* +0x160 */ void*   field_0x160;
-      /* +0x1a0 */ void*   field_0x1a0;
-      /* +0x1a8 */ void*   field_0x1a8;
+      /* +0x1a0 */ uint64_t field_0x1a0;
+      /* +0x1a8 */ uint64_t field_0x1a8;
       /* +0x1d0 */ int32_t field_0x1d0;
       /* +0x1d4 */ int32_t field_0x1d4;
     };
     
-    // Flag defaults: FixInvisibleHighlightSunReflections2 = true, SupportOrthoCamera4 = false, SupportOrthoCameraApi2 = false, DebugRenderMeshSelectionLogic = 1, RenderFixShadowOnMeshStreamIn = false, SolidMeshLODTranscode = false, RobloxTelemetryThrottlingRenderFidelityOnTime = 100, TelemetryTimeToTrackMeshSizeBuckets2 = true
-    void RBX::RenderMesh::func_0x362cb10(RBX::RenderMesh* this, int64_t param_2, void* param_3) {
-      if ((param_3->field_0x80 & 1ULL << this->field_0x10) < 0) {
+    // Flag defaults: FixInvisibleHighlightSunReflections2 = false, SupportOrthoCamera4 = false, SupportOrthoCameraApi2 = false, DebugRenderMeshSelectionLogic = 1, RenderFixShadowOnMeshStreamIn = false, SolidMeshLODTranscode = true, RobloxTelemetryThrottlingRenderFidelityOnTime = 0, TelemetryTimeToTrackMeshSizeBuckets2 = true
+    void RBX::RenderMesh::func_0x362cb10(RBX::RenderMesh* this, void* param_2, void* param_3) {
+      void* local_0xe8;
+      local_0xe8 = param_2;
+      if ((param_3->field_0x80 & 1ULL << this->field_0x10) != 0) {
         if ((uint8_t)(this->field_0x80 & 0x18) == 24) {
+          int32_t v_rbx_1 = 0;
+          auto* f_8 = this->field_0x8;
+          void* v_r13_2 = f_8->field_0x10;
           if (((uint8_t)this->field_0x80 & 0x6) != 0) {
-            call_0x362bb30(this, param_2, this->field_0x10);
+            void* prev_0x10_1 = f_8->field_0x10;
+            call_0x362bb30(this);
+            v_rbx_1 = (this->field_0x80 & 0x2) != 0;
+            v_r13_2 = prev_0x10_1;
           }
-          auto expr_1 = param_3->field_0xc & param_3->field_0x10;
-          if (expr_1 != 0) {
-            if ((uint8_t)this->field_0x94 != 0 && this->field_0x94[param_3->field_0x88] != 0) {
-              auto* f_70 = this->field_0x70;
+          if ((param_3->field_0xc & param_3->field_0x10) != 0) {
+            if ((uint8_t)this->field_0x94 != 0 && param_3->field_0x88->field_0x0[(uint8_t)this->field_0x94] != 0) {
+              uint8_t* i_r15d;
               if (FixInvisibleHighlightSunReflections2 && (this->field_0x88 & 0x10) != 0) {
-                if (expr_1 != 0 && this->field_0x94 != 0) {
+                if ((param_3->field_0xc & param_3->field_0x10) != 0 && this->field_0x94 != 0) {
                   L_0x362cbf5:
-                  void* i_r15d = f_70->field_0x0;
+                  auto* f_70 = this->field_0x70;
+                  i_r15d = f_70->field_0x0;
                   if (f_70->field_0x0 != f_70->field_0x8) {
                     L_0x362cc20:
                     do { // L_0x362cc20
                     if (i_r15d->field_0x4 == param_3->field_0x8 && i_r15d->field_0x0 >= param_3->field_0x7c) {
-                    if ((i_r15d->field_0x8 & param_3->field_0x84) == i_r15d->field_0x8) break;
+                    if ((i_r15d->field_0x8 & param_3->field_0x84) == i_r15d->field_0x8) {
+                    uint64_t local_0xdc;
+                    uint64_t local_0x30;
+                    uint64_t local_0x38;
+                    uint64_t local_0x20;
+                    uint64_t local_0xcc;
+                    uint64_t local_0xc8;
+                    uint64_t local_0x68;
+                    uint64_t local_0xe0;
+                    uint64_t local_0x28;
+                    uint64_t local_0xd8;
+                    uint64_t local_0xd0;
+                    if ((uint8_t)v_rbx_1 != 0) {
+                    auto* f_98 = this->field_0x98;
+                    if (f_98 != 0) {
+                    if (f_98->field_0x778 == 2 && param_3->field_0x8 == 0) {
+                    if ((int64_t)(this->field_0x1a8 - this->field_0x1a0) >> 2 != 0) {
+                    int32_t i_edx_4 = 0;
+                    int32_t i_esi = 0;
+                    do { // L_0x362ccf5
+                    auto* f_148 = this->field_0x148;
+                    local_0xd8 = f_148->field_0x30[i_edx_4 * 112];
+                    local_0xdc = f_148->field_0x34[i_edx_4 * 112];
+                    local_0xe0 = f_148->field_0x38[i_edx_4 * 112];
+                    uint8_t* i_eax_3 = &local_0xd8;
+                    uint8_t* i_ecx_2 = &local_0xdc;
+                    void* sel_rax_5;
+                    do { // L_0x362cd30
+                    sel_rax_5 = i_ecx_2->field_0x0 > i_eax_3->field_0x0 ? i_ecx_2 : i_eax_3;
+                    i_ecx_2 += 4;
+                    i_eax_3 = sel_rax_5;
+                    uint64_t local_0xe4;
+                    } while (i_ecx_2 != &local_0xe4); // loop -> L_0x362cd30
+                    auto* f_160 = this->field_0x160;
+                    float ftmp_8 = f_160->field_0xc[i_edx_4 * 3 * 8];
+                    float ftmp_9 = f_160->field_0x10[i_edx_4 * 3 * 8];
+                    float ftmp_10 = f_160->field_0x14[i_edx_4 * 3 * 8];
+                    float ftmp_11 = f_160->field_0x0[i_edx_4 * 3 * 8];
+                    float ftmp_12 = f_160->field_0x4[i_edx_4 * 3 * 8];
+                    float ftmp_13 = f_160->field_0x8[i_edx_4 * 3 * 8];
+                    float mem_18_18 = local_0xe8;
+                    local_0xe8 = ftmp_8 - ftmp_11;
+                    uint64_t local_0xec;
+                    float mem_19_19 = local_0xec;
+                    local_0xec = ftmp_9 - ftmp_12;
+                    uint64_t local_0xf0;
+                    local_0xf0 = ftmp_10 - ftmp_13;
+                    uint8_t* i_eax_4 = &mem_18_18;
+                    uint8_t* i_ecx_3 = &mem_19_19;
+                    void* sel_rax_6;
+                    do { // L_0x362cdc0
+                    sel_rax_6 = i_ecx_3->field_0x0 > i_eax_4->field_0x0 ? i_ecx_3 : i_eax_4;
+                    i_ecx_3 += 4;
+                    i_eax_4 = sel_rax_6;
+                    uint64_t local_0xf4;
+                    } while (i_ecx_3 != &local_0xf4); // loop -> L_0x362cdc0
+                    float mem_21_21 = local_0x68;
+                    local_0x68 = (ftmp_11 + ftmp_8) * 0.5f;
+                    uint64_t local_0x6c;
+                    local_0x6c = (ftmp_12 + ftmp_9) * 0.5f;
+                    uint64_t local_0x70;
+                    local_0x70 = (ftmp_13 + ftmp_10) * 0.5f;
+                    float mem_22_22 = local_0xc8;
+                    local_0xc8 = (ftmp_8 - ftmp_11) * 0.5f;
+                    local_0xcc = (ftmp_9 - ftmp_12) * 0.5f;
+                    local_0xd0 = (ftmp_10 - ftmp_13) * 0.5f;
+                    float prev_0x0_23 = sel_rax_6->field_0x0;
+                    void* prev_0xc10_24 = v_r13_2->field_0xc10;
+                    auto ret_0x2d26cb0_17 = call_0x2d26cb0(&param_3->field_0x0->field_0xc0, &mem_21_21, &mem_22_22);
+                    float ftmp_14 = sel_rax_5->field_0x0 * sel_rax_5->field_0x0;
+                    local_0x20 = ret_0x2d26cb0_17;
+                    float ftmp_15 = prev_0x0_23 * prev_0x0_23 / max(0.0001f, ret_0x2d26cb0_17);
+                    v_r13_2->field_0xc10->vfunc_0x88(prev_0xc10_24, this->field_0x98, ftmp_14, ftmp_15, ret_0x2d26cb0_17);
+                    i_esi++;
+                    i_edx_4 = i_esi;
+                    } while (i_edx_4 < (int64_t)(this->field_0x1a8 - this->field_0x1a0) >> 2); // loop -> L_0x362ccf5
+                    }
+                    } else {
+                    v_r13_2->field_0xc10->vfunc_0x80(v_r13_2->field_0xc10, this->field_0x98, -1);
+                    }
+                    auto ret_0x361fe70_19 = call_0x361fe70(param_3->field_0x8, this->field_0x10);
+                    if ((uint8_t)ret_0x361fe70_19 != 0) {
+                    local_0x38 = 0.0;
+                    local_0x30 = param_2->field_0x68;
+                    local_0x28 = -1.0f;
+                    local_0x20 = 1;
+                    call_0x35b0f10(v_r13_2->field_0xb88, 6, param_3->field_0xc, i_r15d, 1, -1.0f, param_2->field_0x68, 0.0);
+                    }
+                    }
+                    } else {
+                    void* v_rbx_30 = 0;
+                    void* v_rsi_31;
+                    void* v_r12_32 = param_2;
+                    void* v_r13_33 = this->field_0x98;
+                    uint64_t local_0x60;
+                    if ((param_3->field_0x14 & param_3->field_0xc) != 0) {
+                    if ((this->field_0x80 & 0x20) != 0) {
+                    uint8_t v_al_34;
+                    void* v_rbx_36;
+                    int32_t v_rdx_37;
+                    void* v_rbx_41;
+                    void* v_rbx_40;
+                    bool cond_39;
+                    void* v_rbx_38;
+                    uint64_t i_ebx_5;
+                    int32_t v_rdx_35;
+                    if (RenderFixShadowOnMeshStreamIn) {
+                    auto expr_1 = this->field_0x98->field_0x43, this->field_0x98->field_0x4d0;
+                    int64_t idx_3 = (uint8_t)std::max<uint32_t>expr_1;
+                    bool cond_28;
+                    int32_t v_rbx_29 = this->field_0x1d4 < (uint8_t)std::max<uint32_t>expr_1 ? this->field_0x1d4 : idx_3 - 1;
+                    if ((this->field_0x1d4 < (uint8_t)std::max<uint32_t>expr_1 ? this->field_0x1d4 : idx_3 - 1) < idx_3) {
+                    int32_t i_ebx = this->field_0x1d4 < (uint8_t)std::max<uint32_t>expr_1 ? this->field_0x1d4 : idx_3 - 1;
+                    do { // L_0x362cfb0
+                    if (this->field_0x98->field_0x260[i_ebx * 5 * 8] == 0 || this->field_0x98->field_0x280[i_ebx * 5 * 8] == 0 || this->field_0x98->field_0x27c[i_ebx * 5 * 8] == 0) {
+                    i_ebx++;
+                    }
+                    } while (i_ebx < idx_3); // loop -> L_0x362cfb0
+                    cond_28 = i_ebx == idx_3;
+                    v_rbx_29 = i_ebx;
+                    } else {
+                    cond_28 = (this->field_0x1d4 < (uint8_t)std::max<uint32_t>expr_1 ? this->field_0x1d4 : idx_3 - 1) == idx_3;
+                    }
+                    if (cond_28 != 1) {
+                    v_rbx_30 = v_rbx_29;
+                    v_rsi_31 = &this->field_0x98->field_0x260;
+                    L_0x362d23e:
+                    v_rbx_41 = v_rbx_30;
+                    if ((this->field_0x80 & 0x20) != 0) {
+                    if (SolidMeshLODTranscode) {
+                    if ((uint8_t)(this->field_0x98->field_0x48 - 13) > 2 && ((uint8_t)(this->field_0x98->field_0x48 - 12) & 0xfb) != 0) {
+                    L_0x362d27f:
+                    if ((this->field_0x88 & 0x40) != 0) {
+                    v_al_34 = v_r13_33->field_0x43;
+                    } else {
+                    v_al_34 = v_r13_33->field_0x44;
+                    }
+                    } else {
+                    L_0x362d4ea:
+                    if (this->field_0x98->field_0x4d0 > 1) {
+                    v_al_34 = v_r13_33->field_0x4d0;
+                    }
+                    }
+                    } else if ((uint8_t)(this->field_0x98->field_0x48 - 13) <= 2) {
+                    if (this->field_0x98->field_0x4d0 > 1) {
+                    v_al_34 = v_r13_33->field_0x4d0;
+                    } else {
+                    goto L_0x362d27f;
+                    }
+                    } else {
+                    goto L_0x362d27f;
+                    }
+                    v_rdx_35 = v_al_34 - 1;
+                    v_rbx_36 = v_rbx_30;
+                    i_ebx_5 = v_rbx_36;
+                    v_rdx_37 = v_al_34 - 1;
+                    int64_t ret_0x361fe70_8;
+                    if (v_al_34 - 1 < v_rbx_30) {
+                    int32_t i_ebx_4;
+                    if (v_al_34 - 1 >= 0) {
+                    v_rbx_36 = v_al_34 - 1;
+                    L_0x362d530:
+                    do { // L_0x362d530
+                    L_0x362d586:
+                    if (cond_39 == 1) {
+                    break;
+                    }
+                    L_0x362d58c:
+                    ret_0x361fe70_8 = call_0x361fe70(param_3->field_0x8, this->field_0x10);
+                    if ((uint8_t)ret_0x361fe70_8 == 0) {
+                    break;
+                    }
+                    local_0x20 = -1;
+                    call_0x362c1e0(this, v_r12_32, param_3, i_r15d, -1);
+                    break;
+                    } while (i_ebx_5 >= 0); // loop -> L_0x362d530
+                    v_rdx_37 = v_rdx_35;
+                    L_0x362d557:
+                    if (v_rdx_37 + 1 < v_al_34) {
+                    i_ebx_4 = v_rdx_37 + 1;
+                    L_0x362d560:
+                    do { // L_0x362d560
+                    } while (i_ebx_4 < v_al_34); // loop -> L_0x362d560
+                    v_rbx_38 = i_ebx_4;
+                    cond_39 = v_rbx_38 == v_al_34;
+                    v_rbx_40 = v_rbx_38;
+                    } else {
+                    cond_39 = v_rdx_37 + 1 == v_al_34;
+                    v_rbx_40 = v_rdx_37 + 1;
+                    }
+                    } else if (v_rdx_37 + 1 < v_al_34) {
+                    i_ebx_4 = v_rdx_37 + 1;
+                    goto L_0x362d560;
+                    } else {
+                    cond_39 = v_rdx_37 + 1 == v_al_34;
+                    v_rbx_40 = v_rdx_37 + 1;
+                    }
+                    } else {
+                    if (v_rbx_30 < 0) {
+                    v_rdx_35 = 0;
+                    v_rbx_36 = 0;
+                    } else {
+                    v_rdx_35 = v_rbx_30;
+                    }
+                    goto L_0x362d530;
+                    }
+                    if (cond_39 != 1) {
+                    v_rbx_41 = v_rbx_40;
+                    ret_0x361fe70_8 = call_0x361fe70(param_3->field_0x8, this->field_0x10);
+                    if ((uint8_t)ret_0x361fe70_8 != 0) {
+                    local_0x20 = -1;
+                    call_0x362c1e0(this, v_r12_32, param_3, i_r15d, -1);
+                    }
+                    if (param_3->field_0x8 == 0) {
+                    this->field_0x1d0 = v_rbx_41;
+                    }
+                    if (v_rsi_31->field_0x0[v_rbx_41 * 5 * 8] != 0 && (v_rsi_31 + ((v_rbx_41 * 5) * 8))->field_0x20 != 0 && (v_rsi_31 + ((v_rbx_41 * 5) * 8))->field_0x1c != 0) {
+                    uint64_t local_0x88;
+                    local_0x88 = v_rsi_31 + v_rbx_41 * 5 * 8;
+                    uint64_t local_0x90;
+                    local_0x90 = 0.0;
+                    uint64_t local_0x98;
+                    local_0x98 = this->field_0x90;
+                    uint64_t local_0x9c;
+                    local_0x9c = 67437312;
+                    uint64_t local_0x78;
+                    local_0x78 = this;
+                    uint64_t local_0x94;
+                    local_0x94 = 0;
+                    if (RobloxTelemetryThrottlingRenderFidelityOnTime != 0) {
+                    uint64_t local_0x9e;
+                    local_0x9e = (uint8_t)v_rbx_41;
+                    int32_t selected_eax_4 = ((uint8_t)this->field_0x88 & 0x20) != 0 ? 1 : (uint8_t)((uint32_t)this->field_0x88 >> 5) & 0x2;
+                    uint64_t local_0x9d;
+                    local_0x9d = (uint8_t)selected_eax_4;
+                    }
+                    uint8_t v_bl_44;
+                    uint8_t v_bl_47;
+                    float fxmm6_48 = 0.0;
+                    float fxmm7_49;
+                    if (param_3->field_0x8 == 3 && (this->field_0x88 & 0x3) == 0) {
+                    v_bl_44 = 1;
+                    float fxmm7_45 = 0.0;
+                    float mem_16_16 = local_0xc8;
+                    local_0xc8 = (this->field_0xb8 + this->field_0xc4) * 0.5f;
+                    local_0xcc = (this->field_0xbc + this->field_0xc8) * 0.5f;
+                    local_0xd0 = (this->field_0xc0 + this->field_0xcc) * 0.5f;
+                    auto ret_0x38295d0_11 = call_0x38295d0(param_3->field_0x0, &mem_16_16, fxmm7_45);
+                    local_0x90 = ret_0x38295d0_11;
+                    v_bl_47 = v_bl_44;
+                    fxmm6_48 = ret_0x38295d0_11;
+                    fxmm7_49 = fxmm7_45;
+                    } else {
+                    if ((this->field_0x88 & 0x1) != 0 || (param_3->field_0x10 & param_3->field_0xc) != 0) {
+                    v_bl_44 = 0;
+                    }
+                    }
+                    if ((this->field_0x88 & 0x1) != 0) {
+                    float fxmm0_50;
+                    local_0x94 = fxmm0_50 * 0.5f - fxmm7_49;
+                    }
+                    if (v_bl_47 != 0) {
+                    local_0x60 = fxmm6_48;
+                    local_0x98 = ~((int32_t)local_0x60 >> 31) & (int32_t)-((uint8_t)((uint32_t)local_0x60 >> 23) - 0x82) >> 31 & (uint8_t)((uint32_t)local_0x60 >> 23) - 0x82;
+                    }
+                    if (v_r12_32->field_0x8[(this->field_0x10 + 5) * 3 * 8] != (v_r12_32 + (((this->field_0x10 + 5) * 3) * 8))->field_0x10) {
+                    (v_r12_32->field_0x8[((this->field_0x10 + 5) * 3) * 8])->field_0x0 = local_0x78;
+                    (v_r12_32->field_0x8[((this->field_0x10 + 5) * 3) * 8])->field_0x8 = i_r15d;
+                    (v_r12_32->field_0x8[((this->field_0x10 + 5) * 3) * 8])->field_0x10 = local_0x88;
+                    (v_r12_32->field_0x8[((this->field_0x10 + 5) * 3) * 8])->field_0x18 = local_0x90;
+                    (v_r12_32->field_0x8[((this->field_0x10 + 5) * 3) * 8])->field_0x20 = local_0x98;
+                    (v_r12_32 + (((this->field_0x10 + 5) * 3) * 8))->field_0x8 = (v_r12_32 + (((this->field_0x10 + 5) * 3) * 8))->field_0x8 + 0x28;
+                    v_r12_32->field_0x228 = v_r12_32->field_0x228 | this->field_0x8c;
+                    } else {
+                    auto local_0x80 = i_r15d;
+                    call_0x1abd9c0(v_r12_32 + (this->field_0x10 + 5) * 3 * 8, v_r12_32->field_0x8[(this->field_0x10 + 5) * 3 * 8], &local_0x78);
+                    v_r12_32->field_0x228 = v_r12_32->field_0x228 | this->field_0x8c;
+                    }
+                    } else {
+                    this->field_0x80 = this->field_0x80 | 0x2;
+                    }
+                    }
+                    } else {
+                    goto L_0x362d58c;
+                    }
+                    }
+                    } else {
+                    if (param_2->field_0x22c >= 0) {
+                    if (param_2->field_0x22c < this->field_0x98->field_0x44) {
+                    v_rbx_30 = param_2->field_0x22c;
+                    v_rsi_31 = &this->field_0x98->field_0x260;
+                    } else {
+                    v_rbx_30 = this->field_0x98->field_0x44 - 1;
+                    v_rsi_31 = &this->field_0x98->field_0x260;
+                    }
+                    } else {
+                    v_rsi_31 = &this->field_0x98->field_0x260;
+                    }
+                    v_rbx_41 = v_rbx_30;
+                    if ((this->field_0x80 & 0x20) != 0) {
+                    if (SolidMeshLODTranscode) {
+                    if ((uint8_t)(this->field_0x98->field_0x48 - 13) > 2 && ((uint8_t)(this->field_0x98->field_0x48 - 12) & 0xfb) != 0) {
+                    goto L_0x362d27f;
+                    } else {
+                    goto L_0x362d4ea;
+                    }
+                    } else {
+                    if ((uint8_t)(this->field_0x98->field_0x48 - 13) <= 2) {
+                    goto L_0x362d4ea;
+                    } else {
+                    goto L_0x362d27f;
+                    }
+                    }
+                    v_rdx_35 = v_al_34 - 1;
+                    v_rbx_36 = v_rbx_30;
+                    i_ebx_5 = v_rbx_36;
+                    v_rdx_37 = v_al_34 - 1;
+                    if (v_al_34 - 1 < v_rbx_30) {
+                    if (v_al_34 - 1 >= 0) {
+                    v_rbx_36 = v_al_34 - 1;
+                    goto L_0x362d530;
+                    } else {
+                    goto L_0x362d557;
+                    }
+                    } else {
+                    if (v_rbx_30 < 0) {
+                    v_rdx_35 = 0;
+                    v_rbx_36 = 0;
+                    } else {
+                    v_rdx_35 = v_rbx_30;
+                    }
+                    goto L_0x362d530;
+                    }
+                    goto L_0x362d586;
+                    } else {
+                    goto L_0x362d58c;
+                    }
+                    }
+                    } else {
+                    v_rsi_31 = &this->field_0x98->field_0x260;
+                    goto L_0x362d23e;
+                    }
+                    } else {
+                    local_0xd8 = &this->field_0x98->field_0xd0;
+                    void* v_rbx_24 = 0;
+                    void* v_rsi_25 = &this->field_0x98->field_0xd0;
+                    void* v_r12_26 = param_2;
+                    void* v_r13_27 = this->field_0x98;
+                    if ((this->field_0x80 & 0x20) != 0) {
+                    local_0x60 = param_2->field_0x22c;
+                    void* v_rbx_20 = param_2->field_0x22c;
+                    void* v_rsi_21 = &this->field_0x98->field_0xd0;
+                    void* v_r12_22 = param_2;
+                    void* v_r13_23 = this->field_0x98;
+                    if (param_2->field_0x22c < 0) {
+                    void* prev_0x98_2 = this->field_0x98;
+                    auto ret_0x3533f00_2 = call_0x3533f00(prev_0x98_2);
+                    void* v_rbx_16;
+                    auto* f_98_2 = this->field_0x98;
+                    void* v_rsi_17 = &f_98_2->field_0xd0;
+                    void* v_r12_18 = param_2;
+                    void* v_r13_19 = prev_0x98_2;
+                    if ((uint8_t)ret_0x3533f00_2 != 0) {
+                    local_0x68 = (int64_t)(this->field_0x1a8 - this->field_0x1a0) >> 2;
+                    int32_t v_rbx_13 = f_98_2->field_0x4d0 - 1;
+                    void* v_rsi_14 = &f_98_2->field_0xd0;
+                    void* v_r13_15 = prev_0x98_2;
+                    if ((int64_t)(this->field_0x1a8 - this->field_0x1a0) >> 2 != 0) {
+                    int32_t i_r8d = 0;
+                    uint8_t* i_eax = (int64_t)(this->field_0x1a8 - this->field_0x1a0) >> 2;
+                    void* i_edx = this->field_0x1a0;
+                    int32_t i_ebx_2 = f_98_2->field_0x4d0 - 1;
+                    int32_t i_r12d = 0;
+                    int32_t v_rbx_11;
+                    do { // L_0x362d090
+                    int32_t v_rbx_7 = i_ebx_2;
+                    void* v_rax_9 = i_eax;
+                    void* v_rdx_10 = i_edx;
+                    v_rbx_11 = i_ebx_2;
+                    if (local_0xe8->field_0x70 != 0) {
+                    if ((i_edx[i_r8d * 4] + local_0xe8->field_0x70->field_0x1c & local_0xe8->field_0x70->field_0x20) < local_0xe8->field_0x70->field_0x10) {
+                    v_rax_9 = local_0x68;
+                    v_rdx_10 = this->field_0x1a0;
+                    v_rbx_11 = v_rbx_7;
+                    }
+                    } else {
+                    auto* f_148_2 = this->field_0x148;
+                    local_0xc8 = f_148_2->field_0x30[i_r8d * 112];
+                    local_0xcc = f_148_2->field_0x34[i_r8d * 112];
+                    local_0xd0 = f_148_2->field_0x38[i_r8d * 112];
+                    uint8_t* i_eax_2 = &local_0xc8;
+                    uint8_t* i_ecx = &local_0xcc;
+                    void* sel_rax_2;
+                    do { // L_0x362d100
+                    sel_rax_2 = i_ecx->field_0x0 > i_eax_2->field_0x0 ? i_ecx : i_eax_2;
+                    i_ecx += 4;
+                    i_eax_2 = sel_rax_2;
+                    uint64_t local_0xd4;
+                    } while (i_ecx != &local_0xd4); // loop -> L_0x362d100
+                    int64_t v_rax_5;
+                    if (!SupportOrthoCamera4 && !SupportOrthoCameraApi2) {
+                    uint64_t local_0x50;
+                    local_0x50 = param_3->field_0x78;
+                    uint64_t local_0x48;
+                    local_0x48 = param_3->field_0x74;
+                    uint64_t local_0x40;
+                    local_0x40 = DebugRenderMeshSelectionLogic;
+                    local_0x38 = max(1e-05f, sel_rax_2->field_0x0 * sel_rax_2->field_0x0);
+                    local_0x30 = param_3->field_0x1c;
+                    local_0x28 = param_3->field_0x18;
+                    local_0x20 = param_3->field_0x0->field_0xe4;
+                    v_rax_5 = call_0x362b5f0(&this->field_0x88, param_3->field_0x0, &param_3->field_0x0->field_0xc0);
+                    } else {
+                    local_0x28 = DebugRenderMeshSelectionLogic;
+                    local_0x20 = max(1e-05f, sel_rax_2->field_0x0 * sel_rax_2->field_0x0);
+                    v_rax_5 = call_0x362b8b0(param_3, &this->field_0x88);
+                    }
+                    v_rbx_7 = min(i_ebx_2, v_rax_5);
+                    v_rax_9 = local_0x68;
+                    v_rdx_10 = this->field_0x1a0;
+                    v_rbx_11 = v_rbx_7;
+                    }
+                    i_r12d++;
+                    i_r8d = i_r12d;
+                    i_eax = v_rax_9;
+                    i_edx = v_rdx_10;
+                    i_ebx_2 = v_rbx_11;
+                    } while (i_r8d < i_eax); // loop -> L_0x362d090
+                    v_rbx_13 = v_rbx_11;
+                    v_rsi_14 = local_0xd8;
+                    v_r13_15 = this->field_0x98;
+                    }
+                    v_rbx_16 = v_rbx_13;
+                    v_rsi_17 = v_rsi_14;
+                    v_r12_18 = local_0xe8;
+                    v_r13_19 = v_r13_15;
+                    } else {
+                    if (!SupportOrthoCamera4 && !SupportOrthoCameraApi2) {
+                    float mem_5_5 = local_0xc8;
+                    local_0xc8 = (this->field_0xc4 - this->field_0xb8) * 0.5f;
+                    local_0xcc = (this->field_0xc8 - this->field_0xbc) * 0.5f;
+                    local_0xd0 = (this->field_0xcc - this->field_0xc0) * 0.5f;
+                    float mem_6_6 = local_0xd8;
+                    local_0xd8 = (this->field_0xb8 + this->field_0xc4) * 0.5f;
+                    local_0xe0 = (this->field_0xc0 + this->field_0xcc) * 0.5f;
+                    local_0xdc = (this->field_0xbc + this->field_0xc8) * 0.5f;
+                    auto ret_0x2d26cb0_4 = call_0x2d26cb0(&param_3->field_0x0->field_0xc0, &mem_6_6, &mem_5_5);
+                    if (global_0x8c76010 > 1) {
+                    if (global_0x8c76010 != 1) {
+                    int32_t i_ebx_3 = 0;
+                    do { // L_0x362d390
+                    double fxmm2_4;
+                    double ftmp_3 = fxmm2_4 * (double)(global_0x8c76008 * ret_0x2d26cb0_4->field_0xe4);
+                    if (ftmp_3 * ftmp_3 > (double)ret_0x2d26cb0_4) {
+                    v_rbx_16 = i_ebx_3;
+                    break;
+                    }
+                    i_ebx_3++;
+                    } while (i_ebx_3 < global_0x8c76010 - 1); // loop -> L_0x362d390
+                    v_rbx_16 = global_0x8c76010 - 1;
+                    } else {
+                    v_rbx_16 = global_0x8c76010 - 1;
+                    }
+                    } else {
+                    v_rbx_16 = 0;
+                    }
+                    } else {
+                    int32_t v_rax_3 = param_3->field_0x60;
+                    if (param_3->field_0x60 < 0) {
+                    float mem_3_3 = local_0xc8;
+                    local_0xc8 = (this->field_0xc4 - this->field_0xb8) * 0.5f;
+                    local_0xcc = (this->field_0xc8 - this->field_0xbc) * 0.5f;
+                    local_0xd0 = (this->field_0xcc - this->field_0xc0) * 0.5f;
+                    float mem_4_4 = local_0xd8;
+                    local_0xd8 = (this->field_0xb8 + this->field_0xc4) * 0.5f;
+                    local_0xe0 = (this->field_0xc0 + this->field_0xcc) * 0.5f;
+                    local_0xdc = (this->field_0xbc + this->field_0xc8) * 0.5f;
+                    auto ret_0x2d26cb0_3 = call_0x2d26cb0(&param_3->field_0x0->field_0xc0, &mem_4_4, &mem_3_3);
+                    float ftmp_1 = (param_3->field_0x30 < ret_0x2d26cb0_3) + (param_3->field_0x40 < ret_0x2d26cb0_3) + (param_3->field_0x50 < ret_0x2d26cb0_3);
+                    v_rax_3 = -ftmp_1;
+                    }
+                    v_rbx_16 = v_rax_3;
+                    }
+                    }
+                    v_rbx_20 = v_rbx_16;
+                    v_rsi_21 = v_rsi_17;
+                    v_r12_22 = v_r12_18;
+                    v_r13_23 = v_r13_19;
+                    }
+                    if (this->field_0x98 != 0) {
+                    auto ret_0x3533f00_7 = call_0x3533f00(this->field_0x98);
+                    if ((uint8_t)ret_0x3533f00_7 != 0 && param_2->field_0x22c >= 0) {
+                    v_rbx_24 = v_rbx_20;
+                    v_rsi_25 = v_rsi_21;
+                    v_r12_26 = v_r12_22;
+                    v_r13_27 = v_r13_23;
+                    } else {
+                    v_rbx_24 = v_rbx_20;
+                    v_rsi_25 = v_rsi_21;
+                    v_r12_26 = v_r12_22;
+                    v_r13_27 = v_r13_23;
+                    }
+                    } else {
+                    v_rbx_24 = v_rbx_20;
+                    v_rsi_25 = v_rsi_21;
+                    v_r12_26 = v_r12_22;
+                    v_r13_27 = v_r13_23;
+                    }
+                    }
+                    if (RenderFixShadowOnMeshStreamIn) {
+                    this->field_0x1d4 = v_rbx_24;
+                    v_rbx_30 = v_rbx_24;
+                    v_rsi_31 = v_rsi_25;
+                    v_r12_32 = v_r12_26;
+                    v_r13_33 = v_r13_27;
+                    } else {
+                    v_rbx_30 = v_rbx_24;
+                    v_rsi_31 = v_rsi_25;
+                    v_r12_32 = v_r12_26;
+                    v_r13_33 = v_r13_27;
+                    }
+                    goto L_0x362d23e;
+                    }
+                    }
+                    break;
+                    }
                     i_r15d += 0x88;
+                    L_0x362cc44:
                     break;
                     } else {
                     i_r15d += 0x88;
@@ -659,24 +1328,26 @@ Operação  : 0x362bc49: mov/math reg, [flag] ; fn=0x362bb30..0x362c1de
                     }
                     L_0x362d9f1:
                     break;
-                    } while (i_r15d != f_70->field_0x8); // loop -> L_0x362cc20
+                    } while (i_r15d != this->field_0x70->field_0x8); // loop -> L_0x362cc20
                     goto L_0x362cc44;
                   }
                 }
               } else {
-                void* i_r15d = f_70->field_0x0;
-                if (f_70->field_0x0 != f_70->field_0x8) {
+                i_r15d = this->field_0x70->field_0x0;
+                if (this->field_0x70->field_0x0 != this->field_0x70->field_0x8) {
                   goto L_0x362cc20;
                 }
                 goto L_0x362d9f1;
               }
             }
-          } else if (FixInvisibleHighlightSunReflections2 && (this->field_0x88 & 0x10) != 0) {
-            if (expr_1 != 0 && this->field_0x94 != 0) {
+          } else {
+            if (FixInvisibleHighlightSunReflections2 && (this->field_0x88 & 0x10) != 0) {
+              if ((param_3->field_0xc & param_3->field_0x10) != 0 && this->field_0x94 != 0) {
+                goto L_0x362cbf5;
+              }
+            } else {
               goto L_0x362cbf5;
             }
-          } else {
-            goto L_0x362cbf5;
           }
         }
       }
@@ -689,13 +1360,13 @@ Operação  : 0x362bc49: mov/math reg, [flag] ; fn=0x362bb30..0x362c1de
 [Co-Flags na mesma função]
   * FIntRenderMeshRetryMaxCount = 3 (default)
   * FFlagRenderFixShadowOnMeshStreamIn = false (default)
-  * FLogGraphics = 6 (default)
-  * FFlagSolidMeshLODTranscode = false (default)
-  * DFFlagFixInvisibleHighlightSunReflections2 = true (default)
+  * FLogGraphics = 0 (default)
+  * FFlagSolidMeshLODTranscode = true (default)
+  * DFFlagFixInvisibleHighlightSunReflections2 = false (default)
   * FIntDebugRenderMeshSelectionLogic = 1 (default)
   * DFFlagSupportOrthoCamera4 = false (default)
   * FFlagSupportOrthoCameraApi2 = false (default)
-  * DFIntRobloxTelemetryThrottlingRenderFidelityOnTime = 100 (default)
+  * DFIntRobloxTelemetryThrottlingRenderFidelityOnTime = 0 (default)
   * FFlagTelemetryTimeToTrackMeshSizeBuckets2 = true (default)
   * FIntTimeToTrackMeshSizeBucketSec = 30 (default)
   * FFlagRenderQueueSortByNearest = false (default)

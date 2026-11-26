@@ -7,9 +7,9 @@ Operação  : 0x2be5af4: mov/math reg, [flag] ; fn=0x2be5a90..0x2be5b6a
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::HttpWslay)] ===
     Classe  : RBX::HttpWslay (Inferido)
-    Padrão  : FIntHttpWslayPoolSize = 20 (default) [int, mode=1]
+    Padrão  : FIntHttpWslayPoolSize = 128 (default) [int, mode=1]
     Papel   : Parâmetro de configuração lido diretamente pela rotina
-    Fórmula : call_0x4956380((HttpWslayPoolSize + HttpWslayPoolSize * 4) << 3, 8)
+    Fórmula : call_0x4956380(HttpWslayPoolSize * 5 << 3, 8)
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x2be5b95 (in fn_0x2be5b70): call 0x2be5a90  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
@@ -19,18 +19,29 @@ Operação  : 0x2be5af4: mov/math reg, [flag] ; fn=0x2be5a90..0x2be5b6a
     [Wasm]  : "DFIntHttpLinearRetryStartingInterval"
   
   === [Decompilacao C++ da Funcao 0x2be5a90..0x2be5b6a] ===
-    // Flag defaults: HttpWslayPoolSize = 20
-    auto RBX::HttpWslay::func_0x2be5a90(RBX::HttpWslay* this) {
-      if (global_0x8db7600 > rbp->field_0x58->field_0x0->field_0x0[40]) {
+    // Flag defaults: HttpWslayPoolSize = 128
+    auto func_0x2be5a90() {
+      if (global_0x8db7600 > __readgsqword(0x58)->field_0x0->field_0x0[40]) {
         call_0x12e0(&sym_0x8db7600);
         if (global_0x8db7600 == -1) {
           auto ret_0x4956040_2 = call_0x4956040(32);
-          ret_0x4956040_2->field_0x8 = -1;
-          ret_0x4956040_2->field_0x10 = call_0x4956380((HttpWslayPoolSize + HttpWslayPoolSize * 4) << 3, 8);
-          ret_0x4956040_2->field_0x18 = HttpWslayPoolSize;
-          global_0x8db7608 = ret_0x4956040_2;
-          call_0x14f0(&sym_0x8db7600);
-          return global_0x8db7608;
+          if (ret_0x4956040_2 != 0) {
+            ret_0x4956040_2->field_0x0 = 0;
+            uint64_t local_0x50;
+            local_0x50 = -1;
+            uint64_t local_0x54;
+            local_0x54 = 0;
+            ret_0x4956040_2->field_0x8 = local_0x50;
+            ret_0x4956040_2->field_0x10 = call_0x4956380(HttpWslayPoolSize * 5 << 3, 8);
+            ret_0x4956040_2->field_0x18 = HttpWslayPoolSize;
+            global_0x8db7608 = ret_0x4956040_2;
+            call_0x14f0(&sym_0x8db7600);
+            return global_0x8db7608;
+          }
+          uint64_t local_0x20;
+          call_0x6ca7d0(&local_0x20);
+          call_0x5e066f0(&local_0x20, &sym_0x80cbbc0);
+          return; // noreturn
         }
       }
       return global_0x8db7608;
@@ -94,12 +105,13 @@ Operação  : 0x2be5af4: mov/math reg, [flag] ; fn=0x2be5a90..0x2be5b6a
   === [Decompilacao da Rotina Chamadora (Caller): 0x2be5b70..0x2be5bd0 em RBX::HttpWslay] ===
     auto RBX::HttpWslay::func_0x2be5b70(RBX::HttpWslay* this) {
       auto ret_0x4954e70_1 = call_0x4954e70(global_0x84bc04c);
-      void* v_rdi_1;
+      int64_t v_rdi_1;
+      int64_t ret_0x4956040_4;
       if (this <= 40) {
         auto ret_0x2be5a90_2 = call_0x2be5a90();
         auto ret_0x2be93b0_3 = call_0x2be93b0(ret_0x2be5a90_2);
         if (ret_0x2be93b0_3 == 0) {
-          auto ret_0x4956040_4 = call_0x4956040(this);
+          ret_0x4956040_4 = call_0x4956040(this);
           v_rdi_1 = ret_0x4956040_4;
         } else {
           v_rdi_1 = ret_0x2be93b0_3;
@@ -107,7 +119,7 @@ Operação  : 0x2be5af4: mov/math reg, [flag] ; fn=0x2be5a90..0x2be5b6a
         call_0x4954e70(ret_0x4954e70_1);
         return v_rdi_1;
       }
-      auto ret_0x4956040_4 = call_0x4956040(this);
+      ret_0x4956040_4 = call_0x4956040(this);
       v_rdi_1 = ret_0x4956040_4;
       call_0x4954e70(ret_0x4954e70_1);
       return v_rdi_1;
@@ -139,7 +151,7 @@ Operação  : 0x2be5af4: mov/math reg, [flag] ; fn=0x2be5a90..0x2be5b6a
   * DFLogBackPressureThrottling = 0 (default) [vizinha em .data]
   * DFIntThrottlingBaseOffsetPercentage = 20 (default) [vizinha em .data]
   * DFIntThrottlingMaxElapsedTime = -1 (default) [vizinha em .data]
-  * DFFlagEnableHttpThrottlingPrefixWildcard = true (default) [vizinha em .data]
+  * DFFlagEnableHttpThrottlingPrefixWildcard = false (default) [vizinha em .data]
   * DFFlagWebSocketCurlFailOnUpgradeError = true (default) [vizinha em .data]
   * FFlagWebSocketNoDuplicateSendOnWouldBlock = false (default) [vizinha em .data]
   * DFFlagHttpUseEmbeddedCaCerts = true (default) [vizinha em .data]

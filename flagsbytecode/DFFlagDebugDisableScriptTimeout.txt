@@ -5,31 +5,33 @@ Insn RVA  : 0x41d0325
 Operação  : 0x41d0325: cmp byte [flag], imm8 ; fn=0x41d0280..0x41d0347
 
 [Disassembly .text]
-  === [Resumo do Efeito da FFlag no Engine (RBX::DebugDisable)] ===
-    Classe  : RBX::DebugDisable (Inferido)
+  === [Resumo do Efeito da FFlag no Engine (RBX::EngineSubsystem)] ===
+    Classe  : RBX::EngineSubsystem (Inferido)
     Padrão  : DFFlagDebugDisableScriptTimeout = false (default) [bool, mode=2]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
     Altera  : this->field_0x20
-    [XREF #2 @0x41d0385] Classe  : RBX::DebugDisable (Inferido)
+    [XREF #2 @0x41d0385] Classe  : RBX::EngineSubsystem (Inferido)
     [XREF #2 @0x41d0385] Fórmula : !DebugDisableScriptTimeout
-    [XREF #3 @0x41d0cb6] Classe  : RBX::DebugDisable (Inferido)
-    [XREF #3 @0x41d0cb6] Fórmula : (LuauPerScriptExecutionTimeout ? local_0xb8 : this->field_0x40) <= 0 || DebugDisableScriptTimeout
+    [XREF #3 @0x41d0cb6] Classe  : RBX::EngineSubsystem (Inferido)
+    [XREF #3 @0x41d0cb6] Fórmula : cond_4 > 1 && !DebugDisableScriptTimeout
   
   === [Decompilacao C++ da Funcao 0x41d0280..0x41d0347] ===
-    struct RBX::DebugDisable {
+    struct RBX::EngineSubsystem {
       /* +0x20 */ double  field_0x20;
     };
     
     // Flag defaults: DebugDisableScriptTimeout = false
-    void RBX::DebugDisable::func_0x41d0280(RBX::DebugDisable* this) {
+    auto RBX::EngineSubsystem::func_0x41d0280(RBX::EngineSubsystem* this) {
+      uint64_t local_0x28;
       call_0x2e13a20(&local_0x28, &this->field_0x8, 0);
       this->field_0x20 = 0.0;
-      if ((local_0x28 & 0x1) != 0) {
-        if ((local_0x28 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x28 & 0xfffffffe)->field_0x0, (local_0x28 & 0xfffffffe)->field_0x0, 1) != 0) {
-          call_0xdac0(local_0x28 & 0xfffffffe);
-          return;
+      if (((uint8_t)local_0x28 & 0x1) != 0) {
+        if ((local_0x28 & 0xfffffffffffffffeULL)->field_0x0 != 3 || !atomic_cas(&(local_0x28 & 0xfffffffffffffffeULL)->field_0x0, (local_0x28 & 0xfffffffffffffffeULL)->field_0x0, 1)) {
+          return call_0xdac0(local_0x28 & 0xfffffffffffffffeULL);
         }
+        return (local_0x28 & 0xfffffffffffffffeULL)->field_0x0;
       }
+      return (uint8_t)local_0x28 & 0x1;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -102,14 +104,14 @@ Operação  : 0x41d0325: cmp byte [flag], imm8 ; fn=0x41d0280..0x41d0347
     0x41d0346 | c3                       | ret
   
   === [Decompilacao C++ do XREF Runtime #2: 0x41d0350..0x41d03a7 (insn @0x41d0385: cmp byte [flag], imm8)] ===
-    struct RBX::DebugDisable {
+    struct RBX::EngineSubsystem {
       /* +0x20 */ double  field_0x20;
       /* +0x38 */ double  field_0x38;
       /* +0x40 */ uint8_t field_0x40;
     };
     
     // Flag defaults: DebugDisableScriptTimeout = false
-    bool RBX::DebugDisable::func_0x41d0350(RBX::DebugDisable* this, double param_2, double param_3, double param_4) {
+    bool RBX::EngineSubsystem::func_0x41d0350(RBX::EngineSubsystem* this, double param_2, double param_3, double param_4) {
       if (this->field_0x40 != 0 && param_2 > this->field_0x38) {
         return true;
       }
@@ -160,141 +162,175 @@ Operação  : 0x41d0325: cmp byte [flag], imm8 ; fn=0x41d0280..0x41d0347
     0x41d03a6 | c3                       | ret
   
   === [Decompilacao C++ do XREF Runtime #3: 0x41d0a90..0x41d0de0 (insn @0x41d0cb6: cmp byte [flag], imm8)] ===
-    struct RBX::DebugDisable {
+    struct RBX::EngineSubsystem {
       /* +0x20 */ double  field_0x20;
       /* +0x28 */ double  field_0x28;
       /* +0x38 */ double  field_0x38;
       /* +0x40 */ uint8_t field_0x40;
-      /* +0x60 */ void*   field_0x60;
-      /* +0x68 */ void*   field_0x68;
-      /* +0x70 */ void*   field_0x70;
+      /* +0x60 */ uint64_t field_0x60;
+      /* +0x68 */ uint64_t field_0x68;
+      /* +0x70 */ uint64_t field_0x70;
       /* +0x5e8 */ int32_t field_0x5e8;
     };
     
     // Flag defaults: DebugDisableScriptTimeout = false, LuauScriptCancellation = false, StopAssistantSecurityHangingStudio = false, LuauPerScriptExecutionTimeout = false
-    void RBX::DebugDisable::func_0x41d0a90(RBX::DebugDisable* this, int64_t param_2) {
-      void* sel_r15_1 = this == 0 ? -376 : this->field_m0x1000;
+    void RBX::EngineSubsystem::func_0x41d0a90(RBX::EngineSubsystem* this, void* param_2) {
+      if (LuauScriptCancellation && param_2 != 0 && param_2->field_0x48 != 0 && param_2->field_0x48->field_0x28 != 0) {
+        if (param_2->field_0x48->field_0x28->field_0x5 != 0) goto L_0x41d0de1; // [out of decoded window]
+      }
+      void* sel_r15_1 = this == 0 ? -376 : &this->field_m0x1000;
+      uint64_t local_0x40;
+      local_0x40 = sel_r15_1;
+      if (sel_r15_1->field_0x15e8 >= 3) goto L_0x41d0e1e; // [out of decoded window]
+      uint64_t local_0x30;
       call_0x41302e0(sel_r15_1, &local_0x30);
+      uint64_t local_0xc8;
       call_0x495a220(&local_0xc8);
+      if (sel_r15_1->field_0x15e8 >= 3) goto L_0x41d0e3c; // [out of decoded window]
+      double prev_0x90_1 = (((param_2 != 0 ? param_2->field_0x48 : 0)->field_0x18)->field_0x30)->field_0x90;
       auto ret_0x4062490_3 = call_0x4062490(sel_r15_1);
       if (ret_0x4062490_3->field_0x768 == 0) {
         auto ret_0xc700_4 = call_0xc700(global_0x84aed78, 1);
+        uint64_t local_0xc0;
+        local_0xc0 = ret_0xc700_4->field_0x0;
         int32_t v_r14_2 = ret_0xc700_4->field_0x0;
         if (this->field_0x60 != 0) {
+          uint8_t v_cl_1;
+          if (!isnan(this->field_0x28) && this->field_0x28 == 0.0) {
+            v_cl_1 = 0;
+          } else {
+            v_cl_1 = 1;
+          }
+          if (sel_r15_1->field_0x15e8 >= 3) goto L_0x41d0e5a; // [out of decoded window]
           auto prev_0x0_2 = ret_0xc700_4->field_0x0;
-          call_0x42b0fe0(this->field_0x60, param_2, sel_r15_1, local_0xc8 - local_0x30);
+          call_0x42b0fe0(this->field_0x60, param_2, sel_r15_1, local_0xc8 - local_0x30, ret_0xc700_4->field_0x0, v_cl_1);
           v_r14_2 = prev_0x0_2;
         }
+        if (this->field_0x5e8 >= 3) goto L_0x41d0e78; // [out of decoded window]
         auto local_0x10 = param_2;
+        void* local_0xb8;
         call_0x755c20(&this->field_m0xf30, &local_0xb8);
-        if (v_r14_2 < 2 || v_r14_2 > 6 && v_r14_2 < 11 || v_r14_2 > 12) {
+        if ((v_r14_2 < 2 || v_r14_2 > 6) && (v_r14_2 < 11 || v_r14_2 > 12)) {
           if (!StopAssistantSecurityHangingStudio || v_r14_2 != 10) {
             return;
           }
         }
+        bool cond_4;
+        int32_t v_rdi_9 = 1;
         if (LuauPerScriptExecutionTimeout) {
           void* v_rbx_3 = 0;
           if (local_0xb8 != 0) {
             v_rbx_3 = local_0xb8->field_0x48;
           }
-          if (this->field_0x40 != 0) {
-            if (local_0xc8 <= this->field_0x38) {
-              if ((!isnan(v_rbx_3->field_0xa8) ? &this->field_0x28 : &local_0x38)->field_0x0 > 0.0) {
-                L_0x41d0cb4:
-                if ((LuauPerScriptExecutionTimeout ? local_0xb8 : this->field_0x40) <= 0 || DebugDisableScriptTimeout) {
-                  L_0x41d0cc6:
-                  if (isnan(this->field_0x20) || this->field_0x20 != 0.0) {
-                    if (local_0xc8 >= this->field_0x20) {
-                    L_0x41d0ce6:
-                    void* v_r15_10 = sel_r15_1;
-                    if (this->field_0x68 != this->field_0x70) {
-                    void* i_ebx = this->field_0x68;
-                    int32_t i_r14d = 0;
-                    L_0x41d0d03:
-                    void* v_r13_9;
-                    uint8_t v_al_8;
-                    do { // L_0x41d0d03
-                    void* v_r13_7 = this->field_0x70;
-                    if ((i_ebx->field_0x18 & 0xfffffff8) != 0) {
-                    void* v_r10_5 = i_ebx;
-                    if (((uint8_t)i_ebx->field_0x18 >> 1 & 0x1) == 0) {
-                    v_r10_5 = i_ebx->field_0x0;
-                    }
-                    void* prev_0x70_3 = this->field_0x70;
-                    auto vret_7 = (i_ebx->field_0x18 & 0xfffffff8)->vfunc_0x0(v_r10_5, local_0xb8, local_0x30, local_0xc0);
-                    if ((uint8_t)vret_7 != 0) {
-                    v_al_8 = 1;
-                    v_r13_9 = prev_0x70_3;
-                    } else {
-                    v_r13_7 = prev_0x70_3;
-                    v_al_8 = 0;
-                    v_r13_9 = v_r13_7;
-                    }
-                    } else {
-                    v_al_8 = 0;
-                    v_r13_9 = v_r13_7;
-                    }
-                    i_ebx += 0x20;
-                    i_r14d = i_r14d | v_al_8;
-                    } while (i_ebx != v_r13_9); // loop -> L_0x41d0d03
-                    if ((i_r14d | v_al_8) != 0) {
-                    return;
-                    }
-                    v_r15_10 = local_0x40;
-                    }
-                    if (this->field_0x60 != 0) {
-                    call_0x42b09e0(this->field_0x60, local_0xb8, v_r15_10);
-                    }
-                    call_0x254bd80(local_0xb8, 2);
-                    }
-                    return;
+          uint64_t local_0x38;
+          local_0x38 = v_rbx_3->field_0xa8;
+          uint8_t* i_ebx;
+          void* v_r15_15;
+          int32_t i_r14d;
+          if (this->field_0x40 != 0 && local_0xc8 > this->field_0x38) {
+            L_0x41d0ce6:
+            v_r15_15 = sel_r15_1;
+            if (this->field_0x68 != this->field_0x70) {
+              i_ebx = this->field_0x68;
+              i_r14d = 0;
+              L_0x41d0d03:
+              void* v_r13_14;
+              uint8_t v_al_13;
+              do { // L_0x41d0d03
+                void* v_r13_12 = this->field_0x70;
+                if ((i_ebx->field_0x18 & 0xfffffffffffffff8ULL) != 0) {
+                  void* v_r10_10 = i_ebx;
+                  if (((int8_t)(uint8_t)i_ebx->field_0x18 >> 1 & 0x1) == 0) {
+                    v_r10_10 = i_ebx->field_0x0;
                   }
-                  return;
+                  void* prev_0x70_3 = this->field_0x70;
+                  auto vret_7 = (*(i_ebx->field_0x18 & 0xfffffffffffffff8ULL)->field_0x0)(v_r10_10, local_0xb8, local_0x30, local_0xc0);
+                  if ((uint8_t)vret_7 != 0) {
+                    v_al_13 = 1;
+                    v_r13_14 = prev_0x70_3;
+                  } else {
+                    v_r13_12 = prev_0x70_3;
+                    v_al_13 = 0;
+                    v_r13_14 = v_r13_12;
+                  }
+                } else {
+                  v_al_13 = 0;
+                  v_r13_14 = v_r13_12;
                 }
-                void* v_r15_10 = sel_r15_1;
+                i_ebx += 0x20;
+                i_r14d = i_r14d | v_al_13;
+              } while (i_ebx != v_r13_14); // loop -> L_0x41d0d03
+              if ((i_r14d | v_al_13) != 0) {
+                return;
+              }
+              v_r15_15 = local_0x40;
+            }
+            if (this->field_0x60 != 0) {
+              if (v_r15_15->field_0x15e8 >= 3) goto L_0x41d0e96; // [out of decoded window]
+              call_0x42b09e0(this->field_0x60, local_0xb8, v_r15_15);
+            }
+            call_0x254bd80(local_0xb8, 2);
+            if (v_rdi_9 != 1) {
+              if (((v_rdi_9 - 1) - 1) == 0) goto L_0x41d0ed4; // [out of decoded window]
+              if (((v_rdi_9 - 1) - 1) == 1) goto L_0x41d0eb4; // [out of decoded window]
+            } else {
+              local_0xc0 = "Script timeout: shutdown deadline reached";
+              call_0x255b8f0(local_0xb8, local_0xc0 - 0x7b29ed, 0, 0);
+              return; // noreturn
+            }
+          }
+          if ((!isnan(v_rbx_3->field_0xa8) ? &this->field_0x28 : &local_0x38)->field_0x0 > 0.0) {
+            cond_4 = local_0xc8 - prev_0x90_1 <= (!isnan(v_rbx_3->field_0xa8) ? &this->field_0x28 : &local_0x38)->field_0x0;
+          } else {
+            L_0x41d0cc6:
+            if (isnan(this->field_0x20) || this->field_0x20 != 0.0) {
+              if (local_0xc8 >= this->field_0x20) {
+                v_rdi_9 = 3;
+                v_r15_15 = sel_r15_1;
                 if (this->field_0x68 != this->field_0x70) {
-                  void* i_ebx = this->field_0x68;
-                  int32_t i_r14d = 0;
+                  i_ebx = this->field_0x68;
+                  i_r14d = 0;
                   goto L_0x41d0d03;
                 }
                 if (this->field_0x60 != 0) {
-                  call_0x42b09e0(this->field_0x60, local_0xb8, v_r15_10);
+                  if (v_r15_15->field_0x15e8 >= 3) goto L_0x41d0e96; // [out of decoded window]
+                  call_0x42b09e0(this->field_0x60, local_0xb8, v_r15_15);
                 }
                 call_0x254bd80(local_0xb8, 2);
-              }
-              if (isnan(this->field_0x20) || this->field_0x20 != 0.0) {
-                if (local_0xc8 >= this->field_0x20) {
-                  goto L_0x41d0ce6;
+                if (v_rdi_9 != 1) {
+                  if (((v_rdi_9 - 1) - 1) == 0) goto L_0x41d0ed4; // [out of decoded window]
+                  if (((v_rdi_9 - 1) - 1) == 1) goto L_0x41d0eb4; // [out of decoded window]
+                } else {
+                  local_0xc0 = "Script timeout: shutdown deadline reached";
+                  call_0x255b8f0(local_0xb8, local_0xc0 - 0x7b29ed, 0, 0);
+                  return; // noreturn
                 }
-                return;
               }
               return;
             }
-            goto L_0x41d0ce6;
           }
-          if ((!isnan(v_rbx_3->field_0xa8) ? &this->field_0x28 : &local_0x38)->field_0x0 > 0.0) {
-            if ((LuauPerScriptExecutionTimeout ? local_0xb8 : this->field_0x40) <= 0 || DebugDisableScriptTimeout) {
-              goto L_0x41d0cc6;
-            }
-            goto L_0x41d0ce6;
-          }
-          goto L_0x41d0cc6;
         } else {
-          if (this->field_0x40 != 0) {
-            if (local_0xc8 <= this->field_0x38) {
-              if (this->field_0x28 > 0.0) {
-                goto L_0x41d0cb4;
-              }
-              goto L_0x41d0cc6;
-            }
+          if (this->field_0x40 != 0 && local_0xc8 > this->field_0x38) {
             goto L_0x41d0ce6;
           }
           if (this->field_0x28 > 0.0) {
-            goto L_0x41d0cb4;
+            cond_4 = local_0xc8 - prev_0x90_1 <= this->field_0x28;
+          } else {
+            if (isnan(this->field_0x20) || this->field_0x20 != 0.0) {
+              if (local_0xc8 >= this->field_0x20) {
+                v_rdi_9 = 3;
+                goto L_0x41d0ce6;
+              }
+              return;
+            }
           }
+        }
+        if (cond_4 > 1 && !DebugDisableScriptTimeout) {
+          v_rdi_9 = 2;
+        } else {
           goto L_0x41d0cc6;
         }
-        goto L_0x41d0cb4;
+        goto L_0x41d0ce6;
       }
     }
   
@@ -574,4 +610,4 @@ Operação  : 0x41d0325: cmp byte [flag], imm8 ; fn=0x41d0280..0x41d0347
   * DFIntWarnLongRunningScriptsThresholdMsec = 15000 (default) [vizinha em .data]
   * FFlagIntegrateCoroutineFinally = true (default) [vizinha em .data]
   * FFlagDebuggerPreemptionReportsLuaBreak = true (default) [vizinha em .data]
-  * DFIntCachedThreadLimit = 32 (default) [vizinha em .data]
+  * DFIntCachedThreadLimit = 128 (default) [vizinha em .data]

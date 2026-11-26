@@ -7,12 +7,12 @@ Operação  : 0xd3534b: mov/math reg, [flag] ; fn=0xd35310..0xd35390
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::Motor6D)] ===
     Classe  : RBX::Motor6D (RTTI Resolvido)
-    Padrão  : DFIntMotor6DDesiredAngleEpsilon = 10 (default) [int, mode=2]
+    Padrão  : DFIntMotor6DDesiredAngleEpsilon = 1 (default) [int, mode=2]
     Papel   : Multiplicador / Escala aplicado sobre limites ou métricas da função
     Fórmula : (double)Motor6DDesiredAngleEpsilon * 0.0001 >= (double)fabsf(param_2 - this->field_0x168->field_0x150)
     Altera  : this->field_0x168->field_0x150
     [XREF #2 @0xd353f2] Classe  : RBX::Motor6D (RTTI Resolvido)
-    [XREF #2 @0xd353f2] Fórmula : param_2 != f_168->field_0x150 && (double)Motor6DDesiredAngleEpsilon * 0.0001 < (double)fabsf(param_2 - f_168->field_0x150)
+    [XREF #2 @0xd353f2] Fórmula : param_2 > f_168->field_0x150 && param_2 != f_168->field_0x150 && (double)Motor6DDesiredAngleEpsilon * 0.0001 < (double)fabsf(param_2 - f_168->field_0x150)
     [XREF #2 @0xd353f2] Altera  : this->field_0x168->field_0x150
   
   === [Decompilacao C++ da Funcao 0xd35310..0xd35390] ===
@@ -20,11 +20,18 @@ Operação  : 0xd3534b: mov/math reg, [flag] ; fn=0xd35310..0xd35390
       /* +0x168 */ void*   field_0x168;
     };
     
-    // Flag defaults: Motor6DDesiredAngleEpsilon = 10
+    // Flag defaults: Motor6DDesiredAngleEpsilon = 1
     void RBX::Motor6D::func_0xd35310(RBX::Motor6D* this, float param_2) {
-      this->field_0x168->field_0x150 = param_2;
+      auto* f_168 = this->field_0x168;
+      if (!isnan(param_2) && !isnan(f_168->field_0x150)) {
+        if (param_2 == f_168->field_0x150) goto L_0xd353af; // [out of decoded window]
+      }
+      if (((double)Motor6DDesiredAngleEpsilon * 0.0001) >= (double)fabsf((param_2 - f_168->field_0x150))) goto L_0xd353af; // [out of decoded window]
+      f_168->field_0x150 = param_2;
       auto local_0x20 = &sym_0x6ee9278;
+      auto local_0x28 = &sym_0x859e870;
       call_0x1c1f220(this, &local_0x20);
+      return; // noreturn
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -63,16 +70,14 @@ Operação  : 0xd3534b: mov/math reg, [flag] ; fn=0xd35310..0xd35390
       /* +0x168 */ void*   field_0x168;
     };
     
-    // Flag defaults: Motor6DDesiredAngleEpsilon = 10
+    // Flag defaults: Motor6DDesiredAngleEpsilon = 1
     void RBX::Motor6D::func_0xd353c0(RBX::Motor6D* this, float param_2) {
       auto* f_168 = this->field_0x168;
-      if (param_2 <= f_168->field_0x150) {
-        if (param_2 != f_168->field_0x150 && (double)Motor6DDesiredAngleEpsilon * 0.0001 < (double)fabsf(param_2 - f_168->field_0x150)) {
-          f_168->field_0x150 = param_2;
-          auto local_0x20 = &sym_0x6ee9278;
-          call_0x1c1f220(this, &local_0x20);
-          return;
-        }
+      if (param_2 > f_168->field_0x150 && param_2 != f_168->field_0x150 && (double)Motor6DDesiredAngleEpsilon * 0.0001 < (double)fabsf(param_2 - f_168->field_0x150)) {
+        f_168->field_0x150 = param_2;
+        auto local_0x20 = &sym_0x6ee9278;
+        auto local_0x28 = &sym_0x859e7a0;
+        call_0x1c1f220(this, &local_0x20);
       }
     }
   
@@ -82,7 +87,7 @@ Operação  : 0xd3534b: mov/math reg, [flag] ; fn=0xd35310..0xd35390
     0xd353c7 | 48 8b 81 68 01 00 00     | mov rax, qword ptr [rcx + 0x168]
     0xd353ce | f3 0f 10 88 50 01 00 00  | movss xmm1, dword ptr [rax + 0x150]
     0xd353d6 | 0f 2e d1                 | ucomiss xmm2, xmm1
-    0xd353d9 | 77 5b                    | ja 0xd35436 ; [Nanomite Reconstructed: ja +0x5b via cfg_call_guard_resolver]
+    0xd353d9 | 76 5c                    | jbe 0xd35437 ; [Nanomite Reconstructed: jbe +0x5c via cfg_shared_epilogue_resolver]
     0xd353db | 74 5a                    | je 0xd35437
     0xd353dd | 0f 28 c2                 | movaps xmm0, xmm2
     0xd353e0 | f3 0f 5c c1              | subss xmm0, xmm1
@@ -101,16 +106,14 @@ Operação  : 0xd3534b: mov/math reg, [flag] ; fn=0xd35310..0xd35390
     0xd35427 | 48 89 44 24 28           | mov qword ptr [rsp + 0x28], rax
     0xd3542c | 48 8d 54 24 20           | lea rdx, [rsp + 0x20]
     0xd35431 | e8 ea 9d ee 00           | call 0x1c1f220
-    L_0xd35436:
     0xd35436 | 90                       | nop
     L_0xd35437:
     0xd35437 | 48 83 c4 38              | add rsp, 0x38
     0xd3543b | c3                       | ret
   
   === [Estrutura RTTI & VTable da Classe (RBX::Motor6D)] ===
-    VTable  : 0x6f95620 (offset +0x0, 54 slots virtuais)
-    Herança : RBX::Motor::Motor6D, RBX::Motor, RBX::JointInstance::Motor, RBX::JointInstance, RBX::Instance::JointInstance, RBX::Instance, RBX::Object, RBX::DescribedBase, RBX::EventSource, RBX::DescribedBase (+0x8), RBX::Object (+0x28), RBX::ObjectProp (+0x38), RBX::Noncopyable (+0x38), RBX::Diagnostics::Instance (+0x58), RBX::InstanceProp (+0x58)
-    +0x10 -> fn_0xd32db0
+    VTable  : 0x6f95620 (offset +0x0, 49 slots virtuais)
+    Herança : RBX::Motor, RBX::JointInstance, RBX::Reflection::Described, RBX::Instance, RBX::Object, RBX::DescribedBase, RBX::EventSource, RBX::enable_shared_from_this (+0x8), RBX::GuidItem (+0x28), RBX::ObjectProp (+0x38), RBX::Noncopyable (+0x38), RBX::Diagnostics::Countable (+0x58), RBX::InstanceProp (+0x58)
     +0x0 -> fn_0xd35220
     +0x8 -> fn_0x1c1f1a0
     +0x10 -> fn_0x1c396e0
@@ -126,6 +129,7 @@ Operação  : 0xd3534b: mov/math reg, [flag] ; fn=0xd35310..0xd35390
     +0xb0 -> fn_0x1c43930
     +0xb8 -> fn_0xd32d00
     +0xc0 -> fn_0x1c43cb0
+    +0xd0 -> fn_0x1c3da30
   
   === [Decompilacao de Metodo da Classe RBX::Motor6D: 0xd35220..0xd35299 (vfunc_0x0)] ===
     struct RBX::Motor6D {
@@ -136,8 +140,11 @@ Operação  : 0xd3534b: mov/math reg, [flag] ; fn=0xd35310..0xd35390
     auto RBX::Motor6D::func_0xd35220(RBX::Motor6D* this, int64_t param_2) {
       call_0x4968fd0(&this->field_0x1a0);
       auto* f_1a0 = this->field_0x1a0;
-      if (f_1a0 != 0 && atomic_fetch_sub(&f_1a0->field_0x4, 1) == 1) {
-        call_0x496a4e0(this->field_0x1a0);
+      if (f_1a0 != 0) {
+        int32_t atomic_2 = atomic_fetch_sub(&f_1a0->field_0x4, 1);
+        if (atomic_2 == 1) {
+          call_0x496a4e0(this->field_0x1a0);
+        }
       }
       this->field_0x190 = &sym_0x6f99518;
       call_0xd35ec0(this);
@@ -150,45 +157,68 @@ Operação  : 0xd3534b: mov/math reg, [flag] ; fn=0xd35310..0xd35390
   === [Decompilacao de Metodo da Classe RBX::Motor6D: 0x1c44010..0x1c44138 (vfunc_0x18)] ===
     struct RBX::Instance {
       /* +0x48 */ void*   field_0x48;
-      /* +0x60 */ void*   field_0x60;
+      /* +0x60 */ uint64_t field_0x60;
     };
     
     // Flag defaults: CheckEngineContextOnInstanceAccess2 = false
-    void RBX::Instance::func_0x1c44010(RBX::Instance* this, int64_t param_2, void* param_3, void* param_4) {
+    void RBX::Instance::func_0x1c44010(RBX::Instance* this, int64_t param_2, int64_t param_3, int64_t param_4) {
       if (this->field_0x60 != 0) {
-        (*global_0x80f4c48)(this);
-      }
-      auto ret_0x4956040_2 = call_0x4956040(24);
-      auto ret_0xffc540_3 = call_0xffc540(ret_0x4956040_2, param_3);
-      call_0xd29440(&local_0x40, ret_0xffc540_3);
-      auto* f_48 = this->field_0x48;
-      if (f_48 != 0 && f_48->field_0x8 != 0) {
-        auto ret_0xc700_5 = call_0xc700(global_0x84cf408, 1);
-        if (ret_0xc700_5->field_0x0 == 0) {
-          auto local_0x20 = 3;
-          call_0x7d7f00(this->field_0x48, &local_0x20, &local_0x28);
-        } else {
-          call_0x49710d0("Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel ", &sym_0x6647145);
+        void* v_rax_1 = global_0x80f4c48;
+        if (!CheckEngineContextOnInstanceAccess2) {
+          v_rax_1 = global_0x80f4c50;
         }
+        (*v_rax_1)(this);
       }
-      if (local_0x48 != 0) {
-        call_0x6daf40(local_0x48);
+      uint64_t local_0x30;
+      local_0x30 = &sym_0x70375b0;
+      auto ret_0x4956040_2 = call_0x4956040(24);
+      uint64_t local_0x60;
+      if (ret_0x4956040_2 != 0) {
+        uint64_t local_0x28;
+        local_0x28 = ret_0x4956040_2;
+        auto ret_0xffc540_3 = call_0xffc540(ret_0x4956040_2, param_3);
+        uint64_t local_0x40;
+        call_0xd29440(&local_0x40, ret_0xffc540_3);
+        local_0x28 = &local_0x30;
+        uint64_t local_0x20;
+        local_0x20 = 3;
+        auto* f_48 = this->field_0x48;
+        if (f_48 != 0 && f_48->field_0x8 != 0) {
+          auto ret_0xc700_5 = call_0xc700(global_0x84cf408, 1);
+          if (ret_0xc700_5->field_0x0 == 0) {
+            auto local_0x38 = param_2;
+            call_0x7d7f00(this->field_0x48, &local_0x20, &local_0x28);
+          } else {
+            call_0x49710d0("Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel execution.", &sym_0x6647145);
+            call_0x6ca7d0(&local_0x60);
+            call_0x5e066f0(&local_0x60, &sym_0x80cbbc0);
+            return; // noreturn
+          }
+        }
+        uint64_t local_0x48;
+        if (local_0x48 != 0) {
+          call_0x6daf40(local_0x48);
+          return;
+        }
+        return;
       }
+      call_0x6ca7d0(&local_0x60);
+      call_0x5e066f0(&local_0x60, &sym_0x80cbbc0);
+      return; // noreturn
     }
   
   === [Decompilacao de Metodo da Classe RBX::Motor6D: 0xd35e90..0xd35eb5 (vfunc_0x38)] ===
     void RBX::Motor6D::func_0xd35e90(RBX::Motor6D* this) {
       if (global_0x8cd2f40 == 0) {
-        auto ret_0xdcaa40_1 = call_0xdcaa40(this);
+        auto ret_0xdcaa40_1 = call_0xdcaa40();
         global_0x8cd2f40 = ret_0xdcaa40_1->field_0x8;
       }
     }
 
 [Strings .rdata na função]
-  * "Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel "  [@rdata 0x7280e40, ref @0x1c44110, literal, 96B]
+  (Nenhuma string literal direta neste bloco)
 
 [Co-Flags na mesma função]
-  * DFFlagCheckEngineContextOnInstanceAccess2 = false (default)
   * DFFlagSimEditableMeshDisableRendering = false (default) [vizinha em .data]
   * DFFlagCreateMeshPartAsyncDirectRuntimeContent = true (default) [vizinha em .data]
   * DFFlagCLI229090 = true (default) [vizinha em .data]

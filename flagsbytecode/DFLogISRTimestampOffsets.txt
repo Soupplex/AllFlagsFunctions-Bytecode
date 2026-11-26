@@ -10,21 +10,22 @@ Operação  : 0x39ac0f5: mov/math reg, [flag] ; fn=0x39abef0..0x39ac79a
     Padrão  : DFLogISRTimestampOffsets = 6 (default) [log, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : (uint64_t)ISRTimestampOffsets >> 8
-    Fórmula : (uint8_t)ISRTimestampOffsets >= 6 && (uint8_t)expr_3 >= 5
-    Fórmula : (uint8_t)ISRTimestampOffsets >= 6 && (uint8_t)expr_3 >= 3
+    Fórmula : (uint8_t)ISRTimestampOffsets >= 6 && (uint8_t)expr_2 >= 5
+    Fórmula : "[DFLog::ISRTimestampOffsets] ISR Remote to Local Offsets Stabilized after {} steps, Overriding Smoothed Offset to {}"
+    Fórmula : (uint8_t)ISRTimestampOffsets >= 6 && (uint8_t)expr_2 >= 3
+    Fórmula : "[DFLog::ISRTimestampOffsets] ISR: Client stall detected - hard resetting offset from {} to raw {}. StallAccumulator: {}"
+    Fórmula : "[DFLog::ISRTimestampOffsets] ISR: Short client stall - bypassing cap. StallAccumulator: {}, desiredDelta: {}"
     Altera  : this->field_0xc, this->iSRTimeCappedOffsetRatio_0x20, this->field_0x10, this->numOffsetUpdatesBeforeWeTrust_0x8, this->field_0x3, this->field_0x4
   
   === [Mapeamento de Campos da Struct (RTTI & Cross-Function Linker)] ===
     this->field_0x4 (offset +0x4) <- DFLogISRTimestampOffsets = 6 (@0x39ac635)
-    this->numOffsetUpdatesBeforeWeTrust_0x8 (offset +0x8) <- DFLogISRTimestampOffsets = 6 (@0x39ac37b), DFIntNumOffsetUpdatesBeforeWeTrust = 20 (@0x39ac655)
+    this->numOffsetUpdatesBeforeWeTrust_0x8 (offset +0x8) <- DFLogISRTimestampOffsets = 6 (@0x39ac37b), DFIntNumOffsetUpdatesBeforeWeTrust = 0 (@0x39ac655)
     this->field_0xc (offset +0xc) <- DFFlagISRTrackSmoothTimestampOffsets = false (@0x39abfa0), DFLogISRTimestampOffsets = 6 (@0x39ac37b)
     this->field_0x10 (offset +0x10) <- DFFlagISRTrackSmoothTimestampOffsets = false (@0x39abfa0), DFLogISRTimestampOffsets = 6 (@0x39ac37b), DFFlagDebugISRDisableTimeCappedOffsetDrift = false (@0x39ac49d)
-    this->field_0x14 (offset +0x14) <- DFIntNumOffsetUpdatesBeforeWeTrust = 20 (@0x39ac655)
-    this->field_0x18 (offset +0x18) <- DFIntIsrTimestampOffsetSmoothingHundredths = 2 (@0x39abfc1), DFLogISRTimestampOffsets = 6 (@0x39ac37b), DFFlagDebugISRDisableTimeCappedOffsetDrift = false (@0x39ac49d)
-    this->field_0x1c (offset +0x1c) <- DFIntIsrTimestampOffsetSmoothingHundredths = 2 (@0x39abfc1), DFIntNumOffsetUpdatesBeforeWeTrust = 20 (@0x39ac655)
-    this->iSRTimeCappedOffsetRatio_0x20 (offset +0x20) <- DFIntISRTimeCappedOffsetRatio = 2 (@0x39ac0b7)
-    [Child @0x39ac491] Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    [Child @0x39ac491] Fórmula : (uint8_t)ISRTimestampOffsets >= 6 && (uint8_t)((uint64_t)ISRTimestampOffsets >> 8) >= 5
+    this->field_0x14 (offset +0x14) <- DFIntNumOffsetUpdatesBeforeWeTrust = 0 (@0x39ac655)
+    this->field_0x18 (offset +0x18) <- DFIntIsrTimestampOffsetSmoothingHundredths = 80 (@0x39abfc1), DFLogISRTimestampOffsets = 6 (@0x39ac37b), DFFlagDebugISRDisableTimeCappedOffsetDrift = false (@0x39ac49d)
+    this->field_0x1c (offset +0x1c) <- DFIntIsrTimestampOffsetSmoothingHundredths = 80 (@0x39abfc1), DFIntNumOffsetUpdatesBeforeWeTrust = 0 (@0x39ac655)
+    this->iSRTimeCappedOffsetRatio_0x20 (offset +0x20) <- DFIntISRTimeCappedOffsetRatio = 1 (@0x39ac0b7)
   
   === [Decompilacao C++ da Funcao 0x39abef0..0x39ac79a] ===
     struct RBX::ISRTrackSmooth {
@@ -42,62 +43,96 @@ Operação  : 0x39ac0f5: mov/math reg, [flag] ; fn=0x39abef0..0x39ac79a
       /* +0x20 */ int32_t iSRTimeCappedOffsetRatio_0x20;
     };
     
-    // Flag defaults: ISRTrackSmoothTimestampOffsets = false, IsrTimestampOffsetSmoothingHundredths = 2, ISRTimestampStallDetection = false, DebugISRDisableTimeCappedOffsetDrift = false, ISRStallLongDivergenceThreshold = 60, ISRStallShortDivergenceThreshold = 10, ISRStallBoostSmoothingHundredths = 50, ISRTimestampOffsets = 6
-    void RBX::ISRTrackSmooth::func_0x39abef0(RBX::ISRTrackSmooth* this, int64_t param_2) {
+    // Flag defaults: ISRTrackSmoothTimestampOffsets = false, IsrTimestampOffsetSmoothingHundredths = 80, ISRTimestampStallDetection = false, DebugISRDisableTimeCappedOffsetDrift = false, ISRStallLongDivergenceThreshold = 15, ISRStallShortDivergenceThreshold = 5, ISRStallBoostSmoothingHundredths = 0, ISRTimestampOffsets = 6
+    void RBX::ISRTrackSmooth::func_0x39abef0(RBX::ISRTrackSmooth* this) {
       if (this->field_0x2 != 0) {
         this->field_0x3 = 1;
         return;
       }
       if (this->field_0x0 != 0 && this->field_0x1 != 0) {
-        auto expr_2 = this->field_0x1c - this->field_0x18;
-        auto expr_3 = (uint64_t)ISRTimestampOffsets >> 8;
+        uint64_t local_0x30;
+        uint64_t local_0x70;
+        uint64_t local_0x40;
+        uint64_t i_edi_3;
+        uint64_t local_0x50;
+        uint64_t local_0x80;
+        uint64_t local_0x210;
+        uint64_t local_0x88;
+        uint64_t local_0x78;
+        uint64_t local_0x220;
+        uint64_t local_0x20;
+        uint64_t local_0x60;
+        auto expr_2 = (uint64_t)ISRTimestampOffsets >> 8;
         if (this->numOffsetUpdatesBeforeWeTrust_0x8 == 2147483647) {
           this->numOffsetUpdatesBeforeWeTrust_0x8 = this->field_0x1c - this->field_0x18;
           if (ISRTrackSmoothTimestampOffsets) {
             this->field_0x10 = this->field_0x18;
-            this->field_0xc = (float)expr_2;
+            this->field_0xc = (float)(this->field_0x1c - this->field_0x18);
           }
           L_0x39ac648:
           if (this->field_0x3 == 0) {
             if (this->field_0x4 >= NumOffsetUpdatesBeforeWeTrust) {
               this->field_0x3 = 1;
               this->numOffsetUpdatesBeforeWeTrust_0x8 = this->field_0x1c - this->field_0x14;
-              if ((uint8_t)ISRTimestampOffsets >= 6 && (uint8_t)expr_3 >= 5) {
-                FLog::Log("[DFLog::ISRTimestampOffsets] ISR Remote to Local Offsets Stabilized after {} steps, Overriding S", this->field_0x4);
+              if ((uint8_t)ISRTimestampOffsets >= 6 && (uint8_t)expr_2 >= 5) {
+                local_0x30 = "[DFLog::ISRTimestampOffsets] ISR Remote to Local Offsets Stabilized after {} steps, Overriding Smoothed Offset to {}";
+                local_0x70 = local_0x30 - 0x4086cc;
+                i_edi_3 = -1;
+                L_0x39ac6a7:
+                do { // L_0x39ac6a7
+                  i_edi_3++;
+                } while ((local_0x30 - 0x4086cc)[i_edi_3] != 0); // loop -> L_0x39ac6a7
+                local_0x50 = this->field_0x4;
+                local_0x40 = this->numOffsetUpdatesBeforeWeTrust_0x8;
+                local_0x80 = 18;
+                float mem_17_17 = local_0x210;
+                local_0x210 = local_0x50;
+                local_0x88 = &mem_17_17;
+                local_0x50 = local_0x80;
+                local_0x78 = i_edi_3;
+                local_0x220 = local_0x40;
+                local_0x20 = 1;
+                local_0x60 = ISRTimestampOffsets;
+                local_0x40 = local_0x70;
+                FLog::Log("[DFLog::ISRTimestampOffsets] ISR Remote to Local Offsets Stabilized after {} steps, Overriding Smoothed Offset to {}", local_0x80);
               }
             } else {
               this->field_0x4++;
             }
           }
         } else {
-          float fxmm6_11;
+          float fxmm6_12;
           auto expr_1 = (float)IsrTimestampOffsetSmoothingHundredths / 100.0f;
           if (ISRTrackSmoothTimestampOffsets) {
-            float fxmm3_1;
-            float fxmm4_2;
+            float fxmm3_1 = this->field_0xc;
+            float fxmm4_2 = this->field_0xc;
             if (fabsf((float)this->numOffsetUpdatesBeforeWeTrust_0x8 - this->field_0xc) > 1.0f) {
               this->field_0xc = (float)this->numOffsetUpdatesBeforeWeTrust_0x8;
               fxmm3_1 = (float)this->numOffsetUpdatesBeforeWeTrust_0x8;
               fxmm4_2 = (float)this->numOffsetUpdatesBeforeWeTrust_0x8;
-            } else {
-              fxmm3_1 = this->field_0xc;
-              fxmm4_2 = this->field_0xc;
             }
             float ftmp_3 = 1.0f - (float)IsrTimestampOffsetSmoothingHundredths / 100.0f;
-            float ftmp_4 = (float)expr_2;
+            float ftmp_4 = (float)(this->field_0x1c - this->field_0x18);
             float ftmp_5 = ftmp_4 * expr_1;
-            uint8_t v_r12b_8 = 0;
-            float fxmm6_9;
-            float fxmm6_10;
+            uint8_t v_r12b_9 = 0;
+            float fxmm6_10 = ftmp_3 * fxmm3_1 + ftmp_5 - fxmm3_1;
+            float fxmm6_11 = ftmp_3 * fxmm3_1 + ftmp_5 - fxmm3_1;
             if (ISRTimestampStallDetection) {
               if (!DebugISRDisableTimeCappedOffsetDrift) {
+                int32_t tmp_2 = this->field_0x1c - this->field_0x18 - this->numOffsetUpdatesBeforeWeTrust_0x8 ^ (int32_t)(this->field_0x1c - this->field_0x18 - this->numOffsetUpdatesBeforeWeTrust_0x8) >> 31;
                 float ftmp_6 = ftmp_3 * fxmm3_1 + ftmp_5 - fxmm3_1;
-                uint8_t v_r12b_5 = 0;
-                float fxmm6_6;
-                uint64_t i_edi;
-                auto expr_4 = max(1, ISRTimeCappedOffsetRatio);
+                void* v_rcx_4;
+                void* v_r8_5;
+                void* v_r9_6;
+                uint8_t v_r12b_7 = 0;
+                float fxmm6_8 = ftmp_6;
+                uint64_t local_0x230;
+                uint64_t i_eax_3;
+                float ftmp_11;
+                void* tmp_10;
+                auto expr_3 = max(1, ISRTimeCappedOffsetRatio);
                 if (ftmp_6 > 1e-05f && this->field_0x10 != 0x7fffffff) {
-                  float ftmp_10 = (float)(this->field_0x18 - this->field_0x10) / (float)expr_4;
+                  float ftmp_10 = (float)(this->field_0x18 - this->field_0x10) / (float)expr_3;
                   int32_t v_rax_3;
                   if (fabsf(ftmp_6) > ftmp_10) {
                     this->iSRTimeCappedOffsetRatio_0x20++;
@@ -107,11 +142,27 @@ Operação  : 0x39ac0f5: mov/math reg, [flag] ; fn=0x39abef0..0x39ac79a
                     v_rax_3 = 0;
                   }
                   if (v_rax_3 >= ISRStallLongThreshold) {
-                    if ((uint8_t)ISRTimestampOffsets >= 6 && (uint8_t)expr_3 >= 3) {
+                    if ((uint8_t)ISRTimestampOffsets >= 6 && (uint8_t)expr_2 >= 3) {
+                    local_0x30 = "[DFLog::ISRTimestampOffsets] ISR: Client stall detected - hard resetting offset from {} to raw {}. StallAccumulator: {}";
+                    local_0x80 = local_0x30 - 0x23d91c;
+                    uint64_t i_edi_2 = -1;
                     do { // L_0x39ac130
-                    i_edi++;
-                    } while (rax[i_edi] != 0); // loop -> L_0x39ac130
-                    FLog::Log("[DFLog::ISRTimestampOffsets] ISR: Client stall detected - hard resetting offset from {} to raw {", this->numOffsetUpdatesBeforeWeTrust_0x8);
+                    i_edi_2++;
+                    } while ((local_0x30 - 0x23d91c)[i_edi_2] != 0); // loop -> L_0x39ac130
+                    local_0x60 = this->numOffsetUpdatesBeforeWeTrust_0x8;
+                    local_0x50 = this->iSRTimeCappedOffsetRatio_0x20;
+                    local_0x210 = local_0x60;
+                    local_0x40 = this->field_0x1c - this->field_0x18;
+                    local_0x78 = &local_0x210;
+                    local_0x70 = 529;
+                    local_0x230 = local_0x50;
+                    local_0x88 = i_edi_2;
+                    local_0x50 = local_0x70;
+                    local_0x20 = 1;
+                    local_0x220 = local_0x40;
+                    local_0x60 = ISRTimestampOffsets;
+                    local_0x40 = local_0x80;
+                    FLog::Log("[DFLog::ISRTimestampOffsets] ISR: Client stall detected - hard resetting offset from {} to raw {}. StallAccumulator: {}", local_0x70);
                     }
                     this->field_0x10 = this->field_0x18;
                     this->field_0xc = ftmp_4;
@@ -120,46 +171,108 @@ Operação  : 0x39ac0f5: mov/math reg, [flag] ; fn=0x39abef0..0x39ac79a
                     this->field_0x3 = 1;
                   } else {
                     if (v_rax_3 >= ISRStallShortThreshold) {
-                    if ((uint8_t)ISRTimestampOffsets >= 6 && (uint8_t)expr_3 >= 5) {
-                    v_r12b_5 = 1;
-                    fxmm6_6 = ftmp_6;
-                    "[DFLog::ISRTimestampOffsets] ISR: Short client stall - bypassing cap. StallAccumulator: {}, desi";
-                    FLog::Log("[DFLog::ISRTimestampOffsets] ISR: Short client stall - bypassing cap. StallAccumulator: {}, desi", this->iSRTimeCappedOffsetRatio_0x20);
-                    v_r12b_8 = v_r12b_5;
-                    fxmm6_9 = fxmm6_6;
+                    if ((uint8_t)ISRTimestampOffsets >= 6 && (uint8_t)expr_2 >= 5) {
+                    local_0x30 = "[DFLog::ISRTimestampOffsets] ISR: Short client stall - bypassing cap. StallAccumulator: {}, desiredDelta: {}";
+                    uint64_t i_eax_2 = -1;
+                    do { // L_0x39ac230
+                    i_eax_2++;
+                    } while ((local_0x30 - 0x287506)[i_eax_2] != 0); // loop -> L_0x39ac230
+                    uint64_t local_0x130;
+                    v_rcx_4 = &local_0x130;
+                    uint64_t local_0x120;
+                    v_r8_5 = &local_0x120;
+                    uint64_t local_0x110;
+                    v_r9_6 = &local_0x110;
+                    v_r12b_7 = 1;
+                    uint64_t local_0x138;
+                    local_0x138 = *(uint32_t*)((uint8_t*)&ISRTimestampOffsets + 0x8);
+                    uint64_t local_0xf0;
+                    local_0xf0 = this->iSRTimeCappedOffsetRatio_0x20;
+                    local_0x130 = ISRTimestampOffsets;
+                    uint64_t local_0xa8;
+                    local_0xa8 = i_eax_2;
+                    uint64_t local_0x128;
+                    local_0x128 = i_eax_2;
+                    uint64_t local_0x100;
+                    local_0x100 = ftmp_6;
+                    uint64_t local_0xa0;
+                    local_0xa0 = local_0x30 - 0x287506;
+                    local_0x120 = local_0x30 - 0x287506;
+                    uint64_t local_0x134;
+                    local_0x134 = *(uint32_t*)((uint8_t*)&ISRTimestampOffsets + 0x4);
+                    uint64_t local_0x13c;
+                    local_0x13c = *(uint32_t*)((uint8_t*)&ISRTimestampOffsets + 0xc);
+                    uint64_t local_0x90;
+                    local_0x90 = 146;
+                    local_0x110 = 146;
+                    uint64_t local_0x240;
+                    uint64_t local_0x98;
+                    local_0x98 = &local_0x240;
+                    uint64_t local_0x118;
+                    local_0x118 = &local_0x240;
+                    local_0x240 = this->iSRTimeCappedOffsetRatio_0x20;
+                    uint64_t local_0x244;
+                    uint64_t local_0xf4;
+                    local_0x244 = local_0xf4;
+                    uint64_t local_0x248;
+                    uint64_t local_0xf8;
+                    local_0x248 = local_0xf8;
+                    uint64_t local_0xfc;
+                    uint64_t local_0x24c;
+                    local_0x24c = local_0xfc;
+                    uint64_t local_0x250;
+                    local_0x250 = ftmp_6;
+                    uint64_t local_0x108;
+                    uint64_t local_0x258;
+                    local_0x258 = local_0x108;
+                    local_0x20 = 1;
+                    call_0x4971cd0(v_rcx_4, 5, v_r8_5, v_r9_6, 1);
+                    v_r12b_9 = v_r12b_7;
+                    fxmm6_10 = fxmm6_8;
                     } else {
-                    v_r12b_8 = 1;
-                    fxmm6_9 = ftmp_6;
+                    v_r12b_9 = 1;
+                    fxmm6_10 = ftmp_6;
                     }
                     } else {
-                    fxmm6_9 = ftmp_6;
+                    fxmm6_10 = ftmp_6;
                     }
                     L_0x39ac49d:
-                    if (!DebugISRDisableTimeCappedOffsetDrift && v_r12b_8 == 0 && fxmm6_9 > 1e-05f && this->field_0x10 != 2147483647) {
-                    float ftmp_11 = (float)(this->field_0x18 - this->field_0x10) / (float)expr_4;
-                    if (1.0f > ftmp_11 / fabsf(fxmm6_9)) {
-                    fxmm6_10 = fxmm6_9 * (ftmp_11 / fabsf(fxmm6_9));
+                    if (!DebugISRDisableTimeCappedOffsetDrift && v_r12b_9 == 0 && fxmm6_10 > 1e-05f && this->field_0x10 != 2147483647) {
+                    ftmp_11 = (float)(this->field_0x18 - this->field_0x10) / (float)expr_3;
+                    if (1.0f > ftmp_11 / fabsf(fxmm6_10)) {
+                    fxmm6_11 = fxmm6_10 * (ftmp_11 / fabsf(fxmm6_10));
                     } else {
-                    fxmm6_10 = fxmm6_9;
+                    fxmm6_11 = fxmm6_10;
                     }
                     } else {
-                    fxmm6_10 = fxmm6_9;
+                    fxmm6_11 = fxmm6_10;
                     }
                     L_0x39ac4f8:
                     this->field_0x10 = this->field_0x18;
-                    this->field_0xc = fxmm6_10 + this->field_0xc;
-                    fxmm6_11 = fxmm6_10 + this->field_0xc;
+                    this->field_0xc = fxmm6_11 + this->field_0xc;
+                    fxmm6_12 = fxmm6_11 + this->field_0xc;
                     L_0x39ac52a:
-                    this->numOffsetUpdatesBeforeWeTrust_0x8 = (int32_t)fxmm6_11;
-                    if ((uint8_t)ISRTimestampOffsets >= 6 && (uint8_t)expr_3 >= 5) {
-                    FLog::Log("[DFLog::ISRTimestampOffsets] ISR: Remote to Local Offsets updated: remote {}, local {}, rawOffse", this->field_0x1c, this->field_0x18);
+                    this->numOffsetUpdatesBeforeWeTrust_0x8 = (int32_t)fxmm6_12;
+                    if ((uint8_t)ISRTimestampOffsets >= 6 && (uint8_t)expr_2 >= 5) {
+                    tmp_10 = "[DFLog::ISRTimestampOffsets] ISR: Remote to Local Offsets updated: remote {}, local {}, rawOffset {}, smoothedOffset {} - raw to smoothed delta {}";
+                    local_0x30 = tmp_10;
+                    i_eax_3 = -1;
+                    L_0x39ac575:
+                    do { // L_0x39ac575
+                    i_eax_3++;
+                    } while ((local_0x30 - 0x3caf89)[i_eax_3] != 0); // loop -> L_0x39ac575
+                    local_0x20 = 1;
+                    FLog::Log("[DFLog::ISRTimestampOffsets] ISR: Remote to Local Offsets updated: remote {}, local {}, rawOffset {}, smoothedOffset {} - raw to smoothed delta {}", this->field_0x1c, this->field_0x18, this->field_0x1c - this->field_0x18, this->numOffsetUpdatesBeforeWeTrust_0x8, this->field_0x1c - this->field_0x18 - this->numOffsetUpdatesBeforeWeTrust_0x8);
                     }
                     if (this->field_0x3 == 0) {
                     if (this->field_0x4 >= NumOffsetUpdatesBeforeWeTrust) {
                     this->field_0x3 = 1;
                     this->numOffsetUpdatesBeforeWeTrust_0x8 = this->field_0x1c - this->field_0x14;
-                    if ((uint8_t)ISRTimestampOffsets >= 6 && (uint8_t)expr_3 >= 5) {
-                    FLog::Log("[DFLog::ISRTimestampOffsets] ISR Remote to Local Offsets Stabilized after {} steps, Overriding S", this->field_0x4);
+                    if ((uint8_t)ISRTimestampOffsets >= 6 && (uint8_t)expr_2 >= 5) {
+                    local_0x30 = "[DFLog::ISRTimestampOffsets] ISR Remote to Local Offsets Stabilized after {} steps, Overriding Smoothed Offset to {}";
+                    local_0x70 = local_0x30 - 0x4086cc;
+                    i_edi_3 = -1;
+                    goto L_0x39ac6a7;
                     }
                     } else {
                     this->field_0x4++;
@@ -169,75 +282,94 @@ Operação  : 0x39ac0f5: mov/math reg, [flag] ; fn=0x39abef0..0x39ac79a
                 } else {
                   this->iSRTimeCappedOffsetRatio_0x20 = 0;
                   if (-1e-05f > ftmp_6) {
-                    if ((this->field_0x1c - this->field_0x18 - this->numOffsetUpdatesBeforeWeTrust_0x8 ^ param_2) - param_2 >= ISRStallLongDivergenceThreshold) {
-                    if ((uint8_t)ISRTimestampOffsets >= 6 && (uint8_t)expr_3 >= 3) {
-                    i_edi = -1;
+                    if (tmp_2 - ((int32_t)(this->field_0x1c - this->field_0x18 - this->numOffsetUpdatesBeforeWeTrust_0x8) >> 31) >= ISRStallLongDivergenceThreshold) {
+                    if ((uint8_t)ISRTimestampOffsets >= 6 && (uint8_t)expr_2 >= 3) {
+                    local_0x30 = "[DFLog::ISRTimestampOffsets] ISR: Server stall detected - hard resetting offset from {} to raw {}. Divergence: {}";
+                    local_0x70 = local_0x30 - 0x2c4c49;
+                    uint64_t i_edi = -1;
                     do { // L_0x39ac300
                     i_edi++;
-                    } while (rax[i_edi] != 0); // loop -> L_0x39ac300
-                    FLog::Log("[DFLog::ISRTimestampOffsets] ISR: Server stall detected - hard resetting offset from {} to raw {", this->numOffsetUpdatesBeforeWeTrust_0x8);
+                    } while ((local_0x30 - 0x2c4c49)[i_edi] != 0); // loop -> L_0x39ac300
+                    local_0x50 = this->numOffsetUpdatesBeforeWeTrust_0x8;
+                    local_0x60 = tmp_2 - ((int32_t)(this->field_0x1c - this->field_0x18 - this->numOffsetUpdatesBeforeWeTrust_0x8) >> 31);
+                    local_0x40 = this->field_0x1c - this->field_0x18;
+                    local_0x88 = &local_0x210;
+                    local_0x210 = local_0x50;
+                    local_0x80 = 273;
+                    local_0x78 = i_edi;
+                    local_0x220 = local_0x40;
+                    local_0x20 = 1;
+                    local_0x230 = local_0x60;
+                    local_0x50 = local_0x80;
+                    local_0x40 = local_0x70;
+                    local_0x60 = ISRTimestampOffsets;
+                    FLog::Log("[DFLog::ISRTimestampOffsets] ISR: Server stall detected - hard resetting offset from {} to raw {}. Divergence: {}", local_0x80);
                     }
                     this->field_0x10 = this->field_0x18;
                     this->field_0xc = ftmp_4;
                     this->numOffsetUpdatesBeforeWeTrust_0x8 = this->field_0x1c - this->field_0x18;
                     this->field_0x3 = 1;
                     } else {
-                    if ((this->field_0x1c - this->field_0x18 - this->numOffsetUpdatesBeforeWeTrust_0x8 ^ param_2) - param_2 >= ISRStallShortDivergenceThreshold) {
+                    if (tmp_2 - ((int32_t)(this->field_0x1c - this->field_0x18 - this->numOffsetUpdatesBeforeWeTrust_0x8) >> 31) >= ISRStallShortDivergenceThreshold) {
                     float ftmp_7 = 1.0f - (float)ISRStallBoostSmoothingHundredths / 100.0f;
                     float ftmp_8 = ftmp_4 * ((float)ISRStallBoostSmoothingHundredths / 100.0f);
-                    if ((uint8_t)ISRTimestampOffsets >= 6 && (uint8_t)expr_3 >= 5) {
-                    uint64_t i_eax = -1;
-                    do { // L_0x39ac420
-                    i_eax++;
-                    } while (rcx[i_eax] != 0); // loop -> L_0x39ac420
+                    if ((uint8_t)ISRTimestampOffsets >= 6 && (uint8_t)expr_2 >= 5) {
+                    local_0x30 = "[DFLog::ISRTimestampOffsets] ISR: Short server stall - boosting convergence. Divergence: {}, boostedDelta: {}";
                     float ftmp_9 = ftmp_7 * fxmm4_2 + ftmp_8 - fxmm4_2;
-                    fxmm6_6 = ftmp_9;
-                    "[DFLog::ISRTimestampOffsets] ISR: Short server stall - boosting convergence. Divergence: {}, boo";
-                    FLog::Log("[DFLog::ISRTimestampOffsets] ISR: Short client stall - bypassing cap. StallAccumulator: {}, desi", this->iSRTimeCappedOffsetRatio_0x20);
-                    v_r12b_8 = v_r12b_5;
-                    fxmm6_9 = fxmm6_6;
+                    uint64_t local_0x180;
+                    v_rcx_4 = &local_0x180;
+                    uint64_t local_0x170;
+                    v_r8_5 = &local_0x170;
+                    uint64_t local_0x160;
+                    v_r9_6 = &local_0x160;
+                    fxmm6_8 = ftmp_9;
+                    local_0x20 = 1;
+                    call_0x4971cd0(v_rcx_4, 5, v_r8_5, v_r9_6, 1);
+                    v_r12b_9 = v_r12b_7;
+                    fxmm6_10 = fxmm6_8;
                     } else {
-                    fxmm6_9 = ftmp_7 * fxmm4_2 + ftmp_8 - fxmm4_2;
+                    fxmm6_10 = ftmp_7 * fxmm4_2 + ftmp_8 - fxmm4_2;
                     }
                     } else {
-                    fxmm6_9 = ftmp_6;
+                    fxmm6_10 = ftmp_6;
                     }
-                    if (!DebugISRDisableTimeCappedOffsetDrift && v_r12b_8 == 0 && fxmm6_9 > 1e-05f && this->field_0x10 != 2147483647) {
-                    float ftmp_11 = (float)(this->field_0x18 - this->field_0x10) / (float)expr_4;
-                    if (1.0f > ftmp_11 / fabsf(fxmm6_9)) {
-                    fxmm6_10 = fxmm6_9 * (ftmp_11 / fabsf(fxmm6_9));
+                    if (!DebugISRDisableTimeCappedOffsetDrift && v_r12b_9 == 0 && fxmm6_10 > 1e-05f && this->field_0x10 != 2147483647) {
+                    ftmp_11 = (float)(this->field_0x18 - this->field_0x10) / (float)expr_3;
+                    if (1.0f > ftmp_11 / fabsf(fxmm6_10)) {
+                    fxmm6_11 = fxmm6_10 * (ftmp_11 / fabsf(fxmm6_10));
                     } else {
-                    fxmm6_10 = fxmm6_9;
+                    fxmm6_11 = fxmm6_10;
                     }
                     } else {
-                    fxmm6_10 = fxmm6_9;
+                    fxmm6_11 = fxmm6_10;
                     }
                     this->field_0x10 = this->field_0x18;
-                    this->field_0xc = fxmm6_10 + this->field_0xc;
-                    fxmm6_11 = fxmm6_10 + this->field_0xc;
-                    this->numOffsetUpdatesBeforeWeTrust_0x8 = (int32_t)fxmm6_11;
-                    if ((uint8_t)ISRTimestampOffsets >= 6 && (uint8_t)expr_3 >= 5) {
-                    FLog::Log("[DFLog::ISRTimestampOffsets] ISR: Remote to Local Offsets updated: remote {}, local {}, rawOffse", this->field_0x1c, this->field_0x18);
+                    this->field_0xc = fxmm6_11 + this->field_0xc;
+                    fxmm6_12 = fxmm6_11 + this->field_0xc;
+                    this->numOffsetUpdatesBeforeWeTrust_0x8 = (int32_t)fxmm6_12;
+                    if ((uint8_t)ISRTimestampOffsets >= 6 && (uint8_t)expr_2 >= 5) {
+                    tmp_10 = "[DFLog::ISRTimestampOffsets] ISR: Remote to Local Offsets updated: remote {}, local {}, rawOffset {}, smoothedOffset {} - raw to smoothed delta {}";
+                    local_0x30 = tmp_10;
+                    i_eax_3 = -1;
+                    goto L_0x39ac575;
                     }
                     goto L_0x39ac648;
                     }
                   } else {
-                    fxmm6_9 = ftmp_6;
+                    fxmm6_10 = ftmp_6;
                     goto L_0x39ac49d;
                   }
                 }
               } else {
-                fxmm6_10 = ftmp_3 * fxmm3_1 + ftmp_5 - fxmm3_1;
                 goto L_0x39ac4f8;
               }
             } else {
-              fxmm6_9 = ftmp_3 * fxmm3_1 + ftmp_5 - fxmm3_1;
               goto L_0x39ac49d;
             }
           } else {
             float ftmp_1 = 1.0f - (float)IsrTimestampOffsetSmoothingHundredths / 100.0f;
-            float ftmp_2 = (float)expr_2 * expr_1;
-            fxmm6_11 = ftmp_1 * (float)this->numOffsetUpdatesBeforeWeTrust_0x8 + ftmp_2;
+            float ftmp_2 = (float)(this->field_0x1c - this->field_0x18) * expr_1;
+            fxmm6_12 = ftmp_1 * (float)this->numOffsetUpdatesBeforeWeTrust_0x8 + ftmp_2;
             goto L_0x39ac52a;
           }
         }
@@ -368,7 +500,7 @@ Operação  : 0x39ac0f5: mov/math reg, [flag] ; fn=0x39abef0..0x39ac79a
     0x39ac104 | 48 c1 e8 08              | shr rax, 0x8
     0x39ac108 | 3c 03                    | cmp al, 0x3
     0x39ac10a | 0f 82 b5 00 00 00        | jb 0x39ac1c5
-    0x39ac110 | 48 8d 05 85 cc c6 03     | lea rax, [rip + 0x3c6cc85] ; "[DFLog::ISRTimestampOffsets] ISR: Client stall detected - hard resetting offset from {} to raw {"
+    0x39ac110 | 48 8d 05 85 cc c6 03     | lea rax, [rip + 0x3c6cc85] ; "[DFLog::ISRTimestampOffsets] ISR: Client stall detected - hard resetting offset from {} to raw {}. StallAccumulator: {}"
     0x39ac117 | 48 89 44 24 30           | mov qword ptr [rsp + 0x30], rax
     0x39ac11c | 48 8b 44 24 30           | mov rax, qword ptr [rsp + 0x30]
     0x39ac121 | 48 05 e4 26 dc ff        | add rax, 0xffdc26e4
@@ -423,7 +555,7 @@ Operação  : 0x39ac0f5: mov/math reg, [flag] ; fn=0x39abef0..0x39ac79a
     0x39ac203 | 48 c1 e8 08              | shr rax, 0x8
     0x39ac207 | 3c 05                    | cmp al, 0x5
     0x39ac209 | 0f 82 8e 02 00 00        | jb 0x39ac49d
-    0x39ac20f | 48 8d 05 00 67 cb 03     | lea rax, [rip + 0x3cb6700] ; "[DFLog::ISRTimestampOffsets] ISR: Short client stall - bypassing cap. StallAccumulator: {}, desi"
+    0x39ac20f | 48 8d 05 00 67 cb 03     | lea rax, [rip + 0x3cb6700] ; "[DFLog::ISRTimestampOffsets] ISR: Short client stall - bypassing cap. StallAccumulator: {}, desiredDelta: {}"
     0x39ac216 | 48 89 44 24 30           | mov qword ptr [rsp + 0x30], rax
     0x39ac21b | 48 8b c7                 | mov rax, rdi
     0x39ac21e | 48 8b 4c 24 30           | mov rcx, qword ptr [rsp + 0x30]
@@ -469,7 +601,7 @@ Operação  : 0x39ac0f5: mov/math reg, [flag] ; fn=0x39abef0..0x39ac79a
     0x39ac2d6 | 48 c1 e8 08              | shr rax, 0x8
     0x39ac2da | 3c 03                    | cmp al, 0x3
     0x39ac2dc | 0f 82 b0 00 00 00        | jb 0x39ac392
-    0x39ac2e2 | 48 8d 05 f0 3c cf 03     | lea rax, [rip + 0x3cf3cf0] ; "[DFLog::ISRTimestampOffsets] ISR: Server stall detected - hard resetting offset from {} to raw {"
+    0x39ac2e2 | 48 8d 05 f0 3c cf 03     | lea rax, [rip + 0x3cf3cf0] ; "[DFLog::ISRTimestampOffsets] ISR: Server stall detected - hard resetting offset from {} to raw {}. Divergence: {}"
     0x39ac2e9 | 48 89 44 24 30           | mov qword ptr [rsp + 0x30], rax
     0x39ac2ee | 48 8b 44 24 30           | mov rax, qword ptr [rsp + 0x30]
     0x39ac2f3 | 48 05 b7 b3 d3 ff        | add rax, 0xffd3b3b7
@@ -530,7 +662,7 @@ Operação  : 0x39ac0f5: mov/math reg, [flag] ; fn=0x39abef0..0x39ac79a
     0x39ac3ed | 48 c1 e8 08              | shr rax, 0x8
     0x39ac3f1 | 3c 05                    | cmp al, 0x5
     0x39ac3f3 | 0f 82 a4 00 00 00        | jb 0x39ac49d
-    0x39ac3f9 | 48 8d 05 e0 18 d4 03     | lea rax, [rip + 0x3d418e0] ; "[DFLog::ISRTimestampOffsets] ISR: Short server stall - boosting convergence. Divergence: {}, boo"
+    0x39ac3f9 | 48 8d 05 e0 18 d4 03     | lea rax, [rip + 0x3d418e0] ; "[DFLog::ISRTimestampOffsets] ISR: Short server stall - boosting convergence. Divergence: {}, boostedDelta: {}"
     0x39ac400 | 48 89 44 24 30           | mov qword ptr [rsp + 0x30], rax
     0x39ac405 | 48 8b c7                 | mov rax, rdi
     0x39ac408 | 48 8b 4c 24 30           | mov rcx, qword ptr [rsp + 0x30]
@@ -613,7 +745,7 @@ Operação  : 0x39ac0f5: mov/math reg, [flag] ; fn=0x39abef0..0x39ac79a
     0x39ac540 | 48 c1 e8 08              | shr rax, 0x8
     0x39ac544 | 3c 05                    | cmp al, 0x5
     0x39ac546 | 0f 82 fc 00 00 00        | jb 0x39ac648
-    0x39ac54c | 48 8d 05 26 9c df 03     | lea rax, [rip + 0x3df9c26] ; "[DFLog::ISRTimestampOffsets] ISR: Remote to Local Offsets updated: remote {}, local {}, rawOffse"
+    0x39ac54c | 48 8d 05 26 9c df 03     | lea rax, [rip + 0x3df9c26] ; "[DFLog::ISRTimestampOffsets] ISR: Remote to Local Offsets updated: remote {}, local {}, rawOffset {}, smoothedOffset {} - raw to smoothed delta {}"
     0x39ac553 | 41 8b d6                 | mov edx, r14d
     0x39ac556 | 48 89 44 24 30           | mov qword ptr [rsp + 0x30], rax
     0x39ac55b | 48 8b c7                 | mov rax, rdi
@@ -676,7 +808,7 @@ Operação  : 0x39ac0f5: mov/math reg, [flag] ; fn=0x39abef0..0x39ac79a
     0x39ac67f | 48 c1 e8 08              | shr rax, 0x8
     0x39ac683 | 3c 05                    | cmp al, 0x5
     0x39ac685 | 0f 82 a6 00 00 00        | jb 0x39ac731
-    0x39ac68b | 48 8d 05 aa 71 e3 03     | lea rax, [rip + 0x3e371aa] ; "[DFLog::ISRTimestampOffsets] ISR Remote to Local Offsets Stabilized after {} steps, Overriding S"
+    0x39ac68b | 48 8d 05 aa 71 e3 03     | lea rax, [rip + 0x3e371aa] ; "[DFLog::ISRTimestampOffsets] ISR Remote to Local Offsets Stabilized after {} steps, Overriding Smoothed Offset to {}"
     0x39ac692 | 48 89 44 24 30           | mov qword ptr [rsp + 0x30], rax
     0x39ac697 | 48 8b 44 24 30           | mov rax, qword ptr [rsp + 0x30]
     0x39ac69c | 48 05 34 79 bf ff        | add rax, 0xffbf7934
@@ -732,200 +864,6 @@ Operação  : 0x39ac0f5: mov/math reg, [flag] ; fn=0x39abef0..0x39ac79a
     0x39ac797 | 5b                       | pop rbx
     0x39ac798 | 5d                       | pop rbp
     0x39ac799 | c3                       | ret
-  
-  === [Sub-Rotina Chamada: 0x39ac491..0x39ac79a via call @0x39ac29d (Direct Engine Sub-Call)] ===
-    // Flag defaults: ISRTimestampOffsets = 6, DebugISRDisableTimeCappedOffsetDrift = false, ISRTimeCappedOffsetRatio = 2, NumOffsetUpdatesBeforeWeTrust = 20
-    void SubObj_0x39ac491::func_0x39ac491(SubObj_0x39ac491* this) {
-      call_0x4971cd0(this, 5, param_3, param_4);
-      float ftmp_2 = xmm6 * ((float)(rbx->field_0x18 - rbx->field_0x10) / (float)max(r15, ISRTimeCappedOffsetRatio) / (xmm6 & xmm9));
-      rbx->field_0x10 = rbx->field_0x18;
-      rbx->field_0xc = ftmp_2 + rbx->field_0xc;
-      rbx->field_0x8 = (int32_t)(ftmp_2 + rbx->field_0xc);
-      if ((uint8_t)ISRTimestampOffsets >= 6 && (uint8_t)((uint64_t)ISRTimestampOffsets >> 8) >= 5) {
-        FLog::Log("[DFLog::ISRTimestampOffsets] ISR: Remote to Local Offsets updated: remote {}, local {}, rawOffse", rbx->field_0x1c, rbx->field_0x18);
-      }
-      if (rbx->field_0x3 == 0) {
-        if (rbx->field_0x4 >= NumOffsetUpdatesBeforeWeTrust) {
-          rbx->field_0x3 = 1;
-          rbx->field_0x8 = rbx->field_0x1c - rbx->field_0x14;
-          if ((uint8_t)ISRTimestampOffsets >= 6 && (uint8_t)((uint64_t)ISRTimestampOffsets >> 8) >= 5) {
-            FLog::Log("[DFLog::ISRTimestampOffsets] ISR Remote to Local Offsets Stabilized after {} steps, Overriding S", rbx->field_0x4);
-          }
-        } else {
-          rbx->field_0x4++;
-        }
-      }
-      rbx->field_0x0 = 0;
-    }
-  
-  === [Instrucoes x86-64 da Sub-Rotina Chamada (0x39ac491..0x39ac79a)] ===
-    0x39ac491 | b2 05                    | mov dl, 0x5
-    0x39ac493 | 44 88 7c 24 20           | mov byte ptr [rsp + 0x20], r15b
-    0x39ac498 | e8 33 58 fc 00           | call 0x4971cd0
-    0x39ac49d | 80 3d e4 fe 76 04 00     | cmp byte ptr [rip + 0x476fee4], 0x0 ; DFFlagDebugISRDisableTimeCappedOffsetDrift
-    0x39ac4a4 | 75 52                    | jne 0x39ac4f8
-    0x39ac4a6 | 45 84 e4                 | test r12b, r12b
-    0x39ac4a9 | 75 4d                    | jne 0x39ac4f8
-    0x39ac4ab | 41 0f 2f f2              | comiss xmm6, xmm10
-    0x39ac4af | 76 47                    | jbe 0x39ac4f8
-    0x39ac4b1 | 8b 4b 10                 | mov ecx, dword ptr [rbx + 0x10]
-    0x39ac4b4 | 81 f9 ff ff ff 7f        | cmp ecx, 0x7fffffff
-    0x39ac4ba | 74 3c                    | je 0x39ac4f8
-    0x39ac4bc | 8b 43 18                 | mov eax, dword ptr [rbx + 0x18]
-    0x39ac4bf | 0f 28 ce                 | movaps xmm1, xmm6
-    0x39ac4c2 | 2b c1                    | sub eax, ecx
-    0x39ac4c4 | 41 0f 54 c9              | andps xmm1, xmm9
-    0x39ac4c8 | 44 39 3d c9 fd 76 04     | cmp dword ptr [rip + 0x476fdc9], r15d ; DFIntISRTimeCappedOffsetRatio
-    0x39ac4cf | 44 0f 4f 3d c1 fd 76 04  | cmovg r15d, dword ptr [rip + 0x476fdc1] ; DFIntISRTimeCappedOffsetRatio
-    0x39ac4d7 | 66 0f 6e d0              | movd xmm2, eax
-    0x39ac4db | 0f 5b d2                 | cvtdq2ps xmm2, xmm2
-    0x39ac4de | 66 41 0f 6e c7           | movd xmm0, r15d
-    0x39ac4e3 | 0f 5b c0                 | cvtdq2ps xmm0, xmm0
-    0x39ac4e6 | f3 0f 5e d0              | divss xmm2, xmm0
-    0x39ac4ea | f3 0f 5e d1              | divss xmm2, xmm1
-    0x39ac4ee | 44 0f 2f c2              | comiss xmm8, xmm2
-    0x39ac4f2 | 76 04                    | jbe 0x39ac4f8
-    0x39ac4f4 | f3 0f 59 f2              | mulss xmm6, xmm2
-    L_0x39ac4f8:
-    0x39ac4f8 | f3 0f 58 73 0c           | addss xmm6, dword ptr [rbx + 0xc]
-    0x39ac4fd | 8b 43 18                 | mov eax, dword ptr [rbx + 0x18]
-    0x39ac500 | 89 43 10                 | mov dword ptr [rbx + 0x10], eax
-    0x39ac503 | f3 0f 11 73 0c           | movss dword ptr [rbx + 0xc], xmm6
-    0x39ac508 | eb 20                    | jmp 0x39ac52a
-    0x39ac50a | f3 0f 10 35 a2 31 bf 03  | movss xmm6, dword ptr [rip + 0x3bf31a2] ; 1.0
-    0x39ac512 | f3 0f 5c f2              | subss xmm6, xmm2
-    0x39ac516 | 66 41 0f 6e c6           | movd xmm0, r14d
-    0x39ac51b | 0f 5b c0                 | cvtdq2ps xmm0, xmm0
-    0x39ac51e | f3 0f 59 f1              | mulss xmm6, xmm1
-    0x39ac522 | f3 0f 59 c2              | mulss xmm0, xmm2
-    0x39ac526 | f3 0f 58 f0              | addss xmm6, xmm0
-    L_0x39ac52a:
-    0x39ac52a | f3 0f 2c c6              | cvttss2si eax, xmm6
-    0x39ac52e | 89 43 08                 | mov dword ptr [rbx + 0x8], eax
-    0x39ac531 | 48 8b 05 80 fe 76 04     | mov rax, qword ptr [rip + 0x476fe80] ; DFLogISRTimestampOffsets
-    0x39ac538 | 3c 06                    | cmp al, 0x6
-    0x39ac53a | 0f 82 08 01 00 00        | jb 0x39ac648
-    0x39ac540 | 48 c1 e8 08              | shr rax, 0x8
-    0x39ac544 | 3c 05                    | cmp al, 0x5
-    0x39ac546 | 0f 82 fc 00 00 00        | jb 0x39ac648
-    0x39ac54c | 48 8d 05 26 9c df 03     | lea rax, [rip + 0x3df9c26] ; "[DFLog::ISRTimestampOffsets] ISR: Remote to Local Offsets updated: remote {}, local {}, rawOffse"
-    0x39ac553 | 41 8b d6                 | mov edx, r14d
-    0x39ac556 | 48 89 44 24 30           | mov qword ptr [rsp + 0x30], rax
-    0x39ac55b | 48 8b c7                 | mov rax, rdi
-    0x39ac55e | 48 8b 4c 24 30           | mov rcx, qword ptr [rsp + 0x30]
-    0x39ac563 | 44 8b 43 08              | mov r8d, dword ptr [rbx + 0x8]
-    0x39ac567 | 48 81 c1 77 50 c3 ff     | add rcx, 0xffc35077
-    0x39ac56e | 41 2b d0                 | sub edx, r8d
-    0x39ac571 | 48 89 4d e0              | mov qword ptr [rbp - 0x20], rcx
-    L_0x39ac575:
-    0x39ac575 | 48 ff c0                 | inc rax
-    0x39ac578 | 80 3c 01 00              | cmp byte ptr [rcx + rax], 0x0
-    0x39ac57c | 75 f7                    | jne 0x39ac575
-    0x39ac57e | 48 89 45 e8              | mov qword ptr [rbp - 0x18], rax
-    0x39ac582 | 4c 8d 8d e0 00 00 00     | lea r9, [rbp + 0xe0]
-    0x39ac589 | 8b 43 1c                 | mov eax, dword ptr [rbx + 0x1c]
-    0x39ac58c | 48 8d 8d 00 01 00 00     | lea rcx, [rbp + 0x100]
-    0x39ac593 | 89 85 90 00 00 00        | mov dword ptr [rbp + 0x90], eax
-    0x39ac599 | 0f 10 85 90 00 00 00     | movups xmm0, xmmword ptr [rbp + 0x90]
-    0x39ac5a0 | 8b 43 18                 | mov eax, dword ptr [rbx + 0x18]
-    0x39ac5a3 | 89 85 a0 00 00 00        | mov dword ptr [rbp + 0xa0], eax
-    0x39ac5a9 | 48 8d 85 80 01 00 00     | lea rax, [rbp + 0x180]
-    0x39ac5b0 | 0f 10 8d a0 00 00 00     | movups xmm1, xmmword ptr [rbp + 0xa0]
-    0x39ac5b7 | 89 95 d0 00 00 00        | mov dword ptr [rbp + 0xd0], edx
-    0x39ac5bd | b2 05                    | mov dl, 0x5
-    0x39ac5bf | 0f 29 85 80 01 00 00     | movaps xmmword ptr [rbp + 0x180], xmm0
-    0x39ac5c6 | 44 89 85 c0 00 00 00     | mov dword ptr [rbp + 0xc0], r8d
-    0x39ac5cd | 4c 8d 85 f0 00 00 00     | lea r8, [rbp + 0xf0]
-    0x39ac5d4 | 0f 29 8d 90 01 00 00     | movaps xmmword ptr [rbp + 0x190], xmm1
-    0x39ac5db | 0f 10 8d c0 00 00 00     | movups xmm1, xmmword ptr [rbp + 0xc0]
-    0x39ac5e2 | 48 89 45 d8              | mov qword ptr [rbp - 0x28], rax
-    0x39ac5e6 | 44 89 b5 b0 00 00 00     | mov dword ptr [rbp + 0xb0], r14d
-    0x39ac5ed | 0f 10 85 b0 00 00 00     | movups xmm0, xmmword ptr [rbp + 0xb0]
-    0x39ac5f4 | 48 c7 45 d0 11 11 01 00  | mov qword ptr [rbp - 0x30], 0x11111
-    0x39ac5fc | 0f 29 8d b0 01 00 00     | movaps xmmword ptr [rbp + 0x1b0], xmm1
-    0x39ac603 | 0f 28 4d e0              | movaps xmm1, xmmword ptr [rbp - 0x20]
-    0x39ac607 | 0f 29 85 a0 01 00 00     | movaps xmmword ptr [rbp + 0x1a0], xmm0
-    0x39ac60e | 0f 10 85 d0 00 00 00     | movups xmm0, xmmword ptr [rbp + 0xd0]
-    0x39ac615 | c6 44 24 20 01           | mov byte ptr [rsp + 0x20], 0x1
-    0x39ac61a | 66 0f 7f 8d f0 00 00 00  | movdqa xmmword ptr [rbp + 0xf0], xmm1
-    0x39ac622 | 0f 29 85 c0 01 00 00     | movaps xmmword ptr [rbp + 0x1c0], xmm0
-    0x39ac629 | 0f 28 45 d0              | movaps xmm0, xmmword ptr [rbp - 0x30]
-    0x39ac62d | 66 0f 7f 85 e0 00 00 00  | movdqa xmmword ptr [rbp + 0xe0], xmm0
-    0x39ac635 | 0f 10 05 7c fd 76 04     | movups xmm0, xmmword ptr [rip + 0x476fd7c] ; DFLogISRTimestampOffsets
-    0x39ac63c | 0f 29 85 00 01 00 00     | movaps xmmword ptr [rbp + 0x100], xmm0
-    0x39ac643 | e8 88 56 fc 00           | call 0x4971cd0
-    L_0x39ac648:
-    0x39ac648 | 80 7b 03 00              | cmp byte ptr [rbx + 0x3], 0x0
-    0x39ac64c | 0f 85 df 00 00 00        | jne 0x39ac731
-    0x39ac652 | 8b 43 04                 | mov eax, dword ptr [rbx + 0x4]
-    0x39ac655 | 3b 05 0d fc 76 04        | cmp eax, dword ptr [rip + 0x476fc0d] ; DFIntNumOffsetUpdatesBeforeWeTrust
-    0x39ac65b | 0f 82 cb 00 00 00        | jb 0x39ac72c
-    0x39ac661 | c6 43 03 01              | mov byte ptr [rbx + 0x3], 0x1
-    0x39ac665 | 8b 43 14                 | mov eax, dword ptr [rbx + 0x14]
-    0x39ac668 | 8b 4b 1c                 | mov ecx, dword ptr [rbx + 0x1c]
-    0x39ac66b | 2b c8                    | sub ecx, eax
-    0x39ac66d | 89 4b 08                 | mov dword ptr [rbx + 0x8], ecx
-    0x39ac670 | 48 8b 05 41 fd 76 04     | mov rax, qword ptr [rip + 0x476fd41] ; DFLogISRTimestampOffsets
-    0x39ac677 | 3c 06                    | cmp al, 0x6
-    0x39ac679 | 0f 82 b2 00 00 00        | jb 0x39ac731
-    0x39ac67f | 48 c1 e8 08              | shr rax, 0x8
-    0x39ac683 | 3c 05                    | cmp al, 0x5
-    0x39ac685 | 0f 82 a6 00 00 00        | jb 0x39ac731
-    0x39ac68b | 48 8d 05 aa 71 e3 03     | lea rax, [rip + 0x3e371aa] ; "[DFLog::ISRTimestampOffsets] ISR Remote to Local Offsets Stabilized after {} steps, Overriding S"
-    0x39ac692 | 48 89 44 24 30           | mov qword ptr [rsp + 0x30], rax
-    0x39ac697 | 48 8b 44 24 30           | mov rax, qword ptr [rsp + 0x30]
-    0x39ac69c | 48 05 34 79 bf ff        | add rax, 0xffbf7934
-    0x39ac6a2 | 48 89 44 24 70           | mov qword ptr [rsp + 0x70], rax
-    L_0x39ac6a7:
-    0x39ac6a7 | 48 ff c7                 | inc rdi
-    0x39ac6aa | 80 3c 38 00              | cmp byte ptr [rax + rdi], 0x0
-    0x39ac6ae | 75 f7                    | jne 0x39ac6a7
-    0x39ac6b0 | 8b 43 04                 | mov eax, dword ptr [rbx + 0x4]
-    0x39ac6b3 | 4c 8d 4c 24 50           | lea r9, [rsp + 0x50]
-    0x39ac6b8 | 89 44 24 50              | mov dword ptr [rsp + 0x50], eax
-    0x39ac6bc | 4c 8d 44 24 40           | lea r8, [rsp + 0x40]
-    0x39ac6c1 | 0f 10 44 24 50           | movups xmm0, xmmword ptr [rsp + 0x50]
-    0x39ac6c6 | 8b 43 08                 | mov eax, dword ptr [rbx + 0x8]
-    0x39ac6c9 | 48 8d 4c 24 60           | lea rcx, [rsp + 0x60]
-    0x39ac6ce | 89 44 24 40              | mov dword ptr [rsp + 0x40], eax
-    0x39ac6d2 | b2 05                    | mov dl, 0x5
-    0x39ac6d4 | 0f 10 4c 24 40           | movups xmm1, xmmword ptr [rsp + 0x40]
-    0x39ac6d9 | 48 8d 85 10 01 00 00     | lea rax, [rbp + 0x110]
-    0x39ac6e0 | 48 c7 45 80 12 00 00 00  | mov qword ptr [rbp - 0x80], 0x12
-    0x39ac6e8 | 0f 11 85 10 01 00 00     | movups xmmword ptr [rbp + 0x110], xmm0
-    0x39ac6ef | 48 89 45 88              | mov qword ptr [rbp - 0x78], rax
-    0x39ac6f3 | 0f 28 45 80              | movaps xmm0, xmmword ptr [rbp - 0x80]
-    0x39ac6f7 | 66 0f 7f 44 24 50        | movdqa xmmword ptr [rsp + 0x50], xmm0
-    0x39ac6fd | 0f 10 05 b4 fc 76 04     | movups xmm0, xmmword ptr [rip + 0x476fcb4] ; DFLogISRTimestampOffsets
-    0x39ac704 | 48 89 7c 24 78           | mov qword ptr [rsp + 0x78], rdi
-    0x39ac709 | 0f 11 8d 20 01 00 00     | movups xmmword ptr [rbp + 0x120], xmm1
-    0x39ac710 | c6 44 24 20 01           | mov byte ptr [rsp + 0x20], 0x1
-    0x39ac715 | 0f 28 4c 24 70           | movaps xmm1, xmmword ptr [rsp + 0x70]
-    0x39ac71a | 0f 29 44 24 60           | movaps xmmword ptr [rsp + 0x60], xmm0
-    0x39ac71f | 66 0f 7f 4c 24 40        | movdqa xmmword ptr [rsp + 0x40], xmm1
-    0x39ac725 | e8 a6 55 fc 00           | call 0x4971cd0
-    0x39ac72a | eb 05                    | jmp 0x39ac731
-    L_0x39ac72c:
-    0x39ac72c | ff c0                    | inc eax
-    0x39ac72e | 89 43 04                 | mov dword ptr [rbx + 0x4], eax
-    L_0x39ac731:
-    0x39ac731 | 44 0f 28 8c 24 f0 02 00.. | movaps xmm9, xmmword ptr [rsp + 0x2f0]
-    0x39ac73a | 44 0f 28 84 24 00 03 00.. | movaps xmm8, xmmword ptr [rsp + 0x300]
-    0x39ac743 | 0f 28 bc 24 10 03 00 00  | movaps xmm7, xmmword ptr [rsp + 0x310]
-    0x39ac74b | 0f 28 b4 24 20 03 00 00  | movaps xmm6, xmmword ptr [rsp + 0x320]
-    0x39ac753 | 4c 8b bc 24 30 03 00 00  | mov r15, qword ptr [rsp + 0x330]
-    0x39ac75b | 4c 8b b4 24 68 03 00 00  | mov r14, qword ptr [rsp + 0x368]
-    0x39ac763 | 4c 8b a4 24 60 03 00 00  | mov r12, qword ptr [rsp + 0x360]
-    0x39ac76b | 48 8b bc 24 58 03 00 00  | mov rdi, qword ptr [rsp + 0x358]
-    0x39ac773 | 44 0f 28 94 24 e0 02 00.. | movaps xmm10, xmmword ptr [rsp + 0x2e0]
-    0x39ac77c | 66 c7 03 00 00           | mov word ptr [rbx], 0x0
-    0x39ac781 | 48 8b 8d d0 01 00 00     | mov rcx, qword ptr [rbp + 0x1d0]
-    0x39ac788 | 48 33 cc                 | xor rcx, rsp
-    0x39ac78b | e8 10 81 43 02           | call 0x5de48a0
-    0x39ac790 | 48 81 c4 38 03 00 00     | add rsp, 0x338
-    0x39ac797 | 5b                       | pop rbx
-    0x39ac798 | 5d                       | pop rbp
-    0x39ac799 | c3                       | ret
 
 [Strings .rdata na função]
   * "[DFLog::ISRTimestampOffsets] ISR: Client stall detected - hard resetting offset from {} to raw {"  [@rdata 0x73db480, ref @0x39ac121, FLog format]
@@ -937,17 +875,17 @@ Operação  : 0x39ac0f5: mov/math reg, [flag] ; fn=0x39abef0..0x39ac79a
 
 [Co-Flags na mesma função]
   * DFFlagISRTrackSmoothTimestampOffsets = false (default)
-  * DFIntIsrTimestampOffsetSmoothingHundredths = 2 (default)
+  * DFIntIsrTimestampOffsetSmoothingHundredths = 80 (default)
   * DFFlagISRTimestampStallDetection = false (default)
   * DFFlagDebugISRDisableTimeCappedOffsetDrift = false (default)
-  * DFIntISRTimeCappedOffsetRatio = 2 (default)
-  * DFIntISRStallLongThreshold = 20 (default)
+  * DFIntISRTimeCappedOffsetRatio = 1 (default)
+  * DFIntISRStallLongThreshold = 8 (default)
   * DFIntISRStallShortThreshold = 3 (default)
-  * DFIntISRStallLongDivergenceThreshold = 60 (default)
-  * DFIntISRStallShortDivergenceThreshold = 10 (default)
-  * DFIntISRStallBoostSmoothingHundredths = 50 (default)
-  * DFIntNumOffsetUpdatesBeforeWeTrust = 20 (default)
-  * DFIntMaxISRHistoryBuffer = 10 (default) [vizinha em .data]
+  * DFIntISRStallLongDivergenceThreshold = 15 (default)
+  * DFIntISRStallShortDivergenceThreshold = 5 (default)
+  * DFIntISRStallBoostSmoothingHundredths = 0 (default)
+  * DFIntNumOffsetUpdatesBeforeWeTrust = 0 (default)
+  * DFIntMaxISRHistoryBuffer = 500000 (default) [vizinha em .data]
   * DFFlagEnableClientAuthorityCapable = true (default) [vizinha em .data]
   * DFFlagISRStopResendAfterOwnershipLost = true (default) [vizinha em .data]
   * FFlagStreamingSkipLocalOnlyNOUs = true (default) [vizinha em .data]

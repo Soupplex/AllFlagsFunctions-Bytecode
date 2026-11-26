@@ -11,11 +11,12 @@ Operação  : 0x45401a7: mov/math reg, [flag] ; fn=0x45400c0..0x4540231
     Papel   : Divisor / Taxa de frequência (Hz) usado em cálculos de intervalo e orçamento
     Fórmula : OcclusionSettingsQualityPercentCPUSaturation > OcclusionSettingsQualityPercentCPUCutoff
     Fórmula : max(OcclusionSettingsQualityPercentCPUCutoff, 0)
-    Fórmula : (fxmm6_5 - (float)OcclusionSettingsQualityPercentCPUCutoff > 100 ? 100 : max(expr_3, 0)) * ftmp_1 / ((float)v_rcx_4 - (float)OcclusionSettingsQualityPercentCPUCutoff > 100 ? 100 : max(expr_3, 0))
+    Fórmula : (float)(OcclusionSettingsQualityPercentCPUCutoff > 100 ? 100 : max(expr_3, 0)) > fxmm6_3 * 100.0f
+    Fórmula : (fxmm6_5 - (float)(OcclusionSettingsQualityPercentCPUCutoff > 100 ? 100 : max(expr_3, 0))) * ftmp_1 / ((float)v_rcx_4 - (float)(OcclusionSettingsQualityPercentCPUCutoff > 100 ? 100 : max(expr_3, 0)))
   
   === [Decompilacao C++ da Funcao 0x45400c0..0x4540231] ===
     // Flag defaults: OcclusionSettingsQualityPercentCPUCutoff = 0, OcclusionSettingsMaxCpuNumerator = 1, OcclusionSettingsMaxCpuDenominator = 5, OcclusionSettingsQualityPercentCPUMax = 100, OcclusionSettingsQualityPercentCPUMin = 5, OcclusionSettingsQualityPercentCPUSaturation = -1
-    float RBX::OcclusionSettings::func_0x45400c0(RBX::OcclusionSettings* this) {
+    float func_0x45400c0() {
       void* v_rdx_1;
       if (global_0x8cd7608 != 0) {
         auto vret_1 = global_0x8cd7608->vfunc_0x8();
@@ -29,37 +30,28 @@ Operação  : 0x45401a7: mov/math reg, [flag] ; fn=0x45400c0..0x4540231
       }
       auto expr_4 = OcclusionSettingsQualityPercentCPUMax;
       auto expr_2 = max(expr_4, 0);
-      int32_t v_rax_2 = expr_4 > 100 ? 100 : expr_2;
-      if (expr_4 > 100 ? 100 : expr_2 >= OcclusionSettingsQualityPercentCPUMin) {
-        v_rax_2 = max(OcclusionSettingsQualityPercentCPUMin, 0);
-      }
-      uint8_t tmp_1 = v_rdx_1->field_0x18->field_0x180 > ((float)expr_4 > 100 ? 100 : expr_2 / 100.0f);
-      float fxmm6_3;
+      int32_t v_rax_2 = std::clamp(OcclusionSettingsQualityPercentCPUMin, 0, expr_4 > 100 ? 100 : expr_2);
+      uint8_t tmp_1 = v_rdx_1->field_0x18->field_0x180 > (float)(expr_4 > 100 ? 100 : expr_2) / 100.0f;
+      float fxmm6_3 = v_rdx_1->field_0x18->field_0x180;
       if (tmp_1 != 0) {
-        fxmm6_3 = (float)expr_4 > 100 ? 100 : expr_2 / 100.0f;
+        fxmm6_3 = (float)(expr_4 > 100 ? 100 : expr_2) / 100.0f;
       } else if ((float)v_rax_2 / 100.0f > v_rdx_1->field_0x18->field_0x180) {
         fxmm6_3 = (float)v_rax_2 / 100.0f;
-      } else {
-        fxmm6_3 = v_rdx_1->field_0x18->field_0x180;
       }
-      float fxmm6_6;
+      float fxmm6_6 = fxmm6_3;
       auto expr_3 = OcclusionSettingsQualityPercentCPUCutoff;
       if (OcclusionSettingsQualityPercentCPUSaturation > expr_3) {
         int32_t v_rcx_4 = std::clamp(OcclusionSettingsQualityPercentCPUSaturation, 0, 100);
-        float fxmm6_5;
+        float fxmm6_5 = fxmm6_3 * 100.0f;
+        auto expr_1 = max(expr_3, 0);
         if (fxmm6_3 * 100.0f > (float)v_rcx_4) {
           fxmm6_5 = (float)v_rcx_4;
-          auto expr_1 = max(expr_3, 0);
-        } else if ((float)expr_3 > 100 ? 100 : expr_1 > fxmm6_3 * 100.0f) {
-          fxmm6_5 = (float)expr_3 > 100 ? 100 : expr_1;
-        } else {
-          fxmm6_5 = fxmm6_3 * 100.0f;
+        } else if ((float)(expr_3 > 100 ? 100 : expr_1) > fxmm6_3 * 100.0f) {
+          fxmm6_5 = (float)(expr_3 > 100 ? 100 : expr_1);
         }
-        float ftmp_1 = ((float)expr_4 > 100 ? 100 : expr_2 / 100.0f) - (float)v_rax_2 / 100.0f;
-        float ftmp_2 = (fxmm6_5 - (float)expr_3 > 100 ? 100 : expr_1) * ftmp_1 / ((float)v_rcx_4 - (float)expr_3 > 100 ? 100 : expr_1);
+        float ftmp_1 = (float)(expr_4 > 100 ? 100 : expr_2) / 100.0f - (float)v_rax_2 / 100.0f;
+        float ftmp_2 = (fxmm6_5 - (float)(expr_3 > 100 ? 100 : expr_1)) * ftmp_1 / ((float)v_rcx_4 - (float)(expr_3 > 100 ? 100 : expr_1));
         fxmm6_6 = ftmp_2 + (float)v_rax_2 / 100.0f;
-      } else {
-        fxmm6_6 = fxmm6_3;
       }
       float ftmp_3 = (float)OcclusionSettingsMaxCpuNumerator / (float)OcclusionSettingsMaxCpuDenominator;
       v_rdx_1->vfunc_0x10(v_rdx_1);

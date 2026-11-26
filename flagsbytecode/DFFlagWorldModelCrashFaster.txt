@@ -9,7 +9,7 @@ Operação  : 0xcb3351: cmp byte [flag], imm8 ; fn=0xcb3290..0xcb346a
     Classe  : RBX::WorldModel (RTTI Resolvido)
     Padrão  : DFFlagWorldModelCrashFaster = false (default) [bool, mode=2]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
-    Fórmula : !WorldModelCrashFaster
+    Fórmula : WorldModelCrashFaster && this->field_0x46c != -1
     Altera  : this->field_0x0, this->field_0x98, this->field_0xa8, this->field_0x130, this->field_0x150, this->field_0x160
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
@@ -22,6 +22,7 @@ Operação  : 0xcb3351: cmp byte [flag], imm8 ; fn=0xcb3290..0xcb346a
     struct RBX::WorldModel {
       /* +0x0 */ void*   field_0x0;
       /* +0x98 */ void*   field_0x98;
+      /* +0x9c */ int32_t field_0x9c;
       /* +0xa0 */ void*   field_0xa0;
       /* +0xa8 */ void*   field_0xa8;
       /* +0x130 */ void*   field_0x130;
@@ -44,19 +45,35 @@ Operação  : 0xcb3351: cmp byte [flag], imm8 ; fn=0xcb3290..0xcb346a
       this->field_0x330 = &sym_0x6f7a3d0;
       this->field_0x338 = &sym_0x6f7a3f8;
       auto* f_a0 = this->field_0xa0;
-      auto* f_a0_4 = f_a0->field_0x4;
-      f_a0_4->field_0xa0[this] = &sym_0x6f7a3b8;
-      f_a0_4->field_0x9c[this] = f_a0_4 - 0x3e8;
+      f_a0[f_a0->field_0x4] = &sym_0x6f7a3b8;
+      this->field_0x9c[f_a0->field_0x4] = f_a0->field_0x4 - 0x3e8;
+      if (WorldModelCrashFaster && this->field_0x46c != -1) {
+        call_0x49710d0("Desctucted WorldModel before remove.", &sym_0x6647145);
+        return; // noreturn
+      }
       if (RemovePredelete) {
+        uint64_t local_0x20;
+        local_0x20 = 0.0;
+        uint64_t local_0x38;
+        local_0x38 = &sym_0x6f79b08 & 0xfffffffffffffffbULL | 0x2ULL;
         call_0xcb41f0(this, &local_0x20);
-        if ((local_0x38 & 0xfffffffc & 0xfffffff8) != 0) {
-          if (((uint8_t)local_0x38 >> 1 & 0x1) != 0) {
-            if ((~((local_0x38 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x38 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-              ((~((local_0x38 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x38 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0x20);
+        if ((local_0x38 & 0xfffffffffffffffcULL & 0xfffffffffffffff8ULL) != 0) {
+          uint64_t v_rax_1;
+          if (((uint8_t)(~((int8_t)(uint8_t)(local_0x38 & 0xfffffffffffffffcULL) >> 2)) & 0x1) != 0) {
+            v_rax_1 = 0;
+          } else {
+            v_rax_1 = ((local_0x38 & 0xfffffffffffffffcULL) & 0xfffffffffffffff8ULL)->field_0x18;
+          }
+          auto mem_1_1 = local_0x38;
+          local_0x38 = 0;
+          auto expr_1 = ~((int8_t)(uint8_t)(mem_1_1 & 0xfffffffffffffffcULL) >> 2);
+          if (((int8_t)(uint8_t)mem_1_1 >> 1 & 0x1) != 0) {
+            if (v_rax_1 != 0) {
+              (*v_rax_1)(&local_0x20, (uint8_t)expr_1);
             }
           } else {
-            if ((~((local_0x38 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x38 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-              ((~((local_0x38 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x38 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(local_0x20);
+            if (v_rax_1 != 0) {
+              (*v_rax_1)(local_0x20, (uint8_t)expr_1);
             }
             call_0x4955ac0(local_0x20);
           }
@@ -192,31 +209,45 @@ Operação  : 0xcb3351: cmp byte [flag], imm8 ; fn=0xcb3290..0xcb346a
       /* +0x78 */ void*   field_0x78;
     };
     
-    void SubObj_0xcb41f0::func_0xcb41f0(SubObj_0xcb41f0* this, int64_t param_2) {
-      auto* f_70 = this->field_0x70;
-      if (f_70 != 0) {
+    void SubObj_0xcb41f0::func_0xcb41f0(SubObj_0xcb41f0* this, void* param_2) {
+      if (this->field_0x70 != 0) {
         auto* f_78 = this->field_0x78;
         if (f_78 != 0) {
           f_78->field_0x8++;
         }
-        void* i_edi = f_70->field_0x0;
-        void* v_rcx_1 = f_78;
-        void* stk_2;
-        if (f_70->field_0x0 != f_70->field_0x8) {
+        void* local_0x38;
+        local_0x38 = f_78;
+        uint8_t* i_edi = this->field_0x70->field_0x0;
+        void* local_0x30 = this->field_0x70;
+        void* v_rcx_2 = f_78;
+        if (this->field_0x70->field_0x0 != this->field_0x70->field_0x8) {
           void* prev_0x8_2;
           do { // L_0xcb4241
-            prev_0x8_2 = f_70->field_0x8;
+            prev_0x8_2 = this->field_0x70->field_0x8;
             auto ret_0xe038b0_1 = call_0xe038b0();
             if (i_edi->field_0x0->field_0x18->field_0x1c0 - ret_0xe038b0_1->field_0x1c0 <= ret_0xe038b0_1->field_0x1c2) {
+              uint64_t local_0x20;
+              local_0x20 = 0.0;
+              uint64_t local_0x28;
+              local_0x28 = 0.0;
               if (i_edi->field_0x8 != 0) {
                 i_edi->field_0x8->field_0x8++;
               }
-              auto local_0x20 = i_edi->field_0x0;
-              auto local_0x24 = 0.0;
-              auto local_0x28 = i_edi->field_0x8;
-              auto local_0x2c = 0.0;
-              auto local_0x30 = this->field_0x70;
-              (param_2->field_0x18 & 0xfffffff8)->vfunc_0x0(param_2, &local_0x20);
+              local_0x20 = i_edi->field_0x0;
+              local_0x28 = i_edi->field_0x8;
+              uint64_t local_0x70;
+              local_0x70 = &local_0x20;
+              if ((param_2->field_0x18 & 0xfffffffffffffff8ULL) == 0) {
+                uint64_t local_0x40;
+                call_0x6db790(&local_0x40);
+                call_0x5e066f0(&local_0x40, &sym_0x80cbfc8);
+                return; // noreturn
+              }
+              void* v_rcx_1 = param_2;
+              if (((int8_t)(uint8_t)param_2->field_0x18 >> 1 & 0x1) == 0) {
+                v_rcx_1 = param_2->field_0x0;
+              }
+              (*(param_2->field_0x18 & 0xfffffffffffffff8ULL)->field_0x0)(v_rcx_1, &local_0x20);
               if (local_0x28 != 0) {
                 call_0x6daf40(local_0x28);
               }
@@ -224,15 +255,16 @@ Operação  : 0xcb3351: cmp byte [flag], imm8 ; fn=0xcb3290..0xcb346a
             call_0xcb41f0(i_edi->field_0x0, param_2);
             i_edi += 0x10;
           } while (i_edi != prev_0x8_2); // loop -> L_0xcb4241
-          v_rcx_1 = local_0x38;
-          stk_2 = local_0x38;
-        } else {
-          stk_2 = this->field_0x78;
+          v_rcx_2 = local_0x38;
         }
-        if (v_rcx_1 != 0 && atomic_fetch_sub(&v_rcx_1->field_0x8, 1) == 1) {
-          stk_2->vfunc_0x0(stk_2);
-          if (atomic_fetch_sub(&stk_2->field_0xc, 1) == 1) {
-            stk_2->vfunc_0x8();
+        if (v_rcx_2 != 0) {
+          int32_t atomic_7 = atomic_fetch_sub(&v_rcx_2->field_0x8, 1);
+          if (atomic_7 == 1) {
+            local_0x38->vfunc_0x0(local_0x38);
+            int32_t atomic_9 = atomic_fetch_sub(&local_0x38->field_0xc, 1);
+            if (atomic_9 == 1) {
+              local_0x38->vfunc_0x8();
+            }
           }
         }
       }
@@ -345,9 +377,10 @@ Operação  : 0xcb3351: cmp byte [flag], imm8 ; fn=0xcb3290..0xcb346a
     0xcb4363 | e8 88 23 15 05           | call 0x5e066f0
   
   === [Sub-Rotina Chamada: 0xcb4040..0xcb413c via call @0xcb3414 (Direct Engine Sub-Call)] ===
-    struct RBX::WorldRoot::WorldModel {
+    struct RBX::WorldModel {
       /* +0x0 */ void*   field_0x0;
       /* +0x98 */ void*   field_0x98;
+      /* +0x9c */ int32_t field_0x9c;
       /* +0xa0 */ void*   field_0xa0;
       /* +0xa8 */ void*   field_0xa8;
       /* +0x130 */ void*   field_0x130;
@@ -357,7 +390,7 @@ Operação  : 0xcb3351: cmp byte [flag], imm8 ; fn=0xcb3290..0xcb346a
       /* +0x338 */ void*   field_0x338;
     };
     
-    auto RBX::WorldRoot::WorldModel::func_0xcb4040(RBX::WorldRoot::WorldModel* this) {
+    auto RBX::WorldModel::func_0xcb4040(RBX::WorldModel* this) {
       this->field_0x0 = &sym_0x6f79bd0;
       this->field_0x98 = &sym_0x6f79b40;
       this->field_0xa8 = &sym_0x6f79b58;
@@ -367,13 +400,12 @@ Operação  : 0xcb3351: cmp byte [flag], imm8 ; fn=0xcb3290..0xcb346a
       this->field_0x330 = &sym_0x6f79ee8;
       this->field_0x338 = &sym_0x6f79b18;
       auto* f_a0 = this->field_0xa0;
-      auto* f_a0_4 = f_a0->field_0x4;
-      f_a0_4->field_0xa0[this] = &sym_0x6f79b28;
-      f_a0_4->field_0x9c[this] = f_a0_4 - 0x3d0;
+      f_a0[f_a0->field_0x4] = &sym_0x6f79b28;
+      this->field_0x9c[f_a0->field_0x4] = f_a0->field_0x4 - 0x3d0;
       auto ret_0xd9d090_1 = call_0xd9d090();
       auto ret_0x1c395f0_2 = call_0x1c395f0();
       uint64_t v_rdx_1;
-      if (ret_0xd9d090_1->field_0x1c0 >= (ret_0x1c395f0_2->field_0x8 - ret_0x1c395f0_2->field_0x0) >> 4) {
+      if (ret_0xd9d090_1->field_0x1c0 >= (int64_t)(ret_0x1c395f0_2->field_0x8 - ret_0x1c395f0_2->field_0x0) >> 4) {
         v_rdx_1 = &sym_0x8cdac18;
       } else {
         v_rdx_1 = (ret_0xd9d090_1->field_0x1c0 << 4) + ret_0x1c395f0_2->field_0x0;
@@ -436,17 +468,17 @@ Operação  : 0xcb3351: cmp byte [flag], imm8 ; fn=0xcb3290..0xcb346a
     0xcb4137 | e9 f4 6d fe ff           | jmp 0xc9af30
   
   === [Estrutura RTTI & VTable da Classe (RBX::WorldModel)] ===
-    VTable  : 0x6f79f90 (offset +0x0, 61 slots virtuais)
-    Herança : RBX::WorldRoot::WorldModel, RBX::WorldRoot, RBX::ModelInstance::WorldRoot, RBX::ModelInstance, RBX::VPVInstance::ModelInstance, RBX::PVInstance, RBX::Instance::VPVInstance, RBX::Instance, RBX::Object, RBX::DescribedBase, RBX::EventSource, RBX::DescribedBase (+0x8), RBX::Object (+0x28), RBX::ObjectProp (+0x38), RBX::Noncopyable (+0x38)
-    +0x0 -> fn_0xcb3290
+    VTable  : 0x6f79bd0 (offset +0x0, 56 slots virtuais)
+    Herança : RBX::WorldRoot, RBX::Reflection::Described, RBX::ModelInstance, RBX::PVInstance, RBX::Instance, RBX::Object, RBX::DescribedBase, RBX::EventSource, RBX::enable_shared_from_this (+0x8), RBX::GuidItem (+0x28), RBX::ObjectProp (+0x38), RBX::Noncopyable (+0x38), RBX::Diagnostics::Countable (+0x58)
+    +0x0 -> fn_0xcb4140
     +0x8 -> fn_0x1c1f1a0
     +0x10 -> fn_0xca7e90
     +0x18 -> fn_0x1c44010
     +0x38 -> fn_0xcb4010
     +0x40 -> fn_0x1c3dbf0
-    +0x48 -> fn_0xd9cfd0
+    +0x48 -> fn_0xd8f160
     +0x50 -> fn_0x1c432c0
-    +0x58 -> fn_0xcb3be0
+    +0x58 -> fn_0xca64b0
     +0x78 -> fn_0x1c3cdf0
     +0x88 -> fn_0x1c49aa0
     +0x90 -> fn_0x1c3d010
@@ -455,102 +487,86 @@ Operação  : 0xcb3351: cmp byte [flag], imm8 ; fn=0xcb3290..0xcb346a
     +0xd0 -> fn_0x1c3da30
     +0xd8 -> fn_0x1c439b0
   
-  === [Decompilacao de Metodo da Classe RBX::WorldModel: 0xca7e90..0xca7fd1 (vfunc_0x10)] ===
-    struct RBX::WorldRoot {
-      /* +0x0 */ void*   field_0x0;
-      /* +0x3f8 */ void*   field_0x3f8;
-    };
-    
-    // Flag defaults: SimWorldModelWakeBorrowedCollisionGroups = false
-    void RBX::WorldRoot::func_0xca7e90(RBX::WorldRoot* this, int64_t param_2, void* param_3) {
-      if (param_2 == &sym_0x8591500) {
-        auto ret_0x4062490_1 = call_0x4062490(this);
-        void* prev_0x0_1 = param_3->field_0x0->field_0x0;
-        auto ret_0x1c34f90_2 = call_0x1c34f90();
-        if (prev_0x0_1 == ret_0x1c34f90_2) {
-          void* sel_rcx_1 = param_3->field_0x0->field_0x8 == 0 ? 0 : param_3->field_0x0->field_0x10;
-          void* prev_0x50_2 = param_3->field_0x0->field_0x50;
-          auto prev_0x0_3 = sel_rcx_1->field_0x0;
-          auto ret_0x1c34f90_3 = call_0x1c34f90();
-          if (prev_0x50_2 == ret_0x1c34f90_3) {
-            void* sel_rax_2 = param_3->field_0x0->field_0x58 == 0 ? 0 : param_3->field_0x0->field_0x60;
-            if (this->field_0x3f8 != 0) {
-              auto prev_0x0_4 = sel_rax_2->field_0x0;
-              call_0x13de500(this->field_0x3f8, prev_0x0_3, sel_rax_2->field_0x0);
-              if (SimWorldModelWakeBorrowedCollisionGroups) {
-                this->vfunc_0x2f0(this, prev_0x0_3, prev_0x0_4);
-              }
-            }
-            if (ret_0x4062490_1 != 0 && &ret_0x4062490_1->field_0x1f0 != 0) {
-              auto ret_0xcb1e70_7 = call_0xcb1e70(&ret_0x4062490_1->field_0x1f0);
-              if (ret_0xcb1e70_7->field_0x0 != 0) {
-                auto local_0x20 = sel_rcx_1->field_0x0;
-                auto local_0x68 = sel_rax_2->field_0x0;
-                call_0x9199b0(&ret_0xcb1e70_7->field_0x0->field_0xa8, &local_0x20, &local_0x68);
-              }
-            }
-          } else {
-            call_0x4973aa0("Variant cast failed");
-          }
-        } else {
-          call_0x4973aa0("Variant cast failed");
-        }
+  === [Decompilacao de Metodo da Classe RBX::WorldModel: 0xcb4140..0xcb4170 (vfunc_0x0)] ===
+    auto RBX::WorldModel::func_0xcb4140(RBX::WorldModel* this, int64_t param_2) {
+      call_0xcb4040(this);
+      if (((uint8_t)param_2 & 0x1) != 0) {
+        call_0x4955ac0(this);
       }
-      switch (param_2->field_0x0->field_0x38) {
-      }
+      return this;
     }
   
   === [Decompilacao de Metodo da Classe RBX::WorldModel: 0x1c44010..0x1c44138 (vfunc_0x18)] ===
     struct RBX::Instance {
       /* +0x48 */ void*   field_0x48;
-      /* +0x60 */ void*   field_0x60;
+      /* +0x60 */ uint64_t field_0x60;
     };
     
     // Flag defaults: CheckEngineContextOnInstanceAccess2 = false
-    void RBX::Instance::func_0x1c44010(RBX::Instance* this, int64_t param_2, void* param_3, void* param_4) {
+    void RBX::Instance::func_0x1c44010(RBX::Instance* this, int64_t param_2, int64_t param_3, int64_t param_4) {
       if (this->field_0x60 != 0) {
-        (*global_0x80f4c48)(this);
-      }
-      auto ret_0x4956040_2 = call_0x4956040(24);
-      auto ret_0xffc540_3 = call_0xffc540(ret_0x4956040_2, param_3);
-      call_0xd29440(&local_0x40, ret_0xffc540_3);
-      auto* f_48 = this->field_0x48;
-      if (f_48 != 0 && f_48->field_0x8 != 0) {
-        auto ret_0xc700_5 = call_0xc700(global_0x84cf408, 1);
-        if (ret_0xc700_5->field_0x0 == 0) {
-          auto local_0x20 = 3;
-          call_0x7d7f00(this->field_0x48, &local_0x20, &local_0x28);
-        } else {
-          call_0x49710d0("Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel ", &sym_0x6647145);
+        void* v_rax_1 = global_0x80f4c48;
+        if (!CheckEngineContextOnInstanceAccess2) {
+          v_rax_1 = global_0x80f4c50;
         }
+        (*v_rax_1)(this);
       }
-      if (local_0x48 != 0) {
-        call_0x6daf40(local_0x48);
+      uint64_t local_0x30;
+      local_0x30 = &sym_0x70375b0;
+      auto ret_0x4956040_2 = call_0x4956040(24);
+      uint64_t local_0x60;
+      if (ret_0x4956040_2 != 0) {
+        uint64_t local_0x28;
+        local_0x28 = ret_0x4956040_2;
+        auto ret_0xffc540_3 = call_0xffc540(ret_0x4956040_2, param_3);
+        uint64_t local_0x40;
+        call_0xd29440(&local_0x40, ret_0xffc540_3);
+        local_0x28 = &local_0x30;
+        uint64_t local_0x20;
+        local_0x20 = 3;
+        auto* f_48 = this->field_0x48;
+        if (f_48 != 0 && f_48->field_0x8 != 0) {
+          auto ret_0xc700_5 = call_0xc700(global_0x84cf408, 1);
+          if (ret_0xc700_5->field_0x0 == 0) {
+            auto local_0x38 = param_2;
+            call_0x7d7f00(this->field_0x48, &local_0x20, &local_0x28);
+          } else {
+            call_0x49710d0("Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel execution.", &sym_0x6647145);
+            call_0x6ca7d0(&local_0x60);
+            call_0x5e066f0(&local_0x60, &sym_0x80cbbc0);
+            return; // noreturn
+          }
+        }
+        uint64_t local_0x48;
+        if (local_0x48 != 0) {
+          call_0x6daf40(local_0x48);
+          return;
+        }
+        return;
       }
+      call_0x6ca7d0(&local_0x60);
+      call_0x5e066f0(&local_0x60, &sym_0x80cbbc0);
+      return; // noreturn
     }
   
   === [Decompilacao de Metodo da Classe RBX::WorldModel: 0xcb4010..0xcb4035 (vfunc_0x38)] ===
-    void RBX::WorldRoot::WorldModel::func_0xcb4010(RBX::WorldRoot::WorldModel* this) {
+    void RBX::WorldModel::func_0xcb4010(RBX::WorldModel* this) {
       if (global_0x8cd2958 == 0) {
-        auto ret_0xd9d090_1 = call_0xd9d090(this);
+        auto ret_0xd9d090_1 = call_0xd9d090();
         global_0x8cd2958 = ret_0xd9d090_1->field_0x8;
       }
     }
 
 [Strings .rdata na função]
   * "Desctucted WorldModel before remove."  [@rdata 0x71c2710, ref @0xcb345e, literal, 36B]
-  * "Variant cast failed"  [@rdata 0x7191e38, ref @0xca7fc5, literal, 19B]
-  * "Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel "  [@rdata 0x7280e40, ref @0x1c44110, literal, 96B]
 
 [Co-Flags na mesma função]
   * FFlagRemovePredelete = false (default)
-  * DFFlagSimWorldModelWakeBorrowedCollisionGroups = false (default)
-  * DFFlagCheckEngineContextOnInstanceAccess2 = false (default)
   * DFFlagSimWorldModelReindexBorrowedCollisionGroups = false (default) [vizinha em .data]
   * DFFlagFixWeldDisableReentryCrash = true (default) [vizinha em .data]
   * FFlagSimStepPhysicsFixSimulationDuringTeamCreate2 = true (default) [vizinha em .data]
   * DFFlagUseNewShapecasts3 = true (default) [vizinha em .data]
-  * FIntPhysicsGridHierarchyLowestLevelInitBinCountWorldModel = 1 (default) [vizinha em .data]
-  * FIntPhysicsSolverCollisionPoolBucketSizeWorldModel = 1 (default) [vizinha em .data]
+  * FIntPhysicsGridHierarchyLowestLevelInitBinCountWorldModel = 4096 (default) [vizinha em .data]
+  * FIntPhysicsSolverCollisionPoolBucketSizeWorldModel = 16384 (default) [vizinha em .data]
   * FIntWeldConstraintAdornHighlightedPartSize = 2 (default) [vizinha em .data]
   * FIntWeldConstraintAdornSize = 10 (default) [vizinha em .data]

@@ -16,7 +16,7 @@ Operação  : 0x4cee110: movzx reg, byte [flag] ; fn=0x4cee110..0x4cee118
   
   === [Decompilacao C++ da Funcao 0x4cee110..0x4cee118] ===
     // Flag defaults: AppShellReportCampaignPageLoadTime = false
-    bool RBX::AppShell::func_0x4cee110(RBX::AppShell* this) {
+    bool func_0x4cee110() {
       return AppShellReportCampaignPageLoadTime;
     }
   
@@ -26,25 +26,30 @@ Operação  : 0x4cee110: movzx reg, byte [flag] ; fn=0x4cee110..0x4cee118
   
   === [Decompilacao C++ do XREF Runtime #2: 0x4cee9f0..0x4ceeb59 (insn @0x4ceeac0: cmp byte [flag], imm8)] ===
     struct RBX::AppShell {
-      /* +0x28 */ void*   field_0x28;
-      /* +0x48 */ void*   field_0x48;
-      /* +0x50 */ void*   field_0x50;
-      /* +0x60 */ void*   field_0x60;
-      /* +0x68 */ void*   field_0x68;
+      /* +0x28 */ uint64_t field_0x28;
+      /* +0x48 */ uint64_t field_0x48;
+      /* +0x50 */ uint64_t field_0x50;
+      /* +0x60 */ uint64_t field_0x60;
+      /* +0x68 */ uint64_t field_0x68;
     };
     
     // Flag defaults: AppShellReportCampaignPageLoadTime = false, AppShellReporter = 0
     void RBX::AppShell::func_0x4cee9f0(RBX::AppShell* this, int64_t param_2) {
       if ((uint8_t)AppShellReporter >= 6 && (uint8_t)((uint64_t)AppShellReporter >> 8) >= 3) {
-        FLog::Log("[FLog::AppShellReporter] AppShellReporter::actionEnabled %d");
+        FLog::Log("[FLog::AppShellReporter] AppShellReporter::actionEnabled %d", param_2);
       }
       auto local_0x10 = param_2;
+      uint64_t local_0xa8;
       call_0x737860(this, &local_0xa8);
+      void* local_0x50;
+      local_0x50 = &this->field_0x28;
       call_0x2e12fd0(&this->field_0x28);
       void* v_rsi_2 = 0;
-      double fxmm6_3;
-      if ((this->field_0x50 - this->field_0x48) >> 4 != 0) {
-        this->field_0x50 = &this->field_0x50->field_m0x10;
+      double fxmm6_3 = 0.0;
+      if ((int64_t)(this->field_0x50 - this->field_0x48) >> 4 != 0) {
+        uint64_t local_0x40;
+        local_0x40 = (this->field_0x50 - 0x10)->field_0x0;
+        this->field_0x50 = this->field_0x50 - 0x10;
         uint8_t v_al_1;
         if (local_0xa8 == 13 && !AppShellReportCampaignPageLoadTime) {
           v_al_1 = 1;
@@ -52,10 +57,15 @@ Operação  : 0x4cee110: movzx reg, byte [flag] ; fn=0x4cee110..0x4cee118
           v_al_1 = 0;
         }
         if (this->field_0x60 != this->field_0x68) {
-          void* i_ebx = this->field_0x60;
+          uint8_t* i_ebx = this->field_0x60;
           do { // L_0x4ceeae0
-            if (v_al_1 == 0 && i_ebx->field_0x0 == this->field_0x50->field_m0x10) {
-              if (i_ebx->field_0x4 == local_0xa8) break;
+            if (v_al_1 == 0 && i_ebx->field_0x0 == local_0x40) {
+              if (i_ebx->field_0x4 == local_0xa8) {
+                auto ret_0x4959ee0_3 = call_0x4959ee0();
+                v_rsi_2 = i_ebx;
+                fxmm6_3 = ret_0x4959ee0_3 - (this->field_0x50 - 0x10)->field_0x8;
+                break;
+              }
               i_ebx += 0x28;
               if (i_ebx == this->field_0x68) break;
             } else {
@@ -63,18 +73,13 @@ Operação  : 0x4cee110: movzx reg, byte [flag] ; fn=0x4cee110..0x4cee118
               if (i_ebx == this->field_0x68) break;
             }
           } while (true); // loop -> L_0x4ceeae0
-        } else {
-          fxmm6_3 = 0.0;
         }
-      } else {
-        fxmm6_3 = 0.0;
       }
-      auto* f_28 = this->field_0x28;
-      if (f_28 != 3 || atomic_cas(&&f_28->field_0x0, f_28, 1) != 0) {
-        call_0xdac0(&this->field_0x28);
+      if (this->field_0x28 != 3 || !atomic_cas(&local_0x50->field_0x0, this->field_0x28, 1)) {
+        call_0xdac0(local_0x50);
       }
       if (v_rsi_2 != 0) {
-        call_0x4ceeb60(&this->field_0x28, v_rsi_2, fxmm6_3);
+        call_0x4ceeb60(local_0x50, v_rsi_2, fxmm6_3);
       }
     }
   
@@ -193,11 +198,11 @@ Operação  : 0x4cee110: movzx reg, byte [flag] ; fn=0x4cee110..0x4cee118
 
 [Co-Flags na mesma função]
   * FLogAppShellReporter = 0 (default)
-  * FFlagVirtualInputManagerEnableRecording = true (default) [vizinha em .data]
+  * FFlagVirtualInputManagerEnableRecording = false (default) [vizinha em .data]
   * FFlagVirtualInputManagerEnableStudioPlayback = true (default) [vizinha em .data]
   * FIntAppShellMemoryReportPeriodicity = 120 (default) [vizinha em .data]
   * FIntAppShellFPSReportPeriod = 120 (default) [vizinha em .data]
   * FIntAppShellMemoryReportPeriodSeconds = 600 (default) [vizinha em .data]
   * FIntAppShellMemoryReportInitialDelay = 10 (default) [vizinha em .data]
-  * FLogBaseExperienceController = 6 (default) [vizinha em .data]
+  * FLogBaseExperienceController = 0 (default) [vizinha em .data]
   * FFlagSessionTrackingReportScriptErrors = false (default) [vizinha em .data]

@@ -10,21 +10,33 @@ Operação  : 0x3159466: mov/math reg, [flag] ; fn=0x31593b0..0x31596f8
     Padrão  : DFLogInstanceStitchingLog = 0 (default) [log, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : (uint8_t)InstanceStitchingLog >= 6 && (uint8_t)((uint64_t)InstanceStitchingLog >> 8) >= 5
-    Altera  : this->field_0x90->field_0x0[((rdx + idx_1 * 2) * 8)], this->field_0x90->field_0x8[((rdx + idx_1 * 2) * 8)], this->field_0x90->field_0x10[((rdx + idx_1 * 2) * 8)]
+    Fórmula : "[DFLog::InstanceStitchingLog] Client: Speculative Instance of type {} with GUID: peer {} index {} is colliding with an existing Instance of type {}. Marking for destruction."
+    Altera  : this->field_0x90->field_0x0[((idx_2 * 3) * 8)], this->field_0x90->field_0x8[((idx_2 * 3) * 8)], this->field_0x90->field_0x10[((idx_2 * 3) * 8)]
     [XREF #2 @0x31597de] Classe  : RBX::InstanceStitching (Inferido)
     [XREF #2 @0x31597de] Fórmula : (uint8_t)InstanceStitchingLog >= 6 && (uint8_t)((uint64_t)InstanceStitchingLog >> 8) >= 5
     [XREF #3 @0x3159afc] Classe  : RBX::InstanceStitching (Inferido)
     [XREF #3 @0x3159afc] Fórmula : (uint8_t)InstanceStitchingLog >= 6 && (uint8_t)(uint64_t)InstanceStitchingLog >> 8 >= 5
+    [XREF #3 @0x3159afc] Fórmula : "[DFLog::InstanceStitchingLog] Generated deterministic GUID with scriptGuid {}, stableId {}, frameId {}, count {}: Guid Index {}"
+    [XREF #3 @0x3159afc] Fórmula : "[DFLog::InstanceStitchingLog] Client: Tried to create an Instance of type {} with GUID: peer {} index {} at time {}, but one already exists with type {}. Probable hash collision."
+    [XREF #3 @0x3159afc] Fórmula : *(uint32_t*)((uint8_t*)&InstanceStitchingLog + 0x4)
+    [XREF #3 @0x3159afc] Fórmula : *(uint32_t*)((uint8_t*)&InstanceStitchingLog + 0x8)
+    [XREF #3 @0x3159afc] Fórmula : *(uint32_t*)((uint8_t*)&InstanceStitchingLog + 0xc)
     [XREF #3 @0x3159afc] Altera  : this->field_0x50
     [XREF #4 @0x315a570] Classe  : RBX::InstanceStitching (Inferido)
+    [XREF #4 @0x315a570] Fórmula : (uint8_t)InstanceStitchingLog >= 6 && (uint8_t)((uint64_t)InstanceStitchingLog >> 8) >= 5
+    [XREF #4 @0x315a570] Fórmula : "[DFLog::InstanceStitchingLog] {}: Assigned deterministic GUID {} to speculative Instance of type {} at time {}"
     [XREF #5 @0x315a729] Classe  : RBX::InstanceStitching (Inferido)
     [XREF #5 @0x315a729] Fórmula : (uint8_t)InstanceStitchingLog >= 6 && (uint8_t)((uint64_t)InstanceStitchingLog >> 8) >= 5
     [XREF #6 @0x315aae8] Classe  : RBX::InstanceStitching (Inferido)
     [XREF #6 @0x315aae8] Fórmula : (uint8_t)InstanceStitchingLog >= 6 && (uint8_t)((uint64_t)InstanceStitchingLog >> 8) >= 5
+    [XREF #6 @0x315aae8] Fórmula : "[DFLog::InstanceStitchingLog] Client: Stitched Instance with GUID: {}"
     [XREF #7 @0x315b036] Classe  : RBX::InstanceStitching (Inferido)
+    [XREF #7 @0x315b036] Fórmula : "[DFLog::InstanceStitchingLog] Deleting speculative Instance of type {} created at frame {} (server confirmed past frame {}) with GUID: {}"
     [XREF #7 @0x315b036] Fórmula : (uint8_t)InstanceStitchingLog >= 6 && (uint8_t)((uint64_t)InstanceStitchingLog >> 8) >= 5
     [XREF #8 @0x315b452] Classe  : RBX::InstanceStitching (Inferido)
     [XREF #8 @0x315b452] Fórmula : (uint8_t)InstanceStitchingLog >= 6 && (uint8_t)(uint64_t)InstanceStitchingLog >> 8 >= 5
+    [XREF #8 @0x315b452] Fórmula : "[DFLog::InstanceStitchingLog] Rolling back to frame {}"
+    [XREF #8 @0x315b452] Fórmula : "[DFLog::InstanceStitchingLog] Rollback to frame {}: preserving speculative Instance of type {} created at frame {} with GUID: {}"
     [XREF #8 @0x315b452] Altera  : this->field_0x50
   
   === [Decompilacao C++ da Funcao 0x31593b0..0x31596f8] ===
@@ -40,74 +52,106 @@ Operação  : 0x3159466: mov/math reg, [flag] ; fn=0x31593b0..0x31596f8
     };
     
     // Flag defaults: InstanceStitchingLog = 0, DebugEnableStreamOutToDisk8 = false, SplitHashNoRehashOnExistingKey = true
-    auto RBX::InstanceStitching::func_0x31593b0(RBX::InstanceStitching* this, int64_t param_2, void* param_3) {
-      auto ret_0x4954e70_1 = call_0x4954e70(global_0x84c1018);
-      uint8_t v_bl_11;
+    auto RBX::InstanceStitching::func_0x31593b0(RBX::InstanceStitching* this, void* param_2, int64_t param_3) {
+      uint64_t local_0x40;
+      local_0x40 = call_0x4954e70(global_0x84c1018);
+      uint8_t v_bl_8;
       if (this->field_0x2e8 == 0 && param_3 != 0 && param_2->field_0x0 == DebugEnableStreamOutToDisk8 + 4) {
+        void* local_0x50;
+        local_0x50 = 0.0;
         auto ret_0x27c3a00_2 = call_0x27c3a00(this->field_0x2d8->field_0xa8, param_2, &local_0x50);
-        uint8_t v_bl_10;
+        uint8_t v_bl_7;
+        void* local_0x58;
         if ((uint8_t)ret_0x27c3a00_2 != 0 && local_0x50 != 0 && local_0x50->field_0x18 != param_3) {
+          uint64_t local_0x30;
           if ((uint8_t)InstanceStitchingLog >= 6 && (uint8_t)((uint64_t)InstanceStitchingLog >> 8) >= 5) {
-            FLog::Log("[DFLog::InstanceStitchingLog] Client: Speculative Instance of type {} with GUID: peer {} index {", &local_0x60, param_2->field_0x0);
+            local_0x30 = "[DFLog::InstanceStitchingLog] Client: Speculative Instance of type {} with GUID: peer {} index {} is colliding with an existing Instance of type {}. Marking for destruction.";
+            void* v_rdx_1 = local_0x50->field_0x18->field_0x8;
+            if (local_0x50->field_0x18->field_0x8->field_0x18 >= 16) {
+              v_rdx_1 = local_0x50->field_0x18->field_0x8->field_0x0;
+            }
+            uint64_t local_0x70;
+            local_0x70 = v_rdx_1;
+            uint64_t local_0x60;
+            FLog::Log("[DFLog::InstanceStitchingLog] Client: Speculative Instance of type {} with GUID: peer {} index {} is colliding with an existing Instance of type {}. Marking for destruction.", &local_0x60, param_2->field_0x0, param_2->field_0x4, &local_0x70);
           }
+          local_0x30 = 0.0;
+          void* local_0x38;
+          local_0x38 = 0.0;
           float fstk_3;
           float fstk_4;
           if (local_0x58 != 0) {
-            fstk_3 = local_0x58;
-            fstk_4 = local_0x50;
+            local_0x30 = local_0x50;
+            local_0x38 = local_0x58;
+            local_0x58->field_0xc++;
+            uint64_t local_0x54;
+            fstk_3 = local_0x54;
+            uint64_t local_0x5c;
+            fstk_4 = local_0x5c;
           } else {
             fstk_3 = 0.0;
             fstk_4 = 0.0;
           }
+          int64_t idx_1;
           if (global_0x84a44d6 != 0 && SplitHashNoRehashOnExistingKey) {
             if (this->field_0x84 == 0) {
               call_0x315e460(&this->field_0x80, 16);
             } else {
-              if (this->field_0x80 + this->field_0x88->field_0x8[(1 << this->field_0x9c) * 4] * 4 >= 1 << this->field_0x9c) {
-                call_0x315dee0(&this->field_0x80);
+              auto* f_88 = this->field_0x88;
+              idx_1 = f_88->field_0x8[(1 << (uint8_t)this->field_0x9c) * 4];
+              if (this->field_0x80 + idx_1 * 4 >= 1 << (uint8_t)this->field_0x9c) {
+                call_0x315dee0(&this->field_0x80, f_88->field_0x8[(1 << (uint8_t)this->field_0x9c) * 4], this->field_0x80 + idx_1 * 4);
               }
             }
-          } else {
-            if (this->field_0x80 == this->field_0x84) {
-              int32_t v_rcx_7 = std::clamp(this->field_0x84, 16, 16384);
-              call_0x315e460(&this->field_0x80, v_rcx_7 + this->field_0x84);
-            } else if (this->field_0x84 != 0) {
-              if (this->field_0x80 + this->field_0x88->field_0x8[(1 << this->field_0x9c) * 4] * 4 >= 1 << this->field_0x9c) {
-                call_0x315dee0(&this->field_0x80);
-              }
+          } else if (this->field_0x80 == this->field_0x84) {
+            int32_t v_rcx_5 = std::clamp(this->field_0x84, 16, 16384);
+            call_0x315e460(&this->field_0x80, v_rcx_5 + this->field_0x84);
+          } else if (this->field_0x84 != 0) {
+            auto* f_88_2 = this->field_0x88;
+            idx_1 = f_88_2->field_0x8[(1 << (uint8_t)this->field_0x9c) * 4];
+            if (this->field_0x80 + idx_1 * 4 >= 1 << (uint8_t)this->field_0x9c) {
+              call_0x315dee0(&this->field_0x80, f_88_2->field_0x8[(1 << (uint8_t)this->field_0x9c) * 4], this->field_0x80 + idx_1 * 4);
             }
           }
+          uint64_t local_0x48;
           call_0x315e040(&this->field_0x80, &local_0x48, param_2, 1);
-          void* v_rdi_8 = 0;
-          float fstk_9;
+          void* v_rdi_6 = 0;
+          uint64_t local_0x4c;
           if (local_0x4c != 0) {
+            int64_t idx_2 = this->field_0x88->field_0x0[local_0x48 * 4] & this->field_0x98;
             auto* f_90 = this->field_0x90;
-            f_90->field_0x0[((rdx + idx_1 * 2) * 8)] = param_2->field_0x0;
-            f_90->field_0x8[((rdx + idx_1 * 2) * 8)] = fstk_4;
-            f_90->field_0x10[((rdx + idx_1 * 2) * 8)] = fstk_3;
-            fstk_9 = 0;
+            f_90->field_0x0[((idx_2 * 3) * 8)] = param_2->field_0x0;
+            f_90->field_0x8[((idx_2 * 3) * 8)] = local_0x30;
+            f_90->field_0x10[((idx_2 * 3) * 8)] = local_0x38;
+            local_0x38 = 0;
           } else {
-            v_rdi_8 = fstk_3;
-            fstk_9 = fstk_3;
+            v_rdi_6 = local_0x38;
           }
-          if (v_rdi_8 != 0 && atomic_fetch_add(&v_rdi_8->field_0xc, -1) == 1) {
-            fstk_9->vfunc_0x8();
+          if (v_rdi_6 != 0) {
+            int32_t atomic_7 = atomic_fetch_add(&v_rdi_6->field_0xc, -1);
+            if (atomic_7 == 1) {
+              local_0x38->vfunc_0x8();
+            }
           }
-          v_bl_10 = 1;
+          v_bl_7 = 1;
+          uint64_t local_0x34;
+          local_0x34 = fstk_3;
+          uint64_t local_0x3c;
+          local_0x3c = fstk_4;
         } else {
-          v_bl_10 = 0;
+          v_bl_7 = 0;
         }
         if (local_0x58 != 0) {
           call_0x6daf40(local_0x58);
-          v_bl_11 = v_bl_10;
+          v_bl_8 = v_bl_7;
         } else {
-          v_bl_11 = v_bl_10;
+          v_bl_8 = v_bl_7;
         }
       } else {
-        v_bl_11 = 0;
+        v_bl_8 = 0;
       }
-      call_0x4954e70(ret_0x4954e70_1);
-      return v_bl_11;
+      call_0x4954e70(local_0x40);
+      return v_bl_8;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -160,7 +204,7 @@ Operação  : 0x3159466: mov/math reg, [flag] ; fn=0x31593b0..0x31596f8
     0x3159475 | 48 c1 e8 08              | shr rax, 0x8
     0x3159479 | 3c 05                    | cmp al, 0x5
     0x315947b | 0f 82 fd 00 00 00        | jb 0x315957e
-    0x3159481 | 48 8d 05 4d ca 39 04     | lea rax, [rip + 0x439ca4d] ; "[DFLog::InstanceStitchingLog] Client: Speculative Instance of type {} with GUID: peer {} index {"
+    0x3159481 | 48 8d 05 4d ca 39 04     | lea rax, [rip + 0x439ca4d] ; "[DFLog::InstanceStitchingLog] Client: Speculative Instance of type {} with GUID: peer {} index {} is colliding with an existing Instance of type {}. Marking for destruction."
     0x3159488 | 48 89 44 24 30           | mov qword ptr [rsp + 0x30], rax
     0x315948d | 48 8b 4c 24 30           | mov rcx, qword ptr [rsp + 0x30]
     0x3159492 | 48 81 c1 fb 35 e9 ff     | add rcx, 0xffe935fb
@@ -346,7 +390,7 @@ Operação  : 0x3159466: mov/math reg, [flag] ; fn=0x31593b0..0x31596f8
     struct SubObj_0x315e460 {
       /* +0x0 */ int32_t field_0x0;
       /* +0x4 */ int32_t field_0x4;
-      /* +0x8 */ void*   field_0x8;
+      /* +0x8 */ uint64_t field_0x8;
       /* +0x10 */ void*   field_0x10;
       /* +0x1c */ int32_t field_0x1c;
       /* +0x20 */ void*   field_0x20;
@@ -354,32 +398,53 @@ Operação  : 0x3159466: mov/math reg, [flag] ; fn=0x31593b0..0x31596f8
     
     void SubObj_0x315e460::func_0x315e460(SubObj_0x315e460* this, int64_t param_2) {
       void* v_r14_1;
-      int64_t local_0x30;
-      int64_t local_0x40;
+      uint64_t local_0x60;
+      uint64_t local_0x20;
+      uint64_t local_0x48;
+      uint64_t local_0x40;
+      uint64_t local_0x38;
+      uint64_t local_0x30;
       if (param_2 == 0) {
         v_r14_1 = 0;
       } else {
-        auto local_0xd0 = 0;
+        uint64_t local_0xd0;
+        local_0xd0 = 0;
+        local_0x30 = (param_2 * 3 << 3) + 7 & 0xfffffffffffffff8ULL;
+        local_0x38 = 8;
         local_0x40 = 0;
-        local_0x30 = ((param_2 + param_2 * 2) << 3) + 7 & 0xfffffff8;
+        local_0x48 = 0;
+        local_0x20 = &sym_0x2e132f0;
         auto* f_20 = this->field_0x20;
-        f_20->vfunc_0x30(f_20, &local_0xd0, &local_0x40, &local_0x30);
+        auto vret_1 = f_20->vfunc_0x30(f_20, &local_0xd0, &local_0x40, &local_0x30, &sym_0x2e132f0);
+        if (vret_1 != 0 || local_0xd0 == 0) {
+          call_0x6ca7d0(&local_0x60);
+          call_0x5e066f0(&local_0x60, &sym_0x80cbbc0);
+          return; // noreturn
+        } else {
+          v_r14_1 = local_0xd0;
+        }
       }
+      int32_t i_edi_2;
       if (this->field_0x0 != 0) {
-        if (this->field_0x0 != (this->field_0x8 + (1 << this->field_0x1c) * 4)->field_0x4) {
-          int64_t idx_1 = (this->field_0x8 + (1 << this->field_0x1c) * 4)->field_0x10;
+        if (this->field_0x0 != (this->field_0x8 + ((1 << (uint8_t)this->field_0x1c) * 4))->field_0x4) {
+          void* ptr_1 = this->field_0x8 + (1 << (uint8_t)this->field_0x1c) * 4;
+          int64_t idx_2 = (this->field_0x8 + ((1 << (uint8_t)this->field_0x1c) * 4))->field_0x10;
           if (this->field_0x4 > 0) {
+            int32_t i_edi = 0;
             do { // L_0x315e530
-              if ((((this->field_0x8 + (1 << this->field_0x1c) * 4) + idx_1 * 8)->field_0x18[((uint32_t)i_edi >> 6) * 8] & 1 << (i_edi & 0x3f)) == 0) {
-                ((i_edi + i_edi * 2) * 8)[v_r14_1] = (this->field_0x10 + ((i_edi + i_edi * 2) * 8))->field_0x0;
-                ((i_edi + i_edi * 2) * 8)->field_0x8[v_r14_1] = 0;
-                ((i_edi + i_edi * 2) * 8)->field_0x10[v_r14_1] = 0;
-                ((i_edi + i_edi * 2) * 8)->field_0x8[v_r14_1] = (this->field_0x10 + ((i_edi + i_edi * 2) * 8))->field_0x8;
-                ((i_edi + i_edi * 2) * 8)->field_0x10[v_r14_1] = (this->field_0x10 + ((i_edi + i_edi * 2) * 8))->field_0x10;
-                (this->field_0x10 + ((i_edi + i_edi * 2) * 8))->field_0x8 = 0;
-                (this->field_0x10 + ((i_edi + i_edi * 2) * 8))->field_0x10 = 0;
-                if (this->field_0x10->field_0x10[(i_edi + i_edi * 2) * 8] != 0 && atomic_fetch_sub(&(this->field_0x10->field_0x10[((i_edi + i_edi * 2) * 8)])->field_0xc, 1) == 1) {
-                  ((this->field_0x10->field_0x10[((i_edi + i_edi * 2) * 8)])->field_0x0)->vfunc_0x8();
+              if (((ptr_1 + (idx_2 * 8))->field_0x18[((uint32_t)i_edi >> 6) * 8] & 1 << (uint8_t)(i_edi & 0x3f)) == 0) {
+                v_r14_1->field_0x0[((i_edi * 3) * 8)] = (this->field_0x10 + ((i_edi * 3) * 8))->field_0x0;
+                v_r14_1->field_0x8[((i_edi * 3) * 8)] = 0;
+                v_r14_1->field_0x10[((i_edi * 3) * 8)] = 0;
+                v_r14_1->field_0x8[((i_edi * 3) * 8)] = (this->field_0x10 + ((i_edi * 3) * 8))->field_0x8;
+                v_r14_1->field_0x10[((i_edi * 3) * 8)] = (this->field_0x10 + ((i_edi * 3) * 8))->field_0x10;
+                (this->field_0x10 + ((i_edi * 3) * 8))->field_0x8 = 0;
+                (this->field_0x10 + ((i_edi * 3) * 8))->field_0x10 = 0;
+                if (this->field_0x10->field_0x10[i_edi * 3 * 8] != 0) {
+                  int32_t atomic_6 = atomic_fetch_sub(&(this->field_0x10->field_0x10[((i_edi * 3) * 8)])->field_0xc, 1);
+                  if (atomic_6 == 1) {
+                    (*((this->field_0x10->field_0x10[((i_edi * 3) * 8)])->field_0x0)->field_0x8)();
+                  }
                 }
               }
               i_edi++;
@@ -387,52 +452,65 @@ Operação  : 0x3159466: mov/math reg, [flag] ; fn=0x31593b0..0x31596f8
           }
         } else {
           if (this->field_0x0 != 0) {
-            int32_t i_edi = 0;
+            i_edi_2 = 0;
             L_0x315e5d0:
             do { // L_0x315e5d0
-              ((i_edi + i_edi * 2) * 8)[v_r14_1] = (this->field_0x10 + ((i_edi + i_edi * 2) * 8))->field_0x0;
-              ((i_edi + i_edi * 2) * 8)->field_0x8[v_r14_1] = 0;
-              ((i_edi + i_edi * 2) * 8)->field_0x10[v_r14_1] = 0;
-              ((i_edi + i_edi * 2) * 8)->field_0x8[v_r14_1] = (this->field_0x10 + ((i_edi + i_edi * 2) * 8))->field_0x8;
-              ((i_edi + i_edi * 2) * 8)->field_0x10[v_r14_1] = (this->field_0x10 + ((i_edi + i_edi * 2) * 8))->field_0x10;
-              (this->field_0x10 + ((i_edi + i_edi * 2) * 8))->field_0x8 = 0;
-              (this->field_0x10 + ((i_edi + i_edi * 2) * 8))->field_0x10 = 0;
-              if (this->field_0x10->field_0x10[(i_edi + i_edi * 2) * 8] != 0 && atomic_fetch_sub(&(this->field_0x10->field_0x10[((i_edi + i_edi * 2) * 8)])->field_0xc, 1) == 1) {
-                ((this->field_0x10->field_0x10[((i_edi + i_edi * 2) * 8)])->field_0x0)->vfunc_0x8();
+              v_r14_1->field_0x0[((i_edi_2 * 3) * 8)] = (this->field_0x10 + ((i_edi_2 * 3) * 8))->field_0x0;
+              v_r14_1->field_0x8[((i_edi_2 * 3) * 8)] = 0;
+              v_r14_1->field_0x10[((i_edi_2 * 3) * 8)] = 0;
+              v_r14_1->field_0x8[((i_edi_2 * 3) * 8)] = (this->field_0x10 + ((i_edi_2 * 3) * 8))->field_0x8;
+              v_r14_1->field_0x10[((i_edi_2 * 3) * 8)] = (this->field_0x10 + ((i_edi_2 * 3) * 8))->field_0x10;
+              (this->field_0x10 + ((i_edi_2 * 3) * 8))->field_0x8 = 0;
+              (this->field_0x10 + ((i_edi_2 * 3) * 8))->field_0x10 = 0;
+              if (this->field_0x10->field_0x10[i_edi_2 * 3 * 8] != 0) {
+                int32_t atomic_4 = atomic_fetch_sub(&(this->field_0x10->field_0x10[((i_edi_2 * 3) * 8)])->field_0xc, 1);
+                if (atomic_4 == 1) {
+                  (*((this->field_0x10->field_0x10[((i_edi_2 * 3) * 8)])->field_0x0)->field_0x8)(this->field_0x10->field_0x10[((i_edi_2 * 3) * 8)], ((i_edi_2 * 3) * 8), this->field_0x0);
+                }
               }
-              i_edi++;
-            } while (i_edi < this->field_0x0); // loop -> L_0x315e5d0
+              i_edi_2++;
+            } while (i_edi_2 < this->field_0x0); // loop -> L_0x315e5d0
           }
         }
       } else if (this->field_0x0 != 0) {
-        int32_t i_edi = 0;
+        i_edi_2 = 0;
         goto L_0x315e5d0;
       }
-      int64_t local_0xd8;
-      if (this->field_0x10 != &this->field_0x28 && this->field_0x10 != 0) {
+      uint64_t local_0xd8;
+      if (this->field_0x10 != &this->field_0x28) {
         local_0xd8 = this->field_0x10;
-        local_0x30 = (this->field_0x4 + this->field_0x4 * 2) * 8 & 0xfffffff8;
-        auto* f_20_2 = this->field_0x20;
-        f_20_2->vfunc_0x30(f_20_2, &local_0xd8, &local_0x30, &local_0x40);
+        if (this->field_0x10 != 0) {
+          local_0x40 = 0;
+          local_0x48 = 0;
+          local_0x30 = this->field_0x4 * 3 * 8 + 7 & 0xfffffffffffffff8ULL;
+          local_0x38 = 8;
+          local_0x20 = &sym_0x2e132f0;
+          auto* f_20_2 = this->field_0x20;
+          f_20_2->vfunc_0x30(f_20_2, &local_0xd8, &local_0x30, &local_0x40, &sym_0x2e132f0);
+        }
       }
-      auto prev_0x4_3 = this->field_0x4;
+      auto prev_0x4_5 = this->field_0x4;
       this->field_0x4 = param_2;
       this->field_0x10 = v_r14_1;
       if (param_2 != 0) {
-        call_0x315e770(this, prev_0x4_3);
+        call_0x315e770(this, prev_0x4_5);
         call_0x315dee0(this);
         return;
       }
-      if (this->field_0x8 != &this->field_0x1a8 && this->field_0x8 != 0) {
-        void* prev_0x20_5 = this->field_0x20;
-        auto ret_0x6fdb30_5 = call_0x6fdb30(prev_0x4_3);
+      if (this->field_0x8 != &this->field_0x1a8) {
         local_0xd8 = this->field_0x8;
-        auto local_0x60 = &ret_0x6fdb30_5->field_0x3f & 0xffffffc0;
-        auto local_0x50 = 0;
-        prev_0x20_5->vfunc(prev_0x20_5, &local_0xd8, &local_0x60, &local_0x50);
-        this->field_0x8 = 0;
-        this->field_0x1c = 0;
-        return;
+        if (this->field_0x8 != 0) {
+          void* prev_0x20_7 = this->field_0x20;
+          auto ret_0x6fdb30_9 = call_0x6fdb30(prev_0x4_5);
+          local_0x60 = ret_0x6fdb30_9 + 0x3f & 0xffffffffffffffc0ULL;
+          local_0x20 = &sym_0x2e132f0;
+          auto local_0x68 = 64;
+          auto local_0x50 = 0;
+          this->field_0x20->vfunc_0x30(prev_0x20_7, &local_0xd8, &local_0x60, &local_0x50, &sym_0x2e132f0);
+          this->field_0x8 = 0;
+          this->field_0x1c = 0;
+          return;
+        }
       }
       this->field_0x8 = 0;
       this->field_0x1c = 0;
@@ -655,221 +733,119 @@ Operação  : 0x3159466: mov/math reg, [flag] ; fn=0x31593b0..0x31596f8
     0x315e75a | 48 8d 4d e0              | lea rcx, [rbp - 0x20]
     0x315e75e | e8 8d 7f ca 02           | call 0x5e066f0
   
-  === [Sub-Rotina Chamada: 0x315dee0..0x315e040 via call @0x3159623 (Direct Engine Sub-Call)] ===
-    struct SubObj_0x315dee0 {
-      /* +0x0 */ int32_t field_0x0;
-      /* +0x4 */ int32_t field_0x4;
-      /* +0x8 */ void*   field_0x8;
-      /* +0x10 */ void*   field_0x10;
-      /* +0x1c */ int32_t field_0x1c;
-    };
-    
-    void SubObj_0x315dee0::func_0x315dee0(SubObj_0x315dee0* this) {
-      if (this->field_0x8 != 0 && 4 << this->field_0x1c != 0) {
-        call_0x5e051b0(this->field_0x8, -1, 4 << this->field_0x1c);
-      }
-      if (this->field_0x0 != 0) {
-        auto* f_8 = this->field_0x8;
-        f_8->field_0x8[(1 << this->field_0x1c) * 4] = 0;
-        int32_t i_edx = f_8->field_0x4[(1 << this->field_0x1c) * 4];
-        int32_t v_rdx_1 = f_8->field_0x4[(1 << this->field_0x1c) * 4];
-        if (f_8->field_0x4[(1 << this->field_0x1c) * 4] != 0) {
-          do { // L_0x315df60
-            if ((r9->field_0x18[((uint64_t)(i_edx - 1) >> 6) * 8] & 1ULL << (i_edx - 1 & 0x3f)) >= 0) break;
-            i_edx = i_edx - 1;
-          } while (i_edx != 1); // loop -> L_0x315df60
-        }
-        auto expr_1 = f_8 + (1 << this->field_0x1c) * 4;
-        expr_1->field_0x4 = v_rdx_1;
-        int32_t i_ebx;
-        if (this->field_0x0 != v_rdx_1) {
-          int64_t idx_1 = expr_1->field_0x10;
-          if (this->field_0x4 > 0) {
-            do { // L_0x315dfa2
-              if (((expr_1 + idx_1 * 8)->field_0x18[((uint64_t)i_ebx >> 6) * 8] & 1ULL << (i_ebx & 0x3f)) >= 0) {
-                call_0x315e040(this, &local_0x30, this->field_0x10 + (i_ebx + i_ebx * 2) * 8, 2);
-                auto* f_8_2 = this->field_0x8;
-                f_8_2->field_0x0[local_0x30 * 4] = f_8_2->field_0x0[local_0x30 * 4] | i_ebx;
-              }
-              i_ebx++;
-            } while (i_ebx < this->field_0x4); // loop -> L_0x315dfa2
-            return;
-          }
-        } else {
-          i_ebx = 0;
-          if (this->field_0x0 != 0) {
-            do { // L_0x315e000
-              call_0x315e040(this, &local_0x30, this->field_0x10 + (i_ebx + i_ebx * 2) * 8, 2);
-              auto* f_8_3 = this->field_0x8;
-              f_8_3->field_0x0[local_0x30 * 4] = f_8_3->field_0x0[local_0x30 * 4] | i_ebx;
-              i_ebx++;
-            } while (i_ebx < this->field_0x0); // loop -> L_0x315e000
-          }
-        }
-      }
-    }
-  
-  === [Instrucoes x86-64 da Sub-Rotina Chamada (0x315dee0..0x315e040)] ===
-    0x315dee0 | 40 57                    | push rdi
-    0x315dee2 | 48 83 ec 20              | sub rsp, 0x20
-    0x315dee6 | 48 8b 41 08              | mov rax, qword ptr [rcx + 0x8]
-    0x315deea | 48 8b f9                 | mov rdi, rcx
-    0x315deed | 48 85 c0                 | test rax, rax
-    0x315def0 | 74 1e                    | je 0x315df10
-    0x315def2 | 8b 49 1c                 | mov ecx, dword ptr [rcx + 0x1c]
-    0x315def5 | 41 b8 04 00 00 00        | mov r8d, 0x4
-    0x315defb | 49 d3 e0                 | shl r8, cl
-    0x315defe | 4d 85 c0                 | test r8, r8
-    0x315df01 | 74 0d                    | je 0x315df10
-    0x315df03 | ba ff ff ff ff           | mov edx, 0xffffffff
-    0x315df08 | 48 8b c8                 | mov rcx, rax
-    0x315df0b | e8 a0 72 ca 02           | call 0x5e051b0
-    L_0x315df10:
-    0x315df10 | 83 3f 00                 | cmp dword ptr [rdi], 0x0
-    0x315df13 | 48 89 74 24 40           | mov qword ptr [rsp + 0x40], rsi
-    0x315df18 | 0f 84 17 01 00 00        | je 0x315e035
-    0x315df1e | 8b 4f 1c                 | mov ecx, dword ptr [rdi + 0x1c]
-    0x315df21 | 41 b8 01 00 00 00        | mov r8d, 0x1
-    0x315df27 | 48 8b 47 08              | mov rax, qword ptr [rdi + 0x8]
-    0x315df2b | 41 8b d0                 | mov edx, r8d
-    0x315df2e | 48 d3 e2                 | shl rdx, cl
-    0x315df31 | 48 89 5c 24 38           | mov qword ptr [rsp + 0x38], rbx
-    0x315df36 | 33 db                    | xor ebx, ebx
-    0x315df38 | 89 5c 90 08              | mov dword ptr [rax + rdx*4 + 0x8], ebx
-    0x315df3c | 8b 4f 1c                 | mov ecx, dword ptr [rdi + 0x1c]
-    0x315df3f | 4c 8d 14 90              | lea r10, [rax + rdx*4]
-    0x315df43 | 48 8b 47 08              | mov rax, qword ptr [rdi + 0x8]
-    0x315df47 | 49 d3 e0                 | shl r8, cl
-    0x315df4a | 42 8b 54 80 04           | mov edx, dword ptr [rax + r8*4 + 0x4]
-    0x315df4f | 4e 8d 1c 80              | lea r11, [rax + r8*4]
-    0x315df53 | 42 8b 44 80 10           | mov eax, dword ptr [rax + r8*4 + 0x10]
-    0x315df58 | 4d 8d 0c c3              | lea r9, [r11 + rax*8]
-    0x315df5c | 85 d2                    | test edx, edx
-    0x315df5e | 74 27                    | je 0x315df87
-    L_0x315df60:
-    0x315df60 | 44 8d 42 ff              | lea r8d, [rdx - 0x1]
-    0x315df64 | 41 8b c0                 | mov eax, r8d
-    0x315df67 | 83 e0 3f                 | and eax, 0x3f
-    0x315df6a | 0f b6 c8                 | movzx ecx, al
-    0x315df6d | 41 8b c0                 | mov eax, r8d
-    0x315df70 | 48 c1 e8 06              | shr rax, 0x6
-    0x315df74 | 49 8b 44 c1 18           | mov rax, qword ptr [r9 + rax*8 + 0x18]
-    0x315df79 | 48 0f a3 c8              | bt rax, rcx
-    0x315df7d | 73 08                    | jae 0x315df87
-    0x315df7f | 41 8b d0                 | mov edx, r8d
-    0x315df82 | 45 85 c0                 | test r8d, r8d
-    0x315df85 | 75 d9                    | jne 0x315df60
-    L_0x315df87:
-    0x315df87 | 41 89 53 04              | mov dword ptr [r11 + 0x4], edx
-    0x315df8b | 8b 07                    | mov eax, dword ptr [rdi]
-    0x315df8d | 3b c2                    | cmp eax, edx
-    0x315df8f | 74 6b                    | je 0x315dffc
-    0x315df91 | 41 8b 42 10              | mov eax, dword ptr [r10 + 0x10]
-    0x315df95 | 49 8d 34 c2              | lea rsi, [r10 + rax*8]
-    0x315df99 | 39 5f 04                 | cmp dword ptr [rdi + 0x4], ebx
-    0x315df9c | 0f 86 8e 00 00 00        | jbe 0x315e030
-    L_0x315dfa2:
-    0x315dfa2 | 8b c3                    | mov eax, ebx
-    0x315dfa4 | 83 e0 3f                 | and eax, 0x3f
-    0x315dfa7 | 0f b6 c8                 | movzx ecx, al
-    0x315dfaa | 8b c3                    | mov eax, ebx
-    0x315dfac | 48 c1 e8 06              | shr rax, 0x6
-    0x315dfb0 | 48 8b 44 c6 18           | mov rax, qword ptr [rsi + rax*8 + 0x18]
-    0x315dfb5 | 48 0f a3 c8              | bt rax, rcx
-    0x315dfb9 | 72 2a                    | jb 0x315dfe5
-    0x315dfbb | 48 8b 47 10              | mov rax, qword ptr [rdi + 0x10]
-    0x315dfbf | 48 8d 0c 5b              | lea rcx, [rbx + rbx*2]
-    0x315dfc3 | 41 b9 02 00 00 00        | mov r9d, 0x2
-    0x315dfc9 | 48 8d 54 24 30           | lea rdx, [rsp + 0x30]
-    0x315dfce | 4c 8d 04 c8              | lea r8, [rax + rcx*8]
-    0x315dfd2 | 48 8b cf                 | mov rcx, rdi
-    0x315dfd5 | e8 66 00 00 00           | call 0x315e040
-    0x315dfda | 8b 4c 24 30              | mov ecx, dword ptr [rsp + 0x30]
-    0x315dfde | 48 8b 47 08              | mov rax, qword ptr [rdi + 0x8]
-    0x315dfe2 | 09 1c 88                 | or dword ptr [rax + rcx*4], ebx
-    L_0x315dfe5:
-    0x315dfe5 | ff c3                    | inc ebx
-    0x315dfe7 | 3b 5f 04                 | cmp ebx, dword ptr [rdi + 0x4]
-    0x315dfea | 72 b6                    | jb 0x315dfa2
-    0x315dfec | 48 8b 5c 24 38           | mov rbx, qword ptr [rsp + 0x38]
-    0x315dff1 | 48 8b 74 24 40           | mov rsi, qword ptr [rsp + 0x40]
-    0x315dff6 | 48 83 c4 20              | add rsp, 0x20
-    0x315dffa | 5f                       | pop rdi
-    0x315dffb | c3                       | ret
-    L_0x315dffc:
-    0x315dffc | 85 c0                    | test eax, eax
-    0x315dffe | 74 30                    | je 0x315e030
-    L_0x315e000:
-    0x315e000 | 48 8b 47 10              | mov rax, qword ptr [rdi + 0x10]
-    0x315e004 | 48 8d 0c 5b              | lea rcx, [rbx + rbx*2]
-    0x315e008 | 41 b9 02 00 00 00        | mov r9d, 0x2
-    0x315e00e | 48 8d 54 24 30           | lea rdx, [rsp + 0x30]
-    0x315e013 | 4c 8d 04 c8              | lea r8, [rax + rcx*8]
-    0x315e017 | 48 8b cf                 | mov rcx, rdi
-    0x315e01a | e8 21 00 00 00           | call 0x315e040
-    0x315e01f | 8b 4c 24 30              | mov ecx, dword ptr [rsp + 0x30]
-    0x315e023 | 48 8b 47 08              | mov rax, qword ptr [rdi + 0x8]
-    0x315e027 | 09 1c 88                 | or dword ptr [rax + rcx*4], ebx
-    0x315e02a | ff c3                    | inc ebx
-    0x315e02c | 3b 1f                    | cmp ebx, dword ptr [rdi]
-    0x315e02e | 72 d0                    | jb 0x315e000
-    L_0x315e030:
-    0x315e030 | 48 8b 5c 24 38           | mov rbx, qword ptr [rsp + 0x38]
-    L_0x315e035:
-    0x315e035 | 48 8b 74 24 40           | mov rsi, qword ptr [rsp + 0x40]
-    0x315e03a | 48 83 c4 20              | add rsp, 0x20
-    0x315e03e | 5f                       | pop rdi
-    0x315e03f | c3                       | ret
-  
   === [Sub-Rotina Chamada: 0x315e040..0x315e2c0 via call @0x3159639 (Direct Engine Sub-Call)] ===
     struct SubObj_0x315e040 {
       /* +0x0 */ int32_t field_0x0;
       /* +0x4 */ int32_t field_0x4;
-      /* +0x8 */ void*   field_0x8;
+      /* +0x8 */ uint64_t field_0x8;
       /* +0x10 */ void*   field_0x10;
       /* +0x18 */ int32_t field_0x18;
       /* +0x1c */ int32_t field_0x1c;
     };
     
     // Flag defaults: SplitHashNoRehashOnExistingKey = true
-    void SubObj_0x315e040::func_0x315e040(SubObj_0x315e040* this, int64_t param_2, void* param_3, void* param_4) {
-      int32_t tmp_1 = ((-1640531527 + param_3->field_0x0) << 6) + param_3->field_0x4 + (((uint64_t)(-1640531527 + param_3->field_0x0) >> 2) - 0x61c88647) ^ -1640531527 + param_3->field_0x0;
-      int32_t i_edi = (uint32_t)(tmp_1 * -1640531535) >> (32 - this->field_0x1c) & 0xfffffff0;
-      int32_t i_r11d = -1;
-      int32_t v_rax_5;
+    void SubObj_0x315e040::func_0x315e040(SubObj_0x315e040* this, void* param_2, void* param_3, int64_t param_4) {
+      int32_t tmp_1 = ((0x9e3779b9ULL + param_3->field_0x0) << 6) + param_3->field_0x4 + (((uint64_t)(0x9e3779b9ULL + param_3->field_0x0) >> 2) - 0x61c88647) ^ 0x9e3779b9ULL + param_3->field_0x0;
+      int32_t i_edi = (uint32_t)(tmp_1 * -1640531535) >> (uint8_t)(32 - this->field_0x1c) & 0xfffffff0;
+      int32_t i_r11d_2 = -1;
       do { // L_0x315e0bf
         uint64_t i_eax = 0x4d72eb980136af5c;
         int32_t i_r9d = 0;
-        int32_t v_r11_6;
+        int32_t i_r11d = i_r11d_2;
+        int32_t v_r11_7;
         do { // L_0x315e0d0
-          int64_t idx_1 = (((uint64_t)i_eax >> i_r9d * 4) + ((uint32_t)(tmp_1 * -1640531535) >> (32 - this->field_0x1c)) & 0xf) + i_edi;
-          v_rax_5 = idx_1;
-          auto* f_8 = this->field_0x8;
-          if (f_8->field_0x0[idx_1 * 4] == -1) break;
-          v_r11_6 = i_r11d;
-          if (f_8->field_0x0[idx_1 * 4] == 2147483647) {
-            v_r11_6 = i_r11d != -1 ? i_r11d : idx_1;
-            i_r9d++;
-            i_eax = 0x4d72eb980136af5c;
-            i_edi = (1 << this->field_0x1c) - 1 & i_edi + 0x10;
-            i_r11d = v_r11_6;
+          int64_t idx_1 = (((uint64_t)i_eax >> (uint8_t)(i_r9d * 4)) + ((uint32_t)(tmp_1 * -1640531535) >> (uint8_t)(32 - this->field_0x1c)) & 0xf) + i_edi;
+          int32_t v_rax_6 = idx_1;
+          if (this->field_0x8->field_0x0[idx_1 * 4] == -1) {
+            int32_t v_rax_5 = idx_1;
+            if (param_4 != 0) {
+              if (global_0x84a44d6 != 0 && SplitHashNoRehashOnExistingKey && param_4 == 1 && this->field_0x0 == this->field_0x4) {
+                call_0x315ea60(this, param_2, param_3);
+              } else {
+                int32_t v_rax_1 = idx_1;
+                if (i_r11d != -1) {
+                  this->field_0x8->field_0x8[(1 << (uint8_t)this->field_0x1c) * 4]--;
+                  v_rax_1 = i_r11d;
+                }
+                this->field_0x8->field_0x0[(v_rax_1 * 4)] = tmp_1 * -1640531535 << (uint8_t)this->field_0x1c;
+                if (param_4 == 1) {
+                  int64_t idx_2 = (uint32_t)this->field_0x8->field_0x0[(1 << (uint8_t)this->field_0x1c) * 4] >> 18;
+                  int32_t v_r10_2 = idx_2;
+                  auto expr_1 = this->field_0x8 + ((1 << (uint8_t)this->field_0x1c) * 4);
+                  uint64_t v_r11_3 = expr_1->field_0x18[idx_2 * 8];
+                  if (expr_1->field_0x18[idx_2 * 8] == 0) {
+                    int32_t i_r10d = idx_2;
+                    do { // L_0x315e200
+                    i_r10d++;
+                    } while (expr_1->field_0x18[i_r10d * 8] == 0); // loop -> L_0x315e200
+                    v_r10_2 = i_r10d;
+                    v_r11_3 = expr_1->field_0x18[i_r10d * 8];
+                  }
+                  int64_t idx_3 = expr_1->field_0xc + (v_r10_2 << 6) + ctz(v_r11_3);
+                  int64_t tmp_2 = -expr_1->field_0x18[idx_3 * 8] & expr_1->field_0x18[idx_3 * 8];
+                  int64_t idx_4 = expr_1->field_0x10 + (((v_r10_2 << 6) + ctz(v_r11_3)) << 6) + bsr(tmp_2);
+                  void* ptr_5 = this->field_0x8 + (1 << (uint8_t)this->field_0x1c) * 4;
+                  int64_t tmp_3 = -expr_1->field_0x18[idx_4 * 8] & expr_1->field_0x18[idx_4 * 8];
+                  (ptr_5 + (idx_4 * 8))->field_0x18 = expr_1->field_0x18[idx_4 * 8] - tmp_3;
+                  if (expr_1->field_0x18[idx_4 * 8] - tmp_3 == 0) {
+                    ptr_5->field_0x18[((v_r10_2 << 6) + ctz(v_r11_3) + ptr_5->field_0xc) * 8] = expr_1->field_0x18[idx_3 * 8] - tmp_2;
+                    if (expr_1->field_0x18[idx_3 * 8] - tmp_2 == 0) {
+                    ptr_5->field_0x18[v_r10_2 * 8] = v_r11_3 - (-v_r11_3 & v_r11_3);
+                    }
+                  }
+                  int32_t v_rsi_4 = (((((v_r10_2 << 6) + ctz(v_r11_3)) << 6) + bsr(tmp_2)) << 6) + bsr(tmp_3);
+                  if (ptr_5->field_0x4 <= (((((v_r10_2 << 6) + ctz(v_r11_3)) << 6) + bsr(tmp_2)) << 6) + bsr(tmp_3)) {
+                    int64_t idx_6 = (((((v_r10_2 << 6) + ctz(v_r11_3)) << 6) + bsr(tmp_2)) << 6) + bsr(tmp_3);
+                    ptr_5->field_0x4 = idx_6 + 1;
+                    v_rsi_4 = idx_6;
+                  }
+                  this->field_0x8->field_0x0[(v_rax_1 * 4)] = this->field_0x8->field_0x0[v_rax_1 * 4] | v_rsi_4;
+                  this->field_0x0++;
+                  v_rax_5 = v_rax_1;
+                } else {
+                  v_rax_5 = v_rax_1;
+                }
+                param_2->field_0x4 = 1;
+                v_rax_6 = v_rax_5;
+                L_0x315e2a5:
+                param_2->field_0x0 = v_rax_6;
+              }
+              return;
+            }
+            param_2->field_0x4 = 1;
+            v_rax_6 = v_rax_5;
+            param_2->field_0x0 = v_rax_6;
             break;
           }
-          if ((~this->field_0x18 & (f_8->field_0x0[idx_1 * 4] ^ tmp_1 * -1640531535 << this->field_0x1c)) == 0) {
-            int64_t idx_6 = this->field_0x18 & f_8->field_0x0[idx_1 * 4];
+          v_r11_7 = i_r11d;
+          if (this->field_0x8->field_0x0[idx_1 * 4] == 2147483647) {
+            v_r11_7 = i_r11d != -1 ? i_r11d : idx_1;
+            i_r9d++;
+            i_eax = 0x4d72eb980136af5c;
+            i_r11d = v_r11_7;
+            i_edi = (1 << (uint8_t)this->field_0x1c) - 1 & i_edi + 0x10;
+            i_r11d_2 = v_r11_7;
+            break;
+          }
+          if ((~this->field_0x18 & (this->field_0x8->field_0x0[idx_1 * 4] ^ tmp_1 * -1640531535 << (uint8_t)this->field_0x1c)) == 0) {
+            int64_t idx_7 = this->field_0x18 & this->field_0x8->field_0x0[idx_1 * 4];
             auto* f_10 = this->field_0x10;
-            if (param_3->field_0x4 == f_10->field_0x4[(rdx + idx_6 * 2) * 8]) {
-              if (param_3->field_0x0 == f_10->field_0x0[(rdx + idx_6 * 2) * 8]) break;
+            if (param_3->field_0x4 == f_10->field_0x4[idx_7 * 3 * 8]) {
+              if (param_3->field_0x0 == f_10->field_0x0[idx_7 * 3 * 8]) {
+                param_2->field_0x4 = 0;
+                goto L_0x315e2a5;
+              }
             }
           }
           i_r9d++;
           i_eax = 0x4d72eb980136af5c;
-          i_r11d = v_r11_6;
+          i_r11d = v_r11_7;
         } while (i_r9d < 16); // loop -> L_0x315e0d0
-        i_edi = (1 << this->field_0x1c) - 1 & i_edi + 0x10;
-        i_r11d = v_r11_6;
+        i_edi = (1 << (uint8_t)this->field_0x1c) - 1 & i_edi + 0x10;
+        i_r11d_2 = v_r11_7;
       } while (true); // loop -> L_0x315e0bf
-      param_2->field_0x0 = v_rax_5;
+      param_2->field_0x4 = 0;
+      goto L_0x315e2a5;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x315e040..0x315e2c0)] ===
@@ -1076,81 +1052,128 @@ Operação  : 0x3159466: mov/math reg, [flag] ; fn=0x31593b0..0x31596f8
   
   === [Decompilacao C++ do XREF Runtime #2: 0x3159700..0x31599da (insn @0x31597de: mov/math reg, [flag])] ===
     // Flag defaults: InstanceStitchingLog = 0
-    auto RBX::InstanceStitching::func_0x3159700(RBX::InstanceStitching* this, int64_t param_2, void* param_3, void* param_4) {
-      call_0x315c500(&this->field_0x58, &local_0x68, param_4);
+    auto RBX::InstanceStitching::func_0x3159700(RBX::InstanceStitching* this, void* param_2, void* param_3, void* param_4) {
+      void* local_0x60;
+      local_0x60 = this;
+      uint64_t local_0x50;
+      local_0x50 = param_2;
+      void* local_0x68;
+      call_0x315c500(&this->field_0x58, &local_0x68);
+      uint64_t local_0x3c;
+      uint64_t local_0x34;
+      int32_t i_eax;
+      uint64_t v_rdx_2;
+      void* v_rcx_1;
+      uint64_t local_0x38;
+      uint64_t local_0x30;
+      uint64_t local_0x70;
       if (local_0x68 == 0) {
         if (local_0x70 != 0) {
           if ((local_0x68->field_0x10 + (local_0x70 << 5))->field_0x1c != 0) {
-            uint64_t v_rcx_1;
-            uint64_t v_rdx_2 = (local_0x68->field_0x10 + (local_0x70 << 5))->field_0x10;
-            void* stk_3;
-            void* stk_4;
+            local_0x30 = 0.0;
+            local_0x38 = 0.0;
+            v_rdx_2 = (local_0x68->field_0x10 + (local_0x70 << 5))->field_0x10;
             if ((local_0x68->field_0x10 + (local_0x70 << 5))->field_0x10 != 0 && ((local_0x68->field_0x10 + (local_0x70 << 5))->field_0x10)->field_0x8 != 0) {
+              i_eax = ((local_0x68->field_0x10 + (local_0x70 << 5))->field_0x10)->field_0x8;
               L_0x31597a0:
               do { // L_0x31597a0
-                if (atomic_cas(&((local_0x68->field_0x10 + (local_0x70 << 5))->field_0x10)->field_0x8, ((local_0x68->field_0x10 + (local_0x70 << 5))->field_0x10)->field_0x8, rax + 1) == 0) break;
-              } while (((local_0x68->field_0x10 + (local_0x70 << 5))->field_0x10)->field_0x8 != 0); // loop -> L_0x31597a0
+                if (atomic_cas(&((local_0x68->field_0x10 + (local_0x70 << 5))->field_0x10)->field_0x8, i_eax, i_eax + 1)) {
+                  local_0x30 = (local_0x68->field_0x10 + (local_0x70 << 5))->field_0x8;
+                  local_0x38 = (local_0x68->field_0x10 + (local_0x70 << 5))->field_0x10;
+                  v_rcx_1 = (local_0x68->field_0x10 + (local_0x70 << 5))->field_0x8;
+                  break;
+                }
+              } while (i_eax != 0); // loop -> L_0x31597a0
               L_0x31597b2:
-              v_rcx_1 = 0.0;
-              v_rdx_2 = 0.0;
-              stk_3 = 0.0;
-              stk_4 = 0.0;
+              v_rcx_1 = local_0x30;
+              v_rdx_2 = local_0x38;
             } else {
-              v_rcx_1 = 0.0;
-              v_rdx_2 = 0.0;
-              stk_3 = 0.0;
-              stk_4 = 0.0;
+              v_rcx_1 = local_0x30;
+              v_rdx_2 = local_0x38;
             }
             if (v_rcx_1 != 0 && v_rcx_1->field_0x18 == param_3->field_0x0->field_0x18) {
+              uint64_t local_0x20;
               if ((uint8_t)InstanceStitchingLog >= 6 && (uint8_t)((uint64_t)InstanceStitchingLog >> 8) >= 5) {
+                L_0x31597f9:
+                local_0x50 = param_4->field_0x4;
+                uint64_t local_0x40;
+                local_0x40 = param_4->field_0x0;
                 param_3->field_0x0->vfunc_0x38();
-                FLog::Log("[DFLog::InstanceStitchingLog] Client: Recycling rolled-back speculative Instance of type {} with", &local_0x78);
+                local_0x50 = 4399;
+                local_0x20 = 1;
+                uint64_t local_0x250;
+                uint64_t local_0x78;
+                FLog::Log("[DFLog::InstanceStitchingLog] Client: Recycling rolled-back speculative Instance of type {} with GUID: peer {} index {} at time {}", &local_0x78, local_0x40, local_0x50, local_0x250);
               }
               L_0x31598ef:
-              auto local_0x30 = stk_4;
-              auto local_0x34 = 0.0;
-              auto local_0x38 = stk_3;
-              auto local_0x3c = 0.0;
-              auto ret_0x325ca40_4 = call_0x325ca40(&local_0x150, param_4, &local_0x30, 4);
-              call_0x315c8a0(&this->field_0x10, ret_0x325ca40_4);
+              local_0x68->field_0x10->field_0x1c[(local_0x70 << 5)] = 0;
+              local_0x20 = local_0x68->field_0x10->field_0x18[local_0x70 << 5];
+              uint64_t local_0x150;
+              auto ret_0x325ca40_4 = call_0x325ca40(&local_0x150, param_4, &local_0x30, 4, local_0x68->field_0x10->field_0x18[local_0x70 << 5]);
+              call_0x315c8a0(&local_0x60->field_0x10, ret_0x325ca40_4);
+              uint64_t local_0x1a0;
               call_0x6f8fb0(&local_0x1a0);
+              uint64_t local_0x180;
               call_0x6f8fb0(&local_0x180);
-              if (local_0x160 != 0 && atomic_fetch_sub(&local_0x160->field_0xc, 1) == 1) {
-                local_0x160->vfunc_0x8();
+              void* local_0x160;
+              if (local_0x160 != 0) {
+                int32_t atomic_8 = atomic_fetch_sub(&local_0x160->field_0xc, 1);
+                if (atomic_8 == 1) {
+                  local_0x160->vfunc_0x8();
+                }
               }
               param_2->field_0x0 = local_0x30;
               param_2->field_0x8 = local_0x38;
             } else {
+              param_2->field_0x0 = 0;
+              param_2->field_0x8 = 0;
               if (v_rdx_2 != 0) {
                 call_0x6daf40(v_rdx_2);
+                local_0x34 = 0.0;
+                local_0x3c = 0.0;
+              } else {
+                local_0x34 = 0.0;
+                local_0x3c = 0.0;
               }
             }
           } else {
             L_0x31599ab:
+            param_2->field_0x0 = 0;
+            param_2->field_0x8 = 0;
           }
           L_0x31599b4:
           return param_2;
         }
+        param_2->field_0x0 = 0;
+        param_2->field_0x8 = 0;
         return param_2;
       }
       if ((local_0x68->field_0x10 + (local_0x70 << 5))->field_0x1c != 0) {
-        uint64_t v_rcx_1;
-        uint64_t v_rdx_2 = (local_0x68->field_0x10 + (local_0x70 << 5))->field_0x10;
-        void* stk_3;
-        void* stk_4;
+        local_0x30 = 0.0;
+        local_0x38 = 0.0;
+        v_rdx_2 = (local_0x68->field_0x10 + (local_0x70 << 5))->field_0x10;
         if ((local_0x68->field_0x10 + (local_0x70 << 5))->field_0x10 != 0 && ((local_0x68->field_0x10 + (local_0x70 << 5))->field_0x10)->field_0x8 != 0) {
+          i_eax = ((local_0x68->field_0x10 + (local_0x70 << 5))->field_0x10)->field_0x8;
           goto L_0x31597a0;
         } else {
           goto L_0x31597b2;
         }
         if (v_rcx_1 != 0 && v_rcx_1->field_0x18 == param_3->field_0x0->field_0x18) {
           if ((uint8_t)InstanceStitchingLog >= 6 && (uint8_t)((uint64_t)InstanceStitchingLog >> 8) >= 5) {
-            param_3->field_0x0->vfunc_0x38();
-            FLog::Log("[DFLog::InstanceStitchingLog] Client: Recycling rolled-back speculative Instance of type {} with", &local_0x78);
+            goto L_0x31597f9;
           }
           goto L_0x31598ef;
-        } else if (v_rdx_2 != 0) {
-          call_0x6daf40(v_rdx_2);
+        } else {
+          param_2->field_0x0 = 0;
+          param_2->field_0x8 = 0;
+          if (v_rdx_2 != 0) {
+            call_0x6daf40(v_rdx_2);
+            local_0x34 = 0.0;
+            local_0x3c = 0.0;
+          } else {
+            local_0x34 = 0.0;
+            local_0x3c = 0.0;
+          }
         }
       } else {
         goto L_0x31599ab;
@@ -1226,7 +1249,7 @@ Operação  : 0x3159466: mov/math reg, [flag] ; fn=0x31593b0..0x31596f8
     0x31597ed | 48 c1 e8 08              | shr rax, 0x8
     0x31597f1 | 3c 05                    | cmp al, 0x5
     0x31597f3 | 0f 82 f6 00 00 00        | jb 0x31598ef
-    0x31597f9 | 48 8d 05 c2 85 4e 04     | lea rax, [rip + 0x44e85c2] ; "[DFLog::InstanceStitchingLog] Client: Recycling rolled-back speculative Instance of type {} with"
+    0x31597f9 | 48 8d 05 c2 85 4e 04     | lea rax, [rip + 0x44e85c2] ; "[DFLog::InstanceStitchingLog] Client: Recycling rolled-back speculative Instance of type {} with GUID: peer {} index {} at time {}"
     0x3159800 | 48 89 44 24 50           | mov qword ptr [rsp + 0x50], rax
     0x3159805 | 48 8b 5c 24 50           | mov rbx, qword ptr [rsp + 0x50]
     0x315980a | 48 81 c3 5e 78 d4 ff     | add rbx, 0xffd4785e
@@ -1370,6 +1393,11 @@ Operação  : 0x3159466: mov/math reg, [flag] ; fn=0x31593b0..0x31596f8
     
     // Flag defaults: InstanceStitchingLog = 0, DebugEnableStreamOutToDisk8 = false
     auto RBX::InstanceStitching::func_0x3159a30(RBX::InstanceStitching* this, int64_t param_2, void* param_3, void* param_4) {
+      void* local_0x48;
+      local_0x48 = param_3;
+      void* local_0x58;
+      local_0x58 = param_2;
+      uint64_t local_0x420;
       if (local_0x420 != this->field_0x50) {
         call_0x105c290(&this->field_0x28);
       }
@@ -1377,51 +1405,347 @@ Operação  : 0x3159466: mov/math reg, [flag] ; fn=0x31593b0..0x31596f8
       auto ret_0x315c0c0_2 = call_0x315c0c0(&this->field_0x28, param_4);
       ret_0x315c0c0_2->field_0x0++;
       auto ret_0x315c0c0_3 = call_0x315c0c0(&this->field_0x28, param_4);
+      auto prev_0x0_1 = ret_0x315c0c0_3->field_0x0;
       auto prev_0x4_2 = param_4->field_0x4;
+      auto prev_0x50_3 = this->field_0x50;
       auto prev_0x20_4 = param_3->field_0x0->field_0x18->field_0x20;
       auto local_0x390 = param_4->field_0x4;
       auto local_0x394 = param_3->field_0x0->field_0x18->field_0x20;
       auto local_0x398 = this->field_0x50;
       auto local_0x39c = ret_0x315c0c0_3->field_0x0;
+      auto local_0xb0 = 0.0;
       call_0x14dadb0(&local_0x390, 16, 0, &local_0xb0);
+      uint64_t local_0x50;
+      uint64_t local_0x20;
       auto expr_2 = (uint64_t)InstanceStitchingLog >> 8;
       if ((uint8_t)InstanceStitchingLog >= 6 && (uint8_t)expr_2 >= 5) {
-        FLog::Log("[DFLog::InstanceStitchingLog] Generated deterministic GUID with scriptGuid {}, stableId {}, fram", prev_0x4_2, prev_0x20_4);
+        local_0x50 = "[DFLog::InstanceStitchingLog] Generated deterministic GUID with scriptGuid {}, stableId {}, frameId {}, count {}: Guid Index {}";
+        local_0x20 = 1;
+        FLog::Log("[DFLog::InstanceStitchingLog] Generated deterministic GUID with scriptGuid {}, stableId {}, frameId {}, count {}: Guid Index {}", prev_0x4_2, prev_0x20_4, prev_0x50_3, prev_0x0_1, local_0xb0 & ~(1ULL << 31));
       }
-      param_2->field_0x0 = DebugEnableStreamOutToDisk8 + 4;
-      param_2->field_0x4 = local_0xb0;
-      auto local_0x30 = param_2->field_0x0;
+      local_0x58->field_0x0 = DebugEnableStreamOutToDisk8 + 4;
+      local_0x58->field_0x4 = local_0xb0 & ~(1ULL << 31);
+      uint64_t local_0x30;
+      local_0x30 = local_0x58->field_0x0;
+      void* local_0x38;
+      local_0x38 = 0.0;
+      auto local_0x3c = 0.0;
+      auto local_0x40 = 0.0;
+      auto local_0x44 = 0.0;
       auto ret_0x27c3a00_5 = call_0x27c3a00(this->field_0x2d8->field_0xa8, &local_0x30, &local_0x38);
       int32_t i_edi = 0;
-      void* v_rsi_10 = param_2;
-      void* v_rsi_12;
+      void* v_r15_11 = local_0x48;
+      void* v_rsi_14 = local_0x58;
+      int32_t atomic_20;
+      void* sel_rcx_7;
+      void* mem_7_7;
+      void* v_rax_12;
+      void* vret_17;
+      void* v_rsi_13;
+      uint64_t i_eax_2;
+      uint64_t local_0x70;
+      int32_t atomic_18;
       if ((uint8_t)ret_0x27c3a00_5 != 0) {
+        L_0x3159c5f:
+        void* v_r15_10;
+        int64_t ret_0x27c3a00_16;
+        void* v_r15_9;
         do { // L_0x3159c5f
+          v_r15_10 = local_0x48;
           if (local_0x38 == 0) break;
+          void* v_rcx_4 = &sym_0x775053c;
           if (this->field_0x58 != 0) {
+            uint64_t local_0x68;
             call_0x315d7e0(&this->field_0x58, &local_0x68, &local_0x30, 0);
-            if (local_0x6c == 0) {
+            void* v_rax_3;
+            uint64_t local_0x6c;
+            if (local_0x6c != 0) {
+              uint64_t local_0xe0;
+              local_0xe0 = i_edi;
+              uint64_t local_0xe8;
+              local_0xe8 = i_edi;
+              v_rax_3 = &local_0xe0;
+            } else {
+              uint64_t local_0x80;
               auto* f_60 = this->field_0x60;
               if ((f_60->field_0x0[local_0x68 * 4] & this->field_0x70) != this->field_0x5c) {
-                auto expr_3 = f_60 + (1 << this->field_0x74) * 4;
-                int64_t idx_1 = expr_3->field_0x10;
-                int64_t idx_2 = (uint64_t)(f_60->field_0x0[local_0x68 * 4] & this->field_0x70) >> 6;
-                if (((expr_3 + idx_1 * 8)->field_0x18[idx_2 * 8] & 1ULL << (f_60->field_0x0[local_0x68 * 4] & this->field_0x70 & 0x3f)) < 0) {
-                  if (r8 + 1 != this->field_0x5c) {
-                    int64_t idx_3 = expr_3->field_0x10;
-                    auto expr_1 = expr_3 + idx_3 * 8;
-                    uint64_t v_rdx_1 = ~expr_1->field_0x18[((uint32_t)(r8 + 1) >> 6) * 8] & -1 << (r8 + 1 & 0x3f);
-                    int32_t v_r8_2 = (uint32_t)(r8 + 1) >> 6;
-                    if ((~expr_1->field_0x18[((uint32_t)(r8 + 1) >> 6) * 8] & -1 << (r8 + 1 & 0x3f)) == 0) {
-                    int32_t i_ecx = ((uint32_t)(r8 + 1) >> 6) << 6;
-                    int32_t i_r8d = (uint32_t)(r8 + 1) >> 6;
+                local_0x80 = &this->field_0x58;
+                uint64_t local_0x88;
+                local_0x88 = f_60->field_0x0[local_0x68 * 4] & this->field_0x70;
+                auto expr_3 = 1 << (uint8_t)this->field_0x74;
+                void* ptr_1 = f_60 + expr_3 * 4;
+                auto expr_1 = f_60 + (expr_3 * 4);
+                int64_t idx_2 = expr_1->field_0x10;
+                int64_t idx_3 = (uint64_t)(f_60->field_0x0[local_0x68 * 4] & this->field_0x70) >> 6;
+                if (((ptr_1 + (idx_2 * 8))->field_0x18[idx_3 * 8] & 1ULL << (uint8_t)((f_60->field_0x0[local_0x68 * 4] & this->field_0x70) & 0x3f)) != 0) {
+                  int64_t idx_4 = f_60->field_0x0[local_0x68 * 4] & this->field_0x70;
+                  if (idx_4 + 1 != this->field_0x5c) {
+                    void* ptr_5 = f_60 + expr_3 * 4;
+                    int64_t idx_6 = expr_1->field_0x10;
+                    uint64_t v_rdx_1 = ~(ptr_5 + (idx_6 * 8))->field_0x18[((uint32_t)(idx_4 + 1) >> 6) * 8] & -1 << (uint8_t)((idx_4 + 1) & 0x3f);
+                    int32_t v_r8_2 = (uint32_t)(idx_4 + 1) >> 6;
+                    uint64_t local_0x90;
+                    if ((~(ptr_5 + (idx_6 * 8))->field_0x18[((uint32_t)(idx_4 + 1) >> 6) * 8] & -1 << (uint8_t)((idx_4 + 1) & 0x3f)) == 0) {
+                    int32_t i_ecx = ((uint32_t)(idx_4 + 1) >> 6) << 6;
+                    int32_t i_r8d = (uint32_t)(idx_4 + 1) >> 6;
                     do { // L_0x3159d40
                     i_r8d++;
                     i_ecx += 0x40;
-                    if (i_ecx >= this->field_0x5c) break;
-                    } while (~expr_1->field_0x18[i_r8d * 8] == 0); // loop -> L_0x3159d40
-                    if ((v_r8_2 << 6) + ctz(v_rdx_1) == this->field_0x5c) {
+                    if (i_ecx >= this->field_0x5c) {
                     L_0x3159d78:
+                    local_0x80 = i_edi;
+                    local_0x88 = i_edi;
+                    v_rax_3 = &local_0x80;
+                    local_0x70 = v_rax_3->field_0x0;
+                    if (v_rax_3->field_0x0 == 0) {
+                    void* v_rax_6;
+                    void* vret_9;
+                    uint64_t local_0x108;
+                    uint64_t local_0x100;
+                    void* v_rax_5;
+                    void* mem_6_6;
+                    void* vret_8;
+                    int32_t v_rdi_7;
+                    uint64_t local_0xf0;
+                    uint64_t local_0x4c;
+                    int32_t atomic_14;
+                    uint64_t i_eax_3;
+                    int32_t atomic_12;
+                    uint64_t local_0x54;
+                    void* tmp_5;
+                    uint64_t local_0x34;
+                    void* v_rax_8;
+                    uint64_t local_0x140;
+                    uint64_t local_0xf8;
+                    if (v_rax_3->field_0x8 != 0) {
+                    L_0x3159d9d:
+                    if (v_rax_3->field_0x0->field_0x10->field_0x1c[v_rax_3->field_0x8 << 5] == 0) {
+                    L_0x3159db3:
+                    tmp_5 = "[DFLog::InstanceStitchingLog] Client: Tried to create an Instance of type {} with GUID: peer {} index {} at time {}, but one already exists with type {}. Probable hash collision.";
+                    v_rcx_4 = tmp_5;
+                    L_0x3159dba:
+                    v_rdi_7 = i_edi;
+                    if ((uint8_t)InstanceStitchingLog >= 6 && (uint8_t)expr_2 >= 5) {
+                    local_0x70 = v_rcx_4;
+                    vret_8 = local_0x38->vfunc_0x38();
+                    v_rax_5 = vret_8;
+                    if (vret_8->field_0x18 >= 16) {
+                    v_rax_5 = vret_8->field_0x0;
+                    }
+                    local_0x100 = v_rax_5;
+                    local_0x108 = vret_8->field_0x10;
+                    vret_9 = local_0x48->field_0x0->vfunc_0x38();
+                    v_rax_6 = vret_9;
+                    if (vret_9->field_0x18 >= 16) {
+                    v_rax_6 = vret_9->field_0x0;
+                    }
+                    local_0xf0 = v_rax_6;
+                    local_0xf8 = vret_9->field_0x10;
+                    local_0x140 = local_0x70 - 0x3c6dfc;
+                    i_eax_3 = -1;
+                    L_0x3159e43:
+                    do { // L_0x3159e43
+                    i_eax_3++;
+                    } while ((local_0x70 - 0x3c6dfc)[i_eax_3] != 0); // loop -> L_0x3159e43
+                    uint64_t local_0x148;
+                    local_0x148 = i_eax_3;
+                    uint64_t local_0x110;
+                    local_0x110 = &local_0xf0;
+                    uint64_t local_0x118;
+                    local_0x118 = &sym_0x704c50;
+                    uint64_t local_0x200;
+                    local_0x200 = local_0x30;
+                    uint64_t local_0x210;
+                    local_0x210 = local_0x34;
+                    uint64_t local_0x220;
+                    local_0x220 = local_0x420;
+                    uint64_t local_0x120;
+                    local_0x120 = &local_0x100;
+                    uint64_t local_0x128;
+                    local_0x128 = &sym_0x704c50;
+                    uint64_t local_0x340;
+                    local_0x340 = local_0x110;
+                    uint64_t local_0x350;
+                    local_0x350 = local_0x200;
+                    uint64_t local_0x360;
+                    local_0x360 = local_0x210;
+                    uint64_t local_0x370;
+                    local_0x370 = local_0x220;
+                    uint64_t local_0x380;
+                    local_0x380 = local_0x120;
+                    uint64_t local_0x130;
+                    local_0x130 = 987439;
+                    uint64_t local_0x138;
+                    local_0x138 = &local_0x340;
+                    uint64_t local_0x230;
+                    local_0x230 = local_0x130;
+                    uint64_t local_0x240;
+                    local_0x240 = local_0x140;
+                    uint64_t local_0x250;
+                    local_0x250 = InstanceStitchingLog;
+                    local_0x20 = 1;
+                    auto local_0x254 = *(uint32_t*)((uint8_t*)&InstanceStitchingLog + 0x4);
+                    auto local_0x258 = *(uint32_t*)((uint8_t*)&InstanceStitchingLog + 0x8);
+                    auto local_0x25c = *(uint32_t*)((uint8_t*)&InstanceStitchingLog + 0xc);
+                    auto local_0x248 = local_0x148;
+                    auto local_0x238 = local_0x138;
+                    call_0x4971cd0(&local_0x250, 5, &local_0x240, &local_0x230, 1);
+                    v_rdi_7 = 0;
+                    }
+                    call_0x7385b0(&this->field_0x18);
+                    v_r15_9 = local_0x48;
+                    if (local_0x34 == 2147483647) {
+                    local_0x50 = local_0x30;
+                    local_0x54 = -2147483648;
+                    v_rax_8 = local_0x50;
+                    } else {
+                    mem_6_6 = local_0x48;
+                    local_0x48 = local_0x30;
+                    local_0x4c = local_0x34 + 1;
+                    v_rax_8 = local_0x48;
+                    v_r15_9 = mem_6_6;
+                    }
+                    local_0x30 = v_rax_8;
+                    if (local_0x40 != 0) {
+                    atomic_12 = atomic_fetch_sub(&local_0x40->field_0x8, 1);
+                    if (atomic_12 == 1) {
+                    local_0x40->vfunc_0x0(local_0x40);
+                    atomic_14 = atomic_fetch_sub(&local_0x40->field_0xc, 1);
+                    if (atomic_14 == 1) {
+                    local_0x40->vfunc_0x8();
+                    }
+                    }
+                    }
+                    L_0x3159fa9:
+                    local_0x38 = 0.0;
+                    local_0x3c = 0.0;
+                    local_0x44 = 0.0;
+                    ret_0x27c3a00_16 = call_0x27c3a00(this->field_0x2d8->field_0xa8, &local_0x30, &local_0x38);
+                    if ((uint8_t)ret_0x27c3a00_16 != 0) {
+                    i_edi = v_rdi_7;
+                    goto L_0x3159c5f;
+                    }
+                    v_r15_10 = v_r15_9;
+                    v_r15_11 = v_r15_10;
+                    v_rsi_13 = local_0x58;
+                    if ((uint8_t)InstanceStitchingLog >= 6 && (uint8_t)expr_2 >= 5) {
+                    local_0x70 = "[DFLog::InstanceStitchingLog] {}: Generated GUID for Instance of type {} at time {}: {}";
+                    vret_17 = v_r15_11->field_0x0->vfunc_0x38();
+                    v_rax_12 = vret_17;
+                    if (vret_17->field_0x18 >= 16) {
+                    v_rax_12 = vret_17->field_0x0;
+                    }
+                    mem_7_7 = local_0x58;
+                    local_0x58 = v_rax_12;
+                    sel_rcx_7 = this->field_0x2e8 != 0 ? "Server" : "Client";
+                    i_eax_2 = -1;
+                    L_0x315a060:
+                    do { // L_0x315a060
+                    i_eax_2++;
+                    } while ((local_0x70 - 0x3648c4)[i_eax_2] != 0); // loop -> L_0x315a060
+                    local_0x20 = 1;
+                    FLog::Log("[DFLog::InstanceStitchingLog] {}: Generated GUID for Instance of type {} at time {}: {}", sel_rcx_7, &local_0x58, local_0x420, local_0x34);
+                    v_rsi_13 = mem_7_7;
+                    }
+                    v_rsi_13->field_0x0 = local_0x30;
+                    if (local_0x40 != 0) {
+                    atomic_18 = atomic_fetch_sub(&local_0x40->field_0x8, 1);
+                    if (atomic_18 == 1) {
+                    local_0x40->vfunc_0x0(local_0x40);
+                    atomic_20 = atomic_fetch_sub(&local_0x40->field_0xc, 1);
+                    if (atomic_20 == 1) {
+                    local_0x40->vfunc_0x8();
+                    v_rsi_14 = v_rsi_13;
+                    } else {
+                    v_rsi_14 = v_rsi_13;
+                    }
+                    } else {
+                    v_rsi_14 = v_rsi_13;
+                    }
+                    } else {
+                    v_rsi_14 = v_rsi_13;
+                    }
+                    L_0x315a16f:
+                    return v_rsi_14;
+                    }
+                    local_0x58->field_0x0 = local_0x30;
+                    if (local_0x40 != 0) {
+                    call_0x6daf40(local_0x40);
+                    }
+                    return v_rsi_14;
+                    }
+                    tmp_5 = "[DFLog::InstanceStitchingLog] Client: Tried to create an Instance of type {} with GUID: peer {} index {} at time {}, but one already exists with type {}. Probable hash collision.";
+                    v_rcx_4 = tmp_5;
+                    v_rdi_7 = i_edi;
+                    if ((uint8_t)InstanceStitchingLog >= 6 && (uint8_t)expr_2 >= 5) {
+                    local_0x70 = v_rcx_4;
+                    vret_8 = local_0x38->vfunc_0x38();
+                    v_rax_5 = vret_8;
+                    if (vret_8->field_0x18 >= 16) {
+                    v_rax_5 = vret_8->field_0x0;
+                    }
+                    local_0x100 = v_rax_5;
+                    local_0x108 = vret_8->field_0x10;
+                    vret_9 = local_0x48->field_0x0->vfunc_0x38();
+                    v_rax_6 = vret_9;
+                    if (vret_9->field_0x18 >= 16) {
+                    v_rax_6 = vret_9->field_0x0;
+                    }
+                    local_0xf0 = v_rax_6;
+                    local_0xf8 = vret_9->field_0x10;
+                    local_0x140 = local_0x70 - 0x3c6dfc;
+                    i_eax_3 = -1;
+                    goto L_0x3159e43;
+                    }
+                    call_0x7385b0(&this->field_0x18);
+                    v_r15_9 = local_0x48;
+                    if (local_0x34 == 2147483647) {
+                    local_0x50 = local_0x30;
+                    local_0x54 = -2147483648;
+                    v_rax_8 = local_0x50;
+                    } else {
+                    mem_6_6 = local_0x48;
+                    local_0x48 = local_0x30;
+                    local_0x4c = local_0x34 + 1;
+                    v_rax_8 = local_0x48;
+                    v_r15_9 = mem_6_6;
+                    }
+                    local_0x30 = v_rax_8;
+                    if (local_0x40 != 0) {
+                    atomic_12 = atomic_fetch_sub(&local_0x40->field_0x8, 1);
+                    if (atomic_12 == 1) {
+                    local_0x40->vfunc_0x0(local_0x40);
+                    atomic_14 = atomic_fetch_sub(&local_0x40->field_0xc, 1);
+                    if (atomic_14 == 1) {
+                    local_0x40->vfunc_0x8();
+                    }
+                    }
+                    }
+                    goto L_0x3159fa9;
+                    }
+                    if (v_rax_3->field_0x0->field_0x10->field_0x1c[v_rax_3->field_0x8 << 5] == 0) {
+                    goto L_0x3159db3;
+                    }
+                    local_0x58->field_0x0 = local_0x30;
+                    if (local_0x40 != 0) {
+                    call_0x6daf40(local_0x40);
+                    }
+                    goto L_0x315a16f;
+                    }
+                    } while (~(ptr_5 + (idx_6 * 8))->field_0x18[i_r8d * 8] == 0); // loop -> L_0x3159d40
+                    v_rdx_1 = ~(ptr_5 + (idx_6 * 8))->field_0x18[i_r8d * 8];
+                    v_r8_2 = i_r8d;
+                    local_0x90 = ctz(v_rdx_1);
+                    local_0x88 = (v_r8_2 << 6) + ctz(v_rdx_1);
+                    if ((v_r8_2 << 6) + ctz(v_rdx_1) == this->field_0x5c) {
+                    local_0x80 = i_edi;
+                    local_0x88 = i_edi;
+                    }
+                    } else {
+                    local_0x90 = ctz(v_rdx_1);
+                    local_0x88 = (v_r8_2 << 6) + ctz(v_rdx_1);
+                    if ((v_r8_2 << 6) + ctz(v_rdx_1) == this->field_0x5c) {
+                    goto L_0x3159d78;
                     }
                     }
                   } else {
@@ -1431,71 +1755,55 @@ Operação  : 0x3159466: mov/math reg, [flag] ; fn=0x31593b0..0x31596f8
               } else {
                 goto L_0x3159d78;
               }
+              v_rax_3 = &local_0x80;
             }
-            if (local_0xe0 == 0) {
-              if (local_0xe8 != 0) {
-                if (local_0xe0->field_0x10->field_0x1c[local_0xe8 << 5] != 0) break;
+            local_0x70 = v_rax_3->field_0x0;
+            if (v_rax_3->field_0x0 == 0) {
+              if (v_rax_3->field_0x8 != 0) {
+                goto L_0x3159d9d;
               }
-              "[DFLog::InstanceStitchingLog] Client: Tried to create an Instance of type {} with GUID: peer {} ";
-              int32_t v_rdi_9 = i_edi;
-              if ((uint8_t)InstanceStitchingLog >= 6 && (uint8_t)expr_2 >= 5) {
-                local_0x38->vfunc_0x38();
-                local_0x48->field_0x0->vfunc_0x38();
-                FLog::Log("[DFLog::InstanceStitchingLog] Client: Tried to create an Instance of type {} with GUID: peer {} ", &local_0xf0);
-                v_rdi_9 = 0;
-              }
-              call_0x7385b0(&this->field_0x18);
-              if (local_0x40 != 0 && atomic_fetch_sub(&local_0x40->field_0x8, 1) == 1) {
-                local_0x40->vfunc_0x0(local_0x40);
-                if (atomic_fetch_sub(&local_0x40->field_0xc, 1) == 1) {
-                  local_0x40->vfunc_0x8();
-                }
-              }
-              auto ret_0x27c3a00_13 = call_0x27c3a00(this->field_0x2d8->field_0xa8, &local_0x30, &local_0x38);
-              i_edi = v_rdi_9;
-              v_rsi_10 = local_0x58;
-              break;
+              goto L_0x3159db3;
             }
-            if (local_0xe0->field_0x10->field_0x1c[local_0xe8 << 5] != 0) break;
-            "[DFLog::InstanceStitchingLog] Client: Tried to create an Instance of type {} with GUID: peer {} ";
+            goto L_0x3159d9d;
           }
-          int32_t v_rdi_9 = i_edi;
-          if ((uint8_t)InstanceStitchingLog >= 6 && (uint8_t)expr_2 >= 5) {
-            local_0x38->vfunc_0x38();
-            local_0x48->field_0x0->vfunc_0x38();
-            FLog::Log("[DFLog::InstanceStitchingLog] Client: Tried to create an Instance of type {} with GUID: peer {} ", &local_0xf0);
-            v_rdi_9 = 0;
-          }
-          call_0x7385b0(&this->field_0x18);
-          if (local_0x40 != 0 && atomic_fetch_sub(&local_0x40->field_0x8, 1) == 1) {
-            local_0x40->vfunc_0x0(local_0x40);
-            if (atomic_fetch_sub(&local_0x40->field_0xc, 1) == 1) {
-              local_0x40->vfunc_0x8();
-            }
-          }
-          auto ret_0x27c3a00_13 = call_0x27c3a00(this->field_0x2d8->field_0xa8, &local_0x30, &local_0x38);
-          i_edi = v_rdi_9;
-        } while ((uint8_t)ret_0x27c3a00_13 != 0); // loop -> L_0x3159c5f
-        v_rsi_10 = local_0x58;
+          goto L_0x3159dba;
+        } while ((uint8_t)ret_0x27c3a00_16 != 0); // loop -> L_0x3159c5f
+        v_r15_10 = v_r15_9;
+        v_r15_11 = v_r15_10;
       }
+      v_rsi_13 = local_0x58;
       if ((uint8_t)InstanceStitchingLog >= 6 && (uint8_t)expr_2 >= 5) {
-        local_0x48->field_0x0->vfunc_0x38();
-        void* sel_rcx_4 = this->field_0x2e8 != 0 ? "Server" : "Client";
-        FLog::Log("[DFLog::InstanceStitchingLog] {}: Generated GUID for Instance of type {} at time {}: {}", sel_rcx_4, &local_0x58);
+        local_0x70 = "[DFLog::InstanceStitchingLog] {}: Generated GUID for Instance of type {} at time {}: {}";
+        vret_17 = v_r15_11->field_0x0->vfunc_0x38();
+        v_rax_12 = vret_17;
+        if (vret_17->field_0x18 >= 16) {
+          v_rax_12 = vret_17->field_0x0;
+        }
+        mem_7_7 = local_0x58;
+        local_0x58 = v_rax_12;
+        sel_rcx_7 = this->field_0x2e8 != 0 ? "Server" : "Client";
+        i_eax_2 = -1;
+        goto L_0x315a060;
       }
-      v_rsi_10->field_0x0 = local_0x30;
-      if (local_0x40 != 0 && atomic_fetch_sub(&local_0x40->field_0x8, 1) == 1) {
-        local_0x40->vfunc_0x0(local_0x40);
-        if (atomic_fetch_sub(&local_0x40->field_0xc, 1) == 1) {
-          local_0x40->vfunc_0x8();
-          v_rsi_12 = v_rsi_10;
+      v_rsi_13->field_0x0 = local_0x30;
+      if (local_0x40 != 0) {
+        atomic_18 = atomic_fetch_sub(&local_0x40->field_0x8, 1);
+        if (atomic_18 == 1) {
+          local_0x40->vfunc_0x0(local_0x40);
+          atomic_20 = atomic_fetch_sub(&local_0x40->field_0xc, 1);
+          if (atomic_20 == 1) {
+            local_0x40->vfunc_0x8();
+            v_rsi_14 = v_rsi_13;
+          } else {
+            v_rsi_14 = v_rsi_13;
+          }
         } else {
-          v_rsi_12 = v_rsi_10;
+          v_rsi_14 = v_rsi_13;
         }
       } else {
-        v_rsi_12 = v_rsi_10;
+        v_rsi_14 = v_rsi_13;
       }
-      return v_rsi_12;
+      goto L_0x315a16f;
     }
   
   === [Instrucoes x86-64 do XREF Runtime #3 (0x3159a30..0x315a1b3)] ===
@@ -1557,7 +1865,7 @@ Operação  : 0x3159466: mov/math reg, [flag] ; fn=0x31593b0..0x31596f8
     0x3159b0b | 48 c1 e8 08              | shr rax, 0x8
     0x3159b0f | 3c 05                    | cmp al, 0x5
     0x3159b11 | 0f 82 ec 00 00 00        | jb 0x3159c03
-    0x3159b17 | 48 8d 05 b0 7c 2d 04     | lea rax, [rip + 0x42d7cb0] ; "[DFLog::InstanceStitchingLog] Generated deterministic GUID with scriptGuid {}, stableId {}, fram"
+    0x3159b17 | 48 8d 05 b0 7c 2d 04     | lea rax, [rip + 0x42d7cb0] ; "[DFLog::InstanceStitchingLog] Generated deterministic GUID with scriptGuid {}, stableId {}, frameId {}, count {}: Guid Index {}"
     0x3159b1e | 48 89 44 24 50           | mov qword ptr [rsp + 0x50], rax
     0x3159b23 | 48 8b 4c 24 50           | mov rcx, qword ptr [rsp + 0x50]
     0x3159b28 | 48 81 e9 ee ba 09 00     | sub rcx, 0x9baee
@@ -1720,7 +2028,7 @@ Operação  : 0x3159466: mov/math reg, [flag] ; fn=0x31593b0..0x31596f8
     0x3159da8 | 80 7c 01 1c 00           | cmp byte ptr [rcx + rax + 0x1c], 0x0
     0x3159dad | 0f 85 e2 03 00 00        | jne 0x315a195
     L_0x3159db3:
-    0x3159db3 | 48 8d 0d 82 67 5f 04     | lea rcx, [rip + 0x45f6782] ; "[DFLog::InstanceStitchingLog] Client: Tried to create an Instance of type {} with GUID: peer {} "
+    0x3159db3 | 48 8d 0d 82 67 5f 04     | lea rcx, [rip + 0x45f6782] ; "[DFLog::InstanceStitchingLog] Client: Tried to create an Instance of type {} with GUID: peer {} index {} at time {}, but one already exists with type {}. Probable hash collision."
     L_0x3159dba:
     0x3159dba | 48 8b 05 1f b2 fb 04     | mov rax, qword ptr [rip + 0x4fbb21f] ; DFLogInstanceStitchingLog
     0x3159dc1 | 3c 06                    | cmp al, 0x6
@@ -1962,16 +2270,156 @@ Operação  : 0x3159466: mov/math reg, [flag] ; fn=0x31593b0..0x31596f8
   
   === [Decompilacao C++ do XREF Runtime #4: 0x315a3f0..0x315a6ec (insn @0x315a570: mov/math reg, [flag])] ===
     struct RBX::InstanceStitching {
+      /* +0x2d8 */ void*   field_0x2d8;
+      /* +0x2e0 */ void*   field_0x2e0;
+      /* +0x2e8 */ uint8_t field_0x2e8;
       /* +0x2e9 */ uint8_t field_0x2e9;
     };
     
     // Flag defaults: InstanceStitchingLog = 0
-    auto RBX::InstanceStitching::func_0x315a3f0(RBX::InstanceStitching* this, int64_t param_2, void* param_3) {
-      if (this->field_0x2e9 != 0 && param_3->field_0x8 != 0) {
-        param_3->field_0x8->field_0x8++;
+    auto RBX::InstanceStitching::func_0x315a3f0(RBX::InstanceStitching* this, void* param_2, void* param_3) {
+      uint64_t local_0x38;
+      local_0x38 = param_2;
+      if (this->field_0x2e9 != 0) {
+        param_2->field_0x0 = 0;
+        param_2->field_0x8 = 0;
+        if (param_3->field_0x8 != 0) {
+          param_3->field_0x8->field_0x8++;
+        }
+        param_2->field_0x0 = param_3->field_0x0;
+        param_2->field_0x8 = param_3->field_0x8;
+      } else {
+        auto* f_2e0 = this->field_0x2e0;
+        int32_t v_rbx_1 = f_2e0->field_0x3d8;
+        if (f_2e0->field_0x349 == 0) {
+          auto prev_0x3d8_1 = f_2e0->field_0x3d8;
+          auto ret_0x32e1cd0_1 = call_0x32e1cd0();
+          v_rbx_1 = prev_0x3d8_1 + ret_0x32e1cd0_1;
+        }
+        uint64_t local_0x20;
+        local_0x20 = (int32_t)(((int32_t)v_rbx_1 >> 31 & 0x3) + v_rbx_1) >> 2;
+        uint64_t local_0x1b8;
+        uint64_t local_0x30;
+        call_0x3159a30(this, &local_0x30, param_3, &local_0x1b8, (int32_t)(((int32_t)v_rbx_1 >> 31 & 0x3) + v_rbx_1) >> 2);
+        void* v_rax_5;
+        void* prev_0x0_3;
+        void* prev_0xa8_2;
+        void* v_r15_3;
+        void* v_r13_2;
+        uint64_t local_0x48;
+        uint64_t local_0x40;
+        void* sel_rcx_1;
+        uint64_t i_eax;
+        if (this->field_0x2e8 == 0) {
+          local_0x20 = (int32_t)(((int32_t)v_rbx_1 >> 31 & 0x3) + v_rbx_1) >> 2;
+          uint64_t local_0x50;
+          call_0x3159700(this, &local_0x50, param_3, &local_0x30, (int32_t)(((int32_t)v_rbx_1 >> 31 & 0x3) + v_rbx_1) >> 2);
+          uint64_t local_0x58;
+          if (local_0x50 != 0) {
+            param_2->field_0x0 = local_0x50;
+            v_rax_5 = local_0x58;
+          } else {
+            if (local_0x58 != 0) {
+              call_0x6daf40(local_0x58);
+            }
+            local_0x40 = 0.0;
+            local_0x48 = 0.0;
+            if (param_3->field_0x8 != 0) {
+              param_3->field_0x8->field_0x8++;
+            }
+            local_0x40 = param_3->field_0x0;
+            local_0x48 = param_3->field_0x8;
+            local_0x38 = &local_0x40;
+            auto* f_2d8 = this->field_0x2d8;
+            v_r13_2 = f_2d8->field_0xa8;
+            v_r15_3 = param_3->field_0x0;
+            if (param_3->field_0x0->field_0x28 != 0) {
+              prev_0xa8_2 = f_2d8->field_0xa8;
+              prev_0x0_3 = param_3->field_0x0;
+              call_0x1c1f760(param_3->field_0x0->field_0x28, &param_3->field_0x0->field_0x28);
+              v_r13_2 = prev_0xa8_2;
+              v_r15_3 = prev_0x0_3;
+            }
+            v_r15_3->field_0x30 = local_0x30;
+            call_0x3138300(v_r13_2, v_r15_3);
+            v_r15_3->vfunc_0x60(v_r15_3);
+            if (local_0x48 != 0) {
+              call_0x6daf40(local_0x48);
+            }
+            if ((uint8_t)InstanceStitchingLog >= 6 && (uint8_t)((uint64_t)InstanceStitchingLog >> 8) >= 5) {
+              local_0x38 = "[DFLog::InstanceStitchingLog] {}: Assigned deterministic GUID {} to speculative Instance of type {} at time {}";
+              param_3->field_0x0->vfunc_0x38();
+              sel_rcx_1 = this->field_0x2e8 != 0 ? "Server" : "Client";
+              i_eax = -1;
+              L_0x315a5f0:
+              do { // L_0x315a5f0
+                i_eax++;
+              } while ((local_0x38 - 0x554469)[i_eax] != 0); // loop -> L_0x315a5f0
+              local_0x20 = 1;
+              uint64_t local_0x60;
+              uint64_t local_0x34;
+              FLog::Log("[DFLog::InstanceStitchingLog] {}: Assigned deterministic GUID {} to speculative Instance of type {} at time {}", sel_rcx_1, local_0x34, &local_0x60, (int32_t)(((int32_t)v_rbx_1 >> 31 & 0x3) + v_rbx_1) >> 2);
+            }
+            if (this->field_0x2e8 == 0) {
+              auto local_0x44 = 0.0;
+              auto local_0x4c = 0.0;
+              call_0x315a6f0(this, param_3, &local_0x30, (int32_t)(((int32_t)v_rbx_1 >> 31 & 0x3) + v_rbx_1) >> 2);
+            }
+            param_2->field_0x0 = 0;
+            param_2->field_0x8 = 0;
+            if (param_3->field_0x8 != 0) {
+              param_3->field_0x8->field_0x8++;
+            }
+            param_2->field_0x0 = param_3->field_0x0;
+            v_rax_5 = param_3->field_0x8;
+          }
+        } else {
+          local_0x40 = 0.0;
+          local_0x48 = 0.0;
+          if (param_3->field_0x8 != 0) {
+            param_3->field_0x8->field_0x8++;
+          }
+          local_0x40 = param_3->field_0x0;
+          local_0x48 = param_3->field_0x8;
+          local_0x38 = &local_0x40;
+          auto* f_2d8_2 = this->field_0x2d8;
+          v_r13_2 = f_2d8_2->field_0xa8;
+          v_r15_3 = param_3->field_0x0;
+          if (param_3->field_0x0->field_0x28 != 0) {
+            prev_0xa8_2 = f_2d8_2->field_0xa8;
+            prev_0x0_3 = param_3->field_0x0;
+            call_0x1c1f760(param_3->field_0x0->field_0x28, &param_3->field_0x0->field_0x28);
+            v_r13_2 = prev_0xa8_2;
+            v_r15_3 = prev_0x0_3;
+          }
+          v_r15_3->field_0x30 = local_0x30;
+          call_0x3138300(v_r13_2, v_r15_3);
+          v_r15_3->vfunc_0x60(v_r15_3);
+          if (local_0x48 != 0) {
+            call_0x6daf40(local_0x48);
+          }
+          if ((uint8_t)InstanceStitchingLog >= 6 && (uint8_t)((uint64_t)InstanceStitchingLog >> 8) >= 5) {
+            local_0x38 = "[DFLog::InstanceStitchingLog] {}: Assigned deterministic GUID {} to speculative Instance of type {} at time {}";
+            param_3->field_0x0->vfunc_0x38();
+            sel_rcx_1 = this->field_0x2e8 != 0 ? "Server" : "Client";
+            i_eax = -1;
+            goto L_0x315a5f0;
+          }
+          if (this->field_0x2e8 == 0) {
+            auto local_0x44 = 0.0;
+            auto local_0x4c = 0.0;
+            call_0x315a6f0(this, param_3, &local_0x30, (int32_t)(((int32_t)v_rbx_1 >> 31 & 0x3) + v_rbx_1) >> 2);
+          }
+          param_2->field_0x0 = 0;
+          param_2->field_0x8 = 0;
+          if (param_3->field_0x8 != 0) {
+            param_3->field_0x8->field_0x8++;
+          }
+          param_2->field_0x0 = param_3->field_0x0;
+          v_rax_5 = param_3->field_0x8;
+        }
+        param_2->field_0x8 = v_rax_5;
       }
-      param_2->field_0x0 = param_3->field_0x0;
-      param_2->field_0x8 = param_3->field_0x8;
       return param_2;
     }
   
@@ -1995,7 +2443,7 @@ Operação  : 0x3159466: mov/math reg, [flag] ; fn=0x31593b0..0x31596f8
     0x315a421 | 4c 8b f1                 | mov r14, rcx
     0x315a424 | 48 89 54 24 38           | mov qword ptr [rsp + 0x38], rdx
     0x315a429 | 80 b9 e9 02 00 00 00     | cmp byte ptr [rcx + 0x2e9], 0x0
-    0x315a430 | 74 16                    | je 0x315a448 ; [Nanomite Reconstructed: je +0x16 via cfg_join_label_resolver]
+    0x315a430 | 74 29                    | je 0x315a45b ; [Nanomite Reconstructed: je +0x29 via cfg_orphan_exit_resolver]
     0x315a432 | 33 c0                    | xor eax, eax
     0x315a434 | 48 89 02                 | mov qword ptr [rdx], rax
     0x315a437 | 48 89 42 08              | mov qword ptr [rdx + 0x8], rax
@@ -2009,6 +2457,7 @@ Operação  : 0x3159466: mov/math reg, [flag] ; fn=0x31593b0..0x31596f8
     0x315a44e | 49 8b 48 08              | mov rcx, qword ptr [r8 + 0x8]
     0x315a452 | 48 89 4a 08              | mov qword ptr [rdx + 0x8], rcx
     0x315a456 | e9 6e 02 00 00           | jmp 0x315a6c9
+    L_0x315a45b:
     0x315a45b | 48 8b 89 e0 02 00 00     | mov rcx, qword ptr [rcx + 0x2e0]
     0x315a462 | 8b 99 d8 03 00 00        | mov ebx, dword ptr [rcx + 0x3d8]
     0x315a468 | 80 b9 49 03 00 00 00     | cmp byte ptr [rcx + 0x349], 0x0
@@ -2089,7 +2538,7 @@ Operação  : 0x3159466: mov/math reg, [flag] ; fn=0x31593b0..0x31596f8
     0x315a57f | 48 c1 e8 08              | shr rax, 0x8
     0x315a583 | 3c 05                    | cmp al, 0x5
     0x315a585 | 0f 82 fd 00 00 00        | jb 0x315a688
-    0x315a58b | 48 8d 05 37 37 78 04     | lea rax, [rip + 0x4783737] ; "[DFLog::InstanceStitchingLog] {}: Assigned deterministic GUID {} to speculative Instance of type"
+    0x315a58b | 48 8d 05 37 37 78 04     | lea rax, [rip + 0x4783737] ; "[DFLog::InstanceStitchingLog] {}: Assigned deterministic GUID {} to speculative Instance of type {} at time {}"
     0x315a592 | 48 89 44 24 38           | mov qword ptr [rsp + 0x38], rax
     0x315a597 | 48 8b 5c 24 38           | mov rbx, qword ptr [rsp + 0x38]
     0x315a59c | 48 81 c3 97 bb aa ff     | add rbx, 0xffaabb97
@@ -2186,35 +2635,50 @@ Operação  : 0x3159466: mov/math reg, [flag] ; fn=0x31593b0..0x31596f8
   
   === [Decompilacao C++ do XREF Runtime #5: 0x315a6f0..0x315a8c3 (insn @0x315a729: mov/math reg, [flag])] ===
     // Flag defaults: InstanceStitchingLog = 0
-    void RBX::InstanceStitching::func_0x315a6f0(RBX::InstanceStitching* this, int64_t param_2, void* param_3, void* param_4) {
+    void RBX::InstanceStitching::func_0x315a6f0(RBX::InstanceStitching* this, void* param_2, void* param_3, int64_t param_4) {
+      uint64_t local_0x20;
       if ((uint8_t)InstanceStitchingLog >= 6 && (uint8_t)((uint64_t)InstanceStitchingLog >> 8) >= 5) {
+        uint64_t local_0x50;
+        local_0x50 = 17;
+        local_0x20 = 1;
         FLog::Log("[DFLog::InstanceStitchingLog] Client: Tracking speculative Instance with GUID: {} at frame: {}", param_3->field_0x4, param_4);
       }
-      void* stk_1;
-      void* stk_2;
+      uint64_t local_0x30;
+      local_0x30 = 0.0;
+      void* local_0x38;
+      local_0x38 = 0.0;
       if (param_2->field_0x8 != 0) {
+        local_0x30 = param_2->field_0x0;
+        local_0x38 = param_2->field_0x8;
         param_2->field_0x8->field_0xc++;
-        stk_1 = param_2->field_0x0;
-        stk_2 = param_2->field_0x8;
-      } else {
-        stk_1 = 0.0;
-        stk_2 = 0.0;
       }
-      auto local_0x30 = stk_1;
       auto local_0x34 = 0.0;
-      auto local_0x38 = stk_2;
       auto local_0x3c = 0.0;
       auto local_0x40 = param_4;
+      auto local_0x44 = 0;
+      uint64_t local_0x80;
       call_0x315bf30(&this->field_0x58, &local_0x80, param_3, &local_0x30);
-      if (local_0x38 != 0 && atomic_fetch_sub(&local_0x38->field_0xc, 1) == 1) {
-        local_0x38->vfunc_0x8();
+      if (local_0x38 != 0) {
+        int32_t atomic_2 = atomic_fetch_sub(&local_0x38->field_0xc, 1);
+        if (atomic_2 == 1) {
+          local_0x38->vfunc_0x8();
+        }
       }
-      auto ret_0x325ca40_3 = call_0x325ca40(&local_0xf0, param_3, param_2, 4);
-      call_0x315c8a0(&this->field_0x10, ret_0x325ca40_3);
+      local_0x20 = param_4;
+      uint64_t local_0xf0;
+      auto ret_0x325ca40_4 = call_0x325ca40(&local_0xf0, param_3, param_2, 4, param_4);
+      call_0x315c8a0(&this->field_0x10, ret_0x325ca40_4);
+      uint64_t local_0x140;
       call_0x6f8fb0(&local_0x140);
+      uint64_t local_0x120;
       call_0x6f8fb0(&local_0x120);
-      if (local_0x100 != 0 && atomic_fetch_sub(&local_0x100->field_0xc, 1) == 1) {
-        local_0x100->vfunc_0x8();
+      void* local_0x100;
+      if (local_0x100 != 0) {
+        int32_t atomic_8 = atomic_fetch_sub(&local_0x100->field_0xc, 1);
+        if (atomic_8 == 1) {
+          local_0x100->vfunc_0x8();
+          return;
+        }
       }
     }
   
@@ -2350,132 +2814,228 @@ Operação  : 0x3159466: mov/math reg, [flag] ; fn=0x31593b0..0x31596f8
       /* +0x60 */ void*   field_0x60;
       /* +0x74 */ int32_t field_0x74;
       /* +0x2d8 */ void*   field_0x2d8;
-      /* +0x2e0 */ void*   field_0x2e0;
+      /* +0x2e0 */ uint64_t field_0x2e0;
     };
     
     // Flag defaults: InstanceStitchingLog = 0, DebugEnableStreamOutToDisk8 = false
-    void RBX::InstanceStitching::func_0x315a8d0(RBX::InstanceStitching* this, int64_t param_2) {
+    void RBX::InstanceStitching::func_0x315a8d0(RBX::InstanceStitching* this, void* param_2) {
+      uint64_t local_0x38;
+      local_0x38 = 0;
       if (param_2->field_0x0 == DebugEnableStreamOutToDisk8 + 4) {
+        void* local_0x60;
+        local_0x60 = 0.0;
         call_0x27c3a00(this->field_0x2d8->field_0xa8, param_2, &local_0x60);
         void* v_rax_1;
+        void* v_rcx_2;
         int32_t v_rbx_3;
+        uint64_t local_0xa8;
+        uint64_t local_0xb8;
+        void* local_0x68;
+        uint64_t local_0xa0;
         if (local_0x60 != 0) {
           auto ret_0x27c0390_2 = call_0x27c0390();
           if (local_0x60->field_0x18->field_0x1c0 - ret_0x27c0390_2->field_0x1c0 <= ret_0x27c0390_2->field_0x1c2) {
+            if (local_0x68 != 0) {
+              local_0x68->field_0x8++;
+            }
+            local_0xb8 = local_0x68;
             v_rax_1 = local_0x60;
+            uint64_t local_0xb0;
+            v_rcx_2 = &local_0xb0;
             v_rbx_3 = 4;
           } else {
+            local_0xa8 = 0;
             v_rax_1 = 0;
+            v_rcx_2 = &local_0xa0;
             v_rbx_3 = 8;
           }
         } else {
+          local_0xa8 = 0;
           v_rax_1 = 0;
+          v_rcx_2 = &local_0xa0;
           v_rbx_3 = 8;
         }
+        uint64_t local_0x70;
+        local_0x70 = v_rax_1;
+        uint64_t local_0x78;
+        local_0x78 = v_rcx_2->field_0x8;
+        v_rcx_2->field_0x0 = 0;
+        v_rcx_2->field_0x8 = 0;
+        local_0x38 = v_rbx_3 | 0x10;
         int32_t v_rbx_4 = v_rbx_3 | 0x10;
-        int32_t stk_5;
         if (((uint8_t)(v_rbx_3 | 0x10) & 0x8) != 0) {
+          local_0x38 = (v_rbx_3 | 0x10) & 0xfffffff7;
           if (local_0xa8 != 0) {
             call_0x6daf40(local_0xa8);
             v_rbx_4 = (v_rbx_3 | 0x10) & 0xfffffff7;
-            stk_5 = (v_rbx_3 | 0x10) & 0xfffffff7;
           } else {
             v_rbx_4 = (v_rbx_3 | 0x10) & 0xfffffff7;
-            stk_5 = (v_rbx_3 | 0x10) & 0xfffffff7;
           }
-        } else {
-          stk_5 = v_rbx_3 | 0x10;
         }
-        int32_t v_rbx_6 = v_rbx_4;
-        int32_t stk_7;
+        int32_t v_rbx_5 = v_rbx_4;
         if (((uint8_t)v_rbx_4 & 0x4) != 0) {
-          if (0) {
-            call_0x6daf40(0);
-            v_rbx_6 = v_rbx_4 & 0xfffffffb;
-            stk_7 = v_rbx_4 & 0xfffffffb;
+          local_0x38 = v_rbx_4 & 0xfffffffb;
+          if (local_0xb8 != 0) {
+            call_0x6daf40(local_0xb8);
+            v_rbx_5 = v_rbx_4 & 0xfffffffb;
           } else {
-            v_rbx_6 = v_rbx_4 & 0xfffffffb;
-            stk_7 = v_rbx_4 & 0xfffffffb;
+            v_rbx_5 = v_rbx_4 & 0xfffffffb;
           }
-        } else {
-          stk_7 = stk_5;
         }
         if (local_0x60 != 0) {
-          call_0x315c500(&this->field_0x58, &local_0x40, param_2);
-          int64_t local_0x70;
+          void* local_0x40;
+          call_0x315c500(&this->field_0x58, &local_0x40);
+          uint64_t local_0x20;
+          uint64_t local_0x48;
           if (local_0x40 == 0 && local_0x48 == 0) {
-            local_0x70 = v_rax_1;
-            auto ret_0x325ca40_20 = call_0x325ca40(&local_0x120, param_2, &local_0x70, 1);
-            call_0x315c8a0(&this->field_0x10, ret_0x325ca40_20);
+            local_0x20 = -1;
+            uint64_t local_0x120;
+            auto ret_0x325ca40_27 = call_0x325ca40(&local_0x120, param_2, &local_0x70, 1, -1);
+            call_0x315c8a0(&this->field_0x10, ret_0x325ca40_27);
+            uint64_t local_0x170;
             call_0x6f8fb0(&local_0x170);
+            uint64_t local_0x150;
             call_0x6f8fb0(&local_0x150);
-            if (local_0x130 != 0 && atomic_fetch_sub(&local_0x130->field_0xc, 1) == 1) {
-              local_0x130->vfunc_0x8();
+            void* local_0x130;
+            if (local_0x130 != 0) {
+              int32_t atomic_31 = atomic_fetch_sub(&local_0x130->field_0xc, 1);
+              if (atomic_31 == 1) {
+                local_0x130->vfunc_0x8();
+              }
             }
           } else {
-            int32_t v_rbx_8 = v_rbx_6;
+            int32_t v_rbx_6 = v_rbx_5;
+            uint64_t local_0x90;
+            void* local_0x30;
             if ((uint8_t)InstanceStitchingLog >= 6 && (uint8_t)((uint64_t)InstanceStitchingLog >> 8) >= 5) {
-              FLog::Log("[DFLog::InstanceStitchingLog] Client: Stitched Instance with GUID: {}", param_2->field_0x4);
-              v_rbx_8 = stk_7;
+              local_0x30 = "[DFLog::InstanceStitchingLog] Client: Stitched Instance with GUID: {}";
+              local_0x90 = param_2->field_0x4;
+              local_0x20 = (uint8_t)(-1 + 2);
+              FLog::Log("[DFLog::InstanceStitchingLog] Client: Stitched Instance with GUID: {}", local_0x90);
+              v_rbx_6 = local_0x38;
             }
-            void* v_rax_9;
-            int32_t v_rbx_10;
+            local_0x90 = local_0x48;
+            local_0x30 = local_0x40;
+            local_0x20 = local_0x40->field_0x10->field_0x18[local_0x48 << 5];
+            int64_t v_rax_7;
+            int32_t v_rbx_8;
             if (local_0x40->field_0x10->field_0x1c[local_0x48 << 5] != 0) {
-              local_0x70 = v_rax_1;
-              v_rax_9 = call_0x325ca40(&local_0x220, param_2, &local_0x70, 3);
-              v_rbx_10 = v_rbx_8 | 0x1;
+              uint64_t local_0x220;
+              v_rax_7 = call_0x325ca40(&local_0x220, param_2, &local_0x70, 3, local_0x40->field_0x10->field_0x18[local_0x48 << 5]);
+              v_rbx_8 = v_rbx_6 | 0x1;
             } else {
-              local_0x70 = v_rax_1;
-              v_rax_9 = call_0x325ca40(&local_0x1a0, param_2, &local_0x70, 0);
-              v_rbx_10 = v_rbx_8 | 0x2;
+              uint64_t local_0x1a0;
+              v_rax_7 = call_0x325ca40(&local_0x1a0, param_2, &local_0x70, 0, local_0x40->field_0x10->field_0x18[local_0x48 << 5]);
+              v_rbx_8 = v_rbx_6 | 0x2;
             }
-            call_0x315c8a0(&this->field_0x10, v_rax_9);
-            int32_t v_rbx_11 = v_rbx_10;
-            if (((uint8_t)v_rbx_10 & 0x2) != 0) {
+            local_0x38 = v_rbx_8;
+            call_0x315c8a0(&this->field_0x10, v_rax_7);
+            int32_t v_rbx_9 = v_rbx_8;
+            if (((uint8_t)v_rbx_8 & 0x2) != 0) {
+              local_0x38 = v_rbx_8 & 0xfffffffd;
+              uint64_t local_0x1f0;
               call_0x6f8fb0(&local_0x1f0);
+              uint64_t local_0x1d0;
               call_0x6f8fb0(&local_0x1d0);
+              void* local_0x1b0;
               if (local_0x1b0 != 0) {
-                if (atomic_fetch_sub(&local_0x1b0->field_0xc, 1) == 1) {
+                int32_t atomic_11 = atomic_fetch_sub(&local_0x1b0->field_0xc, 1);
+                if (atomic_11 == 1) {
                   local_0x1b0->vfunc_0x8();
                 }
-                v_rbx_11 = v_rbx_10 & 0xfffffffd;
+                v_rbx_9 = local_0x38;
               } else {
-                v_rbx_11 = v_rbx_10 & 0xfffffffd;
+                v_rbx_9 = v_rbx_8 & 0xfffffffd;
               }
             }
-            if (((uint8_t)v_rbx_11 & 0x1) != 0) {
+            if (((uint8_t)v_rbx_9 & 0x1) != 0) {
+              uint64_t local_0x270;
               call_0x6f8fb0(&local_0x270);
+              uint64_t local_0x250;
               call_0x6f8fb0(&local_0x250);
-              if (local_0x230 != 0 && atomic_fetch_sub(&local_0x230->field_0xc, 1) == 1) {
-                local_0x230->vfunc_0x8();
+              void* local_0x230;
+              if (local_0x230 != 0) {
+                int32_t atomic_15 = atomic_fetch_sub(&local_0x230->field_0xc, 1);
+                if (atomic_15 == 1) {
+                  local_0x230->vfunc_0x8();
+                }
               }
             }
-            if ((local_0x40->field_0x10 + (local_0x48 << 5))->field_0x1d == 0) {
-              uint64_t v_rdi_13;
-              if ((local_0x40->field_0x10 + (local_0x48 << 5))->field_0x10 != 0 && ((local_0x40->field_0x10 + (local_0x48 << 5))->field_0x10)->field_0x8 != 0) {
-                do { // L_0x315acb2
-                  if (atomic_cas(&((local_0x40->field_0x10 + (local_0x48 << 5))->field_0x10)->field_0x8, ((local_0x40->field_0x10 + (local_0x48 << 5))->field_0x10)->field_0x8, rax + 1) == 0) break;
-                } while (((local_0x40->field_0x10 + (local_0x48 << 5))->field_0x10)->field_0x8 != 0); // loop -> L_0x315acb2
-                v_rdi_13 = 0.0;
+            uint64_t local_0x80;
+            if ((local_0x30->field_0x10 + (local_0x48 << 5))->field_0x1d == 0) {
+              uint64_t local_0x50;
+              local_0x50 = 0.0;
+              uint64_t local_0x58;
+              local_0x58 = 0.0;
+              void* v_rdi_10;
+              if ((local_0x30->field_0x10 + (local_0x48 << 5))->field_0x10 != 0) {
+                int32_t i_eax_2 = ((local_0x30->field_0x10 + (local_0x48 << 5))->field_0x10)->field_0x8;
+                if (((local_0x30->field_0x10 + (local_0x48 << 5))->field_0x10)->field_0x8 != 0) {
+                  do { // L_0x315acb2
+                    if (atomic_cas(&((local_0x30->field_0x10 + (local_0x48 << 5))->field_0x10)->field_0x8, i_eax_2, i_eax_2 + 1)) {
+                    local_0x50 = (local_0x30->field_0x10 + (local_0x48 << 5))->field_0x8;
+                    local_0x58 = (local_0x30->field_0x10 + (local_0x48 << 5))->field_0x10;
+                    v_rdi_10 = (local_0x30->field_0x10 + (local_0x48 << 5))->field_0x8;
+                    break;
+                    }
+                  } while (i_eax_2 != 0); // loop -> L_0x315acb2
+                  L_0x315acc4:
+                  v_rdi_10 = local_0x50;
+                } else {
+                  v_rdi_10 = local_0x50;
+                }
               } else {
-                v_rdi_13 = 0.0;
+                goto L_0x315acc4;
               }
-              if (v_rdi_13 != 0) {
-                void* sel_rax_1 = v_rdi_13 == -88 ? 148 : v_rdi_13 + 0x94;
+              if (v_rdi_10 != 0) {
+                local_0x38 = v_rdi_10 + 0x94;
+                void* sel_rax_1 = v_rdi_10 == -88 ? 148 : v_rdi_10 + 0x94;
                 if (sel_rax_1->field_0x0 == 1 && this->field_0x2e0 != 0) {
-                  int64_t selected_rcx_2 = v_rdi_13 == -88 ? 0 : v_rdi_13;
+                  int64_t selected_rcx_2 = v_rdi_10 == -88 ? 0 : v_rdi_10;
+                  void* prev_0x2e0_4 = this->field_0x2e0;
                   (*global_0x80f4c78)(selected_rcx_2);
-                  void* sel_rax_3 = v_rdi_13 != -88 ? v_rdi_13 + 0x94 : 148;
+                  void* sel_rax_3 = v_rdi_10 != -88 ? local_0x38 : 148;
                   sel_rax_3->field_0x0 = 0;
-                  auto ret_0xdf5f50_16 = call_0xdf5f50();
-                  if ((v_rdi_13->field_0x18->field_0x1c0 - ret_0xdf5f50_16->field_0x1c0 <= ret_0xdf5f50_16->field_0x1c2 ? v_rdi_13 : 0) != 0 && rcx->field_0x178 != 0 && rcx->field_0x178->field_0x48 != 0 && rcx->field_0x178->field_0x48 != 16) {
-                    call_0x14c73e0(rcx->field_0x178->field_0x48 - 0x10);
+                  auto ret_0xdf5f50_18 = call_0xdf5f50();
+                  if ((v_rdi_10->field_0x18->field_0x1c0 - ret_0xdf5f50_18->field_0x1c0 <= ret_0xdf5f50_18->field_0x1c2 ? v_rdi_10 : 0) != 0) {
+                    void* ptr_6 = v_rdi_10->field_0x18->field_0x1c0 - ret_0xdf5f50_18->field_0x1c0 <= ret_0xdf5f50_18->field_0x1c2 ? v_rdi_10 : 0;
+                    if (ptr_6->field_0x178 != 0 && ptr_6->field_0x178->field_0x48 != 0 && ptr_6->field_0x178->field_0x48 != 16) {
+                    auto ret_0x14c73e0_19 = call_0x14c73e0(ptr_6->field_0x178->field_0x48 - 0x10);
+                    void* v_rax_11;
+                    if ((uint8_t)ret_0x14c73e0_19 != 0) {
+                    v_rax_11 = 0;
+                    } else {
+                    auto ret_0x1479630_20 = call_0x1479630(ptr_6->field_0x178->field_0x48 - 0x10);
+                    v_rax_11 = call_0x14c6ac0(ret_0x1479630_20);
+                    }
+                    if (v_rax_11 != 0 && v_rax_11->field_0x48 != 0 && v_rax_11->field_0x48 != 16) {
+                    local_0x80 = prev_0x2e0_4;
+                    call_0x32e4aa0(v_rax_11->field_0x48 + 8, &local_0x80);
+                    }
+                    }
                   }
                 }
               }
+              if (local_0x58 != 0) {
+                call_0x6daf40(local_0x58);
+              }
             }
-            call_0x315d400(&this->field_0x58, local_0x40->field_0x10 + (local_0x48 << 5));
-            call_0x800000(&local_0x80);
+            local_0x80 = local_0x40;
+            if (this->field_0x58 != 0 && local_0x40 == &this->field_0x58 && local_0x48 < this->field_0x5c) {
+              auto* f_60 = this->field_0x60;
+              int64_t idx_4 = f_60->field_0x10[(1 << (uint8_t)this->field_0x74) * 4] + ((uint64_t)local_0x90 >> 6);
+              if ((f_60->field_0x18[(((1) << (uint8_t)this->field_0x74) + idx_4 * 2) * 4] & 1ULL << (uint8_t)(local_0x48 & 0x3f)) == 0) {
+                call_0x315d400(&this->field_0x58, local_0x30->field_0x10 + (local_0x48 << 5));
+                auto local_0x88 = local_0x48;
+                call_0x800000(&local_0x80);
+              } else {
+                call_0x4971090(0, "Bad iterator given to `erase`");
+                return; // noreturn
+              }
+            } else {
+              call_0x4971090(0, "Bad iterator given to `erase`");
+              return; // noreturn
+            }
           }
         }
         if (local_0x78 != 0) {
@@ -2485,7 +3045,6 @@ Operação  : 0x3159466: mov/math reg, [flag] ; fn=0x31593b0..0x31596f8
           call_0x6daf40(local_0x68);
           return;
         }
-        return;
       }
     }
   
@@ -2885,234 +3444,408 @@ Operação  : 0x3159466: mov/math reg, [flag] ; fn=0x31593b0..0x31596f8
   === [Decompilacao C++ do XREF Runtime #7: 0x315ae80..0x315b3ea (insn @0x315b036: mov/math reg, [flag])] ===
     struct RBX::InstanceStitching {
       /* +0x5c */ int32_t field_0x5c;
-      /* +0x60 */ void*   field_0x60;
+      /* +0x60 */ uint64_t field_0x60;
       /* +0x74 */ int32_t field_0x74;
-      /* +0x2e0 */ void*   field_0x2e0;
+      /* +0x2e0 */ uint64_t field_0x2e0;
       /* +0x2e8 */ uint8_t field_0x2e8;
     };
     
     // Flag defaults: InstanceStitchingLog = 0
     void RBX::InstanceStitching::func_0x315ae80(RBX::InstanceStitching* this, int64_t param_2) {
       auto ret_0x4954e70_1 = call_0x4954e70(global_0x84c1018);
+      uint64_t local_0x34;
+      local_0x34 = ret_0x4954e70_1;
+      int32_t v_r8_11 = ret_0x4954e70_1;
+      void* ret_0x4954c10_4;
       if (this->field_0x2e8 == 0 && this->field_0x2e0 != 0) {
-        void* v_r14_6;
-        int32_t i_edi;
+        uint64_t local_0x30;
+        local_0x30 = (int32_t)(param_2 + ((int32_t)param_2 >> 31 & 0x3)) >> 2;
+        uint64_t local_0x130;
+        void* local_0x120;
+        local_0x120 = &local_0x130;
+        uint64_t local_0x128;
+        local_0x128 = 0;
+        uint64_t local_0x12c;
+        local_0x12c = 6;
+        int32_t v_rax_5 = (int32_t)(param_2 + ((int32_t)param_2 >> 31 & 0x3)) >> 2;
+        int32_t v_rdi_6;
+        void* v_r14_7;
         if (this->field_0x5c == 0) {
-          v_r14_6 = 0;
+          v_rdi_6 = 0;
+          v_r14_7 = 0;
         } else {
-          auto expr_2 = this->field_0x60 + (1 << this->field_0x74) * 4;
-          int64_t idx_1 = expr_2->field_0x10;
+          auto expr_1 = this->field_0x60 + ((1 << (uint8_t)this->field_0x74) * 4);
+          int64_t idx_1 = expr_1->field_0x10;
+          int32_t v_rdi_3 = 0;
           void* v_r14_4 = &this->field_0x58;
-          if ((expr_2->field_0x18[idx_1 * 8] & 0x1) != 0) {
+          if ((expr_1->field_0x18[idx_1 * 8] & 0x1) != 0) {
             if (this->field_0x5c == 1) {
               v_r14_4 = 0;
             } else {
-              int64_t idx_2 = expr_2->field_0x10;
-              auto expr_1 = expr_2 + idx_2 * 8;
-              uint64_t v_rcx_1 = ~expr_1->field_0x18 & 0xfffffffe;
+              void* ptr_2 = this->field_0x60 + (1 << (uint8_t)this->field_0x74) * 4;
+              int64_t idx_3 = expr_1->field_0x10;
+              uint64_t v_rcx_1 = ~(ptr_2 + (idx_3 * 8))->field_0x18 & 0xfffffffffffffffeULL;
               int32_t v_rdi_2 = 0;
-              if ((~expr_1->field_0x18 & 0xfffffffe) == 0) {
+              if ((~(ptr_2 + (idx_3 * 8))->field_0x18 & 0xfffffffffffffffeULL) == 0) {
                 int32_t i_edx = 0;
-                i_edi = 0;
+                int32_t i_edi = 0;
                 do { // L_0x315af80
                   i_edi++;
                   i_edx += 0x40;
-                  if (i_edx >= this->field_0x5c) break;
-                } while (~expr_1->field_0x18[i_edi * 8] == 0); // loop -> L_0x315af80
+                  if (i_edx >= this->field_0x5c) {
+                    L_0x315afb2:
+                    v_r14_4 = 0;
+                    break;
+                  }
+                } while (~(ptr_2 + (idx_3 * 8))->field_0x18[i_edi * 8] == 0); // loop -> L_0x315af80
+                v_rcx_1 = ~(ptr_2 + (idx_3 * 8))->field_0x18[i_edi * 8];
+                v_rdi_2 = i_edi;
                 if ((v_rdi_2 << 6) + ctz(v_rcx_1) == this->field_0x5c) {
                   v_r14_4 = 0;
+                } else {
+                  v_rdi_3 = (v_rdi_2 << 6) + ctz(v_rcx_1);
                 }
               } else if ((v_rdi_2 << 6) + ctz(v_rcx_1) == this->field_0x5c) {
-                v_r14_4 = 0;
+                goto L_0x315afb2;
+              } else {
+                v_rdi_3 = (v_rdi_2 << 6) + ctz(v_rcx_1);
               }
             }
           }
-          v_r14_6 = v_r14_4;
+          v_rax_5 = local_0x30;
+          v_rdi_6 = v_rdi_3;
+          v_r14_7 = v_r14_4;
         }
-        int32_t i_eax = (param_2 + (rdx & 0x3)) >> 2;
-        int32_t i_r15d = -1;
-        void* i_r14d = v_r14_6;
+        void* i_eax_4 = v_rax_5;
+        int32_t i_r15d_2 = -1;
+        int32_t i_edi_3 = v_rdi_6;
+        void* i_r14d_2 = v_r14_7;
+        L_0x315afc1:
+        uint64_t i_ebx;
         do { // L_0x315afc1
-          void* i_ecx = &sym_0x7a35f7d;
+          void* i_eax_2 = i_eax_4;
+          void* i_ecx = "[DFLog::InstanceStitchingLog] Deleting speculative Instance of type {} created at frame {} (server confirmed past frame {}) with GUID: {}";
+          int32_t i_r15d = i_r15d_2;
+          int32_t i_edi_2 = i_edi_3;
+          void* i_r14d = i_r14d_2;
+          L_0x315afc8:
           do { // L_0x315afc8
-            if (i_r14d != 0) {
-              int32_t v_rax_20 = i_eax;
-              void* v_rcx_21 = i_ecx;
-              int32_t v_r15_22 = i_r15d;
-              if (((i_edi << 5) + i_r14d->field_0x10)->field_0x18 < i_eax) {
-                void* fstk_10;
-                void* fstk_11;
-                if (((i_edi << 5) + i_r14d->field_0x10)->field_0x10 != 0 && (((i_edi << 5) + i_r14d->field_0x10)->field_0x10)->field_0x8 != 0) {
-                  L_0x315b001:
-                  void* stk_7;
-                  void* stk_8;
-                  do { // L_0x315b001
-                    atomic_try_incref(&(((i_edi << 5) + i_r14d->field_0x10)->field_0x10)->field_0x8);
-                    if (atomic_cas(&(((i_edi << 5) + i_r14d->field_0x10)->field_0x10)->field_0x8, (((i_edi << 5) + i_r14d->field_0x10)->field_0x10)->field_0x8, rax + 1) == 0) break;
-                  } while ((((i_edi << 5) + i_r14d->field_0x10)->field_0x10)->field_0x8 != 0); // loop -> L_0x315b001
-                  stk_7 = 0.0;
-                  stk_8 = 0.0;
-                  "[DFLog::InstanceStitchingLog] Deleting speculative Instance of type {} created at frame {} (serv";
-                  fstk_10 = stk_7;
-                  fstk_11 = stk_8;
-                } else {
-                  fstk_10 = 0.0;
-                  fstk_11 = 0.0;
-                }
-                int32_t v_r15_14 = i_r15d;
-                void* stk_17;
-                if (fstk_10 != 0) {
-                  int32_t v_r15_13 = i_r15d;
-                  if ((uint8_t)InstanceStitchingLog >= 6 && (uint8_t)((uint64_t)InstanceStitchingLog >> 8) >= 5) {
-                    fstk_10->vfunc_0x38();
-                    FLog::Log("[DFLog::InstanceStitchingLog] Deleting speculative Instance of type {} created at frame {} (serv", &local_0x70, ((i_edi << 5) + i_r14d->field_0x10)->field_0x18);
-                    v_r15_13 = -1;
-                  }
-                  L_0x315b143:
-                  auto local_0x40 = fstk_10;
-                  auto local_0x44 = 0.0;
-                  auto local_0x48 = fstk_11;
-                  auto local_0x4c = 0.0;
-                  auto ret_0x325ca40_8 = call_0x325ca40(&local_0x1a0, (i_edi << 5) + i_r14d->field_0x10, &local_0x40, 2);
-                  call_0x315c8a0(&this->field_0x10, ret_0x325ca40_8);
-                  call_0x6f8fb0(&local_0x1f0);
-                  call_0x6f8fb0(&local_0x1d0);
-                  if (local_0x1b0 != 0 && atomic_fetch_sub(&local_0x1b0->field_0xc, 1) == 1) {
-                    local_0x1b0->vfunc_0x8();
-                  }
-                  call_0x32d99c0(this->field_0x2e0, &local_0x60);
-                  call_0x1c3ec40(local_0x40, 0, 0, 0);
-                  v_r15_14 = v_r15_13;
-                  stk_17 = local_0x48;
-                } else {
-                  stk_17 = fstk_11;
-                }
-                if (stk_17 != 0) {
-                  call_0x6daf40(stk_17);
-                }
-                if (r8d + 1 > 6) {
-                  auto local_0x120 = &local_0x130;
-                  call_0x4973e90(&local_0x120, &local_0x130, r8d + 1, 8);
-                }
-                v_rax_20 = (param_2 + (rdx & 0x3)) >> 2;
-                v_rcx_21 = &sym_0x7a35f7d;
-                v_r15_22 = v_r15_14;
+            if (i_r14d == 0 && i_edi_2 == 0) {
+              if (local_0x120 != local_0x120 + local_0x128 * 8) {
+                i_ebx = local_0x120;
+                L_0x315b340:
+                do { // L_0x315b340
+                  call_0x315d400(&this->field_0x58, i_ebx, this->field_0x5c);
+                  i_ebx += 8;
+                } while (i_ebx != local_0x120 + local_0x128 * 8); // loop -> L_0x315b340
               }
-              i_edi++;
-              if (i_edi == i_r14d->field_0x4) {
-                i_eax = v_rax_20;
-                i_ecx = v_rcx_21;
-                i_r15d = v_r15_22;
-                i_edi = 0;
-                i_r14d = 0;
-                continue;
+              if (local_0x120 != &local_0x130) {
+                call_0x4955ac0(local_0x120);
+              }
+              v_r8_11 = local_0x34;
+              if (v_r8_11 >= 1024) {
+                call_0x494e780();
               } else {
-                int64_t idx_3 = (i_r14d->field_0x8 + (1 << i_r14d->field_0x1c) * 4)->field_0x10;
-                uint64_t v_rax_25 = ~((i_r14d->field_0x8 + (1 << i_r14d->field_0x1c) * 4) + idx_3 * 8)->field_0x18[((uint32_t)i_edi >> 6) * 8] & -1 << (i_edi & 0x3f);
-                int32_t v_r8_26 = (uint32_t)i_edi >> 6;
-                if ((~((i_r14d->field_0x8 + (1 << i_r14d->field_0x1c) * 4) + idx_3 * 8)->field_0x18[((uint32_t)i_edi >> 6) * 8] & -1 << (i_edi & 0x3f)) == 0) {
-                  int32_t i_r8d = (uint32_t)i_edi >> 6;
-                  L_0x315b2d0:
-                  do { // L_0x315b2d0
-                    i_r8d++;
-                    i_ecx += 0x40;
-                    if (i_ecx >= i_r14d->field_0x4) break;
-                  } while (~((i_r14d->field_0x8 + (1 << i_r14d->field_0x1c) * 4) + idx_3 * 8)->field_0x18[i_r8d * 8] == 0); // loop -> L_0x315b2d0
-                  L_0x315b2e8:
-                  i_ecx = &sym_0x7a35f7d;
-                  i_eax = (param_2 + (rdx & 0x3)) >> 2;
-                  i_r15d = v_r15_22;
-                  i_edi = 0;
-                  i_r14d = 0;
-                  break;
+                ret_0x4954c10_4 = call_0x4954c10();
+                if (ret_0x4954c10_4 != 0) {
+                  ret_0x4954c10_4->field_0x0 = ret_0x4954c10_4->field_0x0 ^ (ret_0x4954c10_4->field_0x0 ^ v_r8_11) & 0x3ff;
                 } else {
-                  i_ecx = &sym_0x7a35f7d;
-                  i_eax = (param_2 + (rdx & 0x3)) >> 2;
-                  i_r15d = v_r15_22;
-                  i_edi = 0;
-                  i_r14d = 0;
-                  break;
+                  call_0x4954d30(v_r8_11, 1023);
                 }
               }
+              return;
             }
-            if (i_edi == 0) break;
-            int32_t v_rax_20 = i_eax;
-            void* v_rcx_21 = i_ecx;
-            int32_t v_r15_22 = i_r15d;
-            if (((i_edi << 5) + i_r14d->field_0x10)->field_0x18 < i_eax) {
-              void* fstk_10;
-              void* fstk_11;
-              if (((i_edi << 5) + i_r14d->field_0x10)->field_0x10 != 0 && (((i_edi << 5) + i_r14d->field_0x10)->field_0x10)->field_0x8 != 0) {
-                goto L_0x315b001;
-              } else {
-                fstk_10 = 0.0;
-                fstk_11 = 0.0;
+            int32_t v_rax_19 = i_eax_2;
+            void* v_rcx_20 = i_ecx;
+            int32_t v_r15_21 = i_r15d;
+            uint64_t v_rax_22;
+            int32_t i_r8d;
+            void* ptr_4;
+            int32_t i_ecx_2;
+            int32_t v_r8_23;
+            int64_t idx_5;
+            if (((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x18 < i_eax_2) {
+              void* local_0x40;
+              local_0x40 = 0.0;
+              void* local_0x48;
+              local_0x48 = 0.0;
+              void* v_rcx_12 = i_ecx;
+              void* prev_0x0_3;
+              void* v_rax_13;
+              uint64_t v_rbx_18;
+              uint64_t i_eax_3;
+              uint64_t local_0xa0;
+              int64_t prev_0x4_2;
+              uint64_t local_0x78;
+              int32_t v_r15_14;
+              int32_t v_r15_15;
+              uint64_t local_0x70;
+              void* vret_7;
+              uint64_t local_0x50;
+              if (((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x10 != 0) {
+                int32_t i_eax = (((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x10)->field_0x8;
+                if ((((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x10)->field_0x8 != 0) {
+                  do { // L_0x315b001
+                    if (atomic_cas(&(((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x10)->field_0x8, i_eax, i_eax + 1)) {
+                    local_0x40 = ((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x8;
+                    local_0x48 = ((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x10;
+                    v_rcx_12 = "[DFLog::InstanceStitchingLog] Deleting speculative Instance of type {} created at frame {} (server confirmed past frame {}) with GUID: {}";
+                    v_r15_15 = i_r15d;
+                    if (local_0x40 != 0) {
+                    v_r15_14 = i_r15d;
+                    uint64_t local_0x20;
+                    if ((uint8_t)InstanceStitchingLog >= 6 && (uint8_t)((uint64_t)InstanceStitchingLog >> 8) >= 5) {
+                    local_0x50 = v_rcx_12;
+                    prev_0x4_2 = ((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x4;
+                    vret_7 = local_0x40->vfunc_0x38(local_0x40, ((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x10, this->field_0x5c);
+                    v_rax_13 = vret_7;
+                    if (vret_7->field_0x18 >= 16) {
+                    v_rax_13 = vret_7->field_0x0;
+                    }
+                    local_0x70 = v_rax_13;
+                    local_0x78 = vret_7->field_0x10;
+                    local_0xa0 = local_0x50 - 0x6ac6ad;
+                    i_eax_3 = -1;
+                    L_0x315b0a0:
+                    do { // L_0x315b0a0
+                    i_eax_3++;
+                    } while ((local_0x50 - 0x6ac6ad)[i_eax_3] != 0); // loop -> L_0x315b0a0
+                    uint64_t local_0xa8;
+                    local_0xa8 = i_eax_3;
+                    uint64_t local_0x80;
+                    local_0x80 = &local_0x70;
+                    uint64_t local_0x88;
+                    local_0x88 = &sym_0x704c50;
+                    uint64_t local_0xc0;
+                    local_0xc0 = ((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x18;
+                    uint64_t local_0xd0;
+                    local_0xd0 = local_0x30;
+                    uint64_t local_0xe0;
+                    local_0xe0 = prev_0x4_2;
+                    uint64_t local_0x160;
+                    local_0x160 = local_0x80;
+                    uint64_t local_0x170;
+                    local_0x170 = local_0xc0;
+                    uint64_t local_0x180;
+                    local_0x180 = local_0xd0;
+                    uint64_t local_0x190;
+                    local_0x190 = local_0xe0;
+                    uint64_t local_0x90;
+                    local_0x90 = 4383;
+                    uint64_t local_0x98;
+                    local_0x98 = &local_0x160;
+                    uint64_t local_0xf0;
+                    local_0xf0 = local_0x90;
+                    uint64_t local_0x100;
+                    local_0x100 = local_0xa0;
+                    uint64_t local_0x110;
+                    local_0x110 = InstanceStitchingLog;
+                    local_0x20 = 1;
+                    FLog::Log("[DFLog::InstanceStitchingLog] Deleting speculative Instance of type {} created at frame {} (server confirmed past frame {}) with GUID: {}", local_0x90);
+                    v_r15_14 = -1;
+                    }
+                    L_0x315b143:
+                    local_0x20 = ((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x18;
+                    auto local_0x44 = 0.0;
+                    auto local_0x4c = 0.0;
+                    uint64_t local_0x1a0;
+                    auto ret_0x325ca40_8 = call_0x325ca40(&local_0x1a0, (i_edi_2 << 5) + i_r14d->field_0x10, &local_0x40, 2, ((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x18);
+                    call_0x315c8a0(&this->field_0x10, ret_0x325ca40_8);
+                    uint64_t local_0x1f0;
+                    call_0x6f8fb0(&local_0x1f0);
+                    uint64_t local_0x1d0;
+                    call_0x6f8fb0(&local_0x1d0);
+                    void* local_0x1b0;
+                    if (local_0x1b0 != 0) {
+                    int32_t atomic_12 = atomic_fetch_sub(&local_0x1b0->field_0xc, 1);
+                    if (atomic_12 == 1) {
+                    local_0x1b0->vfunc_0x8();
+                    }
+                    }
+                    uint64_t local_0x60;
+                    local_0x60 = 0.0;
+                    if (local_0x48 != 0) {
+                    local_0x48->field_0x8++;
+                    }
+                    local_0x60 = local_0x40;
+                    auto local_0x64 = local_0x44;
+                    auto local_0x68 = local_0x48;
+                    auto local_0x6c = local_0x4c;
+                    call_0x32d99c0(this->field_0x2e0, &local_0x60);
+                    uint64_t local_0xb0;
+                    local_0xb0 = 0.0;
+                    uint64_t local_0x28;
+                    local_0x28 = 0;
+                    local_0x20 = &local_0xb0;
+                    call_0x1c3ec40(local_0x40, 0, 0, 0, &local_0xb0, 0);
+                    v_r15_15 = v_r15_14;
+                    }
+                    if (local_0x48 != 0) {
+                    call_0x6daf40(local_0x48);
+                    }
+                    v_rbx_18 = ((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x0;
+                    if (local_0x128 + 1 > local_0x12c) {
+                    prev_0x0_3 = ((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x0;
+                    call_0x4973e90(&local_0x120, &local_0x130, local_0x128 + 1, 8);
+                    v_rbx_18 = prev_0x0_3;
+                    }
+                    local_0x120->field_0x0[local_0x128 * 8] = v_rbx_18;
+                    if (local_0x128 + 1 <= v_r15_15) {
+                    local_0x128++;
+                    v_rax_19 = local_0x30;
+                    v_rcx_20 = &sym_0x7a35f7d;
+                    v_r15_21 = v_r15_15;
+                    i_edi_2++;
+                    if (i_edi_2 == i_r14d->field_0x4) {
+                    i_eax_2 = v_rax_19;
+                    i_ecx = v_rcx_20;
+                    i_r15d = v_r15_21;
+                    i_edi_2 = 0;
+                    i_r14d = 0;
+                    } else {
+                    ptr_4 = i_r14d->field_0x8 + (1 << (uint8_t)i_r14d->field_0x1c) * 4;
+                    idx_5 = (i_r14d->field_0x8 + ((1 << (uint8_t)i_r14d->field_0x1c) * 4))->field_0x10;
+                    v_rax_22 = ~(ptr_4 + (idx_5 * 8))->field_0x18[((uint32_t)i_edi_2 >> 6) * 8] & -1 << (uint8_t)(i_edi_2 & 0x3f);
+                    v_r8_23 = (uint32_t)i_edi_2 >> 6;
+                    uint64_t local_0x5c;
+                    if ((~(ptr_4 + (idx_5 * 8))->field_0x18[((uint32_t)i_edi_2 >> 6) * 8] & -1 << (uint8_t)(i_edi_2 & 0x3f)) == 0) {
+                    i_ecx_2 = ((uint32_t)i_edi_2 >> 6) << 6;
+                    i_r8d = (uint32_t)i_edi_2 >> 6;
+                    L_0x315b2d0:
+                    do { // L_0x315b2d0
+                    i_r8d++;
+                    i_ecx_2 += 0x40;
+                    if (i_ecx_2 >= i_r14d->field_0x4) {
+                    i_eax_4 = local_0x30;
+                    i_r15d_2 = v_r15_21;
+                    i_edi_3 = 0;
+                    i_r14d_2 = 0;
+                    goto L_0x315afc1;
+                    }
+                    } while (~(ptr_4 + (idx_5 * 8))->field_0x18[i_r8d * 8] == 0); // loop -> L_0x315b2d0
+                    v_rax_22 = ~(ptr_4 + (idx_5 * 8))->field_0x18[i_r8d * 8];
+                    v_r8_23 = i_r8d;
+                    L_0x315b2e8:
+                    local_0x5c = ctz(v_rax_22);
+                    if ((v_r8_23 << 6) + ctz(v_rax_22) == i_r14d->field_0x4) {
+                    L_0x315b315:
+                    i_eax_4 = local_0x30;
+                    i_r15d_2 = v_r15_21;
+                    i_edi_3 = 0;
+                    i_r14d_2 = 0;
+                    goto L_0x315afc1;
+                    } else {
+                    i_eax_2 = local_0x30;
+                    i_ecx = &sym_0x7a35f7d;
+                    i_r15d = v_r15_21;
+                    i_edi_2 = (v_r8_23 << 6) + ctz(v_rax_22);
+                    }
+                    } else {
+                    local_0x5c = ctz(v_rax_22);
+                    if ((v_r8_23 << 6) + ctz(v_rax_22) == i_r14d->field_0x4) {
+                    i_eax_4 = local_0x30;
+                    i_r15d_2 = v_r15_21;
+                    i_edi_3 = 0;
+                    i_r14d_2 = 0;
+                    goto L_0x315afc1;
+                    } else {
+                    i_eax_2 = local_0x30;
+                    i_ecx = &sym_0x7a35f7d;
+                    i_r15d = v_r15_21;
+                    i_edi_2 = (v_r8_23 << 6) + ctz(v_rax_22);
+                    }
+                    }
+                    }
+                    goto L_0x315afc8;
+                    } else {
+                    call_0x4971090(0, &sym_0x6647145);
+                    return; // noreturn
+                    }
+                    break;
+                    }
+                  } while (i_eax != 0); // loop -> L_0x315b001
+                  v_rcx_12 = "[DFLog::InstanceStitchingLog] Deleting speculative Instance of type {} created at frame {} (server confirmed past frame {}) with GUID: {}";
+                }
               }
-              int32_t v_r15_14 = i_r15d;
-              void* stk_17;
-              if (fstk_10 != 0) {
-                int32_t v_r15_13 = i_r15d;
+              v_r15_15 = i_r15d;
+              if (local_0x40 != 0) {
+                v_r15_14 = i_r15d;
                 if ((uint8_t)InstanceStitchingLog >= 6 && (uint8_t)((uint64_t)InstanceStitchingLog >> 8) >= 5) {
-                  fstk_10->vfunc_0x38();
-                  FLog::Log("[DFLog::InstanceStitchingLog] Deleting speculative Instance of type {} created at frame {} (serv", &local_0x70, ((i_edi << 5) + i_r14d->field_0x10)->field_0x18);
-                  v_r15_13 = -1;
+                  local_0x50 = v_rcx_12;
+                  prev_0x4_2 = ((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x4;
+                  vret_7 = local_0x40->vfunc_0x38(local_0x40, ((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x10, this->field_0x5c);
+                  v_rax_13 = vret_7;
+                  if (vret_7->field_0x18 >= 16) {
+                    v_rax_13 = vret_7->field_0x0;
+                  }
+                  local_0x70 = v_rax_13;
+                  local_0x78 = vret_7->field_0x10;
+                  local_0xa0 = local_0x50 - 0x6ac6ad;
+                  i_eax_3 = -1;
+                  goto L_0x315b0a0;
                 }
                 goto L_0x315b143;
-              } else {
-                stk_17 = fstk_11;
               }
-              if (stk_17 != 0) {
-                call_0x6daf40(stk_17);
+              if (local_0x48 != 0) {
+                call_0x6daf40(local_0x48);
               }
-              if (r8d + 1 > 6) {
-                auto local_0x120 = &local_0x130;
-                call_0x4973e90(&local_0x120, &local_0x130, r8d + 1, 8);
+              v_rbx_18 = ((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x0;
+              if (local_0x128 + 1 > local_0x12c) {
+                prev_0x0_3 = ((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x0;
+                call_0x4973e90(&local_0x120, &local_0x130, local_0x128 + 1, 8);
+                v_rbx_18 = prev_0x0_3;
               }
-              v_rax_20 = (param_2 + (rdx & 0x3)) >> 2;
-              v_rcx_21 = &sym_0x7a35f7d;
-              v_r15_22 = v_r15_14;
+              local_0x120->field_0x0[local_0x128 * 8] = v_rbx_18;
+              if (local_0x128 + 1 > v_r15_15) {
+                call_0x4971090(0, &sym_0x6647145);
+                return; // noreturn
+              }
+              local_0x128++;
+              v_rax_19 = local_0x30;
+              v_rcx_20 = &sym_0x7a35f7d;
+              v_r15_21 = v_r15_15;
             }
-            i_edi++;
-            if (i_edi == i_r14d->field_0x4) {
-              i_eax = v_rax_20;
-              i_ecx = v_rcx_21;
-              i_r15d = v_r15_22;
-              i_edi = 0;
+            i_edi_2++;
+            if (i_edi_2 == i_r14d->field_0x4) {
+              i_eax_2 = v_rax_19;
+              i_ecx = v_rcx_20;
+              i_r15d = v_r15_21;
+              i_edi_2 = 0;
               i_r14d = 0;
               continue;
             } else {
-              int64_t idx_3 = (i_r14d->field_0x8 + (1 << i_r14d->field_0x1c) * 4)->field_0x10;
-              uint64_t v_rax_25 = ~((i_r14d->field_0x8 + (1 << i_r14d->field_0x1c) * 4) + idx_3 * 8)->field_0x18[((uint32_t)i_edi >> 6) * 8] & -1 << (i_edi & 0x3f);
-              int32_t v_r8_26 = (uint32_t)i_edi >> 6;
-              if ((~((i_r14d->field_0x8 + (1 << i_r14d->field_0x1c) * 4) + idx_3 * 8)->field_0x18[((uint32_t)i_edi >> 6) * 8] & -1 << (i_edi & 0x3f)) == 0) {
-                int32_t i_r8d = (uint32_t)i_edi >> 6;
+              ptr_4 = i_r14d->field_0x8 + (1 << (uint8_t)i_r14d->field_0x1c) * 4;
+              idx_5 = (i_r14d->field_0x8 + ((1 << (uint8_t)i_r14d->field_0x1c) * 4))->field_0x10;
+              v_rax_22 = ~(ptr_4 + (idx_5 * 8))->field_0x18[((uint32_t)i_edi_2 >> 6) * 8] & -1 << (uint8_t)(i_edi_2 & 0x3f);
+              v_r8_23 = (uint32_t)i_edi_2 >> 6;
+              if ((~(ptr_4 + (idx_5 * 8))->field_0x18[((uint32_t)i_edi_2 >> 6) * 8] & -1 << (uint8_t)(i_edi_2 & 0x3f)) == 0) {
+                i_ecx_2 = ((uint32_t)i_edi_2 >> 6) << 6;
+                i_r8d = (uint32_t)i_edi_2 >> 6;
                 goto L_0x315b2d0;
               } else {
                 goto L_0x315b2e8;
               }
             }
-          } while ((v_r8_26 << 6) + ctz(v_rax_25) != i_r14d->field_0x4); // loop -> L_0x315afc8
+          } while (i_edi_2 != i_r14d->field_0x4); // loop -> L_0x315afc8
           goto L_0x315b315;
         } while (true); // loop -> L_0x315afc1
-        if (&local_0x130 != &local_0x130) {
-          void* i_ebx = &local_0x130;
-          do { // L_0x315b340
-            call_0x315d400(&this->field_0x58, i_ebx);
-            i_ebx += 8;
-          } while (i_ebx != &local_0x130); // loop -> L_0x315b340
+        if (local_0x120 != local_0x120 + local_0x128 * 8) {
+          i_ebx = local_0x120;
+          goto L_0x315b340;
         }
-        if (&local_0x130 != &local_0x130) {
-          call_0x4955ac0(&local_0x130);
+        if (local_0x120 != &local_0x130) {
+          call_0x4955ac0(local_0x120);
         }
+        v_r8_11 = local_0x34;
       }
-      if (ret_0x4954e70_1 >= 1024) {
+      if (v_r8_11 >= 1024) {
         call_0x494e780();
       } else {
-        auto ret_0x4954c10_4 = call_0x4954c10();
+        ret_0x4954c10_4 = call_0x4954c10();
         if (ret_0x4954c10_4 != 0) {
-          ret_0x4954c10_4->field_0x0 = ret_0x4954c10_4->field_0x0 ^ (ret_0x4954c10_4->field_0x0 ^ r8) & 0x3ff;
+          ret_0x4954c10_4->field_0x0 = ret_0x4954c10_4->field_0x0 ^ (ret_0x4954c10_4->field_0x0 ^ v_r8_11) & 0x3ff;
         } else {
-          call_0x4954d30(r8, 1023);
+          call_0x4954d30(v_r8_11, 1023);
         }
       }
     }
@@ -3215,7 +3948,7 @@ Operação  : 0x3159466: mov/math reg, [flag] ; fn=0x31593b0..0x31596f8
     L_0x315afbb:
     0x315afbb | 41 bf ff ff ff ff        | mov r15d, 0xffffffff
     L_0x315afc1:
-    0x315afc1 | 48 8d 0d b5 af 8d 04     | lea rcx, [rip + 0x48dafb5]
+    0x315afc1 | 48 8d 0d b5 af 8d 04     | lea rcx, [rip + 0x48dafb5] ; "[DFLog::InstanceStitchingLog] Deleting speculative Instance of type {} created at frame {} (server confirmed past frame {}) with GUID: {}"
     L_0x315afc8:
     0x315afc8 | 4d 85 f6                 | test r14, r14
     0x315afcb | 75 08                    | jne 0x315afd5
@@ -3248,7 +3981,7 @@ Operação  : 0x3159466: mov/math reg, [flag] ; fn=0x31593b0..0x31596f8
     0x315b01a | 48 8b 46 10              | mov rax, qword ptr [rsi + 0x10]
     0x315b01e | 48 89 44 24 48           | mov qword ptr [rsp + 0x48], rax
     L_0x315b023:
-    0x315b023 | 48 8d 0d 53 af 8d 04     | lea rcx, [rip + 0x48daf53] ; "[DFLog::InstanceStitchingLog] Deleting speculative Instance of type {} created at frame {} (serv"
+    0x315b023 | 48 8d 0d 53 af 8d 04     | lea rcx, [rip + 0x48daf53] ; "[DFLog::InstanceStitchingLog] Deleting speculative Instance of type {} created at frame {} (server confirmed past frame {}) with GUID: {}"
     L_0x315b02a:
     0x315b02a | 48 83 7c 24 40 00        | cmp qword ptr [rsp + 0x40], 0x0
     0x315b030 | 0f 84 e1 01 00 00        | je 0x315b217
@@ -3521,246 +4254,418 @@ Operação  : 0x3159466: mov/math reg, [flag] ; fn=0x31593b0..0x31596f8
     struct RBX::InstanceStitching {
       /* +0x50 */ int32_t field_0x50;
       /* +0x5c */ int32_t field_0x5c;
-      /* +0x60 */ void*   field_0x60;
+      /* +0x60 */ uint64_t field_0x60;
       /* +0x74 */ int32_t field_0x74;
       /* +0x2e8 */ uint8_t field_0x2e8;
     };
     
     // Flag defaults: InstanceStitchingLog = 0
     void RBX::InstanceStitching::func_0x315b3f0(RBX::InstanceStitching* this, int64_t param_2) {
+      uint64_t local_0x38;
+      local_0x38 = this;
       auto ret_0x4954e70_1 = call_0x4954e70(global_0x84c1018);
+      uint64_t local_0x30;
+      local_0x30 = ret_0x4954e70_1;
+      int32_t v_r8_10 = ret_0x4954e70_1;
+      void* ret_0x4954c10_5;
       if (this->field_0x2e8 == 0) {
-        auto expr_3 = (uint64_t)InstanceStitchingLog >> 8;
-        if ((uint8_t)InstanceStitchingLog >= 6 && (uint8_t)expr_3 >= 5) {
-          FLog::Log("[DFLog::InstanceStitchingLog] Rolling back to frame {}", param_2);
+        uint64_t local_0x50;
+        void* local_0x40;
+        uint64_t local_0x20;
+        auto expr_2 = (uint64_t)InstanceStitchingLog >> 8;
+        if ((uint8_t)InstanceStitchingLog >= 6 && (uint8_t)expr_2 >= 5) {
+          local_0x50 = "[DFLog::InstanceStitchingLog] Rolling back to frame {}";
+          local_0x40 = param_2;
+          local_0x20 = 1;
+          FLog::Log("[DFLog::InstanceStitchingLog] Rolling back to frame {}", local_0x40);
         }
         this->field_0x50 = param_2;
         call_0x105c290(&this->field_0x28);
+        void* local_0x160;
+        uint64_t local_0x170;
+        local_0x160 = &local_0x170;
+        uint64_t local_0x168;
+        local_0x168 = 0;
+        uint64_t local_0x16c;
+        local_0x16c = 6;
+        int32_t v_rdi_5;
         void* v_r14_6;
-        int32_t i_edi;
         if (this->field_0x5c != 0) {
-          auto expr_2 = this->field_0x60 + (1 << this->field_0x74) * 4;
-          int64_t idx_1 = expr_2->field_0x10;
-          if ((expr_2->field_0x18[idx_1 * 8] & 0x1) != 0) {
+          auto expr_1 = this->field_0x60 + ((1 << (uint8_t)this->field_0x74) * 4);
+          int64_t idx_1 = expr_1->field_0x10;
+          if ((expr_1->field_0x18[idx_1 * 8] & 0x1) != 0) {
             if (this->field_0x5c == 1) {
+              v_rdi_5 = 0;
               v_r14_6 = 0;
             } else {
-              int64_t idx_2 = expr_2->field_0x10;
-              auto expr_1 = expr_2 + idx_2 * 8;
-              uint64_t v_rcx_1 = ~expr_1->field_0x18 & 0xfffffffe;
+              void* ptr_2 = this->field_0x60 + (1 << (uint8_t)this->field_0x74) * 4;
+              int64_t idx_3 = expr_1->field_0x10;
+              uint64_t v_rcx_1 = ~(ptr_2 + (idx_3 * 8))->field_0x18 & 0xfffffffffffffffeULL;
               int32_t v_rdi_2 = 0;
-              if ((~expr_1->field_0x18 & 0xfffffffe) == 0) {
+              if ((~(ptr_2 + (idx_3 * 8))->field_0x18 & 0xfffffffffffffffeULL) == 0) {
                 int32_t i_edx = 0;
-                i_edi = 0;
+                int32_t i_edi = 0;
                 do { // L_0x315b585
                   i_edi++;
                   i_edx += 0x40;
-                  if (i_edx >= this->field_0x5c) break;
-                } while (~expr_1->field_0x18[i_edi * 8] == 0); // loop -> L_0x315b585
+                  if (i_edx >= this->field_0x5c) {
+                    L_0x315b5b7:
+                    v_rdi_5 = 0;
+                    v_r14_6 = 0;
+                    break;
+                  }
+                } while (~(ptr_2 + (idx_3 * 8))->field_0x18[i_edi * 8] == 0); // loop -> L_0x315b585
+                v_rcx_1 = ~(ptr_2 + (idx_3 * 8))->field_0x18[i_edi * 8];
+                v_rdi_2 = i_edi;
                 if ((v_rdi_2 << 6) + ctz(v_rcx_1) == this->field_0x5c) {
-                  L_0x315b5b7:
+                  v_rdi_5 = 0;
                   v_r14_6 = 0;
                 } else {
+                  v_rdi_5 = (v_rdi_2 << 6) + ctz(v_rcx_1);
                   v_r14_6 = &this->field_0x58;
                 }
               } else if ((v_rdi_2 << 6) + ctz(v_rcx_1) == this->field_0x5c) {
-                v_r14_6 = 0;
+                goto L_0x315b5b7;
               } else {
+                v_rdi_5 = (v_rdi_2 << 6) + ctz(v_rcx_1);
                 v_r14_6 = &this->field_0x58;
               }
             }
           } else {
+            v_rdi_5 = 0;
             v_r14_6 = &this->field_0x58;
           }
         } else {
           goto L_0x315b5b7;
         }
-        void* i_ebx = this;
-        int32_t i_r15d = -1;
-        void* i_r14d = v_r14_6;
+        uint8_t* i_ebx_3 = this;
+        int32_t i_r15d_2 = -1;
+        int32_t i_edi_3 = v_rdi_5;
+        void* i_r14d_2 = v_r14_6;
+        L_0x315b5c2:
+        uint64_t i_ebx_2;
         do { // L_0x315b5c2
-          void* i_ecx = &sym_0x7b06f74;
+          void* i_ecx_2 = "[DFLog::InstanceStitchingLog] Rollback to frame {}: preserving speculative Instance of type {} created at frame {} with GUID: {}";
+          uint8_t* i_ebx = i_ebx_3;
+          int32_t i_r15d = i_r15d_2;
+          int32_t i_edi_2 = i_edi_3;
+          void* i_r14d = i_r14d_2;
+          L_0x315b5d0:
           do { // L_0x315b5d0
-            int64_t local_0x48;
-            if (i_r14d != 0) {
-              void* v_rcx_20 = i_ecx;
-              void* v_rbx_21 = i_ebx;
-              int32_t v_r15_22 = i_r15d;
-              if (((i_edi << 5) + i_r14d->field_0x10)->field_0x1c == 0 && ((i_edi << 5) + i_r14d->field_0x10)->field_0x18 >= param_2) {
-                void* fstk_10;
-                void* fstk_11;
-                if (((i_edi << 5) + i_r14d->field_0x10)->field_0x10 != 0 && (((i_edi << 5) + i_r14d->field_0x10)->field_0x10)->field_0x8 != 0) {
-                  L_0x315b614:
-                  void* stk_7;
-                  void* stk_8;
-                  do { // L_0x315b614
-                    atomic_try_incref(&(((i_edi << 5) + i_r14d->field_0x10)->field_0x10)->field_0x8);
-                    if (atomic_cas(&(((i_edi << 5) + i_r14d->field_0x10)->field_0x10)->field_0x8, (((i_edi << 5) + i_r14d->field_0x10)->field_0x10)->field_0x8, rax + 1) == 0) break;
-                  } while ((((i_edi << 5) + i_r14d->field_0x10)->field_0x10)->field_0x8 != 0); // loop -> L_0x315b614
-                  stk_7 = 0.0;
-                  stk_8 = 0.0;
-                  fstk_10 = stk_7;
-                  fstk_11 = stk_8;
-                } else {
-                  fstk_10 = 0.0;
-                  fstk_11 = 0.0;
-                }
-                int32_t v_r15_16 = i_r15d;
-                if (fstk_11 == 0) {
-                  if (r8d + 1 > 6) {
-                    auto local_0x160 = &local_0x170;
-                    call_0x4973e90(&local_0x160, &local_0x170, r8d + 1, 8);
-                  }
-                } else {
-                  void* v_rbx_13 = i_ebx;
-                  int32_t v_r15_14 = i_r15d;
-                  if ((uint8_t)InstanceStitchingLog >= 6 && (uint8_t)expr_3 >= 5) {
-                    fstk_11->vfunc_0x38();
-                    FLog::Log("[DFLog::InstanceStitchingLog] Rollback to frame {}: preserving speculative Instance of type {} c", param_2, &local_0x80);
-                    v_rbx_13 = this;
-                    v_r15_14 = -1;
-                  }
-                  L_0x315b79d:
-                  ((i_edi << 5) + i_r14d->field_0x10)->field_0x1c = 1;
-                  auto local_0x40 = fstk_11;
-                  auto local_0x44 = 0.0;
-                  local_0x48 = fstk_10;
-                  auto local_0x4c = 0.0;
-                  auto ret_0x325ca40_9 = call_0x325ca40(&local_0x1f0, (i_edi << 5) + i_r14d->field_0x10, &local_0x40, 5);
-                  call_0x315c8a0(&v_rbx_13->field_0x10, ret_0x325ca40_9);
-                  call_0x6f8fb0(&local_0x240);
-                  call_0x6f8fb0(&local_0x220);
-                  if (local_0x200 != 0 && atomic_fetch_sub(&local_0x200->field_0xc, 1) == 1) {
-                    local_0x200->vfunc_0x8();
-                  }
-                  call_0x1c3ec40(local_0x40, 0, 0, 0);
-                  v_r15_16 = v_r15_14;
-                }
-                if (local_0x48 != 0) {
-                  call_0x6daf40(local_0x48);
-                }
-                v_rcx_20 = &sym_0x7b06f74;
-                v_rbx_21 = this;
-                v_r15_22 = v_r15_16;
+            if (i_r14d == 0 && i_edi_2 == 0) {
+              if (local_0x160 != local_0x160 + local_0x168 * 8) {
+                i_ebx_2 = local_0x160;
+                L_0x315b910:
+                do { // L_0x315b910
+                  call_0x315d400(&this->field_0x58, i_ebx_2, this->field_0x5c);
+                  i_ebx_2 += 8;
+                } while (i_ebx_2 != local_0x160 + local_0x168 * 8); // loop -> L_0x315b910
               }
-              i_edi++;
-              if (i_edi == i_r14d->field_0x4) {
-                i_ecx = v_rcx_20;
-                i_ebx = v_rbx_21;
-                i_r15d = v_r15_22;
-                i_edi = 0;
-                i_r14d = 0;
-                continue;
+              if (local_0x160 != &local_0x170) {
+                call_0x4955ac0(local_0x160);
+              }
+              v_r8_10 = local_0x30;
+              if (v_r8_10 >= 1024) {
+                call_0x494e780();
               } else {
-                int64_t idx_3 = (i_r14d->field_0x8 + (1 << i_r14d->field_0x1c) * 4)->field_0x10;
-                uint64_t v_rax_25 = ~((i_r14d->field_0x8 + (1 << i_r14d->field_0x1c) * 4) + idx_3 * 8)->field_0x18[((uint32_t)i_edi >> 6) * 8] & -1 << (i_edi & 0x3f);
-                int32_t v_r8_26 = (uint32_t)i_edi >> 6;
-                if ((~((i_r14d->field_0x8 + (1 << i_r14d->field_0x1c) * 4) + idx_3 * 8)->field_0x18[((uint32_t)i_edi >> 6) * 8] & -1 << (i_edi & 0x3f)) == 0) {
-                  int32_t i_r8d = (uint32_t)i_edi >> 6;
-                  L_0x315b8b0:
-                  do { // L_0x315b8b0
+                ret_0x4954c10_5 = call_0x4954c10();
+                if (ret_0x4954c10_5 != 0) {
+                  ret_0x4954c10_5->field_0x0 = ret_0x4954c10_5->field_0x0 ^ (ret_0x4954c10_5->field_0x0 ^ v_r8_10) & 0x3ff;
+                } else {
+                  call_0x4954d30(v_r8_10, 1023);
+                }
+              }
+              return;
+            }
+            void* v_rcx_17 = i_ecx_2;
+            void* v_rbx_18 = i_ebx;
+            int32_t v_r15_19 = i_r15d;
+            if (((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x1c == 0 && ((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x18 >= param_2) {
+              local_0x40 = 0.0;
+              uint64_t local_0x48;
+              local_0x48 = 0.0;
+              void* v_rcx_11 = i_ecx_2;
+              void* prev_0x0_3;
+              uint64_t local_0xb0;
+              uint64_t v_rbx_15;
+              uint64_t i_eax_4;
+              uint64_t local_0x88;
+              uint64_t local_0x80;
+              void* v_rax_12;
+              void* vret_8;
+              int32_t v_r15_16;
+              int64_t prev_0x4_2;
+              int32_t v_r15_14;
+              void* v_rbx_13;
+              if (((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x10 != 0) {
+                int32_t i_eax_3 = (((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x10)->field_0x8;
+                if ((((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x10)->field_0x8 != 0) {
+                  do { // L_0x315b614
+                    if (atomic_cas(&(((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x10)->field_0x8, i_eax_3, i_eax_3 + 1)) {
+                    local_0x40 = ((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x8;
+                    local_0x48 = ((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x10;
+                    v_rcx_11 = "[DFLog::InstanceStitchingLog] Rollback to frame {}: preserving speculative Instance of type {} created at frame {} with GUID: {}";
+                    v_r15_16 = i_r15d;
+                    int32_t i_ecx;
+                    int32_t i_r8d;
+                    int32_t v_r8_21;
+                    uint64_t v_rax_20;
+                    void* ptr_4;
+                    uint64_t i_eax;
+                    int64_t idx_5;
+                    if (local_0x40 == 0) {
+                    v_rbx_15 = ((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x0;
+                    if (local_0x168 + 1 > local_0x16c) {
+                    prev_0x0_3 = ((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x0;
+                    FLog::Log("[DFLog::InstanceStitchingLog] Rollback to frame {}: preserving speculative Instance of type {} created at frame {} with GUID: {}", 8);
+                    v_rbx_15 = prev_0x0_3;
+                    }
+                    local_0x160->field_0x0[local_0x168 * 8] = v_rbx_15;
+                    if (local_0x168 + 1 <= i_r15d) {
+                    local_0x168++;
+                    L_0x315b839:
+                    if (local_0x48 != 0) {
+                    call_0x6daf40(local_0x48);
+                    }
+                    v_rcx_17 = &sym_0x7b06f74;
+                    v_rbx_18 = local_0x38;
+                    v_r15_19 = v_r15_16;
+                    L_0x315b854:
+                    i_edi_2++;
+                    if (i_edi_2 == i_r14d->field_0x4) {
+                    i_ecx_2 = v_rcx_17;
+                    i_ebx = v_rbx_18;
+                    i_r15d = v_r15_19;
+                    i_edi_2 = 0;
+                    i_r14d = 0;
+                    } else {
+                    ptr_4 = i_r14d->field_0x8 + (1 << (uint8_t)i_r14d->field_0x1c) * 4;
+                    idx_5 = (i_r14d->field_0x8 + ((1 << (uint8_t)i_r14d->field_0x1c) * 4))->field_0x10;
+                    v_rax_20 = ~(ptr_4 + (idx_5 * 8))->field_0x18[((uint32_t)i_edi_2 >> 6) * 8] & -1 << (uint8_t)(i_edi_2 & 0x3f);
+                    v_r8_21 = (uint32_t)i_edi_2 >> 6;
+                    uint64_t local_0x5c;
+                    if ((~(ptr_4 + (idx_5 * 8))->field_0x18[((uint32_t)i_edi_2 >> 6) * 8] & -1 << (uint8_t)(i_edi_2 & 0x3f)) == 0) {
+                    i_r8d = (uint32_t)i_edi_2 >> 6;
+                    i_eax = ~(ptr_4 + (idx_5 * 8))->field_0x18[((uint32_t)i_edi_2 >> 6) * 8] & -1 << (uint8_t)(i_edi_2 & 0x3f);
+                    i_ecx = ((uint32_t)i_edi_2 >> 6) << 6;
+                    L_0x315b8b0:
+                    do { // L_0x315b8b0
                     i_r8d++;
                     i_ecx += 0x40;
-                    if (i_ecx >= i_r14d->field_0x4) break;
-                  } while (~((i_r14d->field_0x8 + (1 << i_r14d->field_0x1c) * 4) + idx_3 * 8)->field_0x18[i_r8d * 8] == 0); // loop -> L_0x315b8b0
-                  L_0x315b8c8:
-                  i_ecx = &sym_0x7b06f74;
-                  i_ebx = v_rbx_21;
-                  i_r15d = v_r15_22;
-                  i_edi = (v_r8_26 << 6) + ctz(v_rax_25);
-                  L_0x315b8f1:
-                  i_ebx = v_rbx_21;
-                  i_r15d = v_r15_22;
-                  i_edi = 0;
-                  i_r14d = 0;
-                  break;
-                } else {
-                  i_ecx = &sym_0x7b06f74;
-                  i_ebx = v_rbx_21;
-                  i_r15d = v_r15_22;
-                  i_edi = 0;
-                  i_r14d = 0;
-                  break;
+                    if (i_ecx >= i_r14d->field_0x4) {
+                    L_0x315b8f1:
+                    i_ebx_3 = v_rbx_18;
+                    i_r15d_2 = v_r15_19;
+                    i_edi_3 = 0;
+                    i_r14d_2 = 0;
+                    goto L_0x315b5c2;
+                    }
+                    i_eax = ~(ptr_4 + (idx_5 * 8))->field_0x18[i_r8d * 8];
+                    } while (i_eax == 0); // loop -> L_0x315b8b0
+                    v_rax_20 = i_eax;
+                    v_r8_21 = i_r8d;
+                    L_0x315b8c8:
+                    local_0x5c = ctz(v_rax_20);
+                    if ((v_r8_21 << 6) + ctz(v_rax_20) == i_r14d->field_0x4) {
+                    i_ebx_3 = v_rbx_18;
+                    i_r15d_2 = v_r15_19;
+                    i_edi_3 = 0;
+                    i_r14d_2 = 0;
+                    goto L_0x315b5c2;
+                    } else {
+                    i_ecx_2 = &sym_0x7b06f74;
+                    i_ebx = v_rbx_18;
+                    i_r15d = v_r15_19;
+                    i_edi_2 = (v_r8_21 << 6) + ctz(v_rax_20);
+                    }
+                    } else {
+                    local_0x5c = ctz(v_rax_20);
+                    if ((v_r8_21 << 6) + ctz(v_rax_20) == i_r14d->field_0x4) {
+                    goto L_0x315b8f1;
+                    } else {
+                    i_ecx_2 = &sym_0x7b06f74;
+                    i_ebx = v_rbx_18;
+                    i_r15d = v_r15_19;
+                    i_edi_2 = (v_r8_21 << 6) + ctz(v_rax_20);
+                    }
+                    }
+                    }
+                    goto L_0x315b5d0;
+                    } else {
+                    call_0x4971090(0, &sym_0x6647145);
+                    return; // noreturn
+                    }
+                    } else {
+                    v_rbx_13 = i_ebx;
+                    v_r15_14 = i_r15d;
+                    if ((uint8_t)InstanceStitchingLog >= 6 && (uint8_t)expr_2 >= 5) {
+                    local_0x50 = v_rcx_11;
+                    prev_0x4_2 = ((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x4;
+                    vret_8 = local_0x40->vfunc_0x38(local_0x40, ((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x10, this->field_0x5c);
+                    v_rax_12 = vret_8;
+                    if (vret_8->field_0x18 >= 16) {
+                    v_rax_12 = vret_8->field_0x0;
+                    }
+                    local_0x80 = v_rax_12;
+                    local_0x88 = vret_8->field_0x10;
+                    local_0xb0 = local_0x50 - 0x77d5c4;
+                    i_eax_4 = -1;
+                    L_0x315b6f0:
+                    do { // L_0x315b6f0
+                    i_eax_4++;
+                    } while ((local_0x50 - 0x77d5c4)[i_eax_4] != 0); // loop -> L_0x315b6f0
+                    uint64_t local_0xb8;
+                    local_0xb8 = i_eax_4;
+                    uint64_t local_0x100;
+                    local_0x100 = param_2;
+                    uint64_t local_0x90;
+                    local_0x90 = &local_0x80;
+                    uint64_t local_0x98;
+                    local_0x98 = &sym_0x704c50;
+                    uint64_t local_0x110;
+                    local_0x110 = ((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x18;
+                    uint64_t local_0x120;
+                    local_0x120 = prev_0x4_2;
+                    uint64_t local_0x1b0;
+                    local_0x1b0 = local_0x100;
+                    uint64_t local_0x1c0;
+                    local_0x1c0 = local_0x90;
+                    uint64_t local_0x1d0;
+                    local_0x1d0 = local_0x110;
+                    uint64_t local_0x1e0;
+                    local_0x1e0 = local_0x120;
+                    uint64_t local_0xa0;
+                    local_0xa0 = 4593;
+                    uint64_t local_0xa8;
+                    local_0xa8 = &local_0x1b0;
+                    uint64_t local_0x130;
+                    local_0x130 = local_0xa0;
+                    uint64_t local_0x140;
+                    local_0x140 = local_0xb0;
+                    uint64_t local_0x150;
+                    local_0x150 = InstanceStitchingLog;
+                    local_0x20 = 1;
+                    FLog::Log("[DFLog::InstanceStitchingLog] Rollback to frame {}: preserving speculative Instance of type {} created at frame {} with GUID: {}", local_0xa0);
+                    v_rbx_13 = local_0x38;
+                    v_r15_14 = -1;
+                    }
+                    L_0x315b79d:
+                    ((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x1c = 1;
+                    local_0x20 = ((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x18;
+                    auto local_0x44 = 0.0;
+                    auto local_0x4c = 0.0;
+                    uint64_t local_0x1f0;
+                    auto ret_0x325ca40_9 = call_0x325ca40(&local_0x1f0, (i_edi_2 << 5) + i_r14d->field_0x10, &local_0x40, 5, ((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x18);
+                    call_0x315c8a0(&v_rbx_13->field_0x10, ret_0x325ca40_9);
+                    uint64_t local_0x240;
+                    call_0x6f8fb0(&local_0x240);
+                    uint64_t local_0x220;
+                    call_0x6f8fb0(&local_0x220);
+                    void* local_0x200;
+                    if (local_0x200 != 0) {
+                    int32_t atomic_13 = atomic_fetch_sub(&local_0x200->field_0xc, 1);
+                    if (atomic_13 == 1) {
+                    local_0x200->vfunc_0x8();
+                    }
+                    }
+                    uint64_t local_0xc0;
+                    local_0xc0 = 0.0;
+                    uint64_t local_0x28;
+                    local_0x28 = 0;
+                    local_0x20 = &local_0xc0;
+                    call_0x1c3ec40(local_0x40, 0, 0, 0, &local_0xc0, 0);
+                    v_r15_16 = v_r15_14;
+                    if (local_0x48 != 0) {
+                    call_0x6daf40(local_0x48);
+                    }
+                    v_rcx_17 = &sym_0x7b06f74;
+                    v_rbx_18 = local_0x38;
+                    v_r15_19 = v_r15_16;
+                    i_edi_2++;
+                    if (i_edi_2 == i_r14d->field_0x4) {
+                    i_ecx_2 = v_rcx_17;
+                    i_ebx = v_rbx_18;
+                    i_r15d = v_r15_19;
+                    i_edi_2 = 0;
+                    i_r14d = 0;
+                    } else {
+                    ptr_4 = i_r14d->field_0x8 + (1 << (uint8_t)i_r14d->field_0x1c) * 4;
+                    idx_5 = (i_r14d->field_0x8 + ((1 << (uint8_t)i_r14d->field_0x1c) * 4))->field_0x10;
+                    v_rax_20 = ~(ptr_4 + (idx_5 * 8))->field_0x18[((uint32_t)i_edi_2 >> 6) * 8] & -1 << (uint8_t)(i_edi_2 & 0x3f);
+                    v_r8_21 = (uint32_t)i_edi_2 >> 6;
+                    if ((~(ptr_4 + (idx_5 * 8))->field_0x18[((uint32_t)i_edi_2 >> 6) * 8] & -1 << (uint8_t)(i_edi_2 & 0x3f)) == 0) {
+                    i_r8d = (uint32_t)i_edi_2 >> 6;
+                    i_eax = ~(ptr_4 + (idx_5 * 8))->field_0x18[((uint32_t)i_edi_2 >> 6) * 8] & -1 << (uint8_t)(i_edi_2 & 0x3f);
+                    i_ecx = ((uint32_t)i_edi_2 >> 6) << 6;
+                    goto L_0x315b8b0;
+                    } else {
+                    goto L_0x315b8c8;
+                    }
+                    }
+                    goto L_0x315b5d0;
+                    }
+                    break;
+                    }
+                  } while (i_eax_3 != 0); // loop -> L_0x315b614
+                  v_rcx_11 = "[DFLog::InstanceStitchingLog] Rollback to frame {}: preserving speculative Instance of type {} created at frame {} with GUID: {}";
                 }
               }
-            }
-            if (i_edi == 0) break;
-            void* v_rcx_20 = i_ecx;
-            void* v_rbx_21 = i_ebx;
-            int32_t v_r15_22 = i_r15d;
-            if (((i_edi << 5) + i_r14d->field_0x10)->field_0x1c == 0 && ((i_edi << 5) + i_r14d->field_0x10)->field_0x18 >= param_2) {
-              void* fstk_10;
-              void* fstk_11;
-              if (((i_edi << 5) + i_r14d->field_0x10)->field_0x10 != 0 && (((i_edi << 5) + i_r14d->field_0x10)->field_0x10)->field_0x8 != 0) {
-                goto L_0x315b614;
-              } else {
-                fstk_10 = 0.0;
-                fstk_11 = 0.0;
-              }
-              int32_t v_r15_16 = i_r15d;
-              if (fstk_11 == 0) {
-                if (r8d + 1 > 6) {
-                  auto local_0x160 = &local_0x170;
-                  call_0x4973e90(&local_0x160, &local_0x170, r8d + 1, 8);
+              v_r15_16 = i_r15d;
+              if (local_0x40 == 0) {
+                v_rbx_15 = ((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x0;
+                if (local_0x168 + 1 > local_0x16c) {
+                  prev_0x0_3 = ((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x0;
+                  FLog::Log("[DFLog::InstanceStitchingLog] Rollback to frame {}: preserving speculative Instance of type {} created at frame {} with GUID: {}", 8);
+                  v_rbx_15 = prev_0x0_3;
                 }
+                local_0x160->field_0x0[local_0x168 * 8] = v_rbx_15;
+                if (local_0x168 + 1 > i_r15d) {
+                  call_0x4971090(0, &sym_0x6647145);
+                  return; // noreturn
+                }
+                local_0x168++;
+                goto L_0x315b839;
               } else {
-                void* v_rbx_13 = i_ebx;
-                int32_t v_r15_14 = i_r15d;
-                if ((uint8_t)InstanceStitchingLog >= 6 && (uint8_t)expr_3 >= 5) {
-                  fstk_11->vfunc_0x38();
-                  FLog::Log("[DFLog::InstanceStitchingLog] Rollback to frame {}: preserving speculative Instance of type {} c", param_2, &local_0x80);
-                  v_rbx_13 = this;
-                  v_r15_14 = -1;
+                v_rbx_13 = i_ebx;
+                v_r15_14 = i_r15d;
+                if ((uint8_t)InstanceStitchingLog >= 6 && (uint8_t)expr_2 >= 5) {
+                  local_0x50 = v_rcx_11;
+                  prev_0x4_2 = ((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x4;
+                  vret_8 = local_0x40->vfunc_0x38(local_0x40, ((i_edi_2 << 5) + i_r14d->field_0x10)->field_0x10, this->field_0x5c);
+                  v_rax_12 = vret_8;
+                  if (vret_8->field_0x18 >= 16) {
+                    v_rax_12 = vret_8->field_0x0;
+                  }
+                  local_0x80 = v_rax_12;
+                  local_0x88 = vret_8->field_0x10;
+                  local_0xb0 = local_0x50 - 0x77d5c4;
+                  i_eax_4 = -1;
+                  goto L_0x315b6f0;
                 }
                 goto L_0x315b79d;
               }
-              if (local_0x48 != 0) {
-                call_0x6daf40(local_0x48);
-              }
-              v_rcx_20 = &sym_0x7b06f74;
-              v_rbx_21 = this;
-              v_r15_22 = v_r15_16;
             }
-            i_edi++;
-            if (i_edi == i_r14d->field_0x4) {
-              i_ecx = v_rcx_20;
-              i_ebx = v_rbx_21;
-              i_r15d = v_r15_22;
-              i_edi = 0;
-              i_r14d = 0;
-              continue;
-            } else {
-              int64_t idx_3 = (i_r14d->field_0x8 + (1 << i_r14d->field_0x1c) * 4)->field_0x10;
-              uint64_t v_rax_25 = ~((i_r14d->field_0x8 + (1 << i_r14d->field_0x1c) * 4) + idx_3 * 8)->field_0x18[((uint32_t)i_edi >> 6) * 8] & -1 << (i_edi & 0x3f);
-              int32_t v_r8_26 = (uint32_t)i_edi >> 6;
-              if ((~((i_r14d->field_0x8 + (1 << i_r14d->field_0x1c) * 4) + idx_3 * 8)->field_0x18[((uint32_t)i_edi >> 6) * 8] & -1 << (i_edi & 0x3f)) == 0) {
-                int32_t i_r8d = (uint32_t)i_edi >> 6;
-                goto L_0x315b8b0;
-              } else {
-                goto L_0x315b8c8;
-              }
-            }
-          } while ((v_r8_26 << 6) + ctz(v_rax_25) != i_r14d->field_0x4); // loop -> L_0x315b5d0
+            goto L_0x315b854;
+          } while (i_edi_2 != i_r14d->field_0x4); // loop -> L_0x315b5d0
           goto L_0x315b8f1;
         } while (true); // loop -> L_0x315b5c2
-        if (&local_0x170 != &local_0x170) {
-          do { // L_0x315b910
-            call_0x315d400(&this->field_0x58, i_ebx);
-            i_ebx += 8;
-          } while (i_ebx != &local_0x170); // loop -> L_0x315b910
+        if (local_0x160 != local_0x160 + local_0x168 * 8) {
+          i_ebx_2 = local_0x160;
+          goto L_0x315b910;
         }
-        if (&local_0x170 != &local_0x170) {
-          call_0x4955ac0(&local_0x170);
+        if (local_0x160 != &local_0x170) {
+          call_0x4955ac0(local_0x160);
         }
+        v_r8_10 = local_0x30;
       }
-      if (ret_0x4954e70_1 >= 1024) {
+      if (v_r8_10 >= 1024) {
         call_0x494e780();
       } else {
-        auto ret_0x4954c10_5 = call_0x4954c10();
+        ret_0x4954c10_5 = call_0x4954c10();
         if (ret_0x4954c10_5 != 0) {
-          ret_0x4954c10_5->field_0x0 = ret_0x4954c10_5->field_0x0 ^ (ret_0x4954c10_5->field_0x0 ^ r8) & 0x3ff;
+          ret_0x4954c10_5->field_0x0 = ret_0x4954c10_5->field_0x0 ^ (ret_0x4954c10_5->field_0x0 ^ v_r8_10) & 0x3ff;
         } else {
-          call_0x4954d30(r8, 1023);
+          call_0x4954d30(v_r8_10, 1023);
         }
       }
     }
@@ -3887,7 +4792,7 @@ Operação  : 0x3159466: mov/math reg, [flag] ; fn=0x31593b0..0x31596f8
     L_0x315b5bc:
     0x315b5bc | 41 bf ff ff ff ff        | mov r15d, 0xffffffff
     L_0x315b5c2:
-    0x315b5c2 | 48 8d 0d ab b9 9a 04     | lea rcx, [rip + 0x49ab9ab]
+    0x315b5c2 | 48 8d 0d ab b9 9a 04     | lea rcx, [rip + 0x49ab9ab] ; "[DFLog::InstanceStitchingLog] Rollback to frame {}: preserving speculative Instance of type {} created at frame {} with GUID: {}"
     0x315b5c9 | 0f 1f 80 00 00 00 00     | nop
     L_0x315b5d0:
     0x315b5d0 | 4d 85 f6                 | test r14, r14
@@ -3923,7 +4828,7 @@ Operação  : 0x3159466: mov/math reg, [flag] ; fn=0x31593b0..0x31596f8
     0x315b62d | 48 8b 46 10              | mov rax, qword ptr [rsi + 0x10]
     0x315b631 | 48 89 44 24 48           | mov qword ptr [rsp + 0x48], rax
     L_0x315b636:
-    0x315b636 | 48 8d 0d 37 b9 9a 04     | lea rcx, [rip + 0x49ab937]
+    0x315b636 | 48 8d 0d 37 b9 9a 04     | lea rcx, [rip + 0x49ab937] ; "[DFLog::InstanceStitchingLog] Rollback to frame {}: preserving speculative Instance of type {} created at frame {} with GUID: {}"
     L_0x315b63d:
     0x315b63d | 48 83 7c 24 40 00        | cmp qword ptr [rsp + 0x40], 0x0
     0x315b643 | 75 47                    | jne 0x315b68c
@@ -4195,8 +5100,8 @@ Operação  : 0x3159466: mov/math reg, [flag] ; fn=0x31593b0..0x31596f8
   * FFlagDebugEnableStreamOutToDisk8 = false (default)
   * FFlagSplitHashNoRehashOnExistingKey = true (default)
   * DFFlagServerAuthorityRollbackTimeIsServer = true (default) [vizinha em .data]
-  * DFLogAuroraInputLogging = 6 (default) [vizinha em .data]
-  * DFLogAuroraRollback = 6 (default) [vizinha em .data]
+  * DFLogAuroraInputLogging = 0 (default) [vizinha em .data]
+  * DFLogAuroraRollback = 0 (default) [vizinha em .data]
   * DFFlagAuroraDeferStopPrediction2 = true (default) [vizinha em .data]
   * DFIntDebugInstanceStitchingVizTTL = 900 (default) [vizinha em .data]
   * DFIntDebugAuroraDebuggerLabelMaxScalePct = 150 (default) [vizinha em .data]

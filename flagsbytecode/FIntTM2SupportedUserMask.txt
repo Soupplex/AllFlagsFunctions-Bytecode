@@ -5,8 +5,8 @@ Insn RVA  : 0x35d6f26
 Operação  : 0x35d6f26: mov/math reg, [flag] ; fn=0x35d6f10..0x35d6f85
 
 [Disassembly .text]
-  === [Resumo do Efeito da FFlag no Engine (RBX::TM2BinaryStreaming)] ===
-    Classe  : RBX::TM2BinaryStreaming (Inferido)
+  === [Resumo do Efeito da FFlag no Engine (RBX::EngineSubsystem)] ===
+    Classe  : RBX::EngineSubsystem (Inferido)
     Padrão  : FIntTM2SupportedUserMask = 20 (default) [int, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : (TM2NotSupportedUserMask & param_2) != 0 && (TM2SupportedUserMask == 0 || (param_2 & TM2SupportedUserMask) == 0)
@@ -16,22 +16,20 @@ Operação  : 0x35d6f26: mov/math reg, [flag] ; fn=0x35d6f10..0x35d6f85
   
   === [Decompilacao C++ da Funcao 0x35d6f10..0x35d6f85] ===
     // Flag defaults: TM2BinaryStreaming = false, SimRuntimeContentTextureStreaming = true, TM2NotSupportedUserMask = 1048726, TM2SupportedUserMask = 20, TM2NotSupportedSemanticMask = 0, RenderAPI979Streaming = false, UITexturePickMipLevels2 = true
-    bool RBX::TM2BinaryStreaming::func_0x35d6f10(RBX::TM2BinaryStreaming* this, int64_t param_2, void* param_3) {
+    bool RBX::EngineSubsystem::func_0x35d6f10(RBX::EngineSubsystem* this, int64_t param_2, int64_t param_3) {
       if (!SimRuntimeContentTextureStreaming && (uint8_t)param_3 != 0) {
         return false;
       }
       if ((TM2NotSupportedUserMask & param_2) != 0 && (TM2SupportedUserMask == 0 || (param_2 & TM2SupportedUserMask) == 0)) {
         return false;
       }
-      if ((TM2NotSupportedSemanticMask & 1ULL << this) >= 0) {
-        if (this <= 15) {
-          switch ((__ImageBase->field_0x35d6f88[this * 4] + __ImageBase)) {
+      if ((TM2NotSupportedSemanticMask & 1ULL << (uint8_t)this) == 0) {
+        if ((uint8_t)this <= 15) {
+          switch ((__ImageBase->field_0x35d6f88[(uint8_t)this * 4] + __ImageBase)) {
             case 2:
               return UITexturePickMipLevels2 || TM2BinaryStreaming;
             case 10:
               return RenderAPI979Streaming;
-            case 0:
-              break;
             case 5:
               return false;
           }
@@ -84,11 +82,44 @@ Operação  : 0x35d6f26: mov/math reg, [flag] ; fn=0x35d6f10..0x35d6f85
     0x35d6f82 | 32 c0                    | xor al, al
     0x35d6f84 | c3                       | ret
   
-  === [Decompilacao da Rotina Chamadora (Caller): 0x35d6fd0..0x35d7090 em RBX::TM2BinaryStreaming] ===
-    // Flag defaults: TM2SkipMipsForUnstreamable2 = false, RenderColorCorrectionLUT = false, CLI198718R5 = true
-    auto RBX::TM2BinaryStreaming::func_0x35d6fd0(RBX::TM2BinaryStreaming* this, int64_t param_2) {
-      call_0x35d6f10(this, 1 << param_2, param_3);
-      return r9;
+  === [Decompilacao da Rotina Chamadora (Caller): 0x35d6fd0..0x35d7090 em RBX::EngineSubsystem] ===
+    // Flag defaults: TM2SkipMipsForUnstreamable2 = true, RenderColorCorrectionLUT = false, CLI198718R5 = true
+    auto RBX::EngineSubsystem::func_0x35d6fd0(RBX::EngineSubsystem* this, int64_t param_2) {
+      int32_t v_r9_1 = 0;
+      if ((uint8_t)this == 2) {
+        if (TM2SkipMipsForUnstreamable2) {
+          v_r9_1 = 256;
+        }
+      } else if ((uint8_t)this == 3) {
+        if ((uint8_t)param_2 != 20) {
+          if ((uint8_t)param_2 == 1) {
+            v_r9_1 = 2112;
+          } else {
+            v_r9_1 = 64;
+          }
+        } else {
+          v_r9_1 = 2112;
+        }
+      }
+      int32_t v_r9_2 = v_r9_1;
+      if (RenderColorCorrectionLUT && (uint8_t)this == 15) {
+        v_r9_2 = v_r9_1 | 0x180;
+      }
+      int32_t v_r9_3 = v_r9_2;
+      if (CLI198718R5) {
+        if ((uint8_t)param_2 == 26) {
+          v_r9_3 = v_r9_2 | 1ULL << 16;
+        } else if ((uint8_t)param_2 == 27) {
+          v_r9_3 = v_r9_2 | 0x30000;
+        }
+      }
+      auto ret_0x35d6f10_1 = call_0x35d6f10((uint8_t)this, 1 << (uint8_t)param_2, 0);
+      int32_t selected_ecx_1 = (uint8_t)ret_0x35d6f10_1 != 0 ? v_r9_3 : v_r9_3 | 1ULL << 12;
+      int32_t v_rcx_4 = selected_ecx_1;
+      if ((uint8_t)param_2 == 21 && ((uint8_t)((uint8_t)this - 7) <= 2 || (uint8_t)this >= 12 && (uint8_t)this <= 14)) {
+        v_rcx_4 = selected_ecx_1 | 1ULL << 7;
+      }
+      return v_rcx_4;
     }
 
 [Strings .rdata na função]
@@ -100,12 +131,12 @@ Operação  : 0x35d6f26: mov/math reg, [flag] ; fn=0x35d6f10..0x35d6f85
   * DFFlagUITexturePickMipLevels2 = true (default)
   * FFlagTM2BinaryStreaming = false (default)
   * FFlagRenderAPI979Streaming = false (default)
-  * FFlagTM2SkipMipsForUnstreamable2 = false (default)
+  * FFlagTM2SkipMipsForUnstreamable2 = true (default)
   * FFlagRenderColorCorrectionLUT = false (default)
   * FFlagCLI198718R5 = true (default)
   * DFFlagTCTextureCompressionDesktop = false (default) [vizinha em .data]
-  * DFFlagImageUseAssetRequest = false (default) [vizinha em .data]
+  * DFFlagImageUseAssetRequest = true (default) [vizinha em .data]
   * FIntTexturePriorityInvisibleOffset = 1 (default) [vizinha em .data]
   * FFlagTM2EnvUseBaselineDesktop = true (default) [vizinha em .data]
-  * FFlagTM2EnvUseCompressedDesktop = false (default) [vizinha em .data]
+  * FFlagTM2EnvUseCompressedDesktop = true (default) [vizinha em .data]
   * FFlagTM2FixDegenerateOBBDivByZero = false (default) [vizinha em .data]

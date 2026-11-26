@@ -7,7 +7,7 @@ Operação  : 0x47e4390: mov/math reg, [flag] ; fn=0x47e4280..0x47e44d3
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::SJTMinRadius)] ===
     Classe  : RBX::SJTMinRadius (Inferido)
-    Padrão  : DFIntSJTMRFWeight = 100 (default) [int, mode=2]
+    Padrão  : DFIntSJTMRFWeight = 150 (default) [int, mode=2]
     Papel   : Multiplicador / Escala aplicado sobre limites ou métricas da função
     Fórmula : (float)SJTMRFWeight * i_r8d->field_0x0->field_0x3ba8->field_0x3318 + ftmp_5
     Altera  : this->field_0x2c, this->field_0x28
@@ -19,19 +19,19 @@ Operação  : 0x47e4390: mov/math reg, [flag] ; fn=0x47e4280..0x47e44d3
       /* +0x2c */ float   field_0x2c;
     };
     
-    // Flag defaults: SJTMinRadiusWeight = 300, SetChangeBitMask = true, SJTBaseWeight = 10, SJTChangesWeight = 10, SJTTargetRadiusWeight = 100, SJTLodRadiusWeight = 20, SJTPrefetchWeight = 100, SJTMRFWeight = 100
-    void RBX::SJTMinRadius::func_0x47e4280(RBX::SJTMinRadius* this, int64_t param_2) {
+    // Flag defaults: SJTMinRadiusWeight = 350, SetChangeBitMask = true, SJTBaseWeight = 10, SJTChangesWeight = 10, SJTTargetRadiusWeight = 200, SJTLodRadiusWeight = 40, SJTPrefetchWeight = 180, SJTMRFWeight = 150
+    void RBX::SJTMinRadius::func_0x47e4280(RBX::SJTMinRadius* this, void* param_2) {
       this->field_0x2c = 0;
       int32_t v_rbx_3 = 0;
       if (param_2->field_0x0 != param_2->field_0x8) {
         void* i_ecx = this;
         int32_t i_ebx = 0;
-        void* i_r8d = param_2->field_0x0;
+        uint8_t* i_r8d = param_2->field_0x0;
         do { // L_0x47e42b0
           void* v_rcx_1 = i_ecx;
           if (i_r8d->field_0x0->field_0x3ba8 != 0 && i_r8d->field_0x0->field_0x3f98 != 0) {
             i_ebx++;
-            i_r8d->field_0x0->field_0x3ba8->field_0x3320 = SetChangeBitMask ? i_r8d->field_0x0->field_0x3ba8->field_0x29f0 : i_r8d->field_0x0->field_0x3ba8->field_0x29c0 + i_r8d->field_0x0->field_0x3ba8->field_0x2ac8;
+            i_r8d->field_0x0->field_0x3ba8->field_0x3320 = (SetChangeBitMask ? i_r8d->field_0x0->field_0x3ba8->field_0x29f0 : i_r8d->field_0x0->field_0x3ba8->field_0x29c0) + i_r8d->field_0x0->field_0x3ba8->field_0x2ac8;
             float ftmp_1 = (float)SJTMinRadiusWeight * i_r8d->field_0x0->field_0x3ba8->field_0x3308 + (float)SJTBaseWeight;
             float ftmp_2 = ftmp_1 + (float)SJTTargetRadiusWeight * i_r8d->field_0x0->field_0x3ba8->field_0x330c;
             float ftmp_3 = ftmp_2 + (float)SJTLodRadiusWeight * i_r8d->field_0x0->field_0x3ba8->field_0x3310;
@@ -46,25 +46,26 @@ Operação  : 0x47e4390: mov/math reg, [flag] ; fn=0x47e4280..0x47e44d3
           i_r8d += 8;
           i_ecx = v_rcx_1;
         } while (i_r8d != param_2->field_0x8); // loop -> L_0x47e42b0
+        v_rbx_3 = i_ebx;
       }
       auto ret_0x2937f80_1 = call_0x2937f80();
-      double fxmm6_4;
+      uint64_t local_0x40;
+      local_0x40 = ret_0x2937f80_1 * 0.001;
+      double fxmm6_5 = ret_0x2937f80_1 * 0.001;
       if (StreamJobTimeUsesCyclePeriod) {
+        uint64_t local_0x48;
         auto ret_0x2936ed0_2 = call_0x2936ed0(&local_0x48);
-        fxmm6_4 = max(ret_0x2936ed0_2->field_0x0, ret_0x2937f80_1 * 0.001);
-      } else {
-        fxmm6_4 = ret_0x2937f80_1 * 0.001;
+        void* sel_rcx_1 = ret_0x2936ed0_2->field_0x0 > ret_0x2937f80_1 * 0.001 ? ret_0x2936ed0_2 : &local_0x40;
+        fxmm6_5 = sel_rcx_1->field_0x0;
       }
-      call_0x1143a40(this, fxmm6_4 * 1000.0 * 1000.0);
+      call_0x1143a40(this, fxmm6_5 * 1000.0 * 1000.0);
       float ftmp_8 = (float)max(v_rbx_3 - StreamJobTimeScalingPlayerThreshold, 0) * (float)StreamJobTimePerPlayerHundredths;
-      float fxmm2_6;
+      float fxmm2_7 = ftmp_8 + (float)StreamJobTimePercentHundredths;
       if (StreamJobTimeMaxPercentHundredths > 0) {
         float ftmp_9 = min((float)StreamJobTimeMaxPercentHundredths, ftmp_8 + (float)StreamJobTimePercentHundredths);
-        fxmm2_6 = ftmp_9;
-      } else {
-        fxmm2_6 = ftmp_8 + (float)StreamJobTimePercentHundredths;
+        fxmm2_7 = ftmp_9;
       }
-      this->field_0x28 = (float)((double)(fxmm2_6 * 0.0001f) * this->field_0x10);
+      this->field_0x28 = (float)((double)(fxmm2_7 * 0.0001f) * this->field_0x10);
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -204,10 +205,10 @@ Operação  : 0x47e4390: mov/math reg, [flag] ; fn=0x47e4280..0x47e44d3
   * FFlagSetChangeBitMask = true (default)
   * DFIntSJTBaseWeight = 10 (default)
   * DFIntSJTChangesWeight = 10 (default)
-  * DFIntSJTTargetRadiusWeight = 100 (default)
-  * DFIntSJTMinRadiusWeight = 300 (default)
-  * DFIntSJTLodRadiusWeight = 20 (default)
-  * DFIntSJTPrefetchWeight = 100 (default)
+  * DFIntSJTTargetRadiusWeight = 200 (default)
+  * DFIntSJTMinRadiusWeight = 350 (default)
+  * DFIntSJTLodRadiusWeight = 40 (default)
+  * DFIntSJTPrefetchWeight = 180 (default)
   * DFIntSJTSpatialQuerySetWeight = 50 (default)
   * DFFlagStreamJobTimeUsesCyclePeriod = true (default)
   * DFIntStreamJobTimeScalingPlayerThreshold = 100 (default)

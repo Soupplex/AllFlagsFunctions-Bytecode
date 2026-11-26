@@ -16,15 +16,15 @@ Operação  : 0x1522c1f: movzx reg, byte [flag] ; fn=0x1522bc0..0x1522d01
     Caller @0x1520d96 (in fn_0x1520d50): call 0x1522bc0  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
     Caller @0x1520dd5 (in fn_0x1520d50): call 0x1522bc0  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
     [Child @0x152bf60] Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
-    [Child @0x152bf60] Fórmula : v_r9_1 - ((uint64_t)(((uint64_t)(v_r9_1 - rdx) >> 1) + rdx) >> 6) * 100 >= this && !DataModelPatchEnableOTAPolling
+    [Child @0x152bf60] Fórmula : v_r9_1 - ((uint64_t)(((uint64_t)(v_r9_1 - mulhi(0x47ae147ae147ae15, v_r9_1)) >> 1) + mulhi(0x47ae147ae147ae15, v_r9_1)) >> 6) * 100 >= this && !DataModelPatchEnableOTAPolling
   
   === [Decompilacao C++ da Funcao 0x1522bc0..0x1522d01] ===
     struct RBX::DataModel {
-      /* +0x0 */ void*   field_0x0;
+      /* +0x0 */ uint64_t field_0x0;
     };
     
     // Flag defaults: DataModelPatchEnableOTAPolling = false, DataModelPatchEnableOTAPollingPercentage = 0, DataModelPatchConfigurer = 100
-    auto RBX::DataModel::func_0x1522bc0(RBX::DataModel* this, int64_t param_2) {
+    auto RBX::DataModel::func_0x1522bc0(RBX::DataModel* this, void* param_2) {
       if (this != param_2) {
         if (param_2 != 0) {
           if (this != 0) {
@@ -35,6 +35,14 @@ Operação  : 0x1522c1f: movzx reg, byte [flag] ; fn=0x1522bc0..0x1522d01
         }
         auto ret_0x152bf60_1 = call_0x152bf60(DataModelPatchEnableOTAPollingPercentage, DataModelPatchEnableOTAPolling);
         global_0x8cd8f28 = (uint8_t)ret_0x152bf60_1;
+        if ((uint8_t)DataModelPatchConfigurer >= 6 && (uint8_t)((uint64_t)DataModelPatchConfigurer >> 8) >= 3) {
+          uint64_t local_0x60;
+          local_0x60 = "[FLog::DataModelPatchConfigurer] OTAPollingEnabled set to: {}";
+          uint64_t local_0x40;
+          local_0x40 = local_0x60 - 0x18a5434;
+          local_0x60 = global_0x8cd8f28;
+          FLog::Log("[FLog::DataModelPatchConfigurer] OTAPollingEnabled set to: {}", local_0x60);
+        }
       }
       return 0;
     }
@@ -117,18 +125,25 @@ Operação  : 0x1522c1f: movzx reg, byte [flag] ; fn=0x1522bc0..0x1522d01
   === [Sub-Rotina Chamada: 0x152bf60..0x152c083 via call @0x1522c2c (Direct Engine Sub-Call)] ===
     // Flag defaults: DataModelPatchEnableOTAPolling = false
     auto SubObj_0x152bf60::func_0x152bf60(SubObj_0x152bf60* this, int32_t DataModelPatchEnableOTAPolling) {
+      std::string local_0x20;
       call_0x1046ef0(&local_0x20);
+      uint64_t local_0x38;
+      void* sel_rbx_1 = local_0x38 >= 16 ? local_0x20 : &local_0x20;
+      void* sel_rax_2 = local_0x38 >= 16 ? local_0x20 : &local_0x20;
       uint64_t v_r9_1 = 0;
-      if (local_0x20 != local_0x20 + local_0x30) {
-        void* i_eax = local_0x20;
+      uint64_t local_0x30;
+      if (sel_rax_2 != sel_rbx_1 + local_0x30) {
+        uint8_t* i_eax = sel_rax_2;
         int32_t i_r9d = 0;
         do { // L_0x152bfd0
+          void* prev_i_eax_1 = i_eax;
           i_eax++;
-          i_r9d = i_r9d ^ i_eax->field_0x0 + (i_r9d << 6) + ((uint64_t)i_r9d >> 2) - 0x61c88647;
-        } while (i_eax != local_0x20 + local_0x30); // loop -> L_0x152bfd0
+          i_r9d = i_r9d ^ (int8_t)prev_i_eax_1->field_0x0 + (i_r9d << 6) + ((uint64_t)i_r9d >> 2) + 0x9e3779b9ULL;
+        } while (i_eax != sel_rbx_1 + local_0x30); // loop -> L_0x152bfd0
+        v_r9_1 = i_r9d;
       }
       uint8_t v_bl_2;
-      if (v_r9_1 - ((uint64_t)(((uint64_t)(v_r9_1 - rdx) >> 1) + rdx) >> 6) * 100 >= this && !DataModelPatchEnableOTAPolling) {
+      if (v_r9_1 - ((uint64_t)(((uint64_t)(v_r9_1 - mulhi(0x47ae147ae147ae15, v_r9_1)) >> 1) + mulhi(0x47ae147ae147ae15, v_r9_1)) >> 6) * 100 >= this && !DataModelPatchEnableOTAPolling) {
         v_bl_2 = 0;
       } else {
         v_bl_2 = 1;
@@ -226,58 +241,30 @@ Operação  : 0x1522c1f: movzx reg, byte [flag] ; fn=0x1522bc0..0x1522d01
     0x152c07e | e8 fd 84 8e 04           | call 0x5e14580
   
   === [Estrutura RTTI & VTable da Classe (RBX::DataModel)] ===
-    VTable  : 0x6f6fe98 (offset +0x0, 28 slots virtuais)
-    Herança : RBX::FunctionDescriptor, RBX::MemberDescriptor, RBX::Descriptor
-    +0x10 -> fn_0x14e6c20
-    +0x10 -> fn_0x14e6f80
-    +0x10 -> fn_0x14e6f30
-    +0x10 -> fn_0x14e7290
-    +0x10 -> fn_0x14e7220
-    +0x10 -> fn_0x14e7580
-    +0x10 -> fn_0x14e7430
-    +0x10 -> fn_0x14e7920
-    +0x10 -> fn_0x14e76d0
-    +0x10 -> fn_0x14e7aa0
-    +0x8 -> fn_0x14e6540
-    +0x10 -> fn_0x14e6390
-    +0x10 -> fn_0x14e66f0
-    +0x10 -> fn_0x14e65e0
-    +0x0 -> fn_0x14e7d50
-    +0x10 -> fn_0x14e6a70
+    VTable  : 0x7114e28 (offset +0x0, 2 slots virtuais)
+    Herança : RBX::IDataState, RBX::Diagnostics::Countable (+0x3b8), RBX::TaskScheduler::Arbiter (+0x8), RBX::Reflection::Described (+0x1f0), RBX::ServiceProvider (+0x1f0), RBX::Instance (+0x1f0), RBX::Object (+0x1f0), RBX::DescribedBase (+0x1f0), RBX::EventSource (+0x1f0), RBX::enable_shared_from_this (+0x1f8), RBX::GuidItem (+0x218), RBX::ObjectProp (+0x228), RBX::Noncopyable (+0x228), RBX::Diagnostics::Countable (+0x248)
+    +0x0 -> fn_0x406ee80
+    +0x8 -> fn_0x4064d70
   
-  === [Decompilacao de Metodo da Classe RBX::DataModel: 0x14e6c20..0x14e6c6c (vfunc_0x10)] ===
-    struct RBX::DataModel {
-      /* +0xb0 */ int32_t field_0xb0;
-    };
-    
-    auto RBX::DataModel::func_0x14e6c20(RBX::DataModel* this, int64_t param_2, void* param_3) {
-      void* sel_rcx_1 = param_2 == 0 ? this->field_0xb8 : (uint8_t*)&param_2->field_m0x1f0 + this->field_0xb8;
-      auto vret_1 = this->vfunc_0xb0(sel_rcx_1);
-      return tailcall_0x408d8d0(param_3, vret_1);
-    }
-  
-  === [Decompilacao de Metodo da Classe RBX::DataModel: 0x14e6f80..0x14e7031 (vfunc_0x10)] ===
-    struct RBX::DataModel {
-      /* +0xb0 */ int32_t field_0xb0;
-    };
-    
-    bool RBX::DataModel::func_0x14e6f80(RBX::DataModel* this, int64_t param_2, void* param_3) {
-      void* sel_rcx_1 = param_2 == 0 ? this->field_0xb8 : (uint8_t*)&param_2->field_m0x1f0 + this->field_0xb8;
-      this->vfunc_0xb0(sel_rcx_1, &local_0x20);
-      call_0x407ca00(param_3, &local_0x20);
-      std::string::_Tidy_deallocate(local_0x20);
-      return true;
-    }
-  
-  === [Decompilacao de Metodo da Classe RBX::DataModel: 0x14e6f30..0x14e6f7c (vfunc_0x10)] ===
-    struct RBX::DataModel {
-      /* +0xb0 */ int32_t field_0xb0;
-    };
-    
-    auto RBX::DataModel::func_0x14e6f30(RBX::DataModel* this, int64_t param_2, void* param_3) {
-      void* sel_rcx_1 = param_2 == 0 ? this->field_0xb8 : (uint8_t*)&param_2->field_m0x1f0 + this->field_0xb8;
-      auto vret_1 = this->vfunc_0xb0(sel_rcx_1);
-      return tailcall_0x408dc00(param_3, vret_1);
+  === [Decompilacao da Rotina Chamadora (Caller): 0x1520d50..0x1520e03 em RBX::DataModel] ===
+    auto RBX::DataModel::func_0x1520d50(RBX::DataModel* this) {
+      call_0x2e13190();
+      int64_t local_0x20;
+      auto local_0x28 = &local_0x20;
+      auto local_0x30 = &sym_0x1522bc0;
+      local_0x20 = 0;
+      uint64_t local_0x40;
+      uint64_t local_0x38;
+      local_0x38 = call_0x1522bc0(&local_0x40, &local_0x28);
+      call_0x2e13b40(&sym_0x8cd8f30, &local_0x30);
+      if (local_0x30 != 0) {
+        if (local_0x30 == &sym_0x1522bc0) {
+          call_0x1522bc0(local_0x38, local_0x38);
+        } else {
+          (*local_0x30)(local_0x38, local_0x38);
+        }
+      }
+      return global_0x8cd8f28;
     }
 
 [Strings .rdata na função]
@@ -287,9 +274,9 @@ Operação  : 0x1522c1f: movzx reg, byte [flag] ; fn=0x1522bc0..0x1522d01
   * FIntDataModelPatchEnableOTAPollingPercentage = 0 (default)
   * FLogDataModelPatchConfigurer = 100 (default)
   * DFFlagDebugStudioAssetProxy = false (default) [vizinha em .data]
-  * FFlagEnableForceOTAAnalytics = true (default) [vizinha em .data]
+  * FFlagEnableForceOTAAnalytics = false (default) [vizinha em .data]
   * FFlagDeferInExperienceRbxmDownload = false (default) [vizinha em .data]
-  * DFIntBackupCacheToKeep = 4 (default) [vizinha em .data]
+  * DFIntBackupCacheToKeep = 10 (default) [vizinha em .data]
   * DFIntDataModelPatchPollingIntervalMilliSeconds = 0 (default) [vizinha em .data]
   * FFlagLambdaOTASkipCVSConversion = true (default) [vizinha em .data]
-  * DFIntCachedPatchLoadDelayMilliseconds = 1000 (default) [vizinha em .data]
+  * DFIntCachedPatchLoadDelayMilliseconds = 1 (default) [vizinha em .data]

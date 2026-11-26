@@ -10,12 +10,14 @@ Operação  : 0x35ba440: mov/math reg, [flag] ; fn=0x35ba3c0..0x35ba659
     Padrão  : FIntRenderTextureLoadingMinMB = 16 (default) [int, mode=1]
     Papel   : Parâmetro de configuração lido diretamente pela rotina
     Fórmula : (uint64_t)v_rcx_3 >> 20 > 4095 ? 4095 : max((uint64_t)v_rcx_3 >> 20, RenderTextureLoadingMinMB)
-    Fórmula : std::clamp(((param_2 & 0x7) + ((uint64_t)v_rcx_3 >> 20)) >> 3, RenderTextureLoadingMinMB, 4095)
+    Fórmula : std::clamp((int32_t)(((int32_t)((uint64_t)v_rcx_3 >> 20) >> 31 & 0x7) + ((uint64_t)v_rcx_3 >> 20)) >> 3, RenderTextureLoadingMinMB, 4095)
     Altera  : this->field_0x0->field_0x17e8, this->field_0x0->field_0x17e0
     [XREF #2 @0x35ba688] Classe  : RBX::RenderTexture (Inferido)
-    [XREF #3 @0x35baa77] Classe  : RBX::TM2EndRender (Inferido)
+    [XREF #2 @0x35ba688] Fórmula : this->field_0x1750 + MipTailByteSize * 4, RenderTextureLoadingMinMB << 20
+    [XREF #2 @0x35ba688] Fórmula : max(std::max<uint64_t>(this->field_0x17b0 + MipTailByteSize * 4, RenderTextureLoadingMinMB << 20), this->field_0x17d8)
+    [XREF #3 @0x35baa77] Classe  : RBX::TextureManager2 (Inferido)
     [XREF #3 @0x35baa77] Fórmula : max((uint64_t)(this->field_0x17d8 <= this->field_0x17c8 ? 0 : this->field_0x17d8 - this->field_0x17c8) >> 20, RenderTextureLoadingMinMB)
-    [XREF #3 @0x35baa77] Fórmula : std::clamp(((rdx & 0x7) + idx_1) >> 3, RenderTextureLoadingMinMB, 4095)
+    [XREF #3 @0x35baa77] Fórmula : std::clamp((int32_t)(idx_1 + idx_2) >> 3, RenderTextureLoadingMinMB, 4095)
     [XREF #3 @0x35baa77] Altera  : this->field_0x17e8, this->field_0x17e0
   
   === [Decompilacao C++ da Funcao 0x35ba3c0..0x35ba659] ===
@@ -23,37 +25,82 @@ Operação  : 0x35ba440: mov/math reg, [flag] ; fn=0x35ba3c0..0x35ba659
       /* +0x0 */ void*   field_0x0;
     };
     
-    // Flag defaults: TextureManager2DisableBudgetControl = false, RenderTextureTotalBudgetMB = 4095, RenderTextureLoadingMinMB = 16, RenderTextureLoadingMaxMB = 1345, TextureManager2 = 0
+    // Flag defaults: TextureManager2DisableBudgetControl = false, RenderTextureTotalBudgetMB = 4095, RenderTextureLoadingMinMB = 16, RenderTextureLoadingMaxMB = 1342, TextureManager2 = 0
     void RBX::TextureManager2Disable::func_0x35ba3c0(RBX::TextureManager2Disable* this, float param_2) {
       if (!TextureManager2DisableBudgetControl) {
+        uint64_t local_0x30;
+        local_0x30 = (uint64_t)param_2;
         uint64_t v_rcx_3 = (uint64_t)param_2;
-        int64_t stk_4;
         if ((uint64_t)param_2 == 0) {
+          local_0x30 = RenderTextureTotalBudgetMB << 20;
           v_rcx_3 = RenderTextureTotalBudgetMB << 20;
-          stk_4 = RenderTextureTotalBudgetMB << 20;
-        } else {
-          stk_4 = (uint64_t)param_2;
         }
         if (global_0x84bfaab != 0) {
           call_0x4982c80((uint64_t)v_rcx_3 >> 20 > 4095 ? 4095 : max((uint64_t)v_rcx_3 >> 20, RenderTextureLoadingMinMB), RenderTextureTotalBudgetMB, (uint64_t)v_rcx_3 >> 20 > 4095 ? 4095 : max((uint64_t)v_rcx_3 >> 20, RenderTextureLoadingMinMB));
         } else {
           RenderTextureTotalBudgetMB = (uint64_t)v_rcx_3 >> 20 > 4095 ? 4095 : max((uint64_t)v_rcx_3 >> 20, RenderTextureLoadingMinMB);
         }
-        int32_t v_rbx_5 = std::clamp(((param_2 & 0x7) + ((uint64_t)v_rcx_3 >> 20)) >> 3, RenderTextureLoadingMinMB, 4095);
+        int32_t v_rbx_4 = std::clamp((int32_t)(((int32_t)((uint64_t)v_rcx_3 >> 20) >> 31 & 0x7) + ((uint64_t)v_rcx_3 >> 20)) >> 3, RenderTextureLoadingMinMB, 4095);
         if (global_0x84bfaab != 0) {
-          call_0x4982c80((uint64_t)v_rcx_3 >> 20 > 4095 ? 4095 : max((uint64_t)v_rcx_3 >> 20, RenderTextureLoadingMinMB), RenderTextureLoadingMaxMB, v_rbx_5);
+          call_0x4982c80((uint64_t)v_rcx_3 >> 20 > 4095 ? 4095 : max((uint64_t)v_rcx_3 >> 20, RenderTextureLoadingMinMB), RenderTextureLoadingMaxMB, v_rbx_4);
         } else {
-          RenderTextureLoadingMaxMB = v_rbx_5;
+          RenderTextureLoadingMaxMB = v_rbx_4;
         }
         if ((uint8_t)TextureManager2 >= 6 && (uint8_t)((uint64_t)TextureManager2 >> 8) >= 3) {
-          float fxmm1_6 = (float)(uint64_t)stk_4;
+          float fxmm1_5 = (float)(uint64_t)local_0x30;
+          uint64_t i_eax = -1;
+          void* ptr_1;
+          do { // L_0x35ba561
+            i_eax++;
+            ptr_1 = "[FLog::TextureManager2] PerfControl: TextureStreaming: new budget {} MB  becomes new Total {} MB and LoadingMax {} MB";
+          } while (ptr_1[i_eax] != 0); // loop -> L_0x35ba561
           float ftmp_1 = (float)RenderTextureTotalBudgetMB * 9.53674e-07f;
-          FLog::Log("[FLog::TextureManager2] PerfControl: TextureStreaming: new budget {} MB  becomes new Total {} MB", fxmm1_6 * 9.53674e-07f, ftmp_1);
+          float ftmp_2 = (float)RenderTextureLoadingMaxMB * 9.53674e-07f;
+          FLog::Log("[FLog::TextureManager2] PerfControl: TextureStreaming: new budget {} MB  becomes new Total {} MB and LoadingMax {} MB", fxmm1_5 * 9.53674e-07f, ftmp_1, ftmp_2);
+          uint64_t local_0x88;
+          local_0x88 = i_eax;
+          uint64_t local_0x48;
+          local_0x48 = *(uint32_t*)((uint8_t*)&TextureManager2 + 0x8);
+          uint64_t local_0x40;
+          local_0x40 = TextureManager2;
+          uint64_t local_0x80;
+          local_0x80 = "[FLog::TextureManager2] PerfControl: TextureStreaming: new budget {} MB  becomes new Total {} MB and LoadingMax {} MB";
+          uint64_t local_0x38;
+          local_0x38 = "[FLog::TextureManager2] PerfControl: TextureStreaming: new budget {} MB  becomes new Total {} MB and LoadingMax {} MB";
+          uint64_t local_0x90;
+          uint64_t local_0x78;
+          local_0x78 = &local_0x90;
+          uint64_t local_0x68;
+          uint64_t local_0xb8;
+          local_0xb8 = local_0x68;
+          uint64_t local_0x70;
+          local_0x70 = 2457;
+          uint64_t local_0xb0;
+          local_0xb0 = ftmp_2;
+          uint64_t local_0x50;
+          local_0x50 = "[FLog::TextureManager2] PerfControl: TextureStreaming: new budget {} MB  becomes new Total {} MB and LoadingMax {} MB";
+          local_0x90 = fxmm1_5 * 9.53674e-07f;
+          uint64_t local_0x58;
+          local_0x58 = i_eax;
+          uint64_t local_0x98;
+          local_0x98 = local_0x48;
+          uint64_t local_0x20;
+          local_0x20 = 0;
+          uint64_t local_0x60;
+          local_0x60 = 2457;
+          uint64_t local_0xa0;
+          local_0xa0 = ftmp_1;
+          local_0x68 = &local_0x90;
+          uint64_t local_0xa8;
+          local_0xa8 = local_0x58;
+          uint64_t local_0x44;
+          local_0x44 = *(uint32_t*)((uint8_t*)&TextureManager2 + 0x4);
+          uint64_t local_0x4c;
+          local_0x4c = *(uint32_t*)((uint8_t*)&TextureManager2 + 0xc);
         }
         auto* f_0 = this->field_0x0;
-        f_0->field_0x17e8 = stk_4;
-        void* sel_rax_1 = f_0->field_0x17e0 >= stk_4 ? f_0->field_0x17e0 : (uint64_t)param_2;
-        f_0->field_0x17e0 = sel_rax_1->field_0x0;
+        f_0->field_0x17e8 = local_0x30;
+        f_0->field_0x17e0 = max(local_0x30, f_0->field_0x17e0);
       }
     }
   
@@ -141,7 +188,7 @@ Operação  : 0x35ba440: mov/math reg, [flag] ; fn=0x35ba3c0..0x35ba659
     0x35ba4dc | 3c 03                    | cmp al, 0x3
     0x35ba4de | 0f 82 28 01 00 00        | jb 0x35ba60c
     0x35ba4e4 | f3 0f 10 05 04 43 fe 03  | movss xmm0, dword ptr [rip + 0x3fe4304] ; 9.53674e-07
-    0x35ba4ec | 48 8d 05 12 00 ce 07     | lea rax, [rip + 0x7ce0012] ; "[FLog::TextureManager2] PerfControl: TextureStreaming: new budget {} MB  becomes new Total {} MB"
+    0x35ba4ec | 48 8d 05 12 00 ce 07     | lea rax, [rip + 0x7ce0012] ; "[FLog::TextureManager2] PerfControl: TextureStreaming: new budget {} MB  becomes new Total {} MB and LoadingMax {} MB"
     0x35ba4f3 | 48 89 44 24 38           | mov qword ptr [rsp + 0x38], rax
     0x35ba4f8 | 0f 57 c9                 | xorps xmm1, xmm1
     0x35ba4fb | 48 8b 54 24 38           | mov rdx, qword ptr [rsp + 0x38]
@@ -225,12 +272,12 @@ Operação  : 0x35ba440: mov/math reg, [flag] ; fn=0x35ba3c0..0x35ba659
   
   === [Decompilacao C++ do XREF Runtime #2: 0x35ba660..0x35ba8b3 (insn @0x35ba688: mov/math reg, [flag])] ===
     struct RBX::RenderTexture {
-      /* +0x230 */ void*   field_0x230;
-      /* +0x1750 */ void*   field_0x1750;
-      /* +0x1768 */ void*   field_0x1768;
-      /* +0x17b0 */ void*   field_0x17b0;
-      /* +0x17d8 */ void*   field_0x17d8;
-      /* +0x17e0 */ void*   field_0x17e0;
+      /* +0x230 */ uint64_t field_0x230;
+      /* +0x1750 */ uint64_t field_0x1750;
+      /* +0x1768 */ uint64_t field_0x1768;
+      /* +0x17b0 */ uint64_t field_0x17b0;
+      /* +0x17d8 */ uint64_t field_0x17d8;
+      /* +0x17e0 */ uint64_t field_0x17e0;
       /* +0x19e8 */ void*   field_0x19e8;
       /* +0x19f0 */ int32_t field_0x19f0;
       /* +0x19f4 */ int32_t field_0x19f4;
@@ -238,13 +285,54 @@ Operação  : 0x35ba440: mov/math reg, [flag] ; fn=0x35ba3c0..0x35ba659
     
     // Flag defaults: RenderTextureOrphanMaxBudgetMB = 64, MipTailByteSize = 4096, RenderTextureLoadingMinMB = 16, RenderTextureOrphanMinBudgetMB = 64
     void RBX::RenderTexture::func_0x35ba660(RBX::RenderTexture* this) {
+      auto expr_1 = this->field_0x1750 + MipTailByteSize * 4, RenderTextureLoadingMinMB << 20;
+      uint64_t sel_r10_1 = max(this->field_0x1768, std::max<uint64_t>expr_1);
+      void* sel_rcx_2 = max(std::max<uint64_t>(this->field_0x17b0 + MipTailByteSize * 4, RenderTextureLoadingMinMB << 20), this->field_0x17d8);
+      uint64_t sel_rcx_3 = max(sel_rcx_2, this->field_0x17e0);
+      double fxmm0_1 = (double)(uint64_t)std::max<uint64_t>expr_1;
+      uint64_t local_0x20;
+      local_0x20 = fxmm0_1;
+      double fxmm0_2 = (double)(uint64_t)sel_r10_1;
+      uint64_t local_0x28;
+      local_0x28 = fxmm0_2;
+      double fxmm2_3 = (double)(uint64_t)sel_rcx_3;
+      uint64_t local_0x38;
+      local_0x38 = 0;
+      uint64_t local_0x40;
+      local_0x40 = 0.0;
+      uint64_t local_0x30;
+      local_0x30 = fxmm2_3;
+      uint64_t local_0x50;
+      local_0x50 = 0.0f;
+      auto local_0x44 = 0.0;
+      auto local_0x48 = 0.0;
+      auto local_0x4c = 0.0;
+      auto local_0x54 = 0.0f;
+      auto local_0x58 = 0.0f;
+      auto local_0x5c = 1.875f;
       auto* f_19e8 = this->field_0x19e8;
       call_0x2008390((f_19e8 != 0 ? f_19e8->field_0x18 : 0)->field_0x18, this->field_0x19f0, 1, &local_0x20);
+      uint64_t sel_rdx_4 = max(this->field_0x230, RenderTextureOrphanMinBudgetMB << 20);
       void* v_rbx_4 = 0;
       auto* f_19e8_2 = this->field_0x19e8;
       if (f_19e8_2 != 0) {
         v_rbx_4 = f_19e8_2->field_0x18;
       }
+      double fxmm0_5 = (double)(uint64_t)(RenderTextureOrphanMinBudgetMB << 20);
+      local_0x20 = fxmm0_5;
+      double fxmm0_6 = (double)(uint64_t)sel_rdx_4;
+      local_0x28 = fxmm0_6;
+      double fxmm2_7 = (double)(uint64_t)(RenderTextureOrphanMaxBudgetMB << 20);
+      local_0x38 = 0;
+      local_0x40 = 0.0;
+      local_0x44 = 0.0;
+      local_0x48 = 0.0;
+      local_0x4c = 0.0;
+      local_0x30 = fxmm2_7;
+      local_0x50 = 0.0f;
+      local_0x54 = 0.0f;
+      local_0x58 = 0.0f;
+      local_0x5c = 1.875f;
       call_0x2008390(v_rbx_4->field_0x18, this->field_0x19f4, 1, &local_0x20);
     }
   
@@ -277,7 +365,7 @@ Operação  : 0x35ba440: mov/math reg, [flag] ; fn=0x35ba3c0..0x35ba659
     0x35ba6d4 | 48 0f 42 c8              | cmovb rcx, rax
     0x35ba6d8 | 33 db                    | xor ebx, ebx
     0x35ba6da | 4d 85 db                 | test r11, r11
-    0x35ba6dd | 74 06                    | je 0x35ba6e5 ; [Nanomite Reconstructed: je +0x6 via cfg_exit_block_resolver]
+    0x35ba6dd | 74 06                    | je 0x35ba6e5 ; [Nanomite Reconstructed: je +0x6 via cfg_orphan_exit_resolver]
     0x35ba6df | 4d 8b 5b 18              | mov r11, qword ptr [r11 + 0x18]
     0x35ba6e3 | eb 03                    | jmp 0x35ba6e8
     L_0x35ba6e5:
@@ -415,32 +503,57 @@ Operação  : 0x35ba440: mov/math reg, [flag] ; fn=0x35ba3c0..0x35ba659
     0x35ba8b2 | c3                       | ret
   
   === [Decompilacao C++ do XREF Runtime #3: 0x35ba8f0..0x35baba2 (insn @0x35baa77: mov/math reg, [flag])] ===
-    struct RBX::TM2EndRender {
-      /* +0x280 */ void*   field_0x280;
+    struct RBX::TextureManager2 {
+      /* +0x280 */ uint64_t field_0x280;
       /* +0x1594 */ uint8_t field_0x1594;
-      /* +0x17c8 */ void*   field_0x17c8;
-      /* +0x17d8 */ void*   field_0x17d8;
-      /* +0x17e0 */ void*   field_0x17e0;
-      /* +0x17e8 */ void*   field_0x17e8;
+      /* +0x17c8 */ uint64_t field_0x17c8;
+      /* +0x17d8 */ uint64_t field_0x17d8;
+      /* +0x17e0 */ uint64_t field_0x17e0;
+      /* +0x17e8 */ uint64_t field_0x17e8;
     };
     
-    // Flag defaults: TM2EndRenderOnlyWithContext = false, TM2DeferImageProcessingWithoutContext = true, PerformanceControlTextureManager2Integrated4 = false, TextureManager2DisableBudgetControl = false, RenderTextureLoadingMinMB = 16, RenderTextureTotalBudgetMB = 4095, RenderTextureLoadingMaxMB = 1345
-    void RBX::TM2EndRender::func_0x35ba8f0(RBX::TM2EndRender* this, int64_t param_2) {
-      if (global_0x8ddba68 > rbp->field_0x58->field_0x0->field_0x0[40]) {
+    // Flag defaults: TM2EndRenderOnlyWithContext = false, TM2DeferImageProcessingWithoutContext = true, PerformanceControlTextureManager2Integrated4 = false, TextureManager2DisableBudgetControl = false, RenderTextureLoadingMinMB = 16, RenderTextureTotalBudgetMB = 4095, RenderTextureLoadingMaxMB = 1342
+    void RBX::TextureManager2::func_0x35ba8f0(RBX::TextureManager2* this, int64_t param_2) {
+      if (global_0x8ddba68 > __readgsqword(0x58)->field_0x0->field_0x0[40]) {
         call_0x12e0(&sym_0x8ddba68);
         if (global_0x8ddba68 == -1) {
-          auto ret_0x29a3390_2 = call_0x29a3390("Render", "TextureManager2::processPendingRequests", -1, 0);
+          auto ret_0x29a3390_2 = call_0x29a3390("Render", "TextureManager2::processPendingRequests", -1, 0, 255);
           auto ret_0x2973cd0_3 = call_0x2973cd0();
           call_0x2972520(ret_0x2973cd0_3, ret_0x29a3390_2);
           global_0x8ddba70 = ret_0x29a3390_2;
           call_0x14f0(&sym_0x8ddba68);
         }
       }
+      uint64_t local_0x40;
+      local_0x40 = 0.0;
+      auto local_0x44 = 0.0;
+      auto local_0x48 = 0.0;
+      auto local_0x4c = 0.0;
+      auto local_0x50 = 0.0;
+      auto local_0x54 = 0.0;
+      auto local_0x58 = 0.0;
+      auto local_0x5c = 0.0;
+      auto local_0x60 = global_0x75b2c80;
+      auto local_0x64 = *(uint32_t*)((uint8_t*)&global_0x75b2c80 + 0x4);
+      auto local_0x68 = *(uint32_t*)((uint8_t*)&global_0x75b2c80 + 0x8);
+      auto local_0x6c = *(uint32_t*)((uint8_t*)&global_0x75b2c80 + 0xc);
+      auto local_0x70 = 0.0;
+      auto local_0x74 = 0.0;
+      auto local_0x78 = 0.0;
+      auto local_0x7c = 0.0;
+      auto local_0x80 = 0;
+      auto local_0x88 = 0;
+      auto local_0x90 = 0;
+      auto local_0x98 = 0;
+      auto local_0xa0 = 0;
+      auto local_0xa8 = 0;
+      auto local_0xb0 = 0;
       auto local_0xb8 = -1;
+      auto local_0xc0 = 1;
       call_0x2973e30(&local_0x40, global_0x8ddba70, &local_0xb8);
       call_0x35b5d40(this);
       uint8_t v_bl_1 = 0;
-      void* v_rsi_2 = param_2;
+      int64_t v_rsi_2 = param_2;
       if (param_2 == 0 && this->field_0x1594 != 0) {
         auto ret_0x355b640_8 = call_0x355b640(this->field_0x280);
         if (TM2EndRenderOnlyWithContext) {
@@ -462,26 +575,32 @@ Operação  : 0x35ba440: mov/math reg, [flag] ; fn=0x35ba3c0..0x35ba659
       if (PerformanceControlTextureManager2Integrated4) {
         call_0x35ba660(this);
       } else if (!TextureManager2DisableBudgetControl) {
-        int64_t idx_1 = (uint64_t)(this->field_0x17d8 <= this->field_0x17c8 ? 0 : this->field_0x17d8 - this->field_0x17c8) >> 20;
+        uint64_t local_0x30;
+        local_0x30 = this->field_0x17d8 <= this->field_0x17c8 ? 0 : this->field_0x17d8 - this->field_0x17c8;
+        int64_t idx_1 = (int32_t)((uint64_t)(this->field_0x17d8 <= this->field_0x17c8 ? 0 : this->field_0x17d8 - this->field_0x17c8) >> 20) >> 31 & 0x7;
+        int64_t idx_2 = (uint64_t)(this->field_0x17d8 <= this->field_0x17c8 ? 0 : this->field_0x17d8 - this->field_0x17c8) >> 20;
         int32_t v_r8_3;
         if ((uint64_t)(this->field_0x17d8 <= this->field_0x17c8 ? 0 : this->field_0x17d8 - this->field_0x17c8) >> 20 > 4095) {
           v_r8_3 = 4095;
         } else {
           v_r8_3 = max((uint64_t)(this->field_0x17d8 <= this->field_0x17c8 ? 0 : this->field_0x17d8 - this->field_0x17c8) >> 20, RenderTextureLoadingMinMB);
         }
+        void* v_rcx_4 = this->field_0x17d8;
         if (global_0x84bfaab != 0) {
           call_0x4982c80(this->field_0x17d8, RenderTextureTotalBudgetMB, v_r8_3);
+          void* prev_0x17d8_1 = this->field_0x17d8;
+          v_rcx_4 = prev_0x17d8_1;
         } else {
           RenderTextureTotalBudgetMB = v_r8_3;
         }
-        int32_t v_rbx_4 = std::clamp(((rdx & 0x7) + idx_1) >> 3, RenderTextureLoadingMinMB, 4095);
+        int32_t v_rbx_5 = std::clamp((int32_t)(idx_1 + idx_2) >> 3, RenderTextureLoadingMinMB, 4095);
         if (global_0x84bfaab != 0) {
-          call_0x4982c80(this->field_0x17d8, RenderTextureLoadingMaxMB, v_rbx_4);
+          call_0x4982c80(v_rcx_4, RenderTextureLoadingMaxMB, v_rbx_5);
         } else {
-          RenderTextureLoadingMaxMB = v_rbx_4;
+          RenderTextureLoadingMaxMB = v_rbx_5;
         }
-        this->field_0x17e8 = this->field_0x17d8 <= this->field_0x17c8 ? 0 : this->field_0x17d8 - this->field_0x17c8;
-        this->field_0x17e0 = max(this->field_0x17d8 <= this->field_0x17c8 ? 0 : this->field_0x17d8 - this->field_0x17c8, this->field_0x17e0);
+        this->field_0x17e8 = local_0x30;
+        this->field_0x17e0 = max(local_0x30, this->field_0x17e0);
       }
       call_0x35babb0(this);
       call_0x35b9300(this);
@@ -673,7 +792,7 @@ Operação  : 0x35ba440: mov/math reg, [flag] ; fn=0x35ba3c0..0x35ba659
 [Co-Flags na mesma função]
   * FFlagTextureManager2DisableBudgetControl = false (default)
   * FIntRenderTextureTotalBudgetMB = 4095 (default)
-  * FIntRenderTextureLoadingMaxMB = 1345 (default)
+  * FIntRenderTextureLoadingMaxMB = 1342 (default)
   * FLogTextureManager2 = 0 (default)
   * FIntMipTailByteSize = 4096 (default)
   * FIntRenderTextureOrphanMinBudgetMB = 64 (default)
@@ -682,7 +801,7 @@ Operação  : 0x35ba440: mov/math reg, [flag] ; fn=0x35ba3c0..0x35ba659
   * FFlagTM2DeferImageProcessingWithoutContext = true (default)
   * FFlagPerformanceControlTextureManager2Integrated4 = false (default)
   * FIntTM2SkipMarkViewMask = 2 (default) [vizinha em .data]
-  * FIntTM2ViewportFrameMaxMips = 11 (default) [vizinha em .data]
+  * FIntTM2ViewportFrameMaxMips = 4 (default) [vizinha em .data]
   * FIntRenderTextureLoadingBudgetMB = 1024 (default) [vizinha em .data]
   * FIntRenderTextureTotalBudgetCount = 16384 (default) [vizinha em .data]
   * FIntRenderTextureLoadingMaxCount = 16384 (default) [vizinha em .data]

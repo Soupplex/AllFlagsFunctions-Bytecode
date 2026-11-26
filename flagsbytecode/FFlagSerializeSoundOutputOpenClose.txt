@@ -30,25 +30,35 @@ Operação  : 0x4522b2f: cmp byte [flag], imm8 ; fn=0x4522af0..0x4522c64
       /* +0x80 */ int32_t field_0x80;
       /* +0x84 */ int32_t field_0x84;
       /* +0x88 */ int32_t field_0x88;
-      /* +0xb0 */ void*   field_0xb0;
-      /* +0xb8 */ void*   field_0xb8;
+      /* +0xb0 */ uint64_t field_0xb0;
+      /* +0xb8 */ uint64_t field_0xb8;
     };
     
     // Flag defaults: SerializeSoundOutputOpenClose = false
-    void RBX::SerializeSound::func_0x4522af0(RBX::SerializeSound* this, int64_t param_2, void* param_3, void* param_4) {
+    auto RBX::SerializeSound::func_0x4522af0(RBX::SerializeSound* this, int64_t param_2, int64_t param_3, int64_t param_4) {
+      uint64_t local_0x28;
       call_0x2e13a20(&local_0x28, &this->field_0x30, 2);
       uint64_t v_rbx_1;
       if (SerializeSoundOutputOpenClose) {
-        call_0x2e12fd0(local_0x28 & 0xfffffffe);
-        if (this->field_0xb0 != 0) {
-          call_0x280f9b0(this->field_0xb0);
-          call_0x27fbdf0(this->field_0xb8);
-          this->field_0xb8 = 0;
-          call_0x280e790(this->field_0xb0);
-          this->field_0xb0 = 0;
-          v_rbx_1 = local_0x28 & 0xfffffffe | 0x1;
+        if ((local_0x28 & 0xfffffffffffffffeULL) != 0 && ((uint8_t)local_0x28 & 0x1) == 0) {
+          call_0x2e12fd0(local_0x28 & 0xfffffffffffffffeULL);
+          uint64_t mem_1_1 = local_0x28;
+          local_0x28 = local_0x28 & 0xfffffffffffffffeULL | 0x1ULL;
+          if (this->field_0xb0 != 0) {
+            call_0x280f9b0(this->field_0xb0);
+            call_0x27fbdf0(this->field_0xb8);
+            this->field_0xb8 = 0;
+            call_0x280e790(this->field_0xb0);
+            this->field_0xb0 = 0;
+            v_rbx_1 = mem_1_1 & 0xfffffffffffffffeULL | 0x1ULL;
+          } else {
+            v_rbx_1 = mem_1_1 & 0xfffffffffffffffeULL | 0x1ULL;
+          }
         } else {
-          v_rbx_1 = local_0x28 & 0xfffffffe | 0x1;
+          auto ret_0x5e12400_2 = call_0x5e12400(2);
+          call_0x6dacf0(ret_0x5e12400_2, "RSL PANIC: %s\\n", "Condition failed: s.ptr() && !s.owned()", param_4);
+          call_0x4971000();
+          return; // noreturn
         }
       } else {
         v_rbx_1 = local_0x28;
@@ -64,12 +74,13 @@ Operação  : 0x4522b2f: cmp byte [flag], imm8 ; fn=0x4522af0..0x4522c64
           this->field_0x88 = param_4 == 2 ? 4 : this->field_0x88;
         }
       }
-      if ((v_rbx_1 & 0x1) != 0) {
-        if ((v_rbx_1 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(v_rbx_1 & 0xfffffffe)->field_0x0, (v_rbx_1 & 0xfffffffe)->field_0x0, 1) != 0) {
-          call_0xdac0(v_rbx_1 & 0xfffffffe);
-          return;
+      if (((uint8_t)v_rbx_1 & 0x1) != 0) {
+        if ((v_rbx_1 & 0xfffffffffffffffeULL)->field_0x0 != 3 || !atomic_cas(&(v_rbx_1 & 0xfffffffffffffffeULL)->field_0x0, (v_rbx_1 & 0xfffffffffffffffeULL)->field_0x0, 1)) {
+          return call_0xdac0(v_rbx_1 & 0xfffffffffffffffeULL);
         }
+        return (v_rbx_1 & 0xfffffffffffffffeULL)->field_0x0;
       }
+      return (uint8_t)v_rbx_1 & 0x1;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -179,97 +190,126 @@ Operação  : 0x4522b2f: cmp byte [flag], imm8 ; fn=0x4522af0..0x4522c64
       /* +0x88 */ int32_t field_0x88;
       /* +0x8c */ float   field_0x8c;
       /* +0x94 */ uint8_t field_0x94;
-      /* +0xb0 */ void*   field_0xb0;
-      /* +0xb8 */ void*   field_0xb8;
+      /* +0x98 */ double  field_0x98;
+      /* +0xa0 */ int32_t field_0xa0;
+      /* +0xa4 */ float   field_0xa4;
+      /* +0xa8 */ float   field_0xa8;
+      /* +0xb0 */ uint64_t field_0xb0;
+      /* +0xb8 */ uint64_t field_0xb8;
     };
     
     // Flag defaults: SerializeSoundOutputOpenClose = false, Error = 6
     auto RBX::SerializeSound::func_0x4522d10(RBX::SerializeSound* this) {
+      uint64_t local_0x240;
       call_0x2e13a20(&local_0x240, &this->field_0x30, 2);
-      int32_t v_rbx_3;
-      int64_t local_0x160;
-      auto expr_2 = (this->field_0x84 + this->field_0x84 * 4) * 2 / 1000 >> 6;
-      auto expr_1 = (uint32_t)expr_2 >> 31;
+      uint64_t v_rbx_2;
+      uint64_t i_eax_2;
+      uint64_t local_0x40;
+      uint64_t local_0x174;
+      int32_t tmp_3;
+      uint64_t local_0x160;
+      void* prev_0x8_2;
+      int64_t vret_6;
       if (SerializeSoundOutputOpenClose) {
-        call_0x2e12fd0(local_0x240 & 0xfffffffe);
-        if (this->field_0x38 == 0) {
-          L_0x4522da3:
-          v_rbx_3 = 0;
-        } else {
+        if ((local_0x240 & 0xfffffffffffffffeULL) != 0 && ((uint8_t)local_0x240 & 1) == 0) {
+          call_0x2e12fd0(local_0x240 & 0xfffffffffffffffeULL);
+          local_0x240 = local_0x240 & 0xfffffffffffffffeULL | 1;
           auto* f_8 = this->field_0x8;
-          if (this->field_0x7c != 0 && this->field_0xb0 == 0 && f_8 != 0) {
-            void* prev_0x8_1 = f_8;
-            auto vret_3 = (&f_8->field_0x1c8->field_0x300)->vfunc_0x8();
-            if ((uint8_t)vret_3 != 0) {
+          if (this->field_0x38 == 0) {
+            L_0x4522da3:
+            v_rbx_2 = 0;
+          } else if (this->field_0x7c != 0 && this->field_0xb0 == 0 && f_8 != 0) {
+            prev_0x8_2 = f_8;
+            vret_6 = (&f_8->field_0x1c8->field_0x300)->vfunc_0x8();
+            if ((uint8_t)vret_6 != 0) {
               call_0x5e051b0(&local_0x160, 0, 224);
-              int32_t tmp_2 = expr_2 + expr_1;
+              local_0x160 = 224;
+              tmp_3 = ((int32_t)mulhi(274877907, (this->field_0x84 * 2) * 5) >> 6) + ((uint32_t)((int32_t)mulhi(274877907, (this->field_0x84 * 2) * 5) >> 6) >> 31);
+              uint64_t local_0x20;
+              uint64_t v_rbx_1;
+              uint64_t local_0x50;
               if (this->field_0x80 == 1) {
+                local_0x174 = 2;
                 L_0x4522eb5:
                 auto* f_8_2 = this->field_0x8;
                 auto* f_8_2_1c8 = f_8_2->field_0x1c8;
                 (&f_8_2_1c8->field_0x300)->vfunc_0x48(&f_8_2_1c8->field_0x300, &local_0x50);
-                int32_t v_rbx_2;
                 if (SerializeSoundOutputOpenClose) {
                   if (local_0x50 != 0) {
                     L_0x4522f10:
-                    auto ret_0x4523af0_6 = call_0x4523af0(this);
-                    local_0x160 = 224;
-                    auto local_0x164 = tmp_2 * this->field_0x88 * this->field_0x7c;
-                    auto ret_0x28078f0_7 = call_0x28078f0(r10, param_2, ret_0x4523af0_6, &local_0x160);
-                    if (ret_0x28078f0_7 != 0) {
+                    auto ret_0x4523af0_9 = call_0x4523af0(this);
+                    local_0x20 = &this->field_0xb0;
+                    auto local_0x164 = tmp_3 * this->field_0x88 * this->field_0x7c;
+                    auto local_0x16c = this->field_0x7c;
+                    auto local_0x170 = this->field_0x84;
+                    auto local_0x178 = tmp_3 * this->field_0x88 * this->field_0x7c * 2;
+                    auto ret_0x28078f0_10 = call_0x28078f0(local_0x50, 0, ret_0x4523af0_9 | 1ULL << 10, &local_0x160, &this->field_0xb0);
+                    uint64_t local_0x58;
+                    if (ret_0x28078f0_10 != 0) {
+                    if ((uint8_t)Error >= 6 && (uint8_t)((uint64_t)Error >> 8) >= 2) {
+                    local_0x40 = ret_0x28078f0_10;
+                    local_0x20 = 1;
+                    FLog::Log("[FLog::Error] FMod error {} with createStream()", local_0x40);
+                    }
                     L_0x4522fe5:
-                    v_rbx_2 = -2147483638;
+                    v_rbx_1 = 0x8000000aULL;
                     L_0x4523171:
                     if (local_0x58 != 0) {
                     call_0x6daf40(local_0x58);
-                    v_rbx_3 = v_rbx_2;
+                    v_rbx_2 = v_rbx_1;
                     } else {
-                    v_rbx_3 = v_rbx_2;
+                    v_rbx_2 = v_rbx_1;
                     }
                     } else {
-                    auto ret_0x2808370_8 = call_0x2808370(local_0x50, this->field_0xb0, 0);
-                    if (this->field_0xb8 != 0 && ret_0x2808370_8 == 0) {
-                    call_0x280c5f0(this->field_0xb8, 0, ret_0x2808370_8 + 4);
+                    local_0x20 = &this->field_0xb8;
+                    auto ret_0x2808370_11 = call_0x2808370(local_0x50, this->field_0xb0, 0);
+                    if (this->field_0xb8 != 0 && ret_0x2808370_11 == 0) {
+                    call_0x280c5f0(this->field_0xb8, 0, ret_0x2808370_11 + 4);
                     call_0x27fc5d0(this->field_0xb8, this->field_0x8c);
-                    auto ret_0x4523af0_12 = call_0x4523af0(this);
-                    call_0x27fd3a0(this->field_0xb8, ret_0x4523af0_12);
+                    auto ret_0x4523af0_15 = call_0x4523af0(this);
+                    call_0x27fd3a0(this->field_0xb8, ret_0x4523af0_15);
+                    if (this->field_0x94 != 0) {
+                    auto local_0x60 = this->field_0x98;
+                    auto local_0x68 = this->field_0xa0;
+                    call_0x4522c70(this, &local_0x60);
+                    call_0x27ff450(this->field_0xb8, min(this->field_0xa8, this->field_0xa4), this->field_0xa4);
+                    }
                     call_0x27fc040(this->field_0xb8, 0);
-                    auto ret_0x44b7d10_15 = call_0x44b7d10(prev_0x8_1);
-                    call_0x280ca50(this->field_0xb8, ret_0x44b7d10_15);
+                    auto ret_0x44b7d10_20 = call_0x44b7d10(prev_0x8_2);
+                    call_0x280ca50(this->field_0xb8, ret_0x44b7d10_20);
                     if (local_0x58 != 0) {
                     call_0x6daf40(local_0x58);
                     }
-                    v_rbx_3 = 0;
+                    v_rbx_2 = 0;
                     } else {
                     if ((uint8_t)Error >= 6 && (uint8_t)((uint64_t)Error >> 8) >= 2) {
-                    uint64_t i_eax = -1;
-                    do { // L_0x4523111
-                    i_eax++;
-                    } while ("[FLog::Error] Failed to allocate audio channel"[i_eax] != 0); // loop -> L_0x4523111
+                    local_0x40 = "[FLog::Error] Failed to allocate audio channel";
+                    local_0x20 = 1;
+                    FLog::Log("[FLog::Error] Failed to allocate audio channel");
                     }
                     call_0x280e790(this->field_0xb0);
                     this->field_0xb0 = 0;
-                    v_rbx_2 = -2147483644;
+                    v_rbx_1 = 0x80000004ULL;
                     if (local_0x58 != 0) {
                     call_0x6daf40(local_0x58);
-                    v_rbx_3 = v_rbx_2;
+                    v_rbx_2 = v_rbx_1;
                     } else {
-                    v_rbx_3 = v_rbx_2;
+                    v_rbx_2 = v_rbx_1;
                     }
                     }
                     }
                   } else {
-                    v_rbx_2 = -2147483638;
+                    v_rbx_1 = 0x8000000aULL;
                     goto L_0x4523171;
                   }
                 } else {
                   goto L_0x4522f10;
                 }
               } else if (this->field_0x80 == 2) {
+                local_0x174 = 5;
                 auto* f_8_3 = this->field_0x8;
                 auto* f_8_3_1c8 = f_8_3->field_0x1c8;
                 (&f_8_3_1c8->field_0x300)->vfunc_0x48(&f_8_3_1c8->field_0x300, &local_0x50);
-                int32_t v_rbx_2;
                 if (SerializeSoundOutputOpenClose) {
                   if (local_0x50 != 0) {
                     goto L_0x4522f10;
@@ -280,7 +320,24 @@ Operação  : 0x4522b2f: cmp byte [flag], imm8 ; fn=0x4522af0..0x4522c64
                   goto L_0x4522f10;
                 }
               } else {
-                v_rbx_3 = -2147483638;
+                if ((uint8_t)Error >= 6 && (uint8_t)((uint64_t)Error >> 8) >= 2) {
+                  local_0x40 = "[FLog::Error] Unrecognized sample format";
+                  i_eax_2 = -1;
+                  L_0x45231c0:
+                  do { // L_0x45231c0
+                    i_eax_2++;
+                  } while ((local_0x40 - 0x67f59e)[i_eax_2] != 0); // loop -> L_0x45231c0
+                  local_0x20 = 1;
+                  FLog::Log("[FLog::Error] Unrecognized sample format");
+                  L_0x4522da5:
+                  if (((uint8_t)local_0x240 & 0x1) != 0) {
+                    if ((local_0x240 & 0xfffffffffffffffeULL)->field_0x0 != 3 || !atomic_cas(&(local_0x240 & 0xfffffffffffffffeULL)->field_0x0, (local_0x240 & 0xfffffffffffffffeULL)->field_0x0, 1)) {
+                    call_0xdac0(local_0x240 & 0xfffffffffffffffeULL);
+                    }
+                  }
+                  return v_rbx_2;
+                }
+                v_rbx_2 = 0x8000000aULL;
               }
             } else {
               goto L_0x4522da3;
@@ -288,20 +345,39 @@ Operação  : 0x4522b2f: cmp byte [flag], imm8 ; fn=0x4522af0..0x4522c64
           } else {
             goto L_0x4522da3;
           }
+          if (((uint8_t)local_0x240 & 0x1) != 0) {
+            if ((local_0x240 & 0xfffffffffffffffeULL)->field_0x0 != 3 || !atomic_cas(&(local_0x240 & 0xfffffffffffffffeULL)->field_0x0, (local_0x240 & 0xfffffffffffffffeULL)->field_0x0, 1)) {
+              call_0xdac0(local_0x240 & 0xfffffffffffffffeULL);
+            }
+          }
+          return v_rbx_2;
         }
-        auto* f_8_4 = this->field_0x8;
-      } else if (this->field_0x7c != 0 && this->field_0xb0 == 0 && f_8_4 != 0) {
-        void* prev_0x8_1 = f_8_4;
-        auto vret_3 = (&f_8_4->field_0x1c8->field_0x300)->vfunc_0x8();
-        if ((uint8_t)vret_3 != 0) {
+        auto ret_0x5e12400_2 = call_0x5e12400(2);
+        call_0x6dacf0(ret_0x5e12400_2, "RSL PANIC: %s\\n", "Condition failed: s.ptr() && !s.owned()", 0);
+        call_0x4971000();
+        return; // noreturn
+      }
+      auto* f_8_4 = this->field_0x8;
+      if (this->field_0x7c != 0 && this->field_0xb0 == 0 && f_8_4 != 0) {
+        prev_0x8_2 = f_8_4;
+        vret_6 = (&f_8_4->field_0x1c8->field_0x300)->vfunc_0x8();
+        if ((uint8_t)vret_6 != 0) {
           call_0x5e051b0(&local_0x160, 0, 224);
-          int32_t tmp_2 = expr_2 + expr_1;
+          local_0x160 = 224;
+          tmp_3 = ((int32_t)mulhi(274877907, (this->field_0x84 * 2) * 5) >> 6) + ((uint32_t)((int32_t)mulhi(274877907, (this->field_0x84 * 2) * 5) >> 6) >> 31);
           if (this->field_0x80 == 1) {
+            local_0x174 = 2;
             goto L_0x4522eb5;
           } else if (this->field_0x80 == 2) {
+            local_0x174 = 5;
             goto L_0x4522eb5;
           } else {
-            v_rbx_3 = -2147483638;
+            if ((uint8_t)Error >= 6 && (uint8_t)((uint64_t)Error >> 8) >= 2) {
+              local_0x40 = "[FLog::Error] Unrecognized sample format";
+              i_eax_2 = -1;
+              goto L_0x45231c0;
+            }
+            v_rbx_2 = 0x8000000aULL;
           }
         } else {
           goto L_0x4522da3;
@@ -309,12 +385,7 @@ Operação  : 0x4522b2f: cmp byte [flag], imm8 ; fn=0x4522af0..0x4522c64
       } else {
         goto L_0x4522da3;
       }
-      if ((local_0x240 & 0x1) != 0) {
-        if ((local_0x240 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x240 & 0xfffffffe)->field_0x0, (local_0x240 & 0xfffffffe)->field_0x0, 1) != 0) {
-          call_0xdac0(local_0x240 & 0xfffffffe);
-        }
-      }
-      return v_rbx_3;
+      goto L_0x4522da5;
     }
   
   === [Instrucoes x86-64 do XREF Runtime #2 (0x4522d10..0x4523242)] ===
@@ -647,17 +718,27 @@ Operação  : 0x4522b2f: cmp byte [flag], imm8 ; fn=0x4522af0..0x4522c64
   
   === [Decompilacao C++ do XREF Runtime #3: 0x4523250..0x452335f (insn @0x452327e: cmp byte [flag], imm8)] ===
     struct RBX::SerializeSound {
-      /* +0xb0 */ void*   field_0xb0;
-      /* +0xb8 */ void*   field_0xb8;
+      /* +0xb0 */ uint64_t field_0xb0;
+      /* +0xb8 */ uint64_t field_0xb8;
     };
     
     // Flag defaults: SerializeSoundOutputOpenClose = false
-    void RBX::SerializeSound::func_0x4523250(RBX::SerializeSound* this) {
+    auto RBX::SerializeSound::func_0x4523250(RBX::SerializeSound* this) {
+      uint64_t local_0x28;
       call_0x2e13a20(&local_0x28, &this->field_0x30, 2);
       uint64_t v_rbx_1;
       if (SerializeSoundOutputOpenClose) {
-        call_0x2e12fd0(local_0x28 & 0xfffffffe);
-        v_rbx_1 = local_0x28 & 0xfffffffe | 0x1;
+        if ((local_0x28 & 0xfffffffffffffffeULL) != 0 && ((uint8_t)local_0x28 & 0x1) == 0) {
+          call_0x2e12fd0(local_0x28 & 0xfffffffffffffffeULL);
+          uint64_t mem_1_1 = local_0x28;
+          local_0x28 = local_0x28 & 0xfffffffffffffffeULL | 0x1ULL;
+          v_rbx_1 = mem_1_1 & 0xfffffffffffffffeULL | 0x1ULL;
+        } else {
+          auto ret_0x5e12400_2 = call_0x5e12400(2);
+          call_0x6dacf0(ret_0x5e12400_2, "RSL PANIC: %s\\n", "Condition failed: s.ptr() && !s.owned()", 0);
+          call_0x4971000();
+          return; // noreturn
+        }
       } else {
         v_rbx_1 = local_0x28;
       }
@@ -668,12 +749,13 @@ Operação  : 0x4522b2f: cmp byte [flag], imm8 ; fn=0x4522af0..0x4522c64
         call_0x280e790(this->field_0xb0);
         this->field_0xb0 = 0;
       }
-      if ((v_rbx_1 & 0x1) != 0) {
-        if ((v_rbx_1 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(v_rbx_1 & 0xfffffffe)->field_0x0, (v_rbx_1 & 0xfffffffe)->field_0x0, 1) != 0) {
-          call_0xdac0(v_rbx_1 & 0xfffffffe);
-          return;
+      if (((uint8_t)v_rbx_1 & 0x1) != 0) {
+        if ((v_rbx_1 & 0xfffffffffffffffeULL)->field_0x0 != 3 || !atomic_cas(&(v_rbx_1 & 0xfffffffffffffffeULL)->field_0x0, (v_rbx_1 & 0xfffffffffffffffeULL)->field_0x0, 1)) {
+          return call_0xdac0(v_rbx_1 & 0xfffffffffffffffeULL);
         }
+        return (v_rbx_1 & 0xfffffffffffffffeULL)->field_0x0;
       }
+      return (uint8_t)v_rbx_1 & 0x1;
     }
   
   === [Instrucoes x86-64 do XREF Runtime #3 (0x4523250..0x452335f)] ===
@@ -755,17 +837,22 @@ Operação  : 0x4522b2f: cmp byte [flag], imm8 ; fn=0x4522af0..0x4522c64
     
     // Flag defaults: SerializeSoundOutputOpenClose = false, Error = 6
     void RBX::SoundOutput::func_0x45234c0(RBX::SoundOutput* this) {
+      uint64_t local_0x80;
       if (SerializeSoundOutputOpenClose) {
         call_0x2e13a20(&local_0x80, &this->field_0x30, 0);
         this->field_0x38 = 1;
-        if ((local_0x80 & 1) != 0) {
-          if ((local_0x80 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x80 & 0xfffffffe)->field_0x0, (local_0x80 & 0xfffffffe)->field_0x0, 1) != 0) {
-            call_0xdac0(local_0x80 & 0xfffffffe);
+        if (((uint8_t)local_0x80 & 1) != 0) {
+          if ((local_0x80 & 0xfffffffffffffffeULL)->field_0x0 != 3 || !atomic_cas(&(local_0x80 & 0xfffffffffffffffeULL)->field_0x0, (local_0x80 & 0xfffffffffffffffeULL)->field_0x0, 1)) {
+            call_0xdac0(local_0x80 & 0xfffffffffffffffeULL);
           }
         }
       }
       auto ret_0x4522d10_3 = call_0x4522d10(this);
       if (ret_0x4522d10_3 != 0 && (uint8_t)Error >= 6 && (uint8_t)((uint64_t)Error >> 8) >= 2) {
+        local_0x80 = "[FLog::Error] Error {} with start()";
+        uint64_t local_0x50;
+        local_0x50 = local_0x80 - 0x991f5e;
+        local_0x80 = ret_0x4522d10_3;
         FLog::Log("[FLog::Error] Error {} with start()", ret_0x4522d10_3);
       }
     }
@@ -859,11 +946,12 @@ Operação  : 0x4522b2f: cmp byte [flag], imm8 ; fn=0x4522af0..0x4522c64
     // Flag defaults: SerializeSoundOutputOpenClose = false
     void RBX::SoundOutput::func_0x4523620(RBX::SoundOutput* this) {
       if (SerializeSoundOutputOpenClose) {
+        uint64_t local_0x28;
         call_0x2e13a20(&local_0x28, &this->field_0x30, 0);
         this->field_0x38 = 0;
-        if ((local_0x28 & 0x1) != 0) {
-          if ((local_0x28 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x28 & 0xfffffffe)->field_0x0, (local_0x28 & 0xfffffffe)->field_0x0, 1) != 0) {
-            call_0xdac0(local_0x28 & 0xfffffffe);
+        if (((uint8_t)local_0x28 & 0x1) != 0) {
+          if ((local_0x28 & 0xfffffffffffffffeULL)->field_0x0 != 3 || !atomic_cas(&(local_0x28 & 0xfffffffffffffffeULL)->field_0x0, (local_0x28 & 0xfffffffffffffffeULL)->field_0x0, 1)) {
+            call_0xdac0(local_0x28 & 0xfffffffffffffffeULL);
           }
         }
       }
@@ -919,8 +1007,8 @@ Operação  : 0x4522b2f: cmp byte [flag], imm8 ; fn=0x4522af0..0x4522c64
 
 [Co-Flags na mesma função]
   * FLogError = 6 (default)
-  * DFIntAudioDriftUpperThresholdMs = 100 (default) [vizinha em .data]
-  * DFIntAudioDriftLowerThresholdMs = 40 (default) [vizinha em .data]
+  * DFIntAudioDriftUpperThresholdMs = 60 (default) [vizinha em .data]
+  * DFIntAudioDriftLowerThresholdMs = 20 (default) [vizinha em .data]
   * DFFlagCloseSoundOutputOnDestroy = true (default) [vizinha em .data]
   * DFIntAudioDriftSampleRateRatio = 5 (default) [vizinha em .data]
   * DFIntWiringApiEventIngestHundredthsPercent = 1000 (default) [vizinha em .data]

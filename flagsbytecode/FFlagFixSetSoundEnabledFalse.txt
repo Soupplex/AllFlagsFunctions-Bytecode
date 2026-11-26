@@ -5,8 +5,8 @@ Insn RVA  : 0x44b1156
 Operação  : 0x44b1156: movzx reg, byte [flag] ; fn=0x44b1150..0x44b11b8
 
 [Disassembly .text]
-  === [Resumo do Efeito da FFlag no Engine (RBX::FixSet)] ===
-    Classe  : RBX::FixSet (Inferido)
+  === [Resumo do Efeito da FFlag no Engine (RBX::EngineSubsystem)] ===
+    Classe  : RBX::EngineSubsystem (Inferido)
     Padrão  : FFlagFixSetSoundEnabledFalse = true (default) [bool, mode=1]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
     Fórmula : FixSetSoundEnabledFalse
@@ -14,38 +14,37 @@ Operação  : 0x44b1156: movzx reg, byte [flag] ; fn=0x44b1150..0x44b11b8
   
   === [Mapeamento de Campos da Struct (RTTI & Cross-Function Linker)] ===
     this->field_0x448 (offset +0x448) <- FFlagFixSetSoundEnabledFalse = true (@0x44b116a)
-    [XREF #2 @0x4bd2cc9] Classe  : RBX::FixSet (Inferido)
+    [XREF #2 @0x4bd2cc9] Classe  : RBX::EngineSubsystem (Inferido)
     [XREF #2 @0x4bd2cc9] Fórmula : !FixSetSoundEnabledFalse
   
   === [Decompilacao C++ da Funcao 0x44b1150..0x44b11b8] ===
-    struct RBX::FixSet {
+    struct RBX::EngineSubsystem {
       /* +0x448 */ uint8_t field_0x448;
       /* +0x449 */ uint8_t field_0x449;
     };
     
     // Flag defaults: FixSetSoundEnabledFalse = true
-    auto RBX::FixSet::func_0x44b1150(RBX::FixSet* this, int64_t param_2) {
+    void RBX::EngineSubsystem::func_0x44b1150(RBX::EngineSubsystem* this, int64_t param_2) {
       if (FixSetSoundEnabledFalse) {
         this->field_0x448 = (uint8_t)param_2;
         if ((uint8_t)param_2 != 0) {
           if (FixSetSoundEnabledFalse) {
             this->field_0x448 = (uint8_t)param_2;
           }
-        } else {
-          if (this->field_0x449 != 0) {
-            call_0x44acb20(this);
-          }
-          if (FixSetSoundEnabledFalse) {
-            this->field_0x448 = 0;
+          if (this->field_0x449 == 0) {
+            tailcall_0x44aae60(this);
             return;
           }
           return;
         }
+        if (this->field_0x449 != 0) {
+          call_0x44acb20(this);
+        }
+        if (FixSetSoundEnabledFalse) {
+          this->field_0x448 = 0;
+          return;
+        }
       }
-      if (this->field_0x449 == 0) {
-        return tailcall_0x44aae60(this);
-      }
-      return;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -54,7 +53,7 @@ Operação  : 0x44b1156: movzx reg, byte [flag] ; fn=0x44b1150..0x44b11b8
     0x44b1156 | 0f b6 05 8b e6 c7 03     | movzx eax, byte ptr [rip + 0x3c7e68b] ; FFlagFixSetSoundEnabledFalse
     0x44b115d | 48 8b d9                 | mov rbx, rcx
     0x44b1160 | 84 c0                    | test al, al
-    0x44b1162 | 74 1b                    | je 0x44b117f ; [Nanomite Reconstructed: je +0x1b via cfg_join_label_resolver]
+    0x44b1162 | 74 4e                    | je 0x44b11b2 ; [Nanomite Reconstructed: je +0x4e via cfg_shared_epilogue_resolver]
     0x44b1164 | 88 91 48 04 00 00        | mov byte ptr [rcx + 0x448], dl
     0x44b116a | 0f b6 05 77 e6 c7 03     | movzx eax, byte ptr [rip + 0x3c7e677] ; FFlagFixSetSoundEnabledFalse
     0x44b1171 | 84 d2                    | test dl, dl
@@ -84,112 +83,148 @@ Operação  : 0x44b1156: movzx reg, byte [flag] ; fn=0x44b1150..0x44b11b8
   
   === [Sub-Rotina Chamada: 0x44acb20..0x44ad0f4 via call @0x44b119b (Direct Engine Sub-Call)] ===
     struct SubObj_0x44acb20 {
-      /* +0x60 */ void*   field_0x60;
+      /* +0x60 */ uint64_t field_0x60;
       /* +0x1c8 */ void*   field_0x1c8;
       /* +0x220 */ uint8_t field_0x220;
       /* +0x320 */ int32_t field_0x320;
       /* +0x338 */ int32_t field_0x338;
-      /* +0x3d0 */ void*   field_0x3d0;
-      /* +0x3d8 */ void*   field_0x3d8;
+      /* +0x3d0 */ uint64_t field_0x3d0;
+      /* +0x3d8 */ uint64_t field_0x3d8;
       /* +0x448 */ uint8_t field_0x448;
       /* +0x449 */ uint8_t field_0x449;
     };
     
-    // Flag defaults: SoundTrace = 0, Sound = 6, DebugEnableCloseFmodLogs = true, Output = 6, ValidateDescendantOfDataModel = true
+    // Flag defaults: SoundTrace = 0, Sound = 0, DebugEnableCloseFmodLogs = false, Output = 6, ValidateDescendantOfDataModel = true
     auto SubObj_0x44acb20::func_0x44acb20(SubObj_0x44acb20* this) {
-      uint64_t v_rax_9 = SoundTrace;
+      uint64_t v_rax_10 = SoundTrace;
       if ((uint8_t)SoundTrace >= 6) {
+        uint64_t local_0x20;
+        uint64_t local_0x40;
         if ((uint8_t)((uint64_t)SoundTrace >> 8) >= 5) {
-          FLog::Log("[DFLog::SoundTrace] SoundService::closeFmod({})", this);
+          local_0x40 = this;
+          local_0x20 = 1;
+          FLog::Log("[DFLog::SoundTrace] SoundService::closeFmod({})", local_0x40);
         }
         if ((uint8_t)Sound >= 6 && (uint8_t)((uint64_t)Sound >> 8) >= 5) {
+          local_0x40 = "[FLog::Sound] Closing Fmod.";
+          local_0x20 = 1;
           FLog::Log("[FLog::Sound] Closing Fmod.");
         }
         if (DebugEnableCloseFmodLogs && (uint8_t)Output >= 6 && (uint8_t)((uint64_t)Output >> 8) >= 5) {
-          FLog::Log("[FLog::Output] Closing Fmod (as {}, ml {}, sl {}).", (this->field_0x3d8 - this->field_0x3d0) >> 4, this->field_0x320, this->field_0x338);
+          local_0x40 = "[FLog::Output] Closing Fmod (as {}, ml {}, sl {}).";
+          local_0x20 = 1;
+          FLog::Log("[FLog::Output] Closing Fmod (as {}, ml {}, sl {}).", (int64_t)(this->field_0x3d8 - this->field_0x3d0) >> 4, this->field_0x320, this->field_0x338);
         }
         call_0x27c6020(&this->field_0x1c8->field_0x350);
         call_0x4968fd0(&this->field_0x168);
         this->field_0x449 = 0;
         if (this->field_0x448 != 0) {
+          uint64_t local_0x30;
+          local_0x30 = this->field_0x220;
           this->field_0x220 = 1;
+          uint64_t local_0x80;
           call_0x3e09090(&local_0x80, &this->field_0x208);
           void* v_rcx_2;
           void* v_rcx_4;
-          void* stk_5;
+          uint64_t local_0x50;
+          uint64_t local_0x90;
+          uint64_t local_0x88;
           if (local_0x88 == 0) {
             v_rcx_2 = local_0x80 + local_0x90 * 8;
+            local_0x50 = v_rcx_2;
             v_rcx_4 = v_rcx_2;
-            stk_5 = v_rcx_2;
-          } else if (local_0x80 != local_0x80 + local_0x90 * 8) {
-            void* i_ecx = local_0x80;
-            do { // L_0x44ace40
-              if ((i_ecx->field_0x0 + 0x2000 & 0xffffefff) != 0) break;
-              i_ecx += 8;
-            } while (i_ecx != local_0x80 + local_0x90 * 8); // loop -> L_0x44ace40
-            v_rcx_4 = v_rcx_2;
-            stk_5 = v_rcx_2;
           } else {
-            v_rcx_4 = local_0x80;
-            stk_5 = local_0x80;
+            local_0x50 = local_0x80;
+            if (local_0x80 != local_0x80 + local_0x90 * 8) {
+              uint8_t* i_ecx = local_0x80;
+              do { // L_0x44ace40
+                if ((i_ecx->field_0x0 + 0x2000 & 0xffffffffffffefffULL) != 0) {
+                  v_rcx_2 = i_ecx;
+                  break;
+                }
+                i_ecx += 8;
+              } while (i_ecx != local_0x80 + local_0x90 * 8); // loop -> L_0x44ace40
+              v_rcx_2 = i_ecx;
+              local_0x50 = v_rcx_2;
+              v_rcx_4 = v_rcx_2;
+            } else {
+              v_rcx_4 = local_0x80;
+            }
           }
+          uint64_t local_0x100;
+          local_0x100 = local_0x50;
           if (v_rcx_4 != local_0x80 + local_0x90 * 8) {
-            void* i_ebx = stk_5;
+            uint8_t* i_ebx_2 = local_0x100;
+            uint8_t local_0x1f8 = this->field_0x220;
+            void* local_0x1f0 = &this->field_0x220;
+            void* local_0x58 = local_0x80 + local_0x90 * 8;
+            float local_0x108 = local_0x80 + local_0x90 * 8;
             do { // L_0x44ace80
-              i_ebx->field_0x0->vfunc_0x30();
-              i_ebx += 8;
-              while (i_ebx != local_0x80 + local_0x90 * 8) {
-                if ((i_ebx->field_0x0 + 0x2000 & 0xffffefff) != 0) break;
-                i_ebx += 8;
+              i_ebx_2->field_0x0->vfunc_0x30();
+              i_ebx_2 += 8;
+              void* v_rbx_5 = i_ebx_2;
+              if (i_ebx_2 != local_0x80 + local_0x90 * 8) {
+                uint8_t* i_ebx = i_ebx_2;
+                do { // L_0x44acea0
+                  if ((i_ebx->field_0x0 + 0x2000 & 0xffffffffffffefffULL) != 0) {
+                    v_rbx_5 = i_ebx;
+                    break;
+                  }
+                  i_ebx += 8;
+                } while (i_ebx != local_0x80 + local_0x90 * 8); // loop -> L_0x44acea0
+                v_rbx_5 = i_ebx;
               }
-            } while (i_ebx != local_0x80 + local_0x90 * 8); // loop -> L_0x44ace80
+              i_ebx_2 = v_rbx_5;
+            } while (i_ebx_2 != local_0x80 + local_0x90 * 8); // loop -> L_0x44ace80
           }
           call_0x4955ac0(local_0x80);
-          this->field_0x220 = this->field_0x220;
+          this->field_0x220 = local_0x30;
         }
         call_0x4968fd0(&this->field_0x2f0);
         if (global_0x84a44d6 != 0 && ValidateDescendantOfDataModel) {
           call_0x4062200(this);
         }
-        void* v_rdi_6;
+        void* v_rdi_7;
         if (this->field_0x60 != 0) {
-          v_rdi_6 = call_0x7571b0(this->field_0x60);
+          v_rdi_7 = call_0x7571b0(this->field_0x60);
         } else {
-          v_rdi_6 = this;
+          v_rdi_7 = this;
         }
-        void* v_r15_7 = 0;
-        if (v_rdi_6 != 0) {
-          auto ret_0x4068600_9 = call_0x4068600();
-          if (v_rdi_6->field_0x18->field_0x1c0 - ret_0x4068600_9->field_0x1c0 <= ret_0x4068600_9->field_0x1c2 && v_rdi_6 != 496) {
-            v_r15_7 = v_rdi_6->field_0x1a0;
-          }
+        if (v_rdi_7 != 0) {
+          call_0x4068600();
         }
-        call_0x44a7d80(this->field_0x1c8, v_r15_7);
+        call_0x44a7d80(this->field_0x1c8);
         call_0x44abc10(this);
         (&this->field_0x1c8->field_0x300)->vfunc_0x28();
-        uint64_t v_rax_8 = Sound;
+        uint64_t v_rax_9 = Sound;
         if ((uint8_t)Sound >= 6) {
           if ((uint8_t)((uint64_t)Sound >> 8) >= 5) {
+            local_0x40 = "[FLog::Sound] Fmod Closed.";
+            local_0x20 = 1;
             FLog::Log("[FLog::Sound] Fmod Closed.");
           } else {
-            v_rax_8 = (uint64_t)Sound >> 8;
+            v_rax_9 = (uint64_t)Sound >> 8;
           }
         }
         if (DebugEnableCloseFmodLogs) {
           if ((uint8_t)Output >= 6) {
             if ((uint8_t)((uint64_t)Output >> 8) >= 5) {
+              local_0x40 = "[FLog::Output] Fmod Closed.";
+              uint64_t local_0x70;
+              local_0x70 = local_0x40 - 0x1b34c54;
+              local_0x20 = 1;
               FLog::Log("[FLog::Output] Fmod Closed.");
             } else {
-              v_rax_9 = (uint64_t)Output >> 8;
+              v_rax_10 = (uint64_t)Output >> 8;
             }
           } else {
-            v_rax_9 = Output;
+            v_rax_10 = Output;
           }
         } else {
-          v_rax_9 = v_rax_8;
+          v_rax_10 = v_rax_9;
         }
       }
-      return v_rax_9;
+      return v_rax_10;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x44acb20..0x44ad0f4)] ===
@@ -531,17 +566,17 @@ Operação  : 0x44b1156: movzx reg, byte [flag] ; fn=0x44b1150..0x44b11b8
     0x44ad0f3 | c3                       | ret
   
   === [Decompilacao C++ do XREF Runtime #2: 0x4bd2bf0..0x4bd2dfb (insn @0x4bd2cc9: cmp byte [flag], imm8)] ===
-    struct RBX::FixSet {
-      /* +0x1f0 */ void*   field_0x1f0;
+    struct RBX::EngineSubsystem {
+      /* +0x1f0 */ uint64_t field_0x1f0;
       /* +0x558 */ int32_t field_0x558;
     };
     
     // Flag defaults: FixSetSoundEnabledFalse = true, DebugFriendsCallingStudioRoles = false, VoiceVolumeControlsExcludePartyVoice = true, VoiceVolumeControlsApplyGameSettingsVoiceVolume = true
-    void RBX::FixSet::func_0x4bd2bf0(RBX::FixSet* this) {
-      if (global_0x8e03d88 > rbp->field_0x58->field_0x0->field_0x0[40]) {
+    void RBX::EngineSubsystem::func_0x4bd2bf0(RBX::EngineSubsystem* this) {
+      if (global_0x8e03d88 > __readgsqword(0x58)->field_0x0->field_0x0[40]) {
         call_0x12e0(&sym_0x8e03d88);
         if (global_0x8e03d88 == -1) {
-          global_0x8e03d90 = call_0x29a3390("FriendsCalling", "openFmod", 2072141, 0);
+          global_0x8e03d90 = call_0x29a3390("FriendsCalling", "openFmod", 2072141, 0, 255);
           call_0x14f0(&sym_0x8e03d88);
         }
       }
@@ -551,6 +586,8 @@ Operação  : 0x44b1156: movzx reg, byte [flag] ; fn=0x44b1150..0x44b11b8
       if ((uint8_t)vret_6 == 0) {
         call_0x27c4080();
         auto local_0x40 = 0;
+        auto local_0x50 = 0;
+        auto local_0x58 = 15;
         call_0x6f8fb0(&local_0x40);
       }
       auto ret_0xe30660_9 = call_0xe30660(&this->field_0x1f0);
@@ -739,15 +776,15 @@ Operação  : 0x44b1156: movzx reg, byte [flag] ; fn=0x44b1150..0x44b11b8
   * FFlagVoiceVolumeControlsExcludePartyVoice = true (default)
   * FFlagVoiceVolumeControlsApplyGameSettingsVoiceVolume = true (default)
   * DFLogSoundTrace = 0 (default)
-  * FLogSound = 6 (default)
-  * DFFlagDebugEnableCloseFmodLogs = true (default)
+  * FLogSound = 0 (default)
+  * DFFlagDebugEnableCloseFmodLogs = false (default)
   * FLogOutput = 6 (default)
   * DFFlagValidateDescendantOfDataModel = true (default)
   * FFlagSoundShimSupportsDetachedPlaybacks2 = true (default) [vizinha em .data]
-  * FFlagListenerTypePropertyEnabled = false (default) [vizinha em .data]
+  * FFlagListenerTypePropertyEnabled = true (default) [vizinha em .data]
   * FFlagDetachedPlaybackDataEnabled = true (default) [vizinha em .data]
   * FFlagSoundServicePeakLevelEnabled = true (default) [vizinha em .data]
   * FFlagFixSetListenerIssue = false (default) [vizinha em .data]
-  * FFlagAudioAssetInsertDefaultsToNewApi = false (default) [vizinha em .data]
+  * FFlagAudioAssetInsertDefaultsToNewApi = true (default) [vizinha em .data]
   * DFFlagEnableAssetIdValidation = false (default) [vizinha em .data]
-  * FFlagAudioAssetInsertUsesNewApi = false (default) [vizinha em .data]
+  * FFlagAudioAssetInsertUsesNewApi = true (default) [vizinha em .data]

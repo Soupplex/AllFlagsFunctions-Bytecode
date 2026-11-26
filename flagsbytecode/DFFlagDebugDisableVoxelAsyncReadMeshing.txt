@@ -2,50 +2,174 @@ FFlag     : DFFlagDebugDisableVoxelAsyncReadMeshing
 RVA .data : 0x811b3e8
 XREFs     : 1 total (1 em runtime)
 Insn RVA  : 0x380e032
-Operação  : 0x380e032: cmp byte [flag], imm8 ; fn=0x380e000..0x380e415
+Operação  : 0x380e032: cmp byte [flag], imm8 ; fn=0x380e032..0x380e415
 
 [Disassembly .text]
-  === [Resumo do Efeito da FFlag no Engine (RBX::DebugDisable)] ===
-    Classe  : RBX::DebugDisable (Inferido)
+  === [Resumo do Efeito da FFlag no Engine (RBX::EngineSubsystem)] ===
+    Classe  : RBX::EngineSubsystem (Inferido)
     Padrão  : DFFlagDebugDisableVoxelAsyncReadMeshing = false (default) [bool, mode=2]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
+    Fórmula : !DebugDisableVoxelAsyncReadMeshing
   
-  === [Decompilacao C++ da Funcao 0x380e000..0x380e415] ===
-    // Flag defaults: DebugDisableVoxelAsyncReadMeshing = false
-    void RBX::DebugDisable::func_0x380e000(RBX::DebugDisable* this, int64_t param_2) {
-      ((uint8_t)rax & 0x48)->field_0x0 = param_2;
+  === [Decompilacao C++ da Funcao 0x380e032..0x380e415] ===
+    // Flag defaults: DebugDisableVoxelAsyncReadMeshing = false, MicroProfilerMemoryScope = false
+    void func_0x380e032() {
+      if (!DebugDisableVoxelAsyncReadMeshing) {
+        call_0x38056a0(r15, r12, r13, rbx);
+      } else {
+        uint64_t frame_0x40;
+        call_0x3804c60(&frame_0x40, r15);
+        uint64_t frame_0x288;
+        if (frame_0x288 != 0) {
+          uint64_t frame_0x2a0;
+          call_0x374efe0(&frame_0x2a0, r15);
+          uint64_t frame_0x3a0;
+          call_0x374f270(&frame_0x3a0, &frame_0x40);
+          call_0x3812630(r13->field_0x0, &frame_0x2a0);
+          uint64_t frame_0x460;
+          call_0x5de4970(&frame_0x460, 128, 3, &sym_0x3747110);
+          uint64_t frame_0x420;
+          if (frame_0x420 != 0) {
+            call_0x6daf40(frame_0x420);
+          }
+          uint64_t frame_0x3e0;
+          uint64_t frame_0x3d0;
+          if (frame_0x3d0 != &frame_0x3e0) {
+            call_0x4955ac0(frame_0x3d0);
+          }
+          call_0x371d9e0(&frame_0x2a0);
+        } else {
+          auto frame_0x0 = r15->field_0x0;
+          auto frame_0x8 = r15->field_0x8;
+          auto frame_0xc = r15->field_0xc;
+          call_0x38126e0(r12->field_0x0, &frame_0x0);
+        }
+        if (frame_0x288 != 0) {
+          call_0x3813920(&frame_0x40);
+        }
+        rbx->field_0x0--;
+      }
+      uint64_t local_0x50;
+      uint64_t local_0x68;
+      void* local_0x48;
+      if (local_0x68 != -1) {
+        uint64_t local_0x20;
+        uint64_t local_0x28;
+        uint64_t frame_m0x58;
+        if (frame_m0x58 != 0) {
+          int64_t frame_m0x18;
+          local_0x28 = &frame_m0x18;
+          local_0x20 = 0;
+          frame_m0x18 = 0;
+          uint64_t frame_m0x50;
+          call_0x29a42e0(33, ((frame_m0x50 == 1) + 2) << 48 | frame_m0x58 & 0xffffffffffff, 0, 0, 0, &frame_m0x18);
+        }
+        if (global_0x84a44d6 != 0 && MicroProfilerMemoryScope) {
+          auto ret_0x497fea0_13 = call_0x497fea0();
+          void* v_rcx_5 = ret_0x497fea0_13->field_0x0;
+          if (ret_0x497fea0_13->field_0x0 == 0) {
+            v_rcx_5 = ret_0x497fea0_13 + 8;
+          }
+          uint64_t local_0x78;
+          uint64_t local_0x70;
+          uint64_t frame_m0x64;
+          uint64_t frame_m0x70;
+          uint64_t frame_m0x78;
+          uint64_t frame_m0x68;
+          if (frame_m0x68 != 0 && v_rcx_5->field_0x8 >= frame_m0x78 && v_rcx_5->field_0x10 >= frame_m0x70 && v_rcx_5->field_0x0 >= frame_m0x68 && v_rcx_5->field_0x4 >= frame_m0x64) {
+            local_0x70 = local_0x70 + (v_rcx_5->field_0x8 - frame_m0x78);
+            local_0x78 = local_0x78 + (v_rcx_5->field_0x10 - frame_m0x70);
+          }
+          if (local_0x48 != 0) {
+            local_0x48->field_0x48 = v_rcx_5->field_0x8;
+            local_0x48->field_0x50 = v_rcx_5->field_0x10;
+            local_0x48->field_0x58 = v_rcx_5->field_0x0;
+            local_0x48->field_0x5c = v_rcx_5->field_0x4;
+          }
+          uint64_t frame_m0x80;
+          uint64_t frame_m0x7c;
+          if (((frame_m0x80 & 0xffffff) << 24 | frame_m0x7c & 0xffffff) == 0) {
+            if ((local_0x70 << 32 | local_0x78) != 0) {
+              L_0x380e25e:
+              int64_t frame_m0x10;
+              local_0x28 = &frame_m0x10;
+              local_0x20 = 0;
+              auto frame_m0x8 = local_0x70 << 32 | local_0x78;
+              frame_m0x10 = 0;
+              call_0x29a42e0(20, (frame_m0x80 & 0xffffff) << 24 | frame_m0x7c & 0xffffff, &frame_m0x8, 8, 0, &frame_m0x10);
+            }
+          } else {
+            goto L_0x380e25e;
+          }
+        }
+        if (local_0x68 != -1) {
+          auto ret_0x29a1bc0_15 = call_0x29a1bc0();
+          if (ret_0x29a1bc0_15->field_0x0 != 0) {
+            uint64_t tsc_0x380e2aa = rdtsc();
+            void* v_rcx_9;
+            int32_t v_r8_10;
+            void* v_r9_11;
+            if ((global_0x816d648->field_0xb8 & (uint64_t)local_0x50 >> 14) != 0) {
+              if (ret_0x29a1bc0_15->field_0x0->field_0x565 != 0) {
+                int64_t v_rax_7;
+                void* v_rbx_8 = ret_0x29a1bc0_15->field_0x0;
+                if (global_0x816d648->field_0x26d5a0 == 0) {
+                  v_rax_7 = -1;
+                } else {
+                  void* prev_0x0_2 = ret_0x29a1bc0_15->field_0x0;
+                  auto vret_16 = (*global_0x816d648->field_0x26d5a0)(ret_0x29a1bc0_15->field_0x0->field_0x30);
+                  v_rax_7 = vret_16;
+                  v_rbx_8 = prev_0x0_2;
+                }
+                call_0x29a3900(local_0x50, v_rax_7, 0, global_0x8479b18);
+                v_rcx_9 = v_rbx_8->field_0x44;
+                v_r8_10 = 4;
+                v_r9_11 = global_0x8479b18;
+                call_0x29a3900(v_rcx_9, tsc_0x380e2aa - global_0x8cda630, v_r8_10, v_r9_11);
+              }
+            } else {
+              v_rcx_9 = local_0x50;
+              v_r8_10 = 0;
+              v_r9_11 = ret_0x29a1bc0_15->field_0x0;
+              call_0x29a3900(v_rcx_9, tsc_0x380e2aa - global_0x8cda630, v_r8_10, v_r9_11);
+            }
+          }
+        }
+        if ((global_0x8629678 & (uint64_t)local_0x50 >> 14 & global_0x86295f8) != 0 && global_0x84dcf68 != 0) {
+          (*global_0x84dcf68)();
+        }
+      }
+      auto ret_0x29243d0_20 = call_0x29243d0();
+      ret_0x29243d0_20->field_0x0 = local_0x48;
+      if (local_0x48 != 0) {
+        local_0x48->field_0x0 = 0;
+      }
+      local_0x50 = 0;
       call_0x371d9e0(r15);
-      if (rsi->field_0x8 != 0) {
-        call_0x6daf40(rsi->field_0x8);
+      void* local_0x38;
+      if (local_0x38->field_0x8 != 0) {
+        call_0x6daf40(local_0x38->field_0x8);
       }
       if (r12->field_0x8 != 0) {
         call_0x6daf40(r12->field_0x8);
       }
-      if (rdi->field_0x8 != 0 && atomic_fetch_add(&rdi->field_0x8->field_0xc, r14) == 1) {
-        rdi->field_0x8->vfunc_0x8();
+      void* local_0x30;
+      if (local_0x30->field_0x8 != 0) {
+        int32_t atomic_24 = atomic_fetch_add(&local_0x30->field_0x8->field_0xc, r14);
+        if (atomic_24 == 1) {
+          local_0x30->field_0x8->vfunc_0x8();
+        }
       }
       if (r13->field_0x8 != 0) {
         call_0x6daf40(r13->field_0x8);
       }
+      void* frame_m0x38;
       if (frame_m0x38->field_0x8 != 0) {
         call_0x6daf40(frame_m0x38->field_0x8);
       }
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
-    0x380e000 | 54                       | push rsp
-    0x380e001 | 24 48                    | and al, 0x48
-    0x380e003 | 48 89 10                 | mov qword ptr [rax], rdx
-    0x380e006 | 48 8b 44 24 48           | mov rax, qword ptr [rsp + 0x48]
-    0x380e00b | 48 85 c0                 | test rax, rax
-    0x380e00e | 74 07                    | je 0x380e017
-    0x380e010 | 48 c7 00 00 00 00 00     | mov qword ptr [rax], 0x0
-    L_0x380e017:
-    0x380e017 | 48 c7 44 24 50 00 00 00.. | mov qword ptr [rsp + 0x50], 0x0
-    0x380e020 | e9 61 03 00 00           | jmp 0x380e386
-    0x380e025 | 49 8b 87 c0 00 00 00     | mov rax, qword ptr [r15 + 0xc0]
-    0x380e02c | 80 78 15 00              | cmp byte ptr [rax + 0x15], 0x0
-    0x380e030 | 74 1f                    | je 0x380e051
     0x380e032 | 80 3d af d3 90 04 00     | cmp byte ptr [rip + 0x490d3af], 0x0 ; DFFlagDebugDisableVoxelAsyncReadMeshing
     0x380e039 | 75 16                    | jne 0x380e051
     0x380e03b | 4c 8b cb                 | mov r9, rbx
@@ -277,7 +401,6 @@ Operação  : 0x380e032: cmp byte [flag], imm8 ; fn=0x380e000..0x380e415
     0x380e376 | 48 c7 00 00 00 00 00     | mov qword ptr [rax], 0x0
     L_0x380e37d:
     0x380e37d | 48 c7 44 24 50 00 00 00.. | mov qword ptr [rsp + 0x50], 0x0
-    L_0x380e386:
     0x380e386 | 49 8b cf                 | mov rcx, r15
     0x380e389 | e8 52 f6 f0 ff           | call 0x371d9e0
     0x380e38e | 90                       | nop
@@ -334,21 +457,36 @@ Operação  : 0x380e032: cmp byte [flag], imm8 ; fn=0x380e000..0x380e415
     struct SubObj_0x374f270 {
       /* +0x0 */ uint8_t field_0x0;
       /* +0x4 */ int32_t field_0x4;
+      /* +0x8 */ uint8_t field_0x8;
+      /* +0xc */ uint8_t field_0xc;
+      /* +0x10 */ uint8_t field_0x10;
       /* +0x14 */ double  field_0x14;
-      /* +0x78 */ void*   field_0x78;
-      /* +0x80 */ void*   field_0x80;
+      /* +0x78 */ uint64_t field_0x78;
+      /* +0x80 */ uint64_t field_0x80;
       /* +0x88 */ int32_t field_0x88;
+      /* +0x8c */ uint8_t field_0x8c;
+      /* +0x90 */ uint8_t field_0x90;
+      /* +0x94 */ uint8_t field_0x94;
       /* +0x98 */ double  field_0x98;
       /* +0xa0 */ int32_t field_0xa0;
+      /* +0xa4 */ uint8_t field_0xa4;
+      /* +0xa8 */ uint8_t field_0xa8;
+      /* +0xac */ uint8_t field_0xac;
       /* +0xb0 */ int32_t field_0xb0;
-      /* +0x240 */ void*   field_0x240;
+      /* +0xb4 */ uint8_t field_0xb4;
+      /* +0xb8 */ uint8_t field_0xb8;
+      /* +0xbc */ uint8_t field_0xbc;
+      /* +0x240 */ uint64_t field_0x240;
     };
     
-    auto SubObj_0x374f270::func_0x374f270(SubObj_0x374f270* this, int64_t param_2) {
+    auto SubObj_0x374f270::func_0x374f270(SubObj_0x374f270* this, void* param_2) {
       this->field_0x0 = param_2->field_0x0;
       this->field_0x4 = param_2->field_0x4;
+      this->field_0x8 = param_2->field_0x8;
+      this->field_0xc = param_2->field_0xc;
+      this->field_0x10 = param_2->field_0x10;
       this->field_0x14 = param_2->field_0x14;
-      call_0x83b180(&this->field_0x20, &param_2->field_0x20);
+      call_0x83b180(&this->field_0x20, param_2 + 0x20);
       this->field_0x78 = 0;
       this->field_0x80 = 0;
       if (param_2->field_0x80 != 0) {
@@ -357,10 +495,19 @@ Operação  : 0x380e032: cmp byte [flag], imm8 ; fn=0x380e000..0x380e415
       this->field_0x78 = param_2->field_0x78;
       this->field_0x80 = param_2->field_0x80;
       this->field_0x88 = param_2->field_0x88;
+      this->field_0x8c = param_2->field_0x8c;
+      this->field_0x90 = param_2->field_0x90;
+      this->field_0x94 = param_2->field_0x94;
       this->field_0x98 = param_2->field_0x98;
       this->field_0xa0 = param_2->field_0xa0;
+      this->field_0xa4 = param_2->field_0xa4;
+      this->field_0xa8 = param_2->field_0xa8;
+      this->field_0xac = param_2->field_0xac;
       this->field_0xb0 = param_2->field_0xb0;
-      call_0x5de50d4(&this->field_0xc0, &param_2->field_0xc0, 128, 3);
+      this->field_0xb4 = param_2->field_0xb4;
+      this->field_0xb8 = param_2->field_0xb8;
+      this->field_0xbc = param_2->field_0xbc;
+      call_0x5de50d4(&this->field_0xc0, param_2 + 0xc0, 128, 3, &sym_0x374f370, &sym_0x3747110);
       this->field_0x240 = param_2->field_0x240;
       return this;
     }
@@ -423,8 +570,8 @@ Operação  : 0x380e032: cmp byte [flag], imm8 ; fn=0x380e000..0x380e415
   (Nenhuma string literal direta neste bloco)
 
 [Co-Flags na mesma função]
-  * DFFlagMicroProfilerMemoryScope = true (default)
-  * FIntSSAOMipLevels = 4 (default) [vizinha em .data]
+  * DFFlagMicroProfilerMemoryScope = false (default)
+  * FIntSSAOMipLevels = 1 (default) [vizinha em .data]
   * FFlagRenderSSAOFrameIndexWrapFix = true (default) [vizinha em .data]
   * FIntViewportFrameMaxSize = 1024 (default) [vizinha em .data]
   * FFlagSkipVJMVoxelDataCopyWithoutVT = true (default) [vizinha em .data]

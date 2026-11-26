@@ -2,22 +2,22 @@ FFlag     : DFIntRemoteFunctionDelayedQueueLimit
 RVA .data : 0x8116d68
 XREFs     : 2 total (2 em runtime)
 Insn RVA  : 0x343d207
-Operação  : 0x343d207: mov/math reg, [flag] ; fn=0x343d150..0x343d3c9
+Operação  : 0x343d207: mov/math reg, [flag] ; fn=0x343af80..0x343d3c9
 
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::RemoteFunction)] ===
     Classe  : RBX::RemoteFunction (RTTI Resolvido)
-    Padrão  : DFIntRemoteFunctionDelayedQueueLimit = 256 (default) [int, mode=2]
+    Padrão  : DFIntRemoteFunctionDelayedQueueLimit = 50000 (default) [int, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : RemoteFunctionDelayedQueueLimit > 0 && (this->field_0x120 - this->field_0x118) >> 5 >= RemoteFunctionDelayedQueueLimit
-    Altera  : this->field_0x13c, this->field_0x140
+    Fórmula : RemoteFunctionDelayedQueueLimit > 0 && (int64_t)(this->field_0x120 - this->field_0x118) >> 5 >= RemoteFunctionDelayedQueueLimit
+    Altera  : this->field_0x13c, this->field_0x140, this->field_0x165
   
-  === [Decompilacao C++ da Funcao 0x343d150..0x343d3c9] ===
+  === [Decompilacao C++ da Funcao 0x343af80..0x343d3c9] ===
     struct RBX::RemoteFunction {
-      /* +0xb0 */ void*   field_0xb0;
-      /* +0xd0 */ void*   field_0xd0;
-      /* +0x118 */ void*   field_0x118;
-      /* +0x120 */ void*   field_0x120;
+      /* +0xb0 */ uint64_t field_0xb0;
+      /* +0xd0 */ uint64_t field_0xd0;
+      /* +0x118 */ uint64_t field_0x118;
+      /* +0x120 */ uint64_t field_0x120;
       /* +0x13c */ int32_t field_0x13c;
       /* +0x140 */ int32_t field_0x140;
       /* +0x164 */ uint8_t field_0x164;
@@ -25,19 +25,21 @@ Operação  : 0x343d207: mov/math reg, [flag] ; fn=0x343d150..0x343d3c9
       /* +0x166 */ uint8_t field_0x166;
     };
     
-    // Flag defaults: EnforceLuaAppsRemoteAllowList = false, RemoteFunctionSingleInvocationSizeLimit = 0, RemoteFunctionMaxQueueMemBytes = 0, RemoteFunctionDelayedQueueLimit = 256, MaxVariantCountRRS = 100000
+    // Flag defaults: EnforceLuaAppsRemoteAllowList = false, RemoteFunctionSingleInvocationSizeLimit = 0, RemoteFunctionMaxQueueMemBytes = 0, RemoteFunctionDelayedQueueLimit = 50000, MaxVariantCountRRS = 2147483647
     bool RBX::RemoteFunction::func_0x343d150(RBX::RemoteFunction* this, int64_t param_2, void* param_3) {
+      void* v_r8_1;
       if (param_2 == &sym_0x854f950) {
-        if (RemoteFunctionSingleInvocationSizeLimit > 0 && ((param_3->field_0x0 + param_3->field_0x0 * 4) << 4) + param_3->field_0x4 > RemoteFunctionSingleInvocationSizeLimit) {
-          call_0x3366ea0(&this->field_0x118, "single invocation memory size exceeded", "onServerInvoke", this);
+        if (RemoteFunctionSingleInvocationSizeLimit > 0 && (param_3->field_0x0 * 5 << 4) + param_3->field_0x4 > RemoteFunctionSingleInvocationSizeLimit) {
+          v_r8_1 = "onServerInvoke";
+          call_0x3366ea0(&this->field_0x118, "single invocation memory size exceeded", v_r8_1, this);
           return true;
         }
-        if ((this->field_0xb0 & 0xfffffff8) == 0) {
-          if (RemoteFunctionMaxQueueMemBytes != 0 && ((this->field_0x13c + this->field_0x13c * 4) << 4) + this->field_0x140 > RemoteFunctionMaxQueueMemBytes) {
+        if ((this->field_0xb0 & 0xfffffffffffffff8ULL) == 0) {
+          if (RemoteFunctionMaxQueueMemBytes != 0 && (this->field_0x13c * 5 << 4) + this->field_0x140 > RemoteFunctionMaxQueueMemBytes) {
             call_0x3366ea0(&this->field_0x118, "queue memory usage exceeded", "onServerInvoke", this);
             return true;
           }
-          if (RemoteFunctionDelayedQueueLimit > 0 && (this->field_0x120 - this->field_0x118) >> 5 >= RemoteFunctionDelayedQueueLimit) {
+          if (RemoteFunctionDelayedQueueLimit > 0 && (int64_t)(this->field_0x120 - this->field_0x118) >> 5 >= RemoteFunctionDelayedQueueLimit) {
             call_0x3366ea0(&this->field_0x118, "queue exhausted", "onServerInvoke", this);
             return true;
           }
@@ -45,6 +47,10 @@ Operação  : 0x343d207: mov/math reg, [flag] ; fn=0x343d150..0x343d3c9
           this->field_0x140 = this->field_0x140 + param_3->field_0x4;
         }
         if (this->field_0x164 != 0 && param_3->field_0x0 > MaxVariantCountRRS) {
+          if (this->field_0x165 == 0) {
+            this->field_0x165 = 1;
+            call_0x3439b80(this, param_3->field_0x0);
+          }
           return true;
         }
         if (this->field_0x166 != 0 && EnforceLuaAppsRemoteAllowList) {
@@ -52,12 +58,17 @@ Operação  : 0x343d207: mov/math reg, [flag] ; fn=0x343d150..0x343d3c9
           return true;
         }
       } else if (param_2 == &sym_0x854f7f0) {
-        if ((this->field_0xd0 & 0xfffffff8) == 0) {
-          if (RemoteFunctionMaxQueueMemBytes != 0 && ((this->field_0x13c + this->field_0x13c * 4) << 4) + this->field_0x140 > RemoteFunctionMaxQueueMemBytes) {
+        if (RemoteFunctionSingleInvocationSizeLimit > 0 && (param_3->field_0x0 * 5 << 4) + param_3->field_0x4 > RemoteFunctionSingleInvocationSizeLimit) {
+          v_r8_1 = "onClientInvoke";
+          call_0x3366ea0(&this->field_0x118, "single invocation memory size exceeded", v_r8_1, this);
+          return true;
+        }
+        if ((this->field_0xd0 & 0xfffffffffffffff8ULL) == 0) {
+          if (RemoteFunctionMaxQueueMemBytes != 0 && (this->field_0x13c * 5 << 4) + this->field_0x140 > RemoteFunctionMaxQueueMemBytes) {
             call_0x3366ea0(&this->field_0x118, "queue memory usage exceeded", "onClientInvoke", this);
             return true;
           }
-          if (RemoteFunctionDelayedQueueLimit > 0 && (this->field_0x120 - this->field_0x118) >> 5 >= RemoteFunctionDelayedQueueLimit) {
+          if (RemoteFunctionDelayedQueueLimit > 0 && (int64_t)(this->field_0x120 - this->field_0x118) >> 5 >= RemoteFunctionDelayedQueueLimit) {
             call_0x3366ea0(&this->field_0x118, "queue exhausted", "onClientInvoke", this);
             return true;
           }
@@ -221,12 +232,489 @@ Operação  : 0x343d207: mov/math reg, [flag] ; fn=0x343d150..0x343d3c9
     0x343d3c4 | 48 83 c4 28              | add rsp, 0x28
     0x343d3c8 | c3                       | ret
   
+  === [Sub-Rotina Chamada: 0x343d5a0..0x343d77f via call @0x343c4b3 (Direct Engine Sub-Call)] ===
+    void SubObj_0x343d5a0::func_0x343d5a0(SubObj_0x343d5a0* this, int64_t param_2, int64_t param_3, void* param_4) {
+      uint64_t local_0x50;
+      local_0x50 = call_0x1c34f90(this);
+      void* local_0x58;
+      local_0x58 = 0;
+      auto ret_0x783850_2 = call_0x783850();
+      uint64_t local_0x60;
+      if (local_0x58 != ret_0x783850_2) {
+        if (local_0x58 != 0) {
+          (*local_0x58->field_0x10)(&local_0x60);
+        }
+        local_0x58 = ret_0x783850_2;
+      }
+      local_0x60 = param_3;
+      auto ret_0x1c3af30_4 = call_0x1c3af30(this);
+      auto local_0xa8 = 0;
+      call_0xa7bc50(&local_0xa8, param_4);
+      void* local_0x30;
+      local_0x30 = 0.0;
+      uint64_t local_0x40;
+      local_0x40 = 0;
+      auto local_0x34 = 0.0;
+      auto local_0x38 = 0.0;
+      auto local_0x3c = 0.0;
+      auto local_0x48 = param_4;
+      uint64_t local_0xf0;
+      call_0xcae580(&local_0x30, &local_0x50, &local_0xf0);
+      if (local_0x30 != 0) {
+        if (local_0x30 != local_0x38) {
+          uint8_t* i_ebx = &local_0x30->field_0x8;
+          int64_t local_0xa0 = ret_0x1c3af30_4;
+          do { // L_0x343d6a0
+            if (i_ebx->field_0x0 != 0) {
+              i_ebx->vfunc_0x10(i_ebx + 8);
+            }
+            i_ebx += 0x50;
+          } while (i_ebx - 8 != local_0x38); // loop -> L_0x343d6a0
+        }
+        int64_t idx_1 = (local_0x40 - local_0x30) / 80 + ((uint64_t)((local_0x40 - local_0x30) / 80) >> 63);
+        void* v_r8_1 = local_0x30;
+        if (idx_1 * 5 << 4 >= 0x1000) {
+          if (local_0x30 - local_0x30->field_m0x8 < 8 || local_0x30 - local_0x30->field_m0x8 > 39) {
+            call_0x5e14580();
+            return; // noreturn
+          } else {
+            v_r8_1 = local_0x30->field_m0x8;
+          }
+        }
+        call_0x4955ac0(v_r8_1);
+        local_0x30 = 0.0;
+        local_0x34 = 0.0;
+        local_0x38 = 0.0;
+        local_0x3c = 0.0;
+        local_0x40 = 0;
+      }
+      call_0x5de4970(&local_0x50, 80, 2, &sym_0x77e980);
+      if (param_4->field_0x8 != 0) {
+        call_0x6daf40(param_4->field_0x8);
+      }
+    }
+  
+  === [Instrucoes x86-64 da Sub-Rotina Chamada (0x343d5a0..0x343d77f)] ===
+    0x343d5a0 | 48 89 5c 24 18           | mov qword ptr [rsp + 0x18], rbx
+    0x343d5a5 | 55                       | push rbp
+    0x343d5a6 | 56                       | push rsi
+    0x343d5a7 | 57                       | push rdi
+    0x343d5a8 | 41 54                    | push r12
+    0x343d5aa | 41 55                    | push r13
+    0x343d5ac | 41 56                    | push r14
+    0x343d5ae | 41 57                    | push r15
+    0x343d5b0 | 48 8d 6c 24 e1           | lea rbp, [rsp - 0x1f]
+    0x343d5b5 | 48 81 ec 00 01 00 00     | sub rsp, 0x100
+    0x343d5bc | 48 8b 05 1d b1 c9 04     | mov rax, qword ptr [rip + 0x4c9b11d]
+    0x343d5c3 | 48 33 c4                 | xor rax, rsp
+    0x343d5c6 | 48 89 45 0f              | mov qword ptr [rbp + 0xf], rax
+    0x343d5ca | 49 8b f1                 | mov rsi, r9
+    0x343d5cd | 41 8b d8                 | mov ebx, r8d
+    0x343d5d0 | 4c 8b f2                 | mov r14, rdx
+    0x343d5d3 | 4c 8b f9                 | mov r15, rcx
+    0x343d5d6 | 4c 89 4c 24 48           | mov qword ptr [rsp + 0x48], r9
+    0x343d5db | 4c 8b 65 7f              | mov r12, qword ptr [rbp + 0x7f]
+    0x343d5df | 48 8b 02                 | mov rax, qword ptr [rdx]
+    0x343d5e2 | 4c 8b 68 18              | mov r13, qword ptr [rax + 0x18]
+    0x343d5e6 | e8 a5 79 7f fe           | call 0x1c34f90
+    0x343d5eb | 48 89 44 24 50           | mov qword ptr [rsp + 0x50], rax
+    0x343d5f0 | 48 c7 44 24 58 00 00 00.. | mov qword ptr [rsp + 0x58], 0x0
+    0x343d5f9 | e8 52 62 34 fd           | call 0x783850
+    0x343d5fe | 48 8b f8                 | mov rdi, rax
+    0x343d601 | 48 8b 44 24 58           | mov rax, qword ptr [rsp + 0x58]
+    0x343d606 | 48 3b c7                 | cmp rax, rdi
+    0x343d609 | 74 19                    | je 0x343d624
+    0x343d60b | 48 85 c0                 | test rax, rax
+    0x343d60e | 74 0f                    | je 0x343d61f
+    0x343d610 | 48 8d 4c 24 60           | lea rcx, [rsp + 0x60]
+    0x343d615 | 48 8b 40 10              | mov rax, qword ptr [rax + 0x10]
+    0x343d619 | ff 15 21 c7 ff 02        | call qword ptr [rip + 0x2ffc721] ; __guard_dispatch_icall_fptr (0x6439d40)
+    L_0x343d61f:
+    0x343d61f | 48 89 7c 24 58           | mov qword ptr [rsp + 0x58], rdi
+    L_0x343d624:
+    0x343d624 | 89 5c 24 60              | mov dword ptr [rsp + 0x60], ebx
+    0x343d628 | e8 03 d9 7f fe           | call 0x1c3af30
+    0x343d62d | 48 89 45 bf              | mov qword ptr [rbp - 0x41], rax
+    0x343d631 | 33 db                    | xor ebx, ebx
+    0x343d633 | 48 89 5d c7              | mov qword ptr [rbp - 0x39], rbx
+    0x343d637 | 48 8b d6                 | mov rdx, rsi
+    0x343d63a | 48 8d 4d c7              | lea rcx, [rbp - 0x39]
+    0x343d63e | e8 0d e6 63 fd           | call 0xa7bc50
+    0x343d643 | 90                       | nop
+    0x343d644 | 0f 57 c0                 | xorps xmm0, xmm0
+    0x343d647 | f3 0f 7f 44 24 30        | movdqu xmmword ptr [rsp + 0x30], xmm0
+    0x343d64d | 48 89 5c 24 40           | mov qword ptr [rsp + 0x40], rbx
+    0x343d652 | 4c 8d 45 0f              | lea r8, [rbp + 0xf]
+    0x343d656 | 48 8d 54 24 50           | lea rdx, [rsp + 0x50]
+    0x343d65b | 48 8d 4c 24 30           | lea rcx, [rsp + 0x30]
+    0x343d660 | e8 1b 0f 87 fd           | call 0xcae580
+    0x343d665 | 90                       | nop
+    0x343d666 | 4d 8b cc                 | mov r9, r12
+    0x343d669 | 4c 8d 44 24 30           | lea r8, [rsp + 0x30]
+    0x343d66e | 49 8b d7                 | mov rdx, r15
+    0x343d671 | 49 8b ce                 | mov rcx, r14
+    0x343d674 | 49 8b c5                 | mov rax, r13
+    0x343d677 | ff 15 c3 c6 ff 02        | call qword ptr [rip + 0x2ffc6c3] ; __guard_dispatch_icall_fptr (0x6439d40)
+    0x343d67d | 90                       | nop
+    0x343d67e | 4c 8b 44 24 30           | mov r8, qword ptr [rsp + 0x30]
+    0x343d683 | 4d 85 c0                 | test r8, r8
+    0x343d686 | 0f 84 9d 00 00 00        | je 0x343d729
+    0x343d68c | 48 8b 7c 24 38           | mov rdi, qword ptr [rsp + 0x38]
+    0x343d691 | 4c 3b c7                 | cmp r8, rdi
+    0x343d694 | 74 35                    | je 0x343d6cb
+    0x343d696 | 49 8d 58 08              | lea rbx, [r8 + 0x8]
+    0x343d69a | 66 0f 1f 44 00 00        | nop
+    L_0x343d6a0:
+    0x343d6a0 | 48 8b 03                 | mov rax, qword ptr [rbx]
+    0x343d6a3 | 48 85 c0                 | test rax, rax
+    0x343d6a6 | 74 0f                    | je 0x343d6b7
+    0x343d6a8 | 48 8d 4b 08              | lea rcx, [rbx + 0x8]
+    0x343d6ac | 48 8b 40 10              | mov rax, qword ptr [rax + 0x10]
+    0x343d6b0 | ff 15 8a c6 ff 02        | call qword ptr [rip + 0x2ffc68a] ; __guard_dispatch_icall_fptr (0x6439d40)
+    0x343d6b6 | 90                       | nop
+    L_0x343d6b7:
+    0x343d6b7 | 48 83 c3 50              | add rbx, 0x50
+    0x343d6bb | 48 8d 43 f8              | lea rax, [rbx - 0x8]
+    0x343d6bf | 48 3b c7                 | cmp rax, rdi
+    0x343d6c2 | 75 dc                    | jne 0x343d6a0
+    0x343d6c4 | 4c 8b 44 24 30           | mov r8, qword ptr [rsp + 0x30]
+    0x343d6c9 | 33 db                    | xor ebx, ebx
+    L_0x343d6cb:
+    0x343d6cb | 48 8b 4c 24 40           | mov rcx, qword ptr [rsp + 0x40]
+    0x343d6d0 | 49 2b c8                 | sub rcx, r8
+    0x343d6d3 | 48 b8 67 66 66 66 66 66.. | mov rax, 0x6666666666666667
+    0x343d6dd | 48 f7 e9                 | imul rcx
+    0x343d6e0 | 48 c1 fa 05              | sar rdx, 0x5
+    0x343d6e4 | 48 8b c2                 | mov rax, rdx
+    0x343d6e7 | 48 c1 e8 3f              | shr rax, 0x3f
+    0x343d6eb | 48 03 d0                 | add rdx, rax
+    0x343d6ee | 48 8d 04 92              | lea rax, [rdx + rdx*4]
+    0x343d6f2 | 48 c1 e0 04              | shl rax, 0x4
+    0x343d6f6 | 49 8b c8                 | mov rcx, r8
+    0x343d6f9 | 48 3d 00 10 00 00        | cmp rax, 0x1000
+    0x343d6ff | 72 11                    | jb 0x343d712
+    0x343d701 | 4d 8b 40 f8              | mov r8, qword ptr [r8 - 0x8]
+    0x343d705 | 49 2b c8                 | sub rcx, r8
+    0x343d708 | 48 8d 41 f8              | lea rax, [rcx - 0x8]
+    0x343d70c | 48 83 f8 1f              | cmp rax, 0x1f
+    0x343d710 | 77 67                    | ja 0x343d779
+    L_0x343d712:
+    0x343d712 | 49 8b c8                 | mov rcx, r8
+    0x343d715 | e8 a6 83 51 01           | call 0x4955ac0
+    0x343d71a | 90                       | nop
+    0x343d71b | 0f 57 c0                 | xorps xmm0, xmm0
+    0x343d71e | f3 0f 7f 44 24 30        | movdqu xmmword ptr [rsp + 0x30], xmm0
+    0x343d724 | 48 89 5c 24 40           | mov qword ptr [rsp + 0x40], rbx
+    L_0x343d729:
+    0x343d729 | 4c 8d 0d 50 12 34 fd     | lea r9, [rip - 0x2cbedb0]
+    0x343d730 | ba 50 00 00 00           | mov edx, 0x50
+    0x343d735 | 44 8d 42 b2              | lea r8d, [rdx - 0x4e]
+    0x343d739 | 48 8d 4c 24 50           | lea rcx, [rsp + 0x50]
+    0x343d73e | e8 2d 72 9a 02           | call 0x5de4970
+    0x343d743 | 90                       | nop
+    0x343d744 | 48 8b 4e 08              | mov rcx, qword ptr [rsi + 0x8]
+    0x343d748 | 48 85 c9                 | test rcx, rcx
+    0x343d74b | 74 05                    | je 0x343d752
+    0x343d74d | e8 ee d7 29 fd           | call 0x6daf40
+    L_0x343d752:
+    0x343d752 | 48 8b 4d 0f              | mov rcx, qword ptr [rbp + 0xf]
+    0x343d756 | 48 33 cc                 | xor rcx, rsp
+    0x343d759 | e8 42 71 9a 02           | call 0x5de48a0
+    0x343d75e | 48 8b 9c 24 50 01 00 00  | mov rbx, qword ptr [rsp + 0x150]
+    0x343d766 | 48 81 c4 00 01 00 00     | add rsp, 0x100
+    0x343d76d | 41 5f                    | pop r15
+    0x343d76f | 41 5e                    | pop r14
+    0x343d771 | 41 5d                    | pop r13
+    0x343d773 | 41 5c                    | pop r12
+    0x343d775 | 5f                       | pop rdi
+    0x343d776 | 5e                       | pop rsi
+    0x343d777 | 5d                       | pop rbp
+    0x343d778 | c3                       | ret
+    L_0x343d779:
+    0x343d779 | e8 02 6e 9d 02           | call 0x5e14580
+    0x343d77e | 90                       | nop
+  
+  === [Sub-Rotina Chamada: 0x343d3d0..0x343d59f via call @0x343c52c (Direct Engine Sub-Call)] ===
+    void SubObj_0x343d3d0::func_0x343d3d0(SubObj_0x343d3d0* this, void* param_2, int64_t param_3, int64_t param_4) {
+      void* prev_0x18_1 = param_2->field_0x0->field_0x18;
+      uint64_t local_0x50;
+      local_0x50 = call_0x1c34f90(this);
+      void* local_0x58;
+      local_0x58 = 0;
+      auto ret_0x783850_2 = call_0x783850();
+      uint64_t local_0x60;
+      if (local_0x58 != ret_0x783850_2) {
+        if (local_0x58 != 0) {
+          (*local_0x58->field_0x10)(&local_0x60);
+        }
+        local_0x58 = ret_0x783850_2;
+      }
+      local_0x60 = param_3;
+      auto ret_0x1c35500_4 = call_0x1c35500(this);
+      auto local_0xa8 = 0;
+      call_0x784200(&local_0xa8, param_4);
+      void* local_0x30;
+      local_0x30 = 0.0;
+      uint64_t local_0x40;
+      local_0x40 = 0;
+      auto local_0x34 = 0.0;
+      auto local_0x38 = 0.0;
+      auto local_0x3c = 0.0;
+      auto local_0x48 = param_4;
+      uint64_t local_0xf0;
+      call_0xcae580(&local_0x30, &local_0x50, &local_0xf0);
+      uint64_t local_0x160;
+      (*prev_0x18_1)(param_2, &sym_0x854f8a0, &local_0x30, local_0x160);
+      if (local_0x30 != 0) {
+        if (local_0x30 != local_0x38) {
+          uint8_t* i_ebx = &local_0x30->field_0x8;
+          int64_t local_0xa0 = ret_0x1c35500_4;
+          do { // L_0x343d4c8
+            if (i_ebx->field_0x0 != 0) {
+              i_ebx->vfunc_0x10(i_ebx + 8);
+            }
+            i_ebx += 0x50;
+          } while (i_ebx - 8 != local_0x38); // loop -> L_0x343d4c8
+        }
+        int64_t idx_1 = (local_0x40 - local_0x30) / 80 + ((uint64_t)((local_0x40 - local_0x30) / 80) >> 63);
+        void* v_r8_1 = local_0x30;
+        if (idx_1 * 5 << 4 >= 0x1000) {
+          if (local_0x30 - local_0x30->field_m0x8 < 8 || local_0x30 - local_0x30->field_m0x8 > 39) {
+            call_0x5e14580();
+            return; // noreturn
+          } else {
+            v_r8_1 = local_0x30->field_m0x8;
+          }
+        }
+        call_0x4955ac0(v_r8_1);
+        local_0x30 = 0.0;
+        local_0x34 = 0.0;
+        local_0x38 = 0.0;
+        local_0x3c = 0.0;
+        local_0x40 = 0;
+      }
+      call_0x5de4970(&local_0x50, 80, 2, &sym_0x77e980);
+      call_0x6f8fb0(param_4);
+    }
+  
+  === [Instrucoes x86-64 da Sub-Rotina Chamada (0x343d3d0..0x343d59f)] ===
+    0x343d3d0 | 48 89 5c 24 08           | mov qword ptr [rsp + 0x8], rbx
+    0x343d3d5 | 55                       | push rbp
+    0x343d3d6 | 56                       | push rsi
+    0x343d3d7 | 57                       | push rdi
+    0x343d3d8 | 41 54                    | push r12
+    0x343d3da | 41 55                    | push r13
+    0x343d3dc | 41 56                    | push r14
+    0x343d3de | 41 57                    | push r15
+    0x343d3e0 | 48 8d 6c 24 e1           | lea rbp, [rsp - 0x1f]
+    0x343d3e5 | 48 81 ec 00 01 00 00     | sub rsp, 0x100
+    0x343d3ec | 48 8b 05 ed b2 c9 04     | mov rax, qword ptr [rip + 0x4c9b2ed]
+    0x343d3f3 | 48 33 c4                 | xor rax, rsp
+    0x343d3f6 | 48 89 45 0f              | mov qword ptr [rbp + 0xf], rax
+    0x343d3fa | 49 8b f1                 | mov rsi, r9
+    0x343d3fd | 41 8b d8                 | mov ebx, r8d
+    0x343d400 | 4c 8b f2                 | mov r14, rdx
+    0x343d403 | 4c 89 4c 24 48           | mov qword ptr [rsp + 0x48], r9
+    0x343d408 | 4c 8b 7d 7f              | mov r15, qword ptr [rbp + 0x7f]
+    0x343d40c | 48 8b 02                 | mov rax, qword ptr [rdx]
+    0x343d40f | 4c 8b 60 18              | mov r12, qword ptr [rax + 0x18]
+    0x343d413 | e8 78 7b 7f fe           | call 0x1c34f90
+    0x343d418 | 48 89 44 24 50           | mov qword ptr [rsp + 0x50], rax
+    0x343d41d | 45 33 ed                 | xor r13d, r13d
+    0x343d420 | 4c 89 6c 24 58           | mov qword ptr [rsp + 0x58], r13
+    0x343d425 | e8 26 64 34 fd           | call 0x783850
+    0x343d42a | 48 8b f8                 | mov rdi, rax
+    0x343d42d | 48 8b 44 24 58           | mov rax, qword ptr [rsp + 0x58]
+    0x343d432 | 48 3b c7                 | cmp rax, rdi
+    0x343d435 | 74 19                    | je 0x343d450
+    0x343d437 | 48 85 c0                 | test rax, rax
+    0x343d43a | 74 0f                    | je 0x343d44b
+    0x343d43c | 48 8d 4c 24 60           | lea rcx, [rsp + 0x60]
+    0x343d441 | 48 8b 40 10              | mov rax, qword ptr [rax + 0x10]
+    0x343d445 | ff 15 f5 c8 ff 02        | call qword ptr [rip + 0x2ffc8f5] ; __guard_dispatch_icall_fptr (0x6439d40)
+    L_0x343d44b:
+    0x343d44b | 48 89 7c 24 58           | mov qword ptr [rsp + 0x58], rdi
+    L_0x343d450:
+    0x343d450 | 89 5c 24 60              | mov dword ptr [rsp + 0x60], ebx
+    0x343d454 | e8 a7 80 7f fe           | call 0x1c35500
+    0x343d459 | 48 89 45 bf              | mov qword ptr [rbp - 0x41], rax
+    0x343d45d | 4c 89 6d c7              | mov qword ptr [rbp - 0x39], r13
+    0x343d461 | 48 8b d6                 | mov rdx, rsi
+    0x343d464 | 48 8d 4d c7              | lea rcx, [rbp - 0x39]
+    0x343d468 | e8 93 6d 34 fd           | call 0x784200
+    0x343d46d | 90                       | nop
+    0x343d46e | 0f 57 c0                 | xorps xmm0, xmm0
+    0x343d471 | f3 0f 7f 44 24 30        | movdqu xmmword ptr [rsp + 0x30], xmm0
+    0x343d477 | 4c 89 6c 24 40           | mov qword ptr [rsp + 0x40], r13
+    0x343d47c | 4c 8d 45 0f              | lea r8, [rbp + 0xf]
+    0x343d480 | 48 8d 54 24 50           | lea rdx, [rsp + 0x50]
+    0x343d485 | 48 8d 4c 24 30           | lea rcx, [rsp + 0x30]
+    0x343d48a | e8 f1 10 87 fd           | call 0xcae580
+    0x343d48f | 90                       | nop
+    0x343d490 | 4d 8b cf                 | mov r9, r15
+    0x343d493 | 4c 8d 44 24 30           | lea r8, [rsp + 0x30]
+    0x343d498 | 48 8d 15 01 24 11 05     | lea rdx, [rip + 0x5112401]
+    0x343d49f | 49 8b ce                 | mov rcx, r14
+    0x343d4a2 | 49 8b c4                 | mov rax, r12
+    0x343d4a5 | ff 15 95 c8 ff 02        | call qword ptr [rip + 0x2ffc895] ; __guard_dispatch_icall_fptr (0x6439d40)
+    0x343d4ab | 90                       | nop
+    0x343d4ac | 4c 8b 44 24 30           | mov r8, qword ptr [rsp + 0x30]
+    0x343d4b1 | 4d 85 c0                 | test r8, r8
+    0x343d4b4 | 0f 84 95 00 00 00        | je 0x343d54f
+    0x343d4ba | 48 8b 7c 24 38           | mov rdi, qword ptr [rsp + 0x38]
+    0x343d4bf | 4c 3b c7                 | cmp r8, rdi
+    0x343d4c2 | 74 2d                    | je 0x343d4f1
+    0x343d4c4 | 49 8d 58 08              | lea rbx, [r8 + 0x8]
+    L_0x343d4c8:
+    0x343d4c8 | 48 8b 03                 | mov rax, qword ptr [rbx]
+    0x343d4cb | 48 85 c0                 | test rax, rax
+    0x343d4ce | 74 0f                    | je 0x343d4df
+    0x343d4d0 | 48 8d 4b 08              | lea rcx, [rbx + 0x8]
+    0x343d4d4 | 48 8b 40 10              | mov rax, qword ptr [rax + 0x10]
+    0x343d4d8 | ff 15 62 c8 ff 02        | call qword ptr [rip + 0x2ffc862] ; __guard_dispatch_icall_fptr (0x6439d40)
+    0x343d4de | 90                       | nop
+    L_0x343d4df:
+    0x343d4df | 48 83 c3 50              | add rbx, 0x50
+    0x343d4e3 | 48 8d 43 f8              | lea rax, [rbx - 0x8]
+    0x343d4e7 | 48 3b c7                 | cmp rax, rdi
+    0x343d4ea | 75 dc                    | jne 0x343d4c8
+    0x343d4ec | 4c 8b 44 24 30           | mov r8, qword ptr [rsp + 0x30]
+    L_0x343d4f1:
+    0x343d4f1 | 48 8b 4c 24 40           | mov rcx, qword ptr [rsp + 0x40]
+    0x343d4f6 | 49 2b c8                 | sub rcx, r8
+    0x343d4f9 | 48 b8 67 66 66 66 66 66.. | mov rax, 0x6666666666666667
+    0x343d503 | 48 f7 e9                 | imul rcx
+    0x343d506 | 48 c1 fa 05              | sar rdx, 0x5
+    0x343d50a | 48 8b c2                 | mov rax, rdx
+    0x343d50d | 48 c1 e8 3f              | shr rax, 0x3f
+    0x343d511 | 48 03 d0                 | add rdx, rax
+    0x343d514 | 48 8d 04 92              | lea rax, [rdx + rdx*4]
+    0x343d518 | 48 c1 e0 04              | shl rax, 0x4
+    0x343d51c | 49 8b c8                 | mov rcx, r8
+    0x343d51f | 48 3d 00 10 00 00        | cmp rax, 0x1000
+    0x343d525 | 72 11                    | jb 0x343d538
+    0x343d527 | 4d 8b 40 f8              | mov r8, qword ptr [r8 - 0x8]
+    0x343d52b | 49 2b c8                 | sub rcx, r8
+    0x343d52e | 48 8d 41 f8              | lea rax, [rcx - 0x8]
+    0x343d532 | 48 83 f8 1f              | cmp rax, 0x1f
+    0x343d536 | 77 61                    | ja 0x343d599
+    L_0x343d538:
+    0x343d538 | 49 8b c8                 | mov rcx, r8
+    0x343d53b | e8 80 85 51 01           | call 0x4955ac0
+    0x343d540 | 90                       | nop
+    0x343d541 | 0f 57 c0                 | xorps xmm0, xmm0
+    0x343d544 | f3 0f 7f 44 24 30        | movdqu xmmword ptr [rsp + 0x30], xmm0
+    0x343d54a | 4c 89 6c 24 40           | mov qword ptr [rsp + 0x40], r13
+    L_0x343d54f:
+    0x343d54f | 4c 8d 0d 2a 14 34 fd     | lea r9, [rip - 0x2cbebd6]
+    0x343d556 | ba 50 00 00 00           | mov edx, 0x50
+    0x343d55b | 44 8d 42 b2              | lea r8d, [rdx - 0x4e]
+    0x343d55f | 48 8d 4c 24 50           | lea rcx, [rsp + 0x50]
+    0x343d564 | e8 07 74 9a 02           | call 0x5de4970
+    0x343d569 | 90                       | nop
+    0x343d56a | 48 8b ce                 | mov rcx, rsi
+    0x343d56d | e8 3e ba 2b fd           | call 0x6f8fb0
+    0x343d572 | 48 8b 4d 0f              | mov rcx, qword ptr [rbp + 0xf]
+    0x343d576 | 48 33 cc                 | xor rcx, rsp
+    0x343d579 | e8 22 73 9a 02           | call 0x5de48a0
+    0x343d57e | 48 8b 9c 24 40 01 00 00  | mov rbx, qword ptr [rsp + 0x140]
+    0x343d586 | 48 81 c4 00 01 00 00     | add rsp, 0x100
+    0x343d58d | 41 5f                    | pop r15
+    0x343d58f | 41 5e                    | pop r14
+    0x343d591 | 41 5d                    | pop r13
+    0x343d593 | 41 5c                    | pop r12
+    0x343d595 | 5f                       | pop rdi
+    0x343d596 | 5e                       | pop rsi
+    0x343d597 | 5d                       | pop rbp
+    0x343d598 | c3                       | ret
+    L_0x343d599:
+    0x343d599 | e8 e2 6f 9d 02           | call 0x5e14580
+    0x343d59e | 90                       | nop
+  
+  === [Sub-Rotina Chamada: 0x3439af0..0x3439b77 via call @0x343c5cf (Direct Engine Sub-Call)] ===
+    struct SubObj_0x3439af0 {
+      /* +0x60 */ void*   field_0x60;
+    };
+    
+    auto SubObj_0x3439af0::func_0x3439af0(SubObj_0x3439af0* this) {
+      if (this != 0) {
+        auto* f_60 = this->field_0x60;
+        void* v_rdi_2 = f_60;
+        if (f_60 != 0) {
+          if (f_60->field_0x60 != 0) {
+            v_rdi_2 = call_0x7571b0(f_60->field_0x60);
+          }
+        } else {
+          v_rdi_2 = this;
+        }
+        if (v_rdi_2 != 0) {
+          auto ret_0x27c5150_2 = call_0x27c5150();
+          void* sel_rcx_1 = v_rdi_2->field_0x18->field_0x1c0 - ret_0x27c5150_2->field_0x1c0 <= ret_0x27c5150_2->field_0x1c2 ? v_rdi_2 : 0;
+          if (sel_rcx_1 != 0) {
+            auto ret_0xcbc790_3 = call_0xcbc790(sel_rcx_1);
+            if (ret_0xcbc790_3->field_0x0 != 0) {
+              return ret_0xcbc790_3->field_0x0 + 0x528;
+            }
+          }
+        }
+      }
+      return 0;
+    }
+  
+  === [Instrucoes x86-64 da Sub-Rotina Chamada (0x3439af0..0x3439b77)] ===
+    0x3439af0 | 40 57                    | push rdi
+    0x3439af2 | 48 83 ec 20              | sub rsp, 0x20
+    0x3439af6 | 48 85 c9                 | test rcx, rcx
+    0x3439af9 | 74 74                    | je 0x3439b6f
+    0x3439afb | 48 8b 79 60              | mov rdi, qword ptr [rcx + 0x60]
+    0x3439aff | 48 85 ff                 | test rdi, rdi
+    0x3439b02 | 74 13                    | je 0x3439b17
+    0x3439b04 | 48 8b 4f 60              | mov rcx, qword ptr [rdi + 0x60]
+    0x3439b08 | 48 85 c9                 | test rcx, rcx
+    0x3439b0b | 74 0d                    | je 0x3439b1a
+    0x3439b0d | e8 9e d6 31 fd           | call 0x7571b0
+    0x3439b12 | 48 8b f8                 | mov rdi, rax
+    0x3439b15 | eb 03                    | jmp 0x3439b1a
+    L_0x3439b17:
+    0x3439b17 | 48 8b f9                 | mov rdi, rcx
+    L_0x3439b1a:
+    0x3439b1a | 48 85 ff                 | test rdi, rdi
+    0x3439b1d | 74 50                    | je 0x3439b6f
+    0x3439b1f | 48 89 5c 24 30           | mov qword ptr [rsp + 0x30], rbx
+    0x3439b24 | 48 8b 5f 18              | mov rbx, qword ptr [rdi + 0x18]
+    0x3439b28 | e8 23 b6 38 ff           | call 0x27c5150
+    0x3439b2d | 0f b7 93 c0 01 00 00     | movzx edx, word ptr [rbx + 0x1c0]
+    0x3439b34 | 48 8b 5c 24 30           | mov rbx, qword ptr [rsp + 0x30]
+    0x3439b39 | 0f b7 88 c0 01 00 00     | movzx ecx, word ptr [rax + 0x1c0]
+    0x3439b40 | 0f b7 80 c2 01 00 00     | movzx eax, word ptr [rax + 0x1c2]
+    0x3439b47 | 2b d1                    | sub edx, ecx
+    0x3439b49 | 33 c9                    | xor ecx, ecx
+    0x3439b4b | 3b d0                    | cmp edx, eax
+    0x3439b4d | 48 0f 46 cf              | cmovbe rcx, rdi
+    0x3439b51 | 48 85 c9                 | test rcx, rcx
+    0x3439b54 | 74 19                    | je 0x3439b6f
+    0x3439b56 | e8 35 2c 88 fd           | call 0xcbc790
+    0x3439b5b | 48 8b 00                 | mov rax, qword ptr [rax]
+    0x3439b5e | 48 85 c0                 | test rax, rax
+    0x3439b61 | 74 0c                    | je 0x3439b6f
+    0x3439b63 | 48 05 28 05 00 00        | add rax, 0x528
+    0x3439b69 | 48 83 c4 20              | add rsp, 0x20
+    0x3439b6d | 5f                       | pop rdi
+    0x3439b6e | c3                       | ret
+    L_0x3439b6f:
+    0x3439b6f | 33 c0                    | xor eax, eax
+    0x3439b71 | 48 83 c4 20              | add rsp, 0x20
+    0x3439b75 | 5f                       | pop rdi
+    0x3439b76 | c3                       | ret
+  
   === [Sub-Rotina Chamada: 0x3366ea0..0x336710c via call @0x343d19e (Direct Engine Sub-Call)] ===
     struct SubObj_0x3366ea0 {
       /* +0x20 */ int32_t field_0x20;
     };
     
-    void SubObj_0x3366ea0::func_0x3366ea0(SubObj_0x3366ea0* this, int64_t param_2, void* param_3, void* param_4) {
+    void SubObj_0x3366ea0::func_0x3366ea0(SubObj_0x3366ea0* this, int64_t param_2, int64_t param_3, void* param_4) {
+      uint64_t local_0x30;
+      local_0x30 = 0;
       this->field_0x20++;
       if (param_4 != 0) {
         void* v_rdi_2 = param_4->field_0x60;
@@ -242,7 +730,7 @@ Operação  : 0x343d207: mov/math reg, [flag] ; fn=0x343d150..0x343d3c9
           void* sel_rcx_1 = v_rdi_2->field_0x18->field_0x1c0 - ret_0x27c5150_2->field_0x1c0 <= ret_0x27c5150_2->field_0x1c2 ? v_rdi_2 : 0;
           if (sel_rcx_1 != 0) {
             auto ret_0xcbc790_3 = call_0xcbc790(sel_rcx_1);
-            void* sel_rax_2 = ret_0xcbc790_3->field_0x0 == 0 ? 0 : ret_0xcbc790_3->field_0x0->field_0x528;
+            void* sel_rax_2 = ret_0xcbc790_3->field_0x0 == 0 ? 0 : &ret_0xcbc790_3->field_0x0->field_0x528;
             if (sel_rax_2 != 0) {
               sel_rax_2->field_0x120++;
             }
@@ -252,40 +740,43 @@ Operação  : 0x343d207: mov/math reg, [flag] ; fn=0x343d150..0x343d3c9
       if ((this->field_0x20 & this->field_0x20 - 1) == 0) {
         void* v_rax_3;
         int32_t v_rbx_4;
+        uint64_t local_0x58;
+        uint64_t local_0x78;
         if (param_4 != 0) {
           auto vret_5 = param_4->vfunc_0xb0(param_4, &local_0x78);
           v_rax_3 = vret_5;
           v_rbx_4 = 1;
         } else {
           auto ret_0x6fd950_4 = call_0x6fd950(32);
+          uint64_t local_0x70;
+          local_0x70 = 31;
           ret_0x6fd950_4->field_0x0 = "unknown instance";
+          ret_0x6fd950_4->field_0x10 = 0;
+          local_0x58 = ret_0x6fd950_4;
           v_rax_3 = &local_0x58;
           v_rbx_4 = 2;
         }
+        uint64_t local_0x38;
+        local_0x38 = 0;
+        uint64_t local_0x50;
+        local_0x38 = v_rax_3->field_0x0;
+        local_0x50 = v_rax_3->field_0x18;
         v_rax_3->field_0x10 = 0;
         v_rax_3->field_0x18 = 15;
         v_rax_3->field_0x0 = 0;
         int32_t v_rbx_6 = v_rbx_4;
         if (((uint8_t)v_rbx_4 & 0x2) != 0) {
-          if (local_0x70 >= 16) {
-            void* v_rcx_5 = local_0x58;
-            if (local_0x70 + 1 >= 0x1000) {
-              if (local_0x58 - local_0x58->field_m0x8 < 8 || local_0x58 - local_0x58->field_m0x8 > 39) {
-                call_0x5e14580();
-              }
-            }
-            call_0x4955ac0(v_rcx_5);
-            v_rbx_6 = v_rbx_4 & 0xfffffffd;
-          } else {
-            v_rbx_6 = v_rbx_4 & 0xfffffffd;
-          }
+          local_0x30 = v_rbx_4 & 0xfffffffd;
+          std::string::_Tidy_deallocate(local_0x58);
         }
         if (((uint8_t)v_rbx_6 & 0x1) != 0) {
           std::string::_Tidy_deallocate(local_0x78);
+          uint64_t local_0x90;
+          local_0x90 = 15;
+          local_0x78 = 0;
         }
-        call_0x1bf4f90(3, "Remote function invocation %s for %s; did you forget to implement %s ? (%u events dropped)", param_2, param_3);
-        std::string::_Tidy_deallocate(v_rax_3->field_0x0);
-        return;
+        call_0x1bf4f90(3, " expected for X dimension", param_2, param_3, local_0x38.c_str(), this->field_0x20);
+        std::string::_Tidy_deallocate(local_0x38);
       }
     }
   
@@ -434,7 +925,7 @@ Operação  : 0x343d207: mov/math reg, [flag] ; fn=0x343d150..0x343d3c9
     0x336708b | 48 89 4c 24 20           | mov qword ptr [rsp + 0x20], rcx
     0x3367090 | 4d 8b cc                 | mov r9, r12
     0x3367093 | 4d 8b c7                 | mov r8, r15
-    0x3367096 | 48 8d 15 23 5f 03 04     | lea rdx, [rip + 0x4035f23] ; "Remote function invocation %s for %s; did you forget to implement %s ? (%u events dropped)"
+    0x3367096 | 48 8d 15 23 5f 03 04     | lea rdx, [rip + 0x4035f23] ; " expected for X dimension"
     0x336709d | b9 03 00 00 00           | mov ecx, 0x3
     0x33670a2 | e8 e9 de 88 fe           | call 0x1bf4f90
     0x33670a7 | 90                       | nop
@@ -477,309 +968,12 @@ Operação  : 0x343d207: mov/math reg, [flag] ; fn=0x343d150..0x343d3c9
     L_0x3367107:
     0x3367107 | e8 74 d4 aa 02           | call 0x5e14580
   
-  === [Sub-Rotina Chamada: 0x3439b80..0x3439f63 via call @0x343d288 (Direct Engine Sub-Call)] ===
-    struct SubObj_0x3439b80 {
-      /* +0x68 */ void*   field_0x68;
-    };
-    
-    // Flag defaults: MaxVariantCountRRSPerMyriad = 5000
-    void SubObj_0x3439b80::func_0x3439b80(SubObj_0x3439b80* this, int64_t param_2) {
-      int32_t v_r8_1 = global_0x81a88d4;
-      if (global_0x81a88d4 == -1) {
-        auto ret_0x4975550_1 = call_0x4975550(this);
-        global_0x81a88d4 = ret_0x4975550_1 - ((uint32_t)rdx >> 13) * 10000;
-        v_r8_1 = ret_0x4975550_1 - ((uint32_t)rdx >> 13) * 10000;
-      }
-      if (v_r8_1 < MaxVariantCountRRSPerMyriad) {
-        auto local_0x50 = local_0x50 | 0x1;
-        call_0x2964930(&local_0x50);
-        if ((global_0x88b9080 & 0xfffffffc & 0xfffffff8) != 0) {
-          uint64_t sel_rdx_1 = (global_0x88b9080 >> 1 & 0x1) == 0 ? global_0x88b9068 : sym_0x88b9068;
-          (global_0x88b9080 & 0xfffffff8)->vfunc_0x0(&local_0x2a8, sel_rdx_1);
-        }
-        auto ret_0x2963eb0_4 = call_0x2963eb0(&local_0x50, "VariantCount", 0);
-        if (ret_0x2963eb0_4 != 0) {
-          call_0x295eda0(ret_0x2963eb0_4, param_2);
-          if (local_0x2a8 != 0) {
-            local_0x2a8->vfunc_0x20(local_0x2a8, std::string_view("VariantCount", 12), param_2, 1);
-          }
-        }
-        auto* f_68 = this->field_0x68;
-        void* v_rbx_2 = f_68;
-        if (f_68->field_0x18 >= 16) {
-          v_rbx_2 = f_68->field_0x0;
-        }
-        auto ret_0x2963eb0_7 = call_0x2963eb0(&local_0x50, "RemoteName", 0);
-        if (ret_0x2963eb0_7 != 0) {
-          void* sel_rdx_2 = v_rbx_2 != 0 ? v_rbx_2 : sym_0x6647145;
-          call_0x295e9a0(ret_0x2963eb0_7, sel_rdx_2, std::min<uint64_t>(0, 61440));
-          if (local_0x2a8 != 0) {
-            local_0x2a8->vfunc_0x8(local_0x2a8, std::string_view("RemoteName", 10), v_rbx_2, 1);
-          }
-        }
-        auto ret_0x6fd950_10 = call_0x6fd950(32);
-        memcpy(ret_0x6fd950_10, "RobloxRemoteVariantCountLimit", 29);
-        ret_0x6fd950_10->field_0x1c = global_0x739cb5c;
-        auto local_0x30 = ret_0x6fd950_10;
-        call_0x2963230(&local_0x50, &local_0x30, MaxVariantCountRRSPerMyriad, 1);
-        std::string::_Tidy_deallocate(local_0x30);
-        if (local_0x2b0 != 0) {
-          call_0x6daf40(local_0x2b0);
-        }
-        std::string::_Tidy_deallocate(0);
-        std::string::_Tidy_deallocate(0);
-        call_0x732520(&local_0x50);
-        if ((local_0x50 & 0x1) == 0) {
-          call_0x4955ac0(local_0x58);
-        }
-      }
-    }
-  
-  === [Instrucoes x86-64 da Sub-Rotina Chamada (0x3439b80..0x3439f63)] ===
-    0x3439b80 | 48 89 5c 24 18           | mov qword ptr [rsp + 0x18], rbx
-    0x3439b85 | 48 89 74 24 20           | mov qword ptr [rsp + 0x20], rsi
-    0x3439b8a | 55                       | push rbp
-    0x3439b8b | 57                       | push rdi
-    0x3439b8c | 41 56                    | push r14
-    0x3439b8e | 48 8d ac 24 40 fe ff ff  | lea rbp, [rsp - 0x1c0]
-    0x3439b96 | 48 81 ec c0 02 00 00     | sub rsp, 0x2c0
-    0x3439b9d | 48 8b 05 3c eb c9 04     | mov rax, qword ptr [rip + 0x4c9eb3c]
-    0x3439ba4 | 48 33 c4                 | xor rax, rsp
-    0x3439ba7 | 48 89 85 b8 01 00 00     | mov qword ptr [rbp + 0x1b8], rax
-    0x3439bae | 8b fa                    | mov edi, edx
-    0x3439bb0 | 48 8b f1                 | mov rsi, rcx
-    0x3439bb3 | 8b 1d 7f c5 cd 04        | mov ebx, dword ptr [rip + 0x4cdc57f] ; DFIntMaxVariantCountRRSPerMyriad
-    0x3439bb9 | 44 8b 05 14 ed d6 04     | mov r8d, dword ptr [rip + 0x4d6ed14]
-    0x3439bc0 | 41 83 f8 ff              | cmp r8d, -0x1
-    0x3439bc4 | 75 23                    | jne 0x3439be9
-    0x3439bc6 | e8 85 b9 53 01           | call 0x4975550
-    0x3439bcb | 44 8b c0                 | mov r8d, eax
-    0x3439bce | b8 59 17 b7 d1           | mov eax, 0xd1b71759
-    0x3439bd3 | 41 f7 e0                 | mul r8d
-    0x3439bd6 | c1 ea 0d                 | shr edx, 0xd
-    0x3439bd9 | 69 ca 10 27 00 00        | imul ecx, edx, 0x2710
-    0x3439bdf | 44 2b c1                 | sub r8d, ecx
-    0x3439be2 | 44 89 05 eb ec d6 04     | mov dword ptr [rip + 0x4d6eceb], r8d
-    L_0x3439be9:
-    0x3439be9 | 44 3b c3                 | cmp r8d, ebx
-    0x3439bec | 0f 8d 3e 03 00 00        | jge 0x3439f30
-    0x3439bf2 | 83 4c 24 50 01           | or dword ptr [rsp + 0x50], 0x1
-    0x3439bf7 | 48 8d 4c 24 50           | lea rcx, [rsp + 0x50]
-    0x3439bfc | e8 2f ad 52 ff           | call 0x2964930
-    0x3439c01 | 90                       | nop
-    0x3439c02 | 45 33 f6                 | xor r14d, r14d
-    0x3439c05 | 4c 89 b5 58 01 00 00     | mov qword ptr [rbp + 0x158], r14
-    0x3439c0c | 66 0f 6f 05 7c 2d 17 04  | movdqa xmm0, xmmword ptr [rip + 0x4172d7c]
-    0x3439c14 | f3 0f 7f 85 68 01 00 00  | movdqu xmmword ptr [rbp + 0x168], xmm0
-    0x3439c1c | 44 88 b5 58 01 00 00     | mov byte ptr [rbp + 0x158], r14b
-    0x3439c23 | 44 89 b5 78 01 00 00     | mov dword ptr [rbp + 0x178], r14d
-    0x3439c2a | c6 85 7c 01 00 00 01     | mov byte ptr [rbp + 0x17c], 0x1
-    0x3439c31 | 4c 89 b5 80 01 00 00     | mov qword ptr [rbp + 0x180], r14
-    0x3439c38 | f3 0f 7f 85 90 01 00 00  | movdqu xmmword ptr [rbp + 0x190], xmm0
-    0x3439c40 | 44 88 b5 80 01 00 00     | mov byte ptr [rbp + 0x180], r14b
-    0x3439c47 | 44 89 b5 a4 01 00 00     | mov dword ptr [rbp + 0x1a4], r14d
-    0x3439c4e | 48 8b 0d 2b f4 47 05     | mov rcx, qword ptr [rip + 0x547f42b]
-    0x3439c55 | 48 8b c1                 | mov rax, rcx
-    0x3439c58 | 48 83 e0 fc              | and rax, -0x4
-    0x3439c5c | 48 a9 f8 ff ff ff        | test rax, 0xfffffff8
-    0x3439c62 | 74 2c                    | je 0x3439c90
-    0x3439c64 | 0f b6 c1                 | movzx eax, cl
-    0x3439c67 | d0 f8                    | sar al, 0x1
-    0x3439c69 | a8 01                    | test al, 0x1
-    0x3439c6b | 48 8d 15 f6 f3 47 05     | lea rdx, [rip + 0x547f3f6]
-    0x3439c72 | 48 0f 44 15 ee f3 47 05  | cmovz rdx, qword ptr [rip + 0x547f3ee]
-    0x3439c7a | 48 83 e1 f8              | and rcx, -0x8
-    0x3439c7e | 48 8b 01                 | mov rax, qword ptr [rcx]
-    0x3439c81 | 48 8d 8d a8 01 00 00     | lea rcx, [rbp + 0x1a8]
-    0x3439c88 | ff 15 b2 00 00 03        | call qword ptr [rip + 0x30000b2] ; __guard_dispatch_icall_fptr (0x6439d40)
-    0x3439c8e | eb 0b                    | jmp 0x3439c9b
-    L_0x3439c90:
-    0x3439c90 | 0f 57 c0                 | xorps xmm0, xmm0
-    0x3439c93 | f3 0f 7f 85 a8 01 00 00  | movdqu xmmword ptr [rbp + 0x1a8], xmm0
-    L_0x3439c9b:
-    0x3439c9b | 45 33 c0                 | xor r8d, r8d
-    0x3439c9e | 48 8d 1d 73 e2 d6 03     | lea rbx, [rip + 0x3d6e273] ; "VariantCount"
-    0x3439ca5 | 48 8b d3                 | mov rdx, rbx
-    0x3439ca8 | 48 8d 4c 24 50           | lea rcx, [rsp + 0x50]
-    0x3439cad | e8 fe a1 52 ff           | call 0x2963eb0
-    0x3439cb2 | 48 85 c0                 | test rax, rax
-    0x3439cb5 | 74 4a                    | je 0x3439d01
-    0x3439cb7 | 8b d7                    | mov edx, edi
-    0x3439cb9 | 48 8b c8                 | mov rcx, rax
-    0x3439cbc | e8 df 50 52 ff           | call 0x295eda0
-    0x3439cc1 | 48 8b 8d a8 01 00 00     | mov rcx, qword ptr [rbp + 0x1a8]
-    0x3439cc8 | 48 85 c9                 | test rcx, rcx
-    0x3439ccb | 74 34                    | je 0x3439d01
-    0x3439ccd | 48 8b 01                 | mov rax, qword ptr [rcx]
-    0x3439cd0 | 48 89 5c 24 30           | mov qword ptr [rsp + 0x30], rbx
-    0x3439cd5 | 48 c7 44 24 38 0c 00 00.. | mov qword ptr [rsp + 0x38], 0xc
-    0x3439cde | 0f 28 44 24 30           | movaps xmm0, xmmword ptr [rsp + 0x30]
-    0x3439ce3 | 66 0f 7f 44 24 30        | movdqa xmmword ptr [rsp + 0x30], xmm0
-    0x3439ce9 | 4c 8b c7                 | mov r8, rdi
-    0x3439cec | 41 b9 01 00 00 00        | mov r9d, 0x1
-    0x3439cf2 | 48 8d 54 24 30           | lea rdx, [rsp + 0x30]
-    0x3439cf7 | 48 8b 40 20              | mov rax, qword ptr [rax + 0x20]
-    0x3439cfb | ff 15 3f 00 00 03        | call qword ptr [rip + 0x300003f] ; __guard_dispatch_icall_fptr (0x6439d40)
-    L_0x3439d01:
-    0x3439d01 | 48 8b 5e 68              | mov rbx, qword ptr [rsi + 0x68]
-    0x3439d05 | 48 83 7b 18 10           | cmp qword ptr [rbx + 0x18], 0x10
-    0x3439d0a | 72 03                    | jb 0x3439d0f
-    0x3439d0c | 48 8b 1b                 | mov rbx, qword ptr [rbx]
-    L_0x3439d0f:
-    0x3439d0f | 45 33 c0                 | xor r8d, r8d
-    0x3439d12 | 48 8d 3d 27 30 f6 03     | lea rdi, [rip + 0x3f63027] ; "RemoteName"
-    0x3439d19 | 48 8b d7                 | mov rdx, rdi
-    0x3439d1c | 48 8d 4c 24 50           | lea rcx, [rsp + 0x50]
-    0x3439d21 | e8 8a a1 52 ff           | call 0x2963eb0
-    0x3439d26 | 48 85 c0                 | test rax, rax
-    0x3439d29 | 74 73                    | je 0x3439d9e
-    0x3439d2b | 48 8d 15 13 d4 20 03     | lea rdx, [rip + 0x320d413]
-    0x3439d32 | 48 85 db                 | test rbx, rbx
-    0x3439d35 | 48 0f 45 d3              | cmovnz rdx, rbx
-    0x3439d39 | 49 c7 c0 ff ff ff ff     | mov r8, -0x1
-    L_0x3439d40:
-    0x3439d40 | 49 ff c0                 | inc r8
-    0x3439d43 | 42 80 3c 02 00           | cmp byte ptr [rdx + r8], 0x0
-    0x3439d48 | 75 f6                    | jne 0x3439d40
-    0x3439d4a | b9 00 f0 00 00           | mov ecx, 0xf000
-    0x3439d4f | 4c 3b c1                 | cmp r8, rcx
-    0x3439d52 | 4c 0f 43 c1              | cmovae r8, rcx
-    0x3439d56 | 48 8b c8                 | mov rcx, rax
-    0x3439d59 | e8 42 4c 52 ff           | call 0x295e9a0
-    0x3439d5e | 48 8b 8d a8 01 00 00     | mov rcx, qword ptr [rbp + 0x1a8]
-    0x3439d65 | 48 85 c9                 | test rcx, rcx
-    0x3439d68 | 74 34                    | je 0x3439d9e
-    0x3439d6a | 48 8b 01                 | mov rax, qword ptr [rcx]
-    0x3439d6d | 48 89 7c 24 30           | mov qword ptr [rsp + 0x30], rdi
-    0x3439d72 | 48 c7 44 24 38 0a 00 00.. | mov qword ptr [rsp + 0x38], 0xa
-    0x3439d7b | 0f 28 44 24 30           | movaps xmm0, xmmword ptr [rsp + 0x30]
-    0x3439d80 | 66 0f 7f 44 24 30        | movdqa xmmword ptr [rsp + 0x30], xmm0
-    0x3439d86 | 41 b9 01 00 00 00        | mov r9d, 0x1
-    0x3439d8c | 4c 8b c3                 | mov r8, rbx
-    0x3439d8f | 48 8d 54 24 30           | lea rdx, [rsp + 0x30]
-    0x3439d94 | 48 8b 40 08              | mov rax, qword ptr [rax + 0x8]
-    0x3439d98 | ff 15 a2 ff ff 02        | call qword ptr [rip + 0x2ffffa2] ; __guard_dispatch_icall_fptr (0x6439d40)
-    L_0x3439d9e:
-    0x3439d9e | 8b 1d 94 c3 cd 04        | mov ebx, dword ptr [rip + 0x4cdc394] ; DFIntMaxVariantCountRRSPerMyriad
-    0x3439da4 | 4c 89 74 24 30           | mov qword ptr [rsp + 0x30], r14
-    0x3439da9 | 4c 89 74 24 40           | mov qword ptr [rsp + 0x40], r14
-    0x3439dae | 48 c7 44 24 48 0f 00 00.. | mov qword ptr [rsp + 0x48], 0xf
-    0x3439db7 | c6 44 24 30 00           | mov byte ptr [rsp + 0x30], 0x0
-    0x3439dbc | b9 20 00 00 00           | mov ecx, 0x20
-    0x3439dc1 | e8 8a 3b 2c fd           | call 0x6fd950
-    0x3439dc6 | 48 c7 44 24 40 1d 00 00.. | mov qword ptr [rsp + 0x40], 0x1d
-    0x3439dcf | 48 c7 44 24 48 1f 00 00.. | mov qword ptr [rsp + 0x48], 0x1f
-    0x3439dd8 | 0f 10 05 61 2d f6 03     | movups xmm0, xmmword ptr [rip + 0x3f62d61]
-    0x3439ddf | 0f 11 00                 | movups xmmword ptr [rax], xmm0
-    0x3439de2 | f2 0f 10 0d 66 2d f6 03  | movsd xmm1, qword ptr [rip + 0x3f62d66] ; "antCountLimit"
-    0x3439dea | f2 0f 11 48 10           | movsd qword ptr [rax + 0x10], xmm1
-    0x3439def | 8b 0d 63 2d f6 03        | mov ecx, dword ptr [rip + 0x3f62d63]
-    0x3439df5 | 89 48 18                 | mov dword ptr [rax + 0x18], ecx
-    0x3439df8 | 0f b6 0d 5d 2d f6 03     | movzx ecx, byte ptr [rip + 0x3f62d5d]
-    0x3439dff | 88 48 1c                 | mov byte ptr [rax + 0x1c], cl
-    0x3439e02 | c6 40 1d 00              | mov byte ptr [rax + 0x1d], 0x0
-    0x3439e06 | 48 89 44 24 30           | mov qword ptr [rsp + 0x30], rax
-    0x3439e0b | c6 44 24 20 00           | mov byte ptr [rsp + 0x20], 0x0
-    0x3439e10 | 41 b1 01                 | mov r9b, 0x1
-    0x3439e13 | 44 8b c3                 | mov r8d, ebx
-    0x3439e16 | 48 8d 54 24 30           | lea rdx, [rsp + 0x30]
-    0x3439e1b | 48 8d 4c 24 50           | lea rcx, [rsp + 0x50]
-    0x3439e20 | e8 0b 94 52 ff           | call 0x2963230
-    0x3439e25 | 90                       | nop
-    0x3439e26 | 48 8b 44 24 48           | mov rax, qword ptr [rsp + 0x48]
-    0x3439e2b | 48 83 f8 10              | cmp rax, 0x10
-    0x3439e2f | 72 2e                    | jb 0x3439e5f
-    0x3439e31 | 48 ff c0                 | inc rax
-    0x3439e34 | 48 8b 4c 24 30           | mov rcx, qword ptr [rsp + 0x30]
-    0x3439e39 | 48 8b d1                 | mov rdx, rcx
-    0x3439e3c | 48 3d 00 10 00 00        | cmp rax, 0x1000
-    0x3439e42 | 72 15                    | jb 0x3439e59
-    0x3439e44 | 48 8b 49 f8              | mov rcx, qword ptr [rcx - 0x8]
-    0x3439e48 | 48 2b d1                 | sub rdx, rcx
-    0x3439e4b | 48 8d 42 f8              | lea rax, [rdx - 0x8]
-    0x3439e4f | 48 83 f8 1f              | cmp rax, 0x1f
-    0x3439e53 | 0f 87 04 01 00 00        | ja 0x3439f5d
-    L_0x3439e59:
-    0x3439e59 | e8 62 bc 51 01           | call 0x4955ac0
-    0x3439e5e | 90                       | nop
-    L_0x3439e5f:
-    0x3439e5f | 48 8b 8d b0 01 00 00     | mov rcx, qword ptr [rbp + 0x1b0]
-    0x3439e66 | 48 85 c9                 | test rcx, rcx
-    0x3439e69 | 74 05                    | je 0x3439e70
-    0x3439e6b | e8 d0 10 2a fd           | call 0x6daf40
-    L_0x3439e70:
-    0x3439e70 | 48 8b 85 98 01 00 00     | mov rax, qword ptr [rbp + 0x198]
-    0x3439e77 | 48 83 f8 10              | cmp rax, 0x10
-    0x3439e7b | 72 30                    | jb 0x3439ead
-    0x3439e7d | 48 ff c0                 | inc rax
-    0x3439e80 | 48 8b 8d 80 01 00 00     | mov rcx, qword ptr [rbp + 0x180]
-    0x3439e87 | 48 8b d1                 | mov rdx, rcx
-    0x3439e8a | 48 3d 00 10 00 00        | cmp rax, 0x1000
-    0x3439e90 | 72 15                    | jb 0x3439ea7
-    0x3439e92 | 48 8b 49 f8              | mov rcx, qword ptr [rcx - 0x8]
-    0x3439e96 | 48 2b d1                 | sub rdx, rcx
-    0x3439e99 | 48 8d 42 f8              | lea rax, [rdx - 0x8]
-    0x3439e9d | 48 83 f8 1f              | cmp rax, 0x1f
-    0x3439ea1 | 0f 87 b0 00 00 00        | ja 0x3439f57
-    L_0x3439ea7:
-    0x3439ea7 | e8 14 bc 51 01           | call 0x4955ac0
-    0x3439eac | 90                       | nop
-    L_0x3439ead:
-    0x3439ead | 66 0f 6f 05 db 2a 17 04  | movdqa xmm0, xmmword ptr [rip + 0x4172adb]
-    0x3439eb5 | f3 0f 7f 85 90 01 00 00  | movdqu xmmword ptr [rbp + 0x190], xmm0
-    0x3439ebd | c6 85 80 01 00 00 00     | mov byte ptr [rbp + 0x180], 0x0
-    0x3439ec4 | 48 8b 85 70 01 00 00     | mov rax, qword ptr [rbp + 0x170]
-    0x3439ecb | 48 83 f8 10              | cmp rax, 0x10
-    0x3439ecf | 72 2c                    | jb 0x3439efd
-    0x3439ed1 | 48 ff c0                 | inc rax
-    0x3439ed4 | 48 8b 8d 58 01 00 00     | mov rcx, qword ptr [rbp + 0x158]
-    0x3439edb | 48 8b d1                 | mov rdx, rcx
-    0x3439ede | 48 3d 00 10 00 00        | cmp rax, 0x1000
-    0x3439ee4 | 72 11                    | jb 0x3439ef7
-    0x3439ee6 | 48 8b 49 f8              | mov rcx, qword ptr [rcx - 0x8]
-    0x3439eea | 48 2b d1                 | sub rdx, rcx
-    0x3439eed | 48 8d 42 f8              | lea rax, [rdx - 0x8]
-    0x3439ef1 | 48 83 f8 1f              | cmp rax, 0x1f
-    0x3439ef5 | 77 60                    | ja 0x3439f57
-    L_0x3439ef7:
-    0x3439ef7 | e8 c4 bb 51 01           | call 0x4955ac0
-    0x3439efc | 90                       | nop
-    L_0x3439efd:
-    0x3439efd | 66 0f 6f 05 8b 2a 17 04  | movdqa xmm0, xmmword ptr [rip + 0x4172a8b]
-    0x3439f05 | f3 0f 7f 85 68 01 00 00  | movdqu xmmword ptr [rbp + 0x168], xmm0
-    0x3439f0d | c6 85 58 01 00 00 00     | mov byte ptr [rbp + 0x158], 0x0
-    0x3439f14 | 48 8d 4c 24 50           | lea rcx, [rsp + 0x50]
-    0x3439f19 | e8 02 86 2f fd           | call 0x732520
-    0x3439f1e | f6 44 24 50 01           | test byte ptr [rsp + 0x50], 0x1
-    0x3439f23 | 75 0b                    | jne 0x3439f30
-    0x3439f25 | 48 8b 4c 24 58           | mov rcx, qword ptr [rsp + 0x58]
-    0x3439f2a | e8 91 bb 51 01           | call 0x4955ac0
-    0x3439f2f | 90                       | nop
-    L_0x3439f30:
-    0x3439f30 | 48 8b 8d b8 01 00 00     | mov rcx, qword ptr [rbp + 0x1b8]
-    0x3439f37 | 48 33 cc                 | xor rcx, rsp
-    0x3439f3a | e8 61 a9 9a 02           | call 0x5de48a0
-    0x3439f3f | 4c 8d 9c 24 c0 02 00 00  | lea r11, [rsp + 0x2c0]
-    0x3439f47 | 49 8b 5b 30              | mov rbx, qword ptr [r11 + 0x30]
-    0x3439f4b | 49 8b 73 38              | mov rsi, qword ptr [r11 + 0x38]
-    0x3439f4f | 49 8b e3                 | mov rsp, r11
-    0x3439f52 | 41 5e                    | pop r14
-    0x3439f54 | 5f                       | pop rdi
-    0x3439f55 | 5d                       | pop rbp
-    0x3439f56 | c3                       | ret
-    L_0x3439f57:
-    0x3439f57 | e8 24 a6 9d 02           | call 0x5e14580
-    0x3439f5c | 90                       | nop
-    L_0x3439f5d:
-    0x3439f5d | e8 1e a6 9d 02           | call 0x5e14580
-    0x3439f62 | 90                       | nop
-  
   === [Estrutura RTTI & VTable da Classe (RBX::RemoteFunction)] ===
-    VTable  : 0x6f4c690 (offset +0x0, 35 slots virtuais)
-    Herança : RBX::EventDescriptor, RBX::MemberDescriptor, RBX::Descriptor
-    +0x0 -> fn_0x343a280
+    VTable  : 0x70aab08 (offset +0x0, 36 slots virtuais)
+    Herança : RBX::Instance, RBX::Object, RBX::DescribedBase, RBX::EventSource, RBX::enable_shared_from_this (+0x8), RBX::GuidItem (+0x28), RBX::ObjectProp (+0x38), RBX::Noncopyable (+0x38), RBX::Diagnostics::Countable (+0x58), RBX::InstanceProp (+0x58)
+    +0x0 -> fn_0x343da90
     +0x8 -> fn_0x1c1f1a0
-    +0x10 -> fn_0x343b470
+    +0x10 -> fn_0x1c396e0
     +0x18 -> fn_0x1c44010
     +0x38 -> fn_0x343d9f0
     +0x40 -> fn_0x1c3dbf0
@@ -787,39 +981,15 @@ Operação  : 0x343d207: mov/math reg, [flag] ; fn=0x343d150..0x343d3c9
     +0x78 -> fn_0x1c3cdf0
     +0x88 -> fn_0x1c49aa0
     +0x90 -> fn_0x1c3d010
-    +0x98 -> fn_0x343d150
     +0xb0 -> fn_0x1c43930
     +0xc0 -> fn_0x1c43cb0
     +0xd0 -> fn_0x1c3da30
     +0xd8 -> fn_0x1c439b0
-    +0xe0 -> fn_0x3114ad0
+    +0xe0 -> fn_0x1c451b0
+    +0xf8 -> fn_0x1c3d9d0
   
-  === [Decompilacao de Metodo da Classe RBX::RemoteFunction: 0x343a280..0x343a39b (vfunc_0x0)] ===
-    struct RBX::RemoteFunction {
-      /* +0x148 */ void*   field_0x148;
-      /* +0x158 */ void*   field_0x158;
-    };
-    
-    auto RBX::RemoteFunction::func_0x343a280(RBX::RemoteFunction* this, int64_t param_2) {
-      call_0x4968fd0(&this->field_0x158);
-      auto* f_158 = this->field_0x158;
-      if (f_158 != 0 && atomic_fetch_sub(&f_158->field_0x4, 1) == 1) {
-        call_0x496a4e0(this->field_0x158);
-      }
-      auto* f_148 = this->field_0x148;
-      call_0x343e020(&f_148, &f_148, f_148->field_0x8);
-      call_0x4955ac0(this->field_0x148);
-      call_0xffbd70(&this->field_0x118);
-      call_0x6f6690(&this->field_0x110);
-      call_0x6f6690(&this->field_0x108);
-      call_0x6f6690(&this->field_0x100);
-      call_0x6f6690(&this->field_0xf8);
-      call_0x6f6690(&this->field_0xf0);
-      call_0x6f6690(&this->field_0xe8);
-      call_0x6f6690(&this->field_0xe0);
-      call_0x6f6690(&this->field_0xd8);
-      call_0x6db7e0(&this->field_0xb8);
-      call_0x6db7e0(&this->field_0x98);
+  === [Decompilacao de Metodo da Classe RBX::RemoteFunction: 0x343da90..0x343dac0 (vfunc_0x0)] ===
+    auto RBX::RemoteFunction::func_0x343da90(RBX::RemoteFunction* this, int64_t param_2) {
       call_0x343da20(this);
       if (((uint8_t)param_2 & 0x1) != 0) {
         call_0x4955ac0(this);
@@ -827,189 +997,83 @@ Operação  : 0x343d207: mov/math reg, [flag] ; fn=0x343d150..0x343d3c9
       return this;
     }
   
-  === [Decompilacao de Metodo da Classe RBX::RemoteFunction: 0x343b470..0x343baee (vfunc_0x10)] ===
-    // Flag defaults: PlayerJoinWindowSummaryTelemetry = false
-    void RBX::RemoteFunction::func_0x343b470(RBX::RemoteFunction* this, int64_t param_2, void* param_3, void* param_4) {
-      if (param_2 == &sym_0x854f950) {
-        void* prev_0x0_7 = param_3->field_0x0->field_0x0;
-        auto ret_0x1c34f90_15 = call_0x1c34f90(this);
-        if (prev_0x0_7 == ret_0x1c34f90_15) {
-          auto ret_0x7d8800_17 = call_0x7d8800(&param_3->field_0x0->field_0x50);
-          if (ret_0x7d8800_17->field_0x8 != 0) {
-            ret_0x7d8800_17->field_0x8->field_0x8++;
-          }
-          void* prev_0x0_11 = ret_0x7d8800_17->field_0x0;
-          call_0x1c3af30();
-          void* sel_rcx_4 = param_3->field_0x0->field_0xa8 == 0 ? 0 : param_3->field_0x0->field_0xb0;
-          if (sel_rcx_4->field_0x8 != 0) {
-            sel_rcx_4->field_0x8->field_0x8++;
-          }
-          if (prev_0x0_11 != 0) {
-            auto ret_0x9e5200_19 = call_0x9e5200();
-            void* sel_rcx_5 = ret_0x7d8800_17->field_0x0->field_0x18->field_0x1c0 - ret_0x9e5200_19->field_0x1c0 <= ret_0x9e5200_19->field_0x1c2 ? prev_0x0_11 : 0;
-            if (sel_rcx_5 != 0 && sel_rcx_5->field_0x828 == param_4->field_0x0) {
-              if (PlayerJoinWindowSummaryTelemetry) {
-                auto ret_0x9e5200_21 = call_0x9e5200();
-                void* sel_rcx_6 = ret_0x7d8800_17->field_0x0->field_0x18->field_0x1c0 - ret_0x9e5200_21->field_0x1c0 <= ret_0x9e5200_21->field_0x1c2 ? prev_0x0_11 : 0;
-                if (sel_rcx_6 != 0) {
-                  call_0x3d2ebe0(sel_rcx_6, 5, this);
-                }
-              }
-              call_0x495a220(&local_0x268);
-              auto ret_0x787180_24 = call_0x787180(&local_0x150, this);
-              auto local_0xd0 = ret_0x787180_24->field_0x0;
-              call_0x707ef0(&local_0x180, 32, param_3, &local_0xd0);
-              auto ret_0x787180_26 = call_0x787180(&local_0x140, this);
-              auto local_0xb0 = ret_0x787180_26->field_0x0;
-              call_0x707ef0(&local_0x1a0, 32, param_3, &local_0xb0);
-              if (sel_rcx_4->field_0x8 != 0) {
-                sel_rcx_4->field_0x8->field_0x8++;
-              }
-              auto ret_0x9e5200_28 = call_0x9e5200();
-              void* stk_1;
-              if (ret_0x7d8800_17->field_0x0->field_0x18->field_0x1c0 - ret_0x9e5200_28->field_0x1c0 <= ret_0x9e5200_28->field_0x1c2) {
-                if (ret_0x7d8800_17->field_0x8 != 0) {
-                  ret_0x7d8800_17->field_0x8->field_0x8++;
-                }
-                stk_1 = prev_0x0_11;
-              } else {
-                stk_1 = 0;
-              }
-              auto local_0x38 = stk_1;
-              auto local_0x80 = sel_rcx_4->field_0x0;
-              auto local_0x84 = local_0x54;
-              auto local_0x88 = sel_rcx_4->field_0x8;
-              auto local_0x8c = local_0x5c;
-              call_0x343baf0(this, &local_0x38, &local_0x80, &local_0x1a0);
-              if (local_0xb8 != 0 && atomic_fetch_sub(&local_0xb8->field_0xc, 1) == 1) {
-                local_0xb8->vfunc_0x8();
-              }
-              if (local_0x148 != 0 && atomic_fetch_sub(&local_0x148->field_0xc, 1) == 1) {
-                local_0x148->vfunc_0x8();
-              }
-              if (local_0xd8 != 0 && atomic_fetch_sub(&local_0xd8->field_0xc, 1) == 1) {
-                local_0xd8->vfunc_0x8();
-              }
-              if (local_0x158 != 0 && atomic_fetch_sub(&local_0x158->field_0xc, 1) == 1) {
-                local_0x158->vfunc_0x8();
-              }
-            } else {
-              call_0x1bf4f90(4, "RemoteFunction::processRemoteEvent: ignore a remote call from %d", param_4->field_0x0);
-            }
-          } else {
-            call_0x1bf4f90(4, "RemoteFunction::processRemoteEvent: ignore a remote call from %d", param_4->field_0x0);
-          }
-          if (local_0x58 != 0) {
-            call_0x6daf40(local_0x58);
-          }
-          if (ret_0x7d8800_17->field_0x8 != 0) {
-            call_0x6daf40(ret_0x7d8800_17->field_0x8);
-          }
-          L_0x343baaf:
-          return;
-        }
-      } else if (param_2 == &sym_0x854f7f0) {
-        void* prev_0x0_1 = param_3->field_0x0->field_0x0;
-        auto ret_0x1c34f90_2 = call_0x1c34f90(this);
-        if (prev_0x0_1 == ret_0x1c34f90_2) {
-          void* prev_0x50_3 = param_3->field_0x0->field_0x50;
-          auto ret_0x1c3af30_3 = call_0x1c3af30();
-          if (prev_0x50_3 == ret_0x1c3af30_3) {
-            void* sel_rcx_2 = param_3->field_0x0->field_0x58 == 0 ? 0 : param_3->field_0x0->field_0x60;
-            if (sel_rcx_2->field_0x8 != 0) {
-              sel_rcx_2->field_0x8->field_0x8++;
-            }
-            void* prev_0x8_6 = sel_rcx_2->field_0x8;
-            call_0x495a220(&local_0x70);
-            auto ret_0x787180_5 = call_0x787180(&local_0x170, this);
-            auto local_0x110 = ret_0x787180_5->field_0x0;
-            call_0x707ef0(&local_0x1c0, 32, param_3, &local_0x110);
-            auto ret_0x787180_7 = call_0x787180(&local_0x160, this);
-            auto local_0xf0 = ret_0x787180_7->field_0x0;
-            call_0x707ef0(&local_0x1e0, 32, param_3, &local_0xf0);
-            if (prev_0x8_6 != 0) {
-              sel_rcx_2->field_0x8->field_0x8++;
-            }
-            call_0x343c0c0(this, &local_0x90, &local_0x1e0, &local_0x1c0);
-            if (local_0xf8 != 0 && atomic_fetch_sub(&local_0xf8->field_0xc, 1) == 1) {
-              local_0xf8->vfunc_0x8();
-            }
-            if (local_0x168 != 0 && atomic_fetch_sub(&local_0x168->field_0xc, 1) == 1) {
-              local_0x168->vfunc_0x8();
-            }
-            if (local_0x118 != 0 && atomic_fetch_sub(&local_0x118->field_0xc, 1) == 1) {
-              local_0x118->vfunc_0x8();
-            }
-            if (local_0x178 != 0 && atomic_fetch_sub(&local_0x178->field_0xc, 1) == 1) {
-              local_0x178->vfunc_0x8();
-            }
-            if (local_0xa8 != 0) {
-              call_0x6daf40(local_0xa8);
-            }
-            return;
-          }
-        }
-      } else {
-        param_2->vfunc_0x38(param_2, this);
-        goto L_0x343baaf;
-      }
-      call_0x4973aa0("Variant cast failed");
-    }
-  
   === [Decompilacao de Metodo da Classe RBX::RemoteFunction: 0x1c44010..0x1c44138 (vfunc_0x18)] ===
     struct RBX::Instance {
       /* +0x48 */ void*   field_0x48;
-      /* +0x60 */ void*   field_0x60;
+      /* +0x60 */ uint64_t field_0x60;
     };
     
     // Flag defaults: CheckEngineContextOnInstanceAccess2 = false
-    void RBX::Instance::func_0x1c44010(RBX::Instance* this, int64_t param_2, void* param_3, void* param_4) {
+    void RBX::Instance::func_0x1c44010(RBX::Instance* this, int64_t param_2, int64_t param_3, int64_t param_4) {
       if (this->field_0x60 != 0) {
-        (*global_0x80f4c48)(this);
-      }
-      auto ret_0x4956040_2 = call_0x4956040(24);
-      auto ret_0xffc540_3 = call_0xffc540(ret_0x4956040_2, param_3);
-      call_0xd29440(&local_0x40, ret_0xffc540_3);
-      auto* f_48 = this->field_0x48;
-      if (f_48 != 0 && f_48->field_0x8 != 0) {
-        auto ret_0xc700_5 = call_0xc700(global_0x84cf408, 1);
-        if (ret_0xc700_5->field_0x0 == 0) {
-          auto local_0x20 = 3;
-          call_0x7d7f00(this->field_0x48, &local_0x20, &local_0x28);
-        } else {
-          call_0x49710d0("Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel ", &sym_0x6647145);
+        void* v_rax_1 = global_0x80f4c48;
+        if (!CheckEngineContextOnInstanceAccess2) {
+          v_rax_1 = global_0x80f4c50;
         }
+        (*v_rax_1)(this);
       }
-      if (local_0x48 != 0) {
-        call_0x6daf40(local_0x48);
+      uint64_t local_0x30;
+      local_0x30 = &sym_0x70375b0;
+      auto ret_0x4956040_2 = call_0x4956040(24);
+      uint64_t local_0x60;
+      if (ret_0x4956040_2 != 0) {
+        uint64_t local_0x28;
+        local_0x28 = ret_0x4956040_2;
+        auto ret_0xffc540_3 = call_0xffc540(ret_0x4956040_2, param_3);
+        uint64_t local_0x40;
+        call_0xd29440(&local_0x40, ret_0xffc540_3);
+        local_0x28 = &local_0x30;
+        uint64_t local_0x20;
+        local_0x20 = 3;
+        auto* f_48 = this->field_0x48;
+        if (f_48 != 0 && f_48->field_0x8 != 0) {
+          auto ret_0xc700_5 = call_0xc700(global_0x84cf408, 1);
+          if (ret_0xc700_5->field_0x0 == 0) {
+            auto local_0x38 = param_2;
+            call_0x7d7f00(this->field_0x48, &local_0x20, &local_0x28);
+          } else {
+            call_0x49710d0("Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel execution.", &sym_0x6647145);
+            call_0x6ca7d0(&local_0x60);
+            call_0x5e066f0(&local_0x60, &sym_0x80cbbc0);
+            return; // noreturn
+          }
+        }
+        uint64_t local_0x48;
+        if (local_0x48 != 0) {
+          call_0x6daf40(local_0x48);
+          return;
+        }
+        return;
+      }
+      call_0x6ca7d0(&local_0x60);
+      call_0x5e066f0(&local_0x60, &sym_0x80cbbc0);
+      return; // noreturn
+    }
+  
+  === [Decompilacao de Metodo da Classe RBX::RemoteFunction: 0x1c3dbf0..0x1c3dc23 (vfunc_0x40)] ===
+    struct RBX::Instance {
+      /* +0x0 */ uint64_t field_0x0;
+    };
+    
+    void RBX::Instance::func_0x1c3dbf0(RBX::Instance* this) {
+      auto ret_0x1c4d900_1 = call_0x1c4d900(this);
+      if (ret_0x1c4d900_1 != 0) {
+        ret_0x1c4d900_1->field_0x0 = 0;
       }
     }
 
 [Strings .rdata na função]
-  * "onServerInvoke"  [@rdata 0x73a98a0, ref @0x343d189, literal, 14B]
-  * "single invocation memory size exceeded"  [@rdata 0x739cc50, ref @0x343d197, literal, 38B]
-  * "queue memory usage exceeded"  [@rdata 0x739c9d0, ref @0x343d1f1, literal, 27B]
-  * "queue exhausted"  [@rdata 0x739c9c0, ref @0x343d230, literal, 15B]
-  * "dropped because remote is not in allow list"  [@rdata 0x739c990, ref @0x343d2c0, literal, 43B]
-  * "onClientInvoke"  [@rdata 0x73a98b0, ref @0x343d308, literal, 14B]
-  * "Remote function invocation %s for %s; did you forget to implement %s ? (%u events dropped)"  [@rdata 0x739cfc0, ref @0x3367096, literal, 90B]
-  * "VariantCount"  [@rdata 0x71a7f18, ref @0x3439c9e, key/identifier]
-  * "RemoteName"  [@rdata 0x739cd40, ref @0x3439d12, key/identifier]
   * "RemoteFunction::processRemoteEvent: ignore a remote call from %d"  [@rdata 0x73a9720, ref @0x343b821, symbol/class]
   * "Variant cast failed"  [@rdata 0x7191e38, ref @0x343bad5, literal, 19B]
-  * "Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel "  [@rdata 0x7280e40, ref @0x1c44110, literal, 96B]
+  * "Remote function invocation %s for %s; did you forget to implement %s ? (%u events dropped)"  [@rdata 0x739cfc0, ref @0x3367096, literal, 90B]
 
 [Co-Flags na mesma função]
-  * DFIntRemoteFunctionSingleInvocationSizeLimit = 0 (default)
-  * DFIntRemoteFunctionMaxQueueMemBytes = 0 (default)
-  * DFIntMaxVariantCountRRS = 100000 (default)
-  * DFFlagEnforceLuaAppsRemoteAllowList = false (default)
-  * DFIntMaxVariantCountRRSPerMyriad = 5000 (default)
   * FFlagPlayerJoinWindowSummaryTelemetry = false (default)
-  * DFFlagCheckEngineContextOnInstanceAccess2 = false (default)
-  * FFlagSimMoveBindToSimulationAfterAnimations2 = false (default) [vizinha em .data]
+  * FFlagSimMoveBindToSimulationAfterAnimations2 = true (default) [vizinha em .data]
   * FFlagSimEnableBindToAnimation = true (default) [vizinha em .data]
+  * DFIntRemoteFunctionSingleInvocationSizeLimit = 0 (default) [vizinha em .data]
   * DFFlagRemoteFunctionSandboxCheck = true (default) [vizinha em .data]
-  * DFIntkAssetsUploadApiFlowTelemetryEventLoggingPerMyriad = 10000 (default) [vizinha em .data]
+  * DFIntRemoteFunctionMaxQueueMemBytes = 0 (default) [vizinha em .data]
+  * DFIntkAssetsUploadApiFlowTelemetryEventLoggingPerMyriad = 0 (default) [vizinha em .data]
   * DFIntUGCOperationStatusPollingMaxRetry = 300 (default) [vizinha em .data]
   * DFIntOperationStatusPollingMaxRetry = 720 (default) [vizinha em .data]

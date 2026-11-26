@@ -10,12 +10,19 @@ Operação  : 0x3685c23: mov/math reg, [flag] ; fn=0x3685ad0..0x3685e08
     Padrão  : FLogBufferPool = 0 (default) [log, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : (uint8_t)BufferPool >= 6 && (uint8_t)((uint64_t)BufferPool >> 8) >= 3
-    Altera  : this->field_0x0, this->field_0x4, this->field_0x38->field_0x0[((rax + idx_1 * 2) * 8)], this->field_0x38->field_0x8[((rax + idx_1 * 2) * 8)], this->field_0x8, this->field_0xc
+    Fórmula : "[FLog::BufferPool] buffer 0x%p : request for %u, found a match, size %u"
+    Fórmula : *(uint32_t*)((uint8_t*)&BufferPool + 0x4)
+    Fórmula : *(uint32_t*)((uint8_t*)&BufferPool + 0x8)
+    Fórmula : *(uint32_t*)((uint8_t*)&BufferPool + 0xc)
+    Fórmula : "BufferPool"
+    Altera  : this->field_0x0, this->field_0x4, this->field_0x38->field_0x0[((tmp_2 * 3) * 8)], this->field_0x38->field_0x8[((tmp_2 * 3) * 8)], this->field_0x8, this->field_0xc
     [XREF #2 @0x3685e9a] Classe  : RBX::BufferPool (Inferido)
     [XREF #2 @0x3685e9a] Fórmula : (uint8_t)BufferPool >= 6 && (uint8_t)((uint64_t)BufferPool >> 8) >= 3
     [XREF #2 @0x3685e9a] Altera  : this->field_0x28->field_0x0, this->field_0x28->field_0x8, this->field_0x28->field_0x10, this->field_0x28->field_0x14, this->field_0x28, this->field_0x0
     [XREF #3 @0x3686090] Classe  : RBX::BufferPool (Inferido)
     [XREF #3 @0x3686090] Fórmula : (uint8_t)BufferPool >= 6 && (uint8_t)((uint64_t)BufferPool >> 8) >= 3
+    [XREF #3 @0x3686090] Fórmula : "[FLog::BufferPool] buffer 0x%p : destroyed"
+    [XREF #3 @0x3686090] Fórmula : "[FLog::BufferPool] buffer 0x%p : moved off cooldown"
     [XREF #3 @0x3686090] Altera  : this->field_0x8, this->field_0xc, this->field_0x40, this->field_0x40->field_0x0, this->field_0x40->field_0x8, this->field_0x40->field_0x10
   
   === [Decompilacao C++ da Funcao 0x3685ad0..0x3685e08] ===
@@ -30,71 +37,109 @@ Operação  : 0x3685c23: mov/math reg, [flag] ; fn=0x3685ad0..0x3685e08
     };
     
     // Flag defaults: BufferPool = 0
-    auto RBX::BufferPool::func_0x3685ad0(RBX::BufferPool* this, int64_t param_2, void* param_3) {
-      auto* f_38 = this->field_0x38;
-      if (((this->field_0x40 - f_38) >> 2) + ((uint64_t)((this->field_0x40 - f_38) >> 2) >> 63) > 0) {
-        uint64_t i_r8d = ((this->field_0x40 - f_38) >> 2) + ((uint64_t)((this->field_0x40 - f_38) >> 2) >> 63);
-        uint64_t i_r10d = f_38;
-        uint64_t v_r8_1;
+    auto RBX::BufferPool::func_0x3685ad0(RBX::BufferPool* this, void* param_2, int64_t param_3) {
+      uint64_t local_0x50;
+      local_0x50 = 0;
+      int64_t tmp_1 = ((int64_t)mulhi(0x2aaaaaaaaaaaaaab, this->field_0x40 - this->field_0x38) >> 2) + ((uint64_t)((int64_t)mulhi(0x2aaaaaaaaaaaaaab, this->field_0x40 - this->field_0x38) >> 2) >> 63);
+      void* v_r10_3 = this->field_0x38;
+      if (tmp_1 > 0) {
+        uint64_t i_r8d = tmp_1;
+        uint64_t i_r10d = this->field_0x38;
         do { // L_0x3685b50
-          if ((i_r10d + (((uint64_t)i_r8d >> 1) + ((uint64_t)i_r8d >> 1) * 2) * 8)->field_0x10 < param_3) {
+          uint64_t v_r8_1;
+          uint64_t v_r10_2 = i_r10d;
+          if ((i_r10d + ((((uint64_t)i_r8d >> 1) * 3) * 8))->field_0x10 < param_3) {
             v_r8_1 = i_r8d + (-1 - ((uint64_t)i_r8d >> 1));
+            v_r10_2 = i_r10d + ((uint64_t)i_r8d >> 1) * 3 * 8 + 0x18;
           } else {
             v_r8_1 = (uint64_t)i_r8d >> 1;
           }
           i_r8d = v_r8_1;
-          i_r10d = (i_r10d + (((uint64_t)i_r8d >> 1) + ((uint64_t)i_r8d >> 1) * 2) * 8)->field_0x10 < param_3 ? r9 + 0x18 : i_r10d;
-        } while (v_r8_1 > 0); // loop -> L_0x3685b50
+          i_r10d = v_r10_2;
+        } while (i_r8d > 0); // loop -> L_0x3685b50
+        v_r10_3 = i_r10d;
       }
-      if (((this->field_0x40 - f_38) >> 2) + ((uint64_t)((this->field_0x40 - f_38) >> 2) >> 63) < ((this->field_0x40 - f_38) / 24 >> 2) + ((uint64_t)((this->field_0x40 - f_38) / 24 >> 2) >> 63)) {
-        int64_t idx_1 = ((this->field_0x40 - f_38) >> 2) + ((uint64_t)((this->field_0x40 - f_38) >> 2) >> 63);
-        if ((param_3 + 0xfff & 0xfffff000) < f_38->field_0x10[(rax + idx_1 * 2) * 8] + 0x1000) {
-          param_2->field_0x0 = f_38->field_0x0[(rax + idx_1 * 2) * 8];
-          void* prev_0x0[((rax + idx_1 * 2) * 8)]_4 = f_38->field_0x0[(rax + idx_1 * 2) * 8];
-          f_38->field_0x0[((rax + idx_1 * 2) * 8)] = 0;
-          void* prev_0x8_5 = param_2->field_0x8;
-          param_2->field_0x8 = f_38->field_0x8[(rax + idx_1 * 2) * 8];
-          void* prev_0x8[((rax + idx_1 * 2) * 8)]_6 = f_38->field_0x8[(rax + idx_1 * 2) * 8];
-          f_38->field_0x8[((rax + idx_1 * 2) * 8)] = prev_0x8_5;
-          this->field_0x8--;
-          this->field_0xc = this->field_0xc - f_38->field_0x10[(rax + idx_1 * 2) * 8];
-          this->field_0x0++;
-          this->field_0x4 = this->field_0x4 + f_38->field_0x10[(rax + idx_1 * 2) * 8];
-          if ((uint8_t)BufferPool >= 6 && (uint8_t)((uint64_t)BufferPool >> 8) >= 3) {
-            FLog::Log("[FLog::BufferPool] buffer 0x%p : request for %u, found a match, size %u");
-          }
-          call_0x3686390(this->field_0x38 + (rax + idx_1 * 2) * 8 + 0x18, this->field_0x40, this->field_0x38 + (rax + idx_1 * 2) * 8);
-          if (this->field_0x40->field_m0x10 != 0) {
-            call_0x6daf40(this->field_0x40->field_m0x10);
-          }
-          this->field_0x40 = this->field_0x40 - 0x18;
-        } else {
-          L_0x3685ca3:
-          auto* f_18 = this->field_0x18;
-          auto vret_1 = f_18->vfunc_0xe0(f_18, &local_0x40, 0, param_3 + 0xfff & 0xfffff000);
-          void* prev_0x0_1 = vret_1->field_0x0;
-          vret_1->field_0x0 = 0;
-          void* prev_0x8_2 = vret_1->field_0x8;
-          vret_1->field_0x8 = 0;
-          param_2->field_0x0 = prev_0x0_1;
-          void* prev_0x8_3 = param_2->field_0x8;
-          param_2->field_0x8 = prev_0x8_2;
-          if (prev_0x8_3 != 0) {
-            call_0x6daf40(prev_0x8_3);
-          }
-          if (local_0x48 != 0) {
-            call_0x6daf40(local_0x48);
-          }
-          std::string::_Tidy_deallocate(local_0x60);
-          this->field_0x0++;
-          this->field_0x4 = this->field_0x4 + (param_3 + 0xfff & 0xfffff000);
-          if ((uint8_t)BufferPool >= 6 && (uint8_t)((uint64_t)BufferPool >> 8) >= 3) {
-            FLog::Log("[FLog::BufferPool] buffer 0x%p : request for %u, created new for %u");
-          }
+      int64_t tmp_2 = ((int64_t)mulhi(0x2aaaaaaaaaaaaaab, v_r10_3 - this->field_0x38) >> 2) + ((uint64_t)((int64_t)mulhi(0x2aaaaaaaaaaaaaab, v_r10_3 - this->field_0x38) >> 2) >> 63);
+      param_2->field_0x0 = 0;
+      param_2->field_0x8 = 0;
+      local_0x50 = 1;
+      int64_t tmp_3 = ((int64_t)mulhi(0x2aaaaaaaaaaaaaab, this->field_0x40 - this->field_0x38) >> 2) + ((uint64_t)((int64_t)mulhi(0x2aaaaaaaaaaaaaab, this->field_0x40 - this->field_0x38) >> 2) >> 63);
+      int64_t local_0x58;
+      int64_t local_0x48;
+      int64_t local_0x44;
+      uint64_t local_0x20;
+      uint64_t local_0x40;
+      int64_t local_0x4c;
+      if (tmp_2 < tmp_3 && (param_3 + 0xfff & 0xfffff000) < this->field_0x38->field_0x10[tmp_2 * 3 * 8] + 0x1000) {
+        param_2->field_0x0 = this->field_0x38->field_0x0[tmp_2 * 3 * 8];
+        this->field_0x38->field_0x0[((tmp_2 * 3) * 8)] = 0;
+        void* prev_0x8_10 = param_2->field_0x8;
+        param_2->field_0x8 = this->field_0x38->field_0x8[tmp_2 * 3 * 8];
+        this->field_0x38->field_0x8[((tmp_2 * 3) * 8)] = prev_0x8_10;
+        this->field_0x8--;
+        this->field_0xc = this->field_0xc - this->field_0x38->field_0x10[tmp_2 * 3 * 8];
+        this->field_0x0++;
+        this->field_0x4 = this->field_0x4 + this->field_0x38->field_0x10[tmp_2 * 3 * 8];
+        if ((uint8_t)BufferPool >= 6 && (uint8_t)((uint64_t)BufferPool >> 8) >= 3) {
+          local_0x40 = "[FLog::BufferPool] buffer 0x%p : request for %u, found a match, size %u";
+          float mem_12_12 = local_0x40;
+          local_0x40 = BufferPool;
+          local_0x20 = this->field_0x38->field_0x10[tmp_2 * 3 * 8];
+          local_0x44 = *(uint32_t*)((uint8_t*)&BufferPool + 0x4);
+          local_0x48 = *(uint32_t*)((uint8_t*)&BufferPool + 0x8);
+          local_0x4c = *(uint32_t*)((uint8_t*)&BufferPool + 0xc);
+          local_0x58 = param_2;
+          call_0x4971a90(&local_0x40, mem_12_12 - 0xd0f17, param_2->field_0x0, param_3, this->field_0x38->field_0x10[tmp_2 * 3 * 8]);
         }
-        return param_2;
+        call_0x3686390(this->field_0x38 + tmp_2 * 3 * 8 + 0x18, this->field_0x40);
+        if (this->field_0x40->field_m0x10 != 0) {
+          call_0x6daf40(this->field_0x40->field_m0x10);
+        }
+        this->field_0x40 = this->field_0x40 - 0x18;
+      } else {
+        uint64_t local_0x78;
+        local_0x78 = 15;
+        uint64_t local_0x70;
+        local_0x70 = 10;
+        uint64_t local_0x60;
+        local_0x60 = "BufferPool";
+        local_0x20 = 0;
+        local_0x58 = param_2;
+        auto local_0x68 = global_0x73c5a40;
+        auto local_0x6a = 0;
+        auto* f_18 = this->field_0x18;
+        auto vret_1 = f_18->vfunc_0xe0(f_18, &local_0x40, 0, param_3 + 0xfff & 0xfffff000, 0, 0, &local_0x60);
+        void* prev_0x0_4 = vret_1->field_0x0;
+        vret_1->field_0x0 = 0;
+        void* prev_0x8_5 = vret_1->field_0x8;
+        vret_1->field_0x8 = 0;
+        param_2->field_0x0 = prev_0x0_4;
+        void* prev_0x8_6 = param_2->field_0x8;
+        param_2->field_0x8 = prev_0x8_5;
+        if (prev_0x8_6 != 0) {
+          call_0x6daf40(prev_0x8_6);
+        }
+        if (local_0x48 != 0) {
+          call_0x6daf40(local_0x48);
+        }
+        std::string::_Tidy_deallocate(local_0x60);
+        local_0x70 = 0;
+        local_0x78 = 15;
+        local_0x60 = 0;
+        this->field_0x0++;
+        this->field_0x4 = this->field_0x4 + (param_3 + 0xfff & 0xfffff000);
+        if ((uint8_t)BufferPool >= 6 && (uint8_t)((uint64_t)BufferPool >> 8) >= 3) {
+          local_0x40 = "[FLog::BufferPool] buffer 0x%p : request for %u, created new for %u";
+          float mem_8_8 = local_0x40;
+          local_0x40 = BufferPool;
+          local_0x20 = param_3 + 0xfff & 0xfffff000;
+          local_0x44 = *(uint32_t*)((uint8_t*)&BufferPool + 0x4);
+          local_0x48 = *(uint32_t*)((uint8_t*)&BufferPool + 0x8);
+          local_0x4c = *(uint32_t*)((uint8_t*)&BufferPool + 0xc);
+          call_0x4971a90(&local_0x40, mem_8_8 - 0xf9e99, param_2->field_0x0, param_3, param_3 + 0xfff & 0xfffff000);
+        }
       }
-      goto L_0x3685ca3;
+      return param_2;
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -317,34 +362,41 @@ Operação  : 0x3685c23: mov/math reg, [flag] ; fn=0x3685ad0..0x3685e08
   
   === [Sub-Rotina Chamada: 0x3686390..0x3686455 via call @0x3685c82 (Direct Engine Sub-Call)] ===
     struct SubObj_0x3686390 {
-      /* +0x0 */ void*   field_0x0;
-      /* +0x8 */ void*   field_0x8;
+      /* +0x0 */ uint64_t field_0x0;
+      /* +0x8 */ uint64_t field_0x8;
       /* +0x10 */ int32_t field_0x10;
       /* +0x14 */ int32_t field_0x14;
     };
     
-    void SubObj_0x3686390::func_0x3686390(SubObj_0x3686390* this, int64_t param_2, void* param_3) {
-      void* i_ebx = &this->field_0x8;
-      void* i_esi = param_3;
-      do { // L_0x36863c0
-        void* mem_1_1 = i_ebx->field_m0x8;
-        i_ebx->field_m0x8 = 0;
-        void* prev_0x0_2 = i_ebx->field_0x0;
-        i_ebx->field_0x0 = 0;
-        i_esi->field_0x0 = mem_1_1;
-        void* prev_0x8_3 = i_esi->field_0x8;
-        i_esi->field_0x8 = prev_0x0_2;
-        if (prev_0x8_3 != 0 && atomic_fetch_sub(&i_esi->field_0x8->field_0x8, 1) == 1) {
-          i_esi->field_0x8->vfunc_0x0(prev_0x8_3);
-          if (atomic_fetch_sub(&i_esi->field_0x8->field_0xc, 1) == 1) {
-            i_esi->field_0x8->vfunc_0x8(prev_0x8_3);
+    void SubObj_0x3686390::func_0x3686390(SubObj_0x3686390* this, int64_t param_2, int64_t param_3) {
+      if (this != param_2) {
+        uint8_t* i_ebx = &this->field_0x8;
+        uint8_t* i_esi = param_3;
+        do { // L_0x36863c0
+          void* mem_1_1 = i_ebx->field_m0x8;
+          i_ebx->field_m0x8 = 0;
+          void* prev_0x0_2 = i_ebx->field_0x0;
+          i_ebx->field_0x0 = 0;
+          i_esi->field_0x0 = mem_1_1;
+          void* prev_0x8_3 = i_esi->field_0x8;
+          i_esi->field_0x8 = prev_0x0_2;
+          if (prev_0x8_3 != 0) {
+            int32_t atomic_1 = atomic_fetch_sub(&i_esi->field_0x8->field_0x8, 1);
+            if (atomic_1 == 1) {
+              i_esi->field_0x8->vfunc_0x0(prev_0x8_3);
+              int32_t atomic_3 = atomic_fetch_sub(&i_esi->field_0x8->field_0xc, 1);
+              if (atomic_3 == 1) {
+                i_esi->field_0x8->vfunc_0x8(prev_0x8_3);
+              }
+            }
           }
-        }
-        i_esi->field_0x10 = i_ebx->field_0x8;
-        i_ebx += 0x18;
-        i_esi->field_0x14 = i_ebx->field_0xc;
-        i_esi += 0x18;
-      } while (i_ebx - 8 != param_2); // loop -> L_0x36863c0
+          i_esi->field_0x10 = i_ebx->field_0x8;
+          void* prev_i_ebx_4 = i_ebx;
+          i_ebx += 0x18;
+          i_esi->field_0x14 = prev_i_ebx_4->field_0xc;
+          i_esi += 0x18;
+        } while (i_ebx - 8 != param_2); // loop -> L_0x36863c0
+      }
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x3686390..0x3686455)] ===
@@ -354,7 +406,7 @@ Operação  : 0x3685c23: mov/math reg, [flag] ; fn=0x3685ad0..0x3685e08
     0x368639a | 49 8b f0                 | mov rsi, r8
     0x368639d | 48 8b ea                 | mov rbp, rdx
     0x36863a0 | 48 3b ca                 | cmp rcx, rdx
-    0x36863a3 | 0f 84 ac 00 00 00        | je 0x3686455 ; [Nanomite Reconstructed: je +0xac via xref_shared_exit_table_resolver]
+    0x36863a3 | 0f 84 8f 00 00 00        | je 0x3686438 ; [Nanomite Reconstructed: je +0x8f via cfg_epilogue_exit_resolver]
     0x36863a9 | 48 89 5c 24 30           | mov qword ptr [rsp + 0x30], rbx
     0x36863ae | 48 8d 59 08              | lea rbx, [rcx + 0x8]
     0x36863b2 | 48 89 7c 24 38           | mov qword ptr [rsp + 0x38], rdi
@@ -397,6 +449,7 @@ Operação  : 0x3685c23: mov/math reg, [flag] ; fn=0x3685ad0..0x3685e08
     0x368642f | 48 8d 43 f8              | lea rax, [rbx - 0x8]
     0x3686433 | 48 3b c5                 | cmp rax, rbp
     0x3686436 | 75 88                    | jne 0x36863c0
+    L_0x3686438:
     0x3686438 | 4c 8b 74 24 40           | mov r14, qword ptr [rsp + 0x40]
     0x368643d | 48 8b 7c 24 38           | mov rdi, qword ptr [rsp + 0x38]
     0x3686442 | 48 8b 5c 24 30           | mov rbx, qword ptr [rsp + 0x30]
@@ -412,14 +465,20 @@ Operação  : 0x3685c23: mov/math reg, [flag] ; fn=0x3685ad0..0x3685e08
       /* +0x4 */ int32_t field_0x4;
       /* +0x10 */ int32_t field_0x10;
       /* +0x28 */ void*   field_0x28;
-      /* +0x30 */ void*   field_0x30;
+      /* +0x30 */ uint64_t field_0x30;
     };
     
     // Flag defaults: BufferPool = 0
-    void RBX::BufferPool::func_0x3685e10(RBX::BufferPool* this, int64_t param_2) {
+    void RBX::BufferPool::func_0x3685e10(RBX::BufferPool* this, void* param_2) {
       if (param_2->field_0x8 != 0) {
         param_2->field_0x8->field_0x8++;
       }
+      uint64_t local_0x30;
+      local_0x30 = param_2->field_0x0;
+      uint64_t local_0x38;
+      local_0x38 = param_2->field_0x8;
+      uint64_t local_0x40;
+      local_0x40 = param_2->field_0x0->field_0x44;
       if (this->field_0x28 != this->field_0x30) {
         this->field_0x28->field_0x0 = 0;
         this->field_0x28->field_0x8 = 0;
@@ -432,13 +491,13 @@ Operação  : 0x3685c23: mov/math reg, [flag] ; fn=0x3685ad0..0x3685e08
         this->field_0x28->field_0x14 = this->field_0x10;
         this->field_0x28 = this->field_0x28 + 0x18;
       } else {
-        auto local_0x30 = param_2->field_0x0;
+        auto local_0x44 = this->field_0x10;
         call_0x3686460(&this->field_0x20, this->field_0x28, &local_0x30);
       }
       this->field_0x0--;
       this->field_0x4 = this->field_0x4 - local_0x40;
       if ((uint8_t)BufferPool >= 6 && (uint8_t)((uint64_t)BufferPool >> 8) >= 3) {
-        FLog::Log("[FLog::BufferPool] buffer 0x%p : recycled");
+        FLog::Log("[FLog::BufferPool] buffer 0x%p : recycled", param_2->field_0x0);
       }
       if (local_0x38 != 0) {
         call_0x6daf40(local_0x38);
@@ -520,96 +579,121 @@ Operação  : 0x3685c23: mov/math reg, [flag] ; fn=0x3685ad0..0x3685e08
       /* +0x8 */ int32_t field_0x8;
       /* +0xc */ int32_t field_0xc;
       /* +0x10 */ int32_t field_0x10;
-      /* +0x20 */ void*   field_0x20;
-      /* +0x28 */ void*   field_0x28;
-      /* +0x38 */ void*   field_0x38;
+      /* +0x20 */ uint64_t field_0x20;
+      /* +0x28 */ uint64_t field_0x28;
+      /* +0x38 */ uint64_t field_0x38;
       /* +0x40 */ void*   field_0x40;
-      /* +0x48 */ void*   field_0x48;
+      /* +0x48 */ uint64_t field_0x48;
     };
     
     // Flag defaults: BufferPool = 0
     void RBX::BufferPool::func_0x3685f00(RBX::BufferPool* this) {
-      void* i_esi;
-      int32_t i_r14d;
-      void* i_ebx;
-      if (((this->field_0x40 - this->field_0x38) / 24 >> 2) + ((uint64_t)((this->field_0x40 - this->field_0x38) / 24 >> 2) >> 63) > 20) {
-        i_ebx = this->field_0x40;
-        i_r14d = 0;
-        while (i_esi != i_ebx) {
-          if (i_esi->field_0x14 + 0x3c < this->field_0x10) {
-            i_esi += 0x18;
+      int64_t tmp_1 = ((int64_t)mulhi(0x2aaaaaaaaaaaaaab, this->field_0x40 - this->field_0x38) >> 2) + ((uint64_t)((int64_t)mulhi(0x2aaaaaaaaaaaaaab, this->field_0x40 - this->field_0x38) >> 2) >> 63);
+      int32_t v_r14_5 = 0;
+      uint64_t local_0x70;
+      if (tmp_1 > 20) {
+        void* i_ebx_5 = this->field_0x40;
+        void* i_r14d_3 = 0;
+        uint8_t* i_esi_3 = this->field_0x38;
+        do { // L_0x3685f60
+          if (i_esi_3 == i_ebx_5) break;
+          int32_t i_eax_3 = i_esi_3->field_0x14 + 0x3c;
+          uint8_t* i_ebx_4 = i_ebx_5;
+          if (i_esi_3->field_0x14 + 0x3c < this->field_0x10) {
+            i_esi_3 += 0x18;
             continue;
           } else {
             do { // L_0x3685f80
-              i_ebx -= 0x18;
-              if (i_esi == i_ebx) break;
-            } while (i_ebx->field_0x14 + 0x3c >= this->field_0x10); // loop -> L_0x3685f80
-            void* prev_0x0_11 = i_esi->field_0x0;
-            i_esi->field_0x0 = i_r14d;
-            void* prev_0x8_12 = i_esi->field_0x8;
-            i_esi->field_0x8 = i_r14d;
-            void* prev_0x0_13 = i_ebx->field_0x0;
-            i_ebx->field_0x0 = i_r14d;
-            void* prev_0x8_14 = i_ebx->field_0x8;
-            i_ebx->field_0x8 = i_r14d;
-            i_esi->field_0x0 = prev_0x0_13;
-            void* prev_0x8_15 = i_esi->field_0x8;
-            i_esi->field_0x8 = prev_0x8_14;
-            int32_t v_rdi_8 = i_esi->field_0x14;
-            int32_t v_r13_9 = i_esi->field_0x10;
-            if (prev_0x8_15 != 0 && atomic_fetch_sub(&i_esi->field_0x8->field_0x8, 1) == 1) {
-              auto prev_0x14_16 = i_esi->field_0x14;
-              auto prev_0x10_17 = i_esi->field_0x10;
-              i_esi->field_0x8->vfunc_0x0(prev_0x8_15);
-              if (atomic_fetch_sub(&i_esi->field_0x8->field_0xc, 1) == 1) {
-                i_esi->field_0x8->vfunc_0x8(prev_0x8_15);
-                v_rdi_8 = prev_0x14_16;
-                v_r13_9 = prev_0x10_17;
-              } else {
-                v_rdi_8 = prev_0x14_16;
-                v_r13_9 = prev_0x10_17;
+              i_ebx_4 -= 0x18;
+              if (i_esi_3 == i_ebx_4) {
+                break;
+              }
+              i_eax_3 = i_ebx_4->field_0x14 + 0x3c;
+            } while (i_eax_3 >= this->field_0x10); // loop -> L_0x3685f80
+            void* prev_0x0_18 = i_esi_3->field_0x0;
+            i_esi_3->field_0x0 = i_r14d_3;
+            void* prev_0x8_19 = i_esi_3->field_0x8;
+            i_esi_3->field_0x8 = i_r14d_3;
+            void* prev_0x0_20 = i_ebx_4->field_0x0;
+            i_ebx_4->field_0x0 = i_r14d_3;
+            void* prev_0x8_21 = i_ebx_4->field_0x8;
+            i_ebx_4->field_0x8 = i_r14d_3;
+            i_esi_3->field_0x0 = prev_0x0_20;
+            void* prev_0x8_22 = i_esi_3->field_0x8;
+            i_esi_3->field_0x8 = prev_0x8_21;
+            int32_t v_rdi_10 = i_esi_3->field_0x14;
+            int32_t v_r13_11 = i_esi_3->field_0x10;
+            if (prev_0x8_22 != 0) {
+              int32_t atomic_17 = atomic_fetch_sub(&i_esi_3->field_0x8->field_0x8, 1);
+              if (atomic_17 == 1) {
+                auto prev_0x14_23 = i_esi_3->field_0x14;
+                auto prev_0x10_24 = i_esi_3->field_0x10;
+                i_esi_3->field_0x8->vfunc_0x0(prev_0x8_22, tmp_1);
+                int32_t atomic_19 = atomic_fetch_sub(&i_esi_3->field_0x8->field_0xc, 1);
+                if (atomic_19 == 1) {
+                  i_esi_3->field_0x8->vfunc_0x8(prev_0x8_22);
+                  v_rdi_10 = prev_0x14_23;
+                  v_r13_11 = prev_0x10_24;
+                } else {
+                  v_rdi_10 = prev_0x14_23;
+                  v_r13_11 = prev_0x10_24;
+                }
               }
             }
-            i_esi->field_0x10 = i_ebx->field_0x10;
-            i_esi->field_0x14 = i_ebx->field_0x14;
-            i_ebx->field_0x0 = prev_0x0_11;
-            void* prev_0x8_18 = i_ebx->field_0x8;
-            i_ebx->field_0x8 = prev_0x8_12;
-            if (prev_0x8_18 != 0) {
-              if (atomic_fetch_sub(&i_ebx->field_0x8->field_0x8, 1) == 1) {
-                i_ebx->field_0x8->vfunc_0x0(prev_0x8_18);
-                if (atomic_fetch_sub(&i_ebx->field_0x8->field_0xc, 1) == 1) {
-                  i_ebx->field_0x8->vfunc_0x8(prev_0x8_18);
+            i_esi_3->field_0x10 = i_ebx_4->field_0x10;
+            i_esi_3->field_0x14 = i_ebx_4->field_0x14;
+            i_ebx_4->field_0x0 = prev_0x0_18;
+            void* prev_0x8_25 = i_ebx_4->field_0x8;
+            i_ebx_4->field_0x8 = prev_0x8_19;
+            if (prev_0x8_25 != 0) {
+              int32_t atomic_21 = atomic_fetch_sub(&i_ebx_4->field_0x8->field_0x8, 1);
+              if (atomic_21 == 1) {
+                i_ebx_4->field_0x8->vfunc_0x0(prev_0x8_25);
+                int32_t atomic_23 = atomic_fetch_sub(&i_ebx_4->field_0x8->field_0xc, 1);
+                if (atomic_23 == 1) {
+                  i_ebx_4->field_0x8->vfunc_0x8(prev_0x8_25);
                 } else {
-                  atomic_fetch_sub(&i_ebx->field_0x8->field_0xc, 1);
+                  atomic_23;
                 }
               } else {
-                atomic_fetch_sub(&i_ebx->field_0x8->field_0x8, 1);
+                atomic_21;
               }
             }
-            i_esi += 0x18;
-            i_ebx->field_0x10 = v_r13_9;
-            i_ebx->field_0x14 = v_rdi_8;
-            i_r14d = 0;
+            i_esi_3 += 0x18;
+            i_ebx_4->field_0x10 = v_r13_11;
+            i_ebx_4->field_0x14 = v_rdi_10;
+            i_ebx_5 = i_ebx_4;
+            i_r14d_3 = 0;
           }
-        }
-        if (i_esi != this->field_0x40) {
+        } while (true); // loop -> L_0x3685f60
+        int32_t v_r14_3 = i_r14d_3;
+        if (i_esi_3 != this->field_0x40) {
+          uint8_t* i_ebx = i_esi_3;
           do { // L_0x3686090
             if ((uint8_t)BufferPool >= 6 && (uint8_t)((uint64_t)BufferPool >> 8) >= 3) {
-              FLog::Log("[FLog::BufferPool] buffer 0x%p : destroyed");
+              local_0x70 = "[FLog::BufferPool] buffer 0x%p : destroyed";
+              uint64_t local_0x20;
+              float mem_2_2 = local_0x20;
+              local_0x20 = BufferPool;
+              call_0x4971a90(&mem_2_2, local_0x70 - 0x1646eb, i_ebx->field_0x0, 0);
             }
             this->field_0x8--;
+            void* prev_i_ebx_3 = i_ebx;
             i_ebx += 0x18;
-            this->field_0xc = this->field_0xc - i_ebx->field_0x10;
+            this->field_0xc = this->field_0xc - prev_i_ebx_3->field_0x10;
           } while (i_ebx != this->field_0x40); // loop -> L_0x3686090
+          v_r14_3 = 0;
         }
-        if (i_esi != this->field_0x40) {
-          auto ret_0x3686390_1 = call_0x3686390(this->field_0x40, this->field_0x40, i_esi);
-          call_0x15d0230(ret_0x3686390_1, this->field_0x40);
-          this->field_0x40 = ret_0x3686390_1;
+        if (i_esi_3 != this->field_0x40) {
+          auto ret_0x3686390_2 = call_0x3686390(this->field_0x40, this->field_0x40, i_esi_3);
+          call_0x15d0230(ret_0x3686390_2, this->field_0x40);
+          this->field_0x40 = ret_0x3686390_2;
+          v_r14_5 = v_r14_3;
+        } else {
+          v_r14_5 = v_r14_3;
         }
       } else {
-        i_esi = this->field_0x38;
+        uint8_t* i_esi = this->field_0x38;
         if (this->field_0x38 != this->field_0x40) {
           do { // L_0x3686110
             i_esi->field_0x14 = this->field_0x10;
@@ -617,96 +701,118 @@ Operação  : 0x3685c23: mov/math reg, [flag] ; fn=0x3685ad0..0x3685e08
           } while (i_esi != this->field_0x40); // loop -> L_0x3686110
         }
       }
-      void* i_edi = this->field_0x20;
-      while (i_edi != i_ebx) {
+      void* i_ebx_2 = this->field_0x28;
+      uint8_t* i_edi = this->field_0x20;
+      void* i_r14d = v_r14_5;
+      do { // L_0x3686127
+        if (i_edi == i_ebx_2) break;
+        int32_t i_eax_2 = i_edi->field_0x14 + 2;
+        uint8_t* i_ebx_3 = i_ebx_2;
         if (i_edi->field_0x14 + 2 < this->field_0x10) {
           i_edi += 0x18;
           continue;
         } else {
           do { // L_0x3686143
-            i_ebx -= 0x18;
-            if (i_edi == i_ebx) break;
-          } while (i_ebx->field_0x14 + 2 >= this->field_0x10); // loop -> L_0x3686143
-          void* prev_0x0_3 = i_edi->field_0x0;
+            i_ebx_3 -= 0x18;
+            if (i_edi == i_ebx_3) {
+              break;
+            }
+            i_eax_2 = i_ebx_3->field_0x14 + 2;
+          } while (i_eax_2 >= this->field_0x10); // loop -> L_0x3686143
+          void* prev_0x0_9 = i_edi->field_0x0;
           i_edi->field_0x0 = i_r14d;
-          void* prev_0x8_4 = i_edi->field_0x8;
+          void* prev_0x8_10 = i_edi->field_0x8;
           i_edi->field_0x8 = i_r14d;
-          void* prev_0x0_5 = i_ebx->field_0x0;
-          i_ebx->field_0x0 = i_r14d;
-          void* prev_0x8_6 = i_ebx->field_0x8;
-          i_ebx->field_0x8 = i_r14d;
-          i_edi->field_0x0 = prev_0x0_5;
-          void* prev_0x8_7 = i_edi->field_0x8;
-          i_edi->field_0x8 = prev_0x8_6;
-          int32_t v_rsi_5 = i_edi->field_0x14;
-          int32_t v_r13_6 = i_edi->field_0x10;
-          if (prev_0x8_7 != 0 && atomic_fetch_sub(&i_edi->field_0x8->field_0x8, 1) == 1) {
-            auto prev_0x14_8 = i_edi->field_0x14;
-            auto prev_0x10_9 = i_edi->field_0x10;
-            i_edi->field_0x8->vfunc_0x0(prev_0x8_7);
-            if (atomic_fetch_sub(&i_edi->field_0x8->field_0xc, 1) == 1) {
-              i_edi->field_0x8->vfunc_0x8(prev_0x8_7);
-              v_rsi_5 = prev_0x14_8;
-              v_r13_6 = prev_0x10_9;
-            } else {
-              v_rsi_5 = prev_0x14_8;
-              v_r13_6 = prev_0x10_9;
+          void* prev_0x0_11 = i_ebx_3->field_0x0;
+          i_ebx_3->field_0x0 = i_r14d;
+          void* prev_0x8_12 = i_ebx_3->field_0x8;
+          i_ebx_3->field_0x8 = i_r14d;
+          i_edi->field_0x0 = prev_0x0_11;
+          void* prev_0x8_13 = i_edi->field_0x8;
+          i_edi->field_0x8 = prev_0x8_12;
+          int32_t v_rsi_7 = i_edi->field_0x14;
+          int32_t v_r13_8 = i_edi->field_0x10;
+          if (prev_0x8_13 != 0) {
+            int32_t atomic_9 = atomic_fetch_sub(&i_edi->field_0x8->field_0x8, 1);
+            if (atomic_9 == 1) {
+              auto prev_0x14_14 = i_edi->field_0x14;
+              auto prev_0x10_15 = i_edi->field_0x10;
+              i_edi->field_0x8->vfunc_0x0(prev_0x8_13);
+              int32_t atomic_11 = atomic_fetch_sub(&i_edi->field_0x8->field_0xc, 1);
+              if (atomic_11 == 1) {
+                i_edi->field_0x8->vfunc_0x8(prev_0x8_13);
+                v_rsi_7 = prev_0x14_14;
+                v_r13_8 = prev_0x10_15;
+              } else {
+                v_rsi_7 = prev_0x14_14;
+                v_r13_8 = prev_0x10_15;
+              }
             }
           }
-          i_edi->field_0x10 = i_ebx->field_0x10;
-          i_edi->field_0x14 = i_ebx->field_0x14;
-          i_ebx->field_0x0 = prev_0x0_3;
-          void* prev_0x8_10 = i_ebx->field_0x8;
-          i_ebx->field_0x8 = prev_0x8_4;
-          if (prev_0x8_10 != 0) {
-            if (atomic_fetch_sub(&i_ebx->field_0x8->field_0x8, 1) == 1) {
-              i_ebx->field_0x8->vfunc_0x0(prev_0x8_10);
-              if (atomic_fetch_sub(&i_ebx->field_0x8->field_0xc, 1) == 1) {
-                i_ebx->field_0x8->vfunc_0x8(prev_0x8_10);
+          i_edi->field_0x10 = i_ebx_3->field_0x10;
+          i_edi->field_0x14 = i_ebx_3->field_0x14;
+          i_ebx_3->field_0x0 = prev_0x0_9;
+          void* prev_0x8_16 = i_ebx_3->field_0x8;
+          i_ebx_3->field_0x8 = prev_0x8_10;
+          if (prev_0x8_16 != 0) {
+            int32_t atomic_13 = atomic_fetch_sub(&i_ebx_3->field_0x8->field_0x8, 1);
+            if (atomic_13 == 1) {
+              i_ebx_3->field_0x8->vfunc_0x0(prev_0x8_16);
+              int32_t atomic_15 = atomic_fetch_sub(&i_ebx_3->field_0x8->field_0xc, 1);
+              if (atomic_15 == 1) {
+                i_ebx_3->field_0x8->vfunc_0x8(prev_0x8_16);
               } else {
-                atomic_fetch_sub(&i_ebx->field_0x8->field_0xc, 1);
+                atomic_15;
               }
             } else {
-              atomic_fetch_sub(&i_ebx->field_0x8->field_0x8, 1);
+              atomic_13;
             }
           }
           i_edi += 0x18;
-          i_ebx->field_0x10 = v_r13_6;
-          i_ebx->field_0x14 = v_rsi_5;
+          i_ebx_3->field_0x10 = v_r13_8;
+          i_ebx_3->field_0x14 = v_rsi_7;
+          i_ebx_2 = i_ebx_3;
           i_r14d = 0;
         }
-      }
+      } while (true); // loop -> L_0x3686127
       if (i_edi != this->field_0x28) {
+        uint8_t* i_r14d_2 = i_r14d;
+        uint8_t* i_esi_2 = i_edi + 8;
         do { // L_0x3686260
           if (this->field_0x40 != this->field_0x48) {
-            this->field_0x40->field_0x0 = i_r14d;
-            this->field_0x40->field_0x8 = i_r14d;
-            if (i_esi->field_0x0 != 0) {
-              i_esi->field_0x0->field_0x8++;
+            this->field_0x40->field_0x0 = i_r14d_2;
+            this->field_0x40->field_0x8 = i_r14d_2;
+            if (i_esi_2->field_0x0 != 0) {
+              i_esi_2->field_0x0->field_0x8++;
             }
-            this->field_0x40->field_0x0 = i_esi->field_m0x8;
-            this->field_0x40->field_0x8 = i_esi->field_0x0;
-            this->field_0x40->field_0x10 = i_esi->field_0x8;
-            this->field_0x40->field_0x14 = i_esi->field_0xc;
+            this->field_0x40->field_0x0 = i_esi_2->field_m0x8;
+            this->field_0x40->field_0x8 = i_esi_2->field_0x0;
+            this->field_0x40->field_0x10 = i_esi_2->field_0x8;
+            this->field_0x40->field_0x14 = i_esi_2->field_0xc;
             this->field_0x40 = this->field_0x40 + 0x18;
           } else {
-            call_0x3686460(&this->field_0x38, this->field_0x40, i_esi - 8);
+            call_0x3686460(&this->field_0x38, this->field_0x40, i_esi_2 - 8);
           }
           this->field_0x8++;
-          this->field_0xc = this->field_0xc + i_esi->field_0x8;
+          this->field_0xc = this->field_0xc + i_esi_2->field_0x8;
           if ((uint8_t)BufferPool >= 6 && (uint8_t)((uint64_t)BufferPool >> 8) >= 3) {
-            FLog::Log("[FLog::BufferPool] buffer 0x%p : moved off cooldown");
+            local_0x70 = "[FLog::BufferPool] buffer 0x%p : moved off cooldown";
+            uint64_t local_0x30;
+            float mem_5_5 = local_0x30;
+            local_0x30 = BufferPool;
+            call_0x4971a90(&mem_5_5, local_0x70 - 0x1be909, (i_esi_2 - 8)->field_0x0, 0);
           }
-          i_esi += 0x18;
-          i_r14d = 0;
-        } while (i_esi - 8 != this->field_0x28); // loop -> L_0x3686260
+          i_esi_2 += 0x18;
+          i_r14d_2 = 0;
+        } while (i_esi_2 - 8 != this->field_0x28); // loop -> L_0x3686260
       }
       if (i_edi != this->field_0x28) {
-        auto ret_0x3686390_4 = call_0x3686390(this->field_0x28, this->field_0x28, i_edi);
-        call_0x15d0230(ret_0x3686390_4, this->field_0x28);
-        this->field_0x28 = ret_0x3686390_4;
+        auto ret_0x3686390_6 = call_0x3686390(this->field_0x28, this->field_0x28, i_edi);
+        call_0x15d0230(ret_0x3686390_6, this->field_0x28);
+        this->field_0x28 = ret_0x3686390_6;
       }
-      call_0x3686740(this->field_0x38, this->field_0x40, ((uint64_t)((this->field_0x40 - this->field_0x38) / 24 >> 2) >> 63) + ((this->field_0x40 - this->field_0x38) / 24 >> 2), local_0x70);
+      int64_t tmp_8 = ((uint64_t)((int64_t)mulhi(0x2aaaaaaaaaaaaaab, this->field_0x40 - this->field_0x38) >> 2) >> 63) + ((int64_t)mulhi(0x2aaaaaaaaaaaaaab, this->field_0x40 - this->field_0x38) >> 2);
+      call_0x3686740(this->field_0x38, this->field_0x40, tmp_8, local_0x70);
       this->field_0x10++;
     }
   
@@ -823,7 +929,7 @@ Operação  : 0x3685c23: mov/math reg, [flag] ; fn=0x3685ad0..0x3685e08
     0x3686078 | 48 8b de                 | mov rbx, rsi
     0x368607b | 48 3b f7                 | cmp rsi, rdi
     0x368607e | 74 62                    | je 0x36860e2
-    0x3686080 | 4c 8d 35 34 40 ea 03     | lea r14, [rip + 0x3ea4034] ; " DataChannel due to a failure to send the CONTROL message, send_result = "
+    0x3686080 | 4c 8d 35 34 40 ea 03     | lea r14, [rip + 0x3ea4034] ; "[FLog::BufferPool] buffer 0x%p : destroyed"
     0x3686087 | 66 0f 1f 84 00 00 00 00.. | nop
     L_0x3686090:
     0x3686090 | 48 8b 05 c9 3e a9 04     | mov rax, qword ptr [rip + 0x4a93ec9] ; FLogBufferPool
@@ -960,7 +1066,7 @@ Operação  : 0x3685c23: mov/math reg, [flag] ; fn=0x3685ad0..0x3685e08
     0x3686247 | 48 3b fb                 | cmp rdi, rbx
     0x368624a | 0f 84 be 00 00 00        | je 0x368630e
     0x3686250 | 48 8d 77 08              | lea rsi, [rdi + 0x8]
-    0x3686254 | 4c 8d 25 ae e0 ef 03     | lea r12, [rip + 0x3efe0ae] ; "he lg4ff hidapi haptic driver"
+    0x3686254 | 4c 8d 25 ae e0 ef 03     | lea r12, [rip + 0x3efe0ae] ; "[FLog::BufferPool] buffer 0x%p : moved off cooldown"
     0x368625b | 0f 1f 44 00 00           | nop
     L_0x3686260:
     0x3686260 | 48 8b 55 40              | mov rdx, qword ptr [rbp + 0x40]
@@ -1061,7 +1167,7 @@ Operação  : 0x3685c23: mov/math reg, [flag] ; fn=0x3685ad0..0x3685e08
   * FFlagFixExtraSoftwareCursorRenderOnPluginWindow = false (default) [vizinha em .data]
   * FFlagRenderFixFogSkyboxOrientation = false (default) [vizinha em .data]
   * DFFlagMPLabelRenderTotalTime = true (default) [vizinha em .data]
-  * FIntRenderIGUploadBufferSize = 20000 (default) [vizinha em .data]
-  * FIntRenderIGMainBufferInitialSize = 50000 (default) [vizinha em .data]
+  * FIntRenderIGUploadBufferSize = 256 (default) [vizinha em .data]
+  * FIntRenderIGMainBufferInitialSize = 2048 (default) [vizinha em .data]
   * FLogRenderInstanceGlob = 0 (default) [vizinha em .data]
   * FFlagDebugRenderIGMarkRecycledHandles = false (default) [vizinha em .data]

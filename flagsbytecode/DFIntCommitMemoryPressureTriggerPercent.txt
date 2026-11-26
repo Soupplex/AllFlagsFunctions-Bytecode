@@ -9,7 +9,7 @@ Operação  : 0x298d223: mov/math reg, [flag] ; fn=0x298d1b0..0x298d362
     Classe  : RBX::CommitMemory (Inferido)
     Padrão  : DFIntCommitMemoryPressureTriggerPercent = 90 (default) [int, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : (local_0xd8 - local_0xe0) * 100 / local_0xd8 >= CommitMemoryPressureTriggerPercent
+    Fórmula : (uint64_t)((local_0xd8 - local_0xe0) * 100) / (uint64_t)local_0xd8 >= CommitMemoryPressureTriggerPercent
     Altera  : this->field_0x0
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
@@ -27,7 +27,7 @@ Operação  : 0x298d223: mov/math reg, [flag] ; fn=0x298d1b0..0x298d362
     };
     
     // Flag defaults: CommitMemoryPressureTriggerPercent = 90, MemoryPrioritization = 0
-    auto RBX::CommitMemory::func_0x298d1b0(RBX::CommitMemory* this, int64_t param_2) {
+    auto RBX::CommitMemory::func_0x298d1b0(RBX::CommitMemory* this, void* param_2) {
       if (this != param_2) {
         if (param_2 != 0) {
           if (this == 0) {
@@ -37,12 +37,20 @@ Operação  : 0x298d223: mov/math reg, [flag] ; fn=0x298d1b0..0x298d362
           return this;
         }
         auto local_0xc0 = 64;
-        (&local_0xc0)->vfunc(&local_0xc0);
-        if ((local_0xd8 - local_0xe0) * 100 / local_0xd8 >= CommitMemoryPressureTriggerPercent) {
+        (*global_0x64387b0)(&local_0xc0, param_2);
+        uint64_t local_0xe0;
+        uint64_t local_0xd8;
+        if ((uint64_t)((local_0xd8 - local_0xe0) * 100) / (uint64_t)local_0xd8 >= CommitMemoryPressureTriggerPercent) {
+          atomic_exchange(&this->field_0x0->field_0xc1, 1);
           if ((uint8_t)MemoryPrioritization >= 6 && (uint8_t)((uint64_t)MemoryPrioritization >> 8) >= 1) {
-            FLog::Log("[FLog::MemoryPrioritization] CommitTotalBytes = {}, CommitLimitBytes = {}", (local_0xd8 - local_0xe0));
+            uint64_t local_0x30;
+            local_0x30 = 68;
+            FLog::Log("[FLog::MemoryPrioritization] CommitTotalBytes = {}, CommitLimitBytes = {}", (local_0xd8 - local_0xe0), local_0xd8);
           }
+        } else {
+          atomic_exchange(&this->field_0x0->field_0xc1, 0);
         }
+        atomic_exchange(&this->field_0x0->field_0xc2, 1);
         return 0;
       }
       return 0;
@@ -148,51 +156,68 @@ Operação  : 0x298d223: mov/math reg, [flag] ; fn=0x298d1b0..0x298d362
       /* +0x170 */ void*   field_0x170;
       /* +0x178 */ double  field_0x178;
       /* +0x188 */ double  field_0x188;
-      /* +0x190 */ void*   field_0x190;
-      /* +0x198 */ void*   field_0x198;
-      /* +0x1a0 */ void*   field_0x1a0;
+      /* +0x190 */ uint64_t field_0x190;
+      /* +0x198 */ uint64_t field_0x198;
+      /* +0x1a0 */ uint64_t field_0x1a0;
     };
     
     // Flag defaults: MemoryPressureTriggerFreeOverrideMB = 0, MemoryPressureTriggerCriticalMB = 10, MemoryPressureTriggerMB = 75, MemoryPressureTriggerLowMB = 20, MemoryPrioritization = 0, MemoryPrioritizationCommitPressureInterval = 1
     auto RBX::CommitMemory::func_0x298bbe0(RBX::CommitMemory* this, float param_2) {
+      void* local_0x70;
+      local_0x70 = global_0x84ba678;
       call_0x2e12fd0(global_0x84ba678);
-      void* v_rbx_11 = global_0x84ba678;
-      int32_t v_rdi_12;
-      void* stk_13;
+      void* v_rbx_12 = global_0x84ba678;
+      int32_t v_rdi_13;
       auto* f_170 = this->field_0x170;
       if (f_170 == 0) {
-        v_rdi_12 = 0;
-        stk_13 = global_0x84ba678;
+        v_rdi_13 = 0;
       } else {
         f_170->field_0xc8 = param_2 + f_170->field_0xc8;
         auto prev_0x4_1 = f_170->field_0x4;
         auto local_0x100 = 64;
-        this->vfunc_0x170(&local_0x100);
+        (*global_0x64387b0)(&local_0x100);
+        uint64_t local_0x110;
         uint64_t v_rbx_2 = local_0x110;
         if (MemoryPressureTriggerFreeOverrideMB != 0) {
           v_rbx_2 = MemoryPressureTriggerFreeOverrideMB << 20;
         }
-        auto vret_3 = this->vfunc();
-        vret_3->vfunc(vret_3, &local_0x200, 72);
+        auto vret_3 = (*global_0x6438de0)();
+        uint64_t local_0x200;
+        (*global_0x6438790)(vret_3, &local_0x200, 72);
         int32_t v_r14_3 = prev_0x4_1;
         int32_t v_r14_4;
         int32_t v_r14_5;
         int32_t v_r14_6;
         int32_t v_r14_7;
-        auto expr_1 = (uint64_t)MemoryPrioritization >> 8;
+        uint64_t local_0x60;
+        auto expr_1 = (uint8_t*)&MemoryPrioritization + 0xc;
+        auto expr_2 = (uint8_t*)&MemoryPrioritization + 0x4;
+        auto expr_3 = (uint8_t*)&MemoryPrioritization + 0x8;
+        auto expr_4 = (uint64_t)MemoryPrioritization >> 8;
         if (v_rbx_2 <= MemoryPressureTriggerCriticalMB << 20) {
           if (prev_0x4_1 != 4) {
             if ((uint8_t)MemoryPrioritization >= 6) {
-              if ((uint8_t)expr_1 >= (uint8_t)(1 + 2)) {
-                FLog::Log("[FLog::MemoryPrioritization] **** Memory Pressure Increase CRITICAL lastLevel: %u");
+              if ((uint8_t)expr_4 >= (uint8_t)(1 + 2)) {
+                local_0x60 = "[FLog::MemoryPrioritization] **** Memory Pressure Increase CRITICAL lastLevel: %u";
+                auto local_0xa0 = MemoryPrioritization;
+                auto local_0xa4 = *(uint32_t*)expr_2;
+                auto local_0xa8 = *(uint32_t*)expr_3;
+                auto local_0xac = *(uint32_t*)expr_1;
+                call_0x4971a90(&local_0xa0, local_0x60 - 0x3f8098, prev_0x4_1, 0);
                 v_r14_4 = 4;
                 L_0x298bd6b:
                 v_r14_5 = v_r14_4;
               } else {
                 v_r14_5 = 4;
               }
-              if ((uint8_t)MemoryPrioritization >= 6 && (uint8_t)expr_1 >= (uint8_t)(1 + 2)) {
-                FLog::Log("[FLog::MemoryPrioritization] <<<**** Memory Pressure Changed newLevel: %u lastLevel: %u>>>");
+              if ((uint8_t)MemoryPrioritization >= 6 && (uint8_t)expr_4 >= (uint8_t)(1 + 2)) {
+                L_0x298bd80:
+                local_0x60 = "[FLog::MemoryPrioritization] <<<**** Memory Pressure Changed newLevel: %u lastLevel: %u>>>";
+                auto local_0xb0 = MemoryPrioritization;
+                auto local_0xb4 = *(uint32_t*)expr_2;
+                auto local_0xb8 = *(uint32_t*)expr_3;
+                auto local_0xbc = *(uint32_t*)expr_1;
+                call_0x4971a90(&local_0xb0, local_0x60 - 0x445e0f, v_r14_5, prev_0x4_1);
                 v_r14_6 = v_r14_5;
               } else {
                 v_r14_6 = v_r14_5;
@@ -214,9 +239,8 @@ Operação  : 0x298d223: mov/math reg, [flag] ; fn=0x298d1b0..0x298d362
                 if (prev_0x4_1 + 1 != prev_0x4_1) {
                   v_r14_4 = prev_0x4_1 + 1;
                   v_r14_5 = v_r14_4;
-                  if ((uint8_t)MemoryPrioritization >= 6 && (uint8_t)expr_1 >= (uint8_t)(1 + 2)) {
-                    FLog::Log("[FLog::MemoryPrioritization] <<<**** Memory Pressure Changed newLevel: %u lastLevel: %u>>>");
-                    v_r14_6 = v_r14_5;
+                  if ((uint8_t)MemoryPrioritization >= 6 && (uint8_t)expr_4 >= (uint8_t)(1 + 2)) {
+                    goto L_0x298bd80;
                   } else {
                     v_r14_6 = v_r14_5;
                   }
@@ -248,68 +272,94 @@ Operação  : 0x298d223: mov/math reg, [flag] ; fn=0x298d1b0..0x298d362
           goto L_0x298bdbb;
         }
         this->field_0x198 = v_rbx_2;
+        uint64_t local_0x210;
         this->field_0x1a0 = local_0x210;
-        if ((uint8_t)MemoryPrioritization >= 6 && (uint8_t)expr_1 >= (uint8_t)(1 + 2)) {
-          FLog::Log("[FLog::MemoryPrioritization] freeMB: %6.2f delta: %5.2f pct: %6.2f usedMB: %6.2f delta: %5.2f pc");
+        double fxmm2_8 = (double)(uint64_t)v_rbx_2;
+        double fxmm3_9 = (double)(uint64_t)local_0x210;
+        double fxmm4_10 = (double)(uint64_t)this->field_0x190;
+        double ftmp_1 = fxmm2_8 * 9.53674e-07 * 100.0;
+        double ftmp_2 = fxmm3_9 * 9.53674e-07 * 100.0;
+        uint64_t local_0x20;
+        uint64_t local_0x30;
+        uint64_t local_0x38;
+        uint64_t local_0x28;
+        if ((uint8_t)MemoryPrioritization >= 6 && (uint8_t)expr_4 >= (uint8_t)(1 + 2)) {
+          local_0x60 = "[FLog::MemoryPrioritization] freeMB: %6.2f delta: %5.2f pct: %6.2f usedMB: %6.2f delta: %5.2f pct: %6.2f totalMB: %6.2f level: %d time: %6.1f";
+          local_0x38 = ftmp_2 / (fxmm4_10 * 9.53674e-07);
+          local_0x30 = (fxmm3_9 - fxmm3_9) * 9.53674e-07;
+          local_0x28 = fxmm3_9 * 9.53674e-07;
+          local_0x20 = ftmp_1 / (fxmm4_10 * 9.53674e-07);
+          double ftmp_3 = (0) * 9.53674e-07;
+          auto local_0xc0 = MemoryPrioritization;
+          auto local_0xc4 = *(uint32_t*)expr_2;
+          auto local_0xc8 = *(uint32_t*)expr_3;
+          auto local_0xcc = *(uint32_t*)expr_1;
+          call_0x4971a90(&local_0xc0, local_0x60 - 0x4a002d, fxmm2_8 * 9.53674e-07, ftmp_3, ftmp_1 / (fxmm4_10 * 9.53674e-07), fxmm3_9 * 9.53674e-07, (fxmm3_9 - fxmm3_9) * 9.53674e-07, ftmp_2 / (fxmm4_10 * 9.53674e-07), fxmm4_10 * 9.53674e-07, v_r14_7);
         }
         auto* f_170_2 = this->field_0x170;
         f_170_2->field_0xc0 = 0;
-        auto ret_0xeed0_5 = call_0xeed0(&f_170_2->field_0xd0);
-        auto expr_2 = &this->field_0x170->field_0xd0;
-        if ((uint8_t)ret_0xeed0_5 != 0 && this->field_0x170->field_0xc2 != 0) {
-          if ((uint8_t)MemoryPrioritization >= 6 && (uint8_t)expr_1 >= 1) {
-            uint64_t i_eax = -1;
-            do { // L_0x298bfa0
-              i_eax++;
-            } while ("[FLog::MemoryPrioritization] commitInfo joining thread"[i_eax] != 0); // loop -> L_0x298bfa0
+        auto ret_0xeed0_8 = call_0xeed0(&f_170_2->field_0xd0);
+        if ((uint8_t)ret_0xeed0_8 != 0 && this->field_0x170->field_0xc2 != 0) {
+          if ((uint8_t)MemoryPrioritization >= 6 && (uint8_t)expr_4 >= 1) {
+            local_0x60 = "[FLog::MemoryPrioritization] commitInfo joining thread";
+            local_0x20 = 1;
             FLog::Log("[FLog::MemoryPrioritization] commitInfo joining thread");
           }
-          auto ret_0xca10_6 = call_0xca10();
-          call_0xeee0(expr_2, ret_0xca10_6);
+          auto ret_0xca10_9 = call_0xca10();
+          call_0xeee0(&this->field_0x170->field_0xd0, ret_0xca10_9);
         }
-        auto ret_0xeed0_8 = call_0xeed0(expr_2);
-        if ((uint8_t)ret_0xeed0_8 == 0) {
-          auto ret_0x60a2994_9 = call_0x60a2994(this->field_0x170->field_0xc8);
-          if ((int32_t)ret_0x60a2994_9 >= MemoryPrioritizationCommitPressureInterval) {
-            this->field_0x170->field_0xc8 = 0;
+        auto ret_0xeed0_11 = call_0xeed0(&this->field_0x170->field_0xd0);
+        if ((uint8_t)ret_0xeed0_11 == 0) {
+          auto ret_0x60a2994_12 = call_0x60a2994(this->field_0x170->field_0xc8);
+          if ((int32_t)ret_0x60a2994_12 >= MemoryPrioritizationCommitPressureInterval) {
+            auto* f_170_3 = this->field_0x170;
+            f_170_3->field_0xc8 = 0;
+            atomic_exchange(&f_170_3->field_0xc2, 0);
             call_0x2e13190();
             auto local_0x68 = this->field_0x170;
-            call_0x298d1b0(&local_0x170, &local_0x68);
-            call_0xf010(&local_0x140, "oritization] CommitTotalBytes = {}, CommitLimitBytes = {}", &local_0x160, 65536);
-            call_0xf0a0(expr_2, &local_0x140, param_3, param_4);
+            auto local_0x78 = 1;
+            uint64_t local_0x170;
+            uint64_t local_0x168;
+            local_0x168 = call_0x298d1b0(&local_0x170, &local_0x68);
+            local_0x38 = 0;
+            local_0x30 = 1;
+            local_0x28 = global_0x84bcd78;
+            local_0x20 = 1;
+            auto local_0x160 = &sym_0x298d1b0;
+            uint64_t local_0x140;
+            call_0xf010(&local_0x140, "oritization] CommitTotalBytes = {}, CommitLimitBytes = {}", &local_0x160, 65536, 1, global_0x84bcd78, 1, 0);
+            call_0xf0a0(&this->field_0x170->field_0xd0, &local_0x140);
             call_0xed90(&local_0x140);
             if (local_0x160 != 0) {
               if (local_0x160 == &sym_0x298d1b0) {
                 call_0x298d1b0(local_0x168, local_0x168);
               } else {
-                local_0x168->vfunc(local_0x168, local_0x168);
+                (*local_0x160)(local_0x168, local_0x168);
               }
             }
           }
         }
-        auto* f_170_3 = this->field_0x170;
-        f_170_3->field_0xc0 = f_170_3->field_0xc1;
-        if (v_r14_7 != f_170_3->field_0x4 || f_170_3->field_0xc1 != 0) {
-          auto* f_170_3_98 = f_170_3->field_0x98;
-          call_0x2957730(f_170_3_98 != 0 ? f_170_3_98->field_0x18 : 0, 1);
-          auto* f_170_4 = this->field_0x170;
-          f_170_4->field_0x4 = f_170_4->field_0xc0 != 0 ? 3 : v_r14_7;
-          if (f_170_4->field_0x0 > 0) {
+        auto* f_170_4 = this->field_0x170;
+        f_170_4->field_0xc0 = f_170_4->field_0xc1;
+        if (v_r14_7 != f_170_4->field_0x4 || f_170_4->field_0xc1 != 0) {
+          auto* f_170_4_98 = f_170_4->field_0x98;
+          call_0x2957730(f_170_4_98 != 0 ? f_170_4_98->field_0x18 : 0, 1);
+          this->field_0x170->field_0x4 = this->field_0x170->field_0xc0 != 0 ? 3 : v_r14_7;
+          if (this->field_0x170->field_0x0 > 0) {
             int32_t i_edi = 0;
             do { // L_0x298c160
-              f_170_4->vfunc_0x0[((i_edi + 2) * 2) * 8](f_170_4->field_0x18[(i_edi + i_edi) * 8], f_170_4->field_0x4);
+              (*this->field_0x170->field_0x0[((i_edi + 2) + (i_edi + 2)) * 8])(this->field_0x170->field_0x18[(i_edi + i_edi) * 8], this->field_0x170->field_0x4);
               i_edi++;
             } while (i_edi < this->field_0x170->field_0x0); // loop -> L_0x298c160
           }
         }
-        v_rbx_11 = local_0x70;
-        v_rdi_12 = 1;
-        stk_13 = local_0x70;
+        v_rbx_12 = local_0x70;
+        v_rdi_13 = 1;
       }
-      if (v_rbx_11->field_0x0 != 3 || atomic_cas(&stk_13->field_0x0, 3, 1) != 0) {
-        call_0xdac0(stk_13);
+      if (v_rbx_12->field_0x0 != 3 || !atomic_cas(&local_0x70->field_0x0, 3, 1)) {
+        call_0xdac0(local_0x70);
       }
-      return v_rdi_12;
+      return v_rdi_13;
     }
   
   === [Decompilacao C++ Cross-Engine (WebClient.wasm)] ===

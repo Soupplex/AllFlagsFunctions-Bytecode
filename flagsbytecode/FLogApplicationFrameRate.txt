@@ -10,6 +10,7 @@ Operação  : 0x29aad93: mov/math reg, [flag] ; fn=0x29aac80..0x29aaf98
     Padrão  : FLogApplicationFrameRate = 0 (default) [log, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : (uint8_t)ApplicationFrameRate >= 6 && (uint8_t)((uint64_t)ApplicationFrameRate >> 8) >= 4
+    Fórmula : "[FLog::ApplicationFrameRate] {} {} target: {:.2f} ms (user cap={} FPS, requested={:.2f} ms, display cap={} FPS); {} scheduler throttling for {} (VR active={}, VR throttling={}, forced presentation pacing={}, physics baseline={})"
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x29ab0d1 (in fn_0x29ab020): call 0x29aac80  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
@@ -28,8 +29,9 @@ Operação  : 0x29aad93: mov/math reg, [flag] ; fn=0x29aac80..0x29aaf98
     
     // Flag defaults: ApplicationFrameRate = 0
     void RBX::ApplicationFrame::func_0x29aac80(RBX::ApplicationFrame* this, int64_t param_2) {
+      uint64_t local_0x150;
       call_0x2e13a20(&local_0x150, this, 0);
-      auto ret_0x29aabf0_2 = call_0x29aabf0(this);
+      call_0x29aabf0(this);
       auto ret_0x29aabf0_3 = call_0x29aabf0(this);
       uint8_t v_dil_1;
       if (this->field_0x19 != 0) {
@@ -41,23 +43,22 @@ Operação  : 0x29aad93: mov/math reg, [flag] ; fn=0x29aac80..0x29aaf98
       } else {
         v_dil_1 = this->field_0x1b;
       }
-      void* sel_rcx_1 = this->field_0x10 <= 0.0 ? "scheduler default" : "requested target";
-      void* sel_rax_2 = this->field_0x8 == 0 ? sel_rcx_1 : "user cap";
-      void* sel_r10_3 = ret_0x29aabf0_3 <= ret_0x29aabf0_2 ? sel_rax_2 : "display cap";
       uint8_t v_sil_3 = this->field_0x19;
       if ((uint8_t)ApplicationFrameRate >= 6 && (uint8_t)((uint64_t)ApplicationFrameRate >> 8) >= 4) {
-        void* sel_r8_5 = this->field_0x19 != 0 ? "Preserving VR scheduler interval; resolved" : "Applying";
-        auto prev_0x19_1 = this->field_0x19;
-        FLog::Log("[FLog::ApplicationFrameRate] {} {} target: {:.2f} ms (user cap={} FPS, requested={:.2f} ms, disp", sel_r8_5, sel_r10_3, ret_0x29aabf0_3);
-        v_sil_3 = prev_0x19_1;
+        void* tmp_1 = "[FLog::ApplicationFrameRate] {} {} target: {:.2f} ms (user cap={} FPS, requested={:.2f} ms, display cap={} FPS); {} scheduler throttling for {} (VR active={}, VR throttling={}, forced presentation pacing={}, physics baseline={})";
+        uint64_t local_0x40;
+        local_0x40 = 0x7777cc2a2acc;
+        auto prev_0x19_2 = this->field_0x19;
+        FLog::Log("[FLog::ApplicationFrameRate] {} {} target: {:.2f} ms (user cap={} FPS, requested={:.2f} ms, display cap={} FPS); {} scheduler throttling for {} (VR active={}, VR throttling={}, forced presentation pacing={}, physics baseline={})");
+        v_sil_3 = prev_0x19_2;
       }
-      if (param_2 != 0 && v_sil_3 == 0) {
+      if ((uint8_t)param_2 != 0 && v_sil_3 == 0) {
         call_0x2937010(ret_0x29aabf0_3 * 0.001);
       }
       call_0x29379a0(v_dil_1);
-      if ((local_0x150 & 0x1) != 0) {
-        if ((local_0x150 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x150 & 0xfffffffe)->field_0x0, (local_0x150 & 0xfffffffe)->field_0x0, 1) != 0) {
-          call_0xdac0(local_0x150 & 0xfffffffe);
+      if (((uint8_t)local_0x150 & 0x1) != 0) {
+        if ((local_0x150 & 0xfffffffffffffffeULL)->field_0x0 != 3 || !atomic_cas(&(local_0x150 & 0xfffffffffffffffeULL)->field_0x0, (local_0x150 & 0xfffffffffffffffeULL)->field_0x0, 1)) {
+          call_0xdac0(local_0x150 & 0xfffffffffffffffeULL);
         }
       }
     }
@@ -147,7 +148,7 @@ Operação  : 0x29aad93: mov/math reg, [flag] ; fn=0x29aac80..0x29aaf98
     0x29aada2 | 48 c1 e8 08              | shr rax, 0x8
     0x29aada6 | 3c 04                    | cmp al, 0x4
     0x29aada8 | 0f 82 64 01 00 00        | jb 0x29aaf12
-    0x29aadae | 48 8d 05 c9 6e b8 04     | lea rax, [rip + 0x4b86ec9] ; "[FLog::ApplicationFrameRate] {} {} target: {:.2f} ms (user cap={} FPS, requested={:.2f} ms, disp"
+    0x29aadae | 48 8d 05 c9 6e b8 04     | lea rax, [rip + 0x4b86ec9] ; "[FLog::ApplicationFrameRate] {} {} target: {:.2f} ms (user cap={} FPS, requested={:.2f} ms, display cap={} FPS); {} scheduler throttling for {} (VR active={}, VR throttling={}, forced presentation pacing={}, physics baseline={})"
     0x29aadb5 | 48 89 44 24 40           | mov qword ptr [rsp + 0x40], rax
     0x29aadba | 48 8b 4c 24 40           | mov rcx, qword ptr [rsp + 0x40]
     0x29aadbf | 48 81 c1 32 b0 dd ff     | add rcx, 0xffddb032
@@ -271,7 +272,7 @@ Operação  : 0x29aad93: mov/math reg, [flag] ; fn=0x29aac80..0x29aaf98
     };
     
     double SubObj_0x29aabf0::func_0x29aabf0(SubObj_0x29aabf0* this) {
-      auto ret_0x2936b10_1 = call_0x2936b10(this);
+      auto ret_0x2936b10_1 = call_0x2936b10();
       if (this->field_0x8 != 0) {
         double ftmp_2 = 1000.0 / (double)this->field_0x8;
         return ftmp_2;
@@ -334,34 +335,38 @@ Operação  : 0x29aad93: mov/math reg, [flag] ; fn=0x29aac80..0x29aaf98
     0x29aac7f | c3                       | ret
   
   === [Sub-Rotina Chamada: 0x2937010..0x2937133 via call @0x29aaf29 (Direct Engine Sub-Call)] ===
-    void SubObj_0x2937010::func_0x2937010(SubObj_0x2937010* this) {
-      if (global_0x8da5d90 > rbp->field_0x58->field_0x0->field_0x0[40]) {
+    auto SubObj_0x2937010::func_0x2937010(SubObj_0x2937010* this) {
+      uint64_t local_0x40;
+      if (global_0x8da5d90 > __readgsqword(0x58)->field_0x0->field_0x0[40]) {
         do { // L_0x29370e5
           call_0x12e0(&sym_0x8da5d90);
           if (global_0x8da5d90 != -1) break;
           auto ret_0x4956040_2 = call_0x4956040(552);
           if (ret_0x4956040_2 != 0) {
+            local_0x40 = ret_0x4956040_2;
             global_0x8da5d98 = call_0x2931010(ret_0x4956040_2);
             call_0x14f0(&sym_0x8da5d90);
             break;
           } else {
+            uint64_t local_0x28;
             call_0x6ca7d0(&local_0x28);
             call_0x5e066f0(&local_0x28, &sym_0x80cbbc0);
           }
         } while (true); // loop -> L_0x29370e5
       }
-      call_0x2e13a20(&local_0x40, &global_0x8da5d98->field_0x90, 0);
+      call_0x2e13a20(&local_0x40, global_0x8da5d98 + 0x90, 0);
       if (global_0x8da5d98->field_0xb9 != 0) {
         global_0x8da5d98->field_0xc0 = std::bit_cast<double>(this);
       } else {
         global_0x8da5d98->field_0xb0 = std::bit_cast<double>(this);
       }
-      if ((local_0x40 & 0x1) != 0) {
-        if ((local_0x40 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x40 & 0xfffffffe)->field_0x0, (local_0x40 & 0xfffffffe)->field_0x0, 1) != 0) {
-          call_0xdac0(local_0x40 & 0xfffffffe);
-          return;
+      if (((uint8_t)local_0x40 & 0x1) != 0) {
+        if ((local_0x40 & 0xfffffffffffffffeULL)->field_0x0 != 3 || !atomic_cas(&(local_0x40 & 0xfffffffffffffffeULL)->field_0x0, (local_0x40 & 0xfffffffffffffffeULL)->field_0x0, 1)) {
+          return call_0xdac0(local_0x40 & 0xfffffffffffffffeULL);
         }
+        return (local_0x40 & 0xfffffffffffffffeULL)->field_0x0;
       }
+      return (uint8_t)local_0x40 & 0x1;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x2937010..0x2937133)] ===
@@ -441,15 +446,23 @@ Operação  : 0x29aad93: mov/math reg, [flag] ; fn=0x29aac80..0x29aaf98
   
   === [Sub-Rotina Chamada: 0x29379a0..0x2937a45 via call @0x29aaf32 (Direct Engine Sub-Call)] ===
     void SubObj_0x29379a0::func_0x29379a0(SubObj_0x29379a0* this) {
-      if (global_0x8da5d90 > rbp->field_0x58->field_0x0->field_0x0[40]) {
+      if (global_0x8da5d90 > __readgsqword(0x58)->field_0x0->field_0x0[40]) {
         call_0x12e0(&sym_0x8da5d90);
         if (global_0x8da5d90 == -1) {
           auto ret_0x4956040_2 = call_0x4956040(552);
-          global_0x8da5d98 = call_0x2931010(ret_0x4956040_2);
-          call_0x14f0(&sym_0x8da5d90);
-          return;
+          if (ret_0x4956040_2 != 0) {
+            global_0x8da5d98 = call_0x2931010(ret_0x4956040_2);
+            call_0x14f0(&sym_0x8da5d90);
+            atomic_exchange(&global_0x8da5d98->field_0x4, (uint8_t)this);
+            return;
+          }
+          uint64_t local_0x20;
+          call_0x6ca7d0(&local_0x20);
+          call_0x5e066f0(&local_0x20, &sym_0x80cbbc0);
+          return; // noreturn
         }
       }
+      atomic_exchange(&global_0x8da5d98->field_0x4, (uint8_t)this);
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x29379a0..0x2937a45)] ===
@@ -502,24 +515,25 @@ Operação  : 0x29aad93: mov/math reg, [flag] ; fn=0x29aac80..0x29aaf98
       /* +0x1a */ uint8_t field_0x1a;
     };
     
-    void RBX::ApplicationFrame::func_0x29ab020(RBX::ApplicationFrame* this, int64_t param_2, void* param_3) {
+    void RBX::ApplicationFrame::func_0x29ab020(RBX::ApplicationFrame* this, int64_t param_2, int64_t param_3) {
+      uint64_t local_0x28;
       call_0x2e13a20(&local_0x28, this, 0);
-      if (this->field_0x19 == param_2 && this->field_0x1a == param_3) {
-        if ((local_0x28 & 0x1) != 0) {
-          if ((local_0x28 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x28 & 0xfffffffe)->field_0x0, (local_0x28 & 0xfffffffe)->field_0x0, 1) != 0) {
-            call_0xdac0(local_0x28 & 0xfffffffe);
+      if (this->field_0x19 == (uint8_t)param_2 && this->field_0x1a == (uint8_t)param_3) {
+        if (((uint8_t)local_0x28 & 0x1) != 0) {
+          if ((local_0x28 & 0xfffffffffffffffeULL)->field_0x0 != 3 || !atomic_cas(&(local_0x28 & 0xfffffffffffffffeULL)->field_0x0, (local_0x28 & 0xfffffffffffffffeULL)->field_0x0, 1)) {
+            call_0xdac0(local_0x28 & 0xfffffffffffffffeULL);
           }
         }
         return;
       }
-      this->field_0x19 = param_2;
-      this->field_0x1a = param_3;
-      if ((local_0x28 & 0x1) != 0) {
-        if ((local_0x28 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x28 & 0xfffffffe)->field_0x0, (local_0x28 & 0xfffffffe)->field_0x0, 1) != 0) {
-          call_0xdac0(local_0x28 & 0xfffffffe);
+      this->field_0x19 = (uint8_t)param_2;
+      this->field_0x1a = (uint8_t)param_3;
+      if (((uint8_t)local_0x28 & 0x1) != 0) {
+        if ((local_0x28 & 0xfffffffffffffffeULL)->field_0x0 != 3 || !atomic_cas(&(local_0x28 & 0xfffffffffffffffeULL)->field_0x0, (local_0x28 & 0xfffffffffffffffeULL)->field_0x0, 1)) {
+          call_0xdac0(local_0x28 & 0xfffffffffffffffeULL);
         }
       }
-      call_0x29aac80(this, param_2 ^ 0x1);
+      call_0x29aac80(this, (uint8_t)param_2 ^ 0x1);
     }
 
 [Strings .rdata na função]

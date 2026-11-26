@@ -5,11 +5,11 @@ Insn RVA  : 0x306ae9e
 Operação  : 0x306ae9e: cmp byte [flag], imm8 ; fn=0x306ae90..0x306aeec
 
 [Disassembly .text]
-  === [Resumo do Efeito da FFlag no Engine (RBX::EnablePlayer)] ===
-    Classe  : RBX::EnablePlayer (Inferido)
+  === [Resumo do Efeito da FFlag no Engine (RBX::EngineSubsystem)] ===
+    Classe  : RBX::EngineSubsystem (Inferido)
     Padrão  : FFlagEnablePlayerDeviceTrust = false (default) [bool, mode=1]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
-    Fórmula : !EnablePlayerDeviceTrust
+    Fórmula : EnablePlayerDeviceTrust
     Wasm    : .data=0x3e048 [via DFFlagPlayerDeviceTrustSessionExclusion]
     [Wasm]  : PlayerDeviceTrustSessionExclusion
     [XREF #2 @0x306af75] Classe  : RBX::IntegrityService (RTTI Resolvido)
@@ -17,8 +17,20 @@ Operação  : 0x306ae9e: cmp byte [flag], imm8 ; fn=0x306ae90..0x306aeec
   
   === [Decompilacao C++ da Funcao 0x306ae90..0x306aeec] ===
     // Flag defaults: EnablePlayerDeviceTrust = false
-    void RBX::EnablePlayer::func_0x306ae90(RBX::EnablePlayer* this) {
-      call_0x4062490(this);
+    void RBX::EngineSubsystem::func_0x306ae90(RBX::EngineSubsystem* this) {
+      auto ret_0x4062490_1 = call_0x4062490(this);
+      if (EnablePlayerDeviceTrust) {
+        if (ret_0x4062490_1 != 0 && ret_0x4062490_1->field_0x970 == 2) {
+          return;
+        }
+        call_0x100eec0(&this->field_0xa8);
+        call_0x4973aa0("EvaluatePlayerDeviceTrust can only be assigned on the server");
+        return; // noreturn
+      } else {
+        call_0x100eec0(&this->field_0xa8);
+        call_0x4973aa0("EvaluatePlayerDeviceTrust is not enabled");
+        return; // noreturn
+      }
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -48,7 +60,7 @@ Operação  : 0x306ae9e: cmp byte [flag], imm8 ; fn=0x306ae90..0x306aeec
   
   === [Decompilacao C++ do XREF Runtime #2: 0x306aef0..0x306affe (insn @0x306af75: cmp [flag], reg)] ===
     // Flag defaults: EnablePlayerDeviceTrust = false
-    void RBX::IntegrityService::func_0x306aef0(RBX::IntegrityService* this, int64_t param_2, void* param_3) {
+    void RBX::IntegrityService::func_0x306aef0(RBX::IntegrityService* this, int64_t param_2, int64_t param_3) {
       call_0x4968fd0(&this->field_0xf8);
       call_0x4968fd0(&this->field_0x100);
       call_0x306d7a0(&this->field_0xd0);
@@ -57,11 +69,19 @@ Operação  : 0x306ae9e: cmp byte [flag], imm8 ; fn=0x306ae90..0x306aeec
       if (ret_0x15c2680_4->field_0x0->field_0x10 != 0) {
         (*global_0x80f4bf8)(this, param_2, param_3);
       }
-      call_0x4062490(this);
+      if (!EnablePlayerDeviceTrust) goto L_0x306b1e8; // [out of decoded window]
+      auto ret_0x4062490_6 = call_0x4062490(this);
+      if (param_3 == 0) goto L_0x306b1e8; // [out of decoded window]
+      if (ret_0x4062490_6 == 0) goto L_0x306b1e8; // [out of decoded window]
+      if (ret_0x4062490_6->field_0x970 != 2) goto L_0x306b1e8; // [out of decoded window]
       auto ret_0xe10d80_7 = call_0xe10d80(param_3);
-      call_0x787180(&local_0x60, this);
+      uint64_t local_0x60;
+      auto ret_0x787180_8 = call_0x787180(&local_0x60, this);
+      ret_0x787180_8->field_0x0 = 0;
+      ret_0x787180_8->field_0x8 = 0;
       call_0x4954e70(global_0x84cf26c);
-      call_0x496a6d0(&ret_0xe10d80_7->field_0x7e0);
+      call_0x496a6d0(ret_0xe10d80_7 + 0x7e0);
+      return; // noreturn
     }
   
   === [Instrucoes x86-64 do XREF Runtime #2 (0x306aef0..0x306affe)] ===

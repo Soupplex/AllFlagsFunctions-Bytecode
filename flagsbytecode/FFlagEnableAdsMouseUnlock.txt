@@ -5,8 +5,8 @@ Insn RVA  : 0xfd8678
 Operação  : 0xfd8678: cmp byte [flag], imm8 ; fn=0xfd8540..0xfd86f5
 
 [Disassembly .text]
-  === [Resumo do Efeito da FFlag no Engine (RBX::EnableAds)] ===
-    Classe  : RBX::EnableAds (Inferido)
+  === [Resumo do Efeito da FFlag no Engine (RBX::EngineSubsystem)] ===
+    Classe  : RBX::EngineSubsystem (Inferido)
     Padrão  : FFlagEnableAdsMouseUnlock = true (default) [bool, mode=1]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
     Fórmula : EnableAdsMouseUnlock
@@ -14,18 +14,18 @@ Operação  : 0xfd8678: cmp byte [flag], imm8 ; fn=0xfd8540..0xfd86f5
     Wasm    : .data=0x1221c80 [via FFlagCreateWithEngineContext_AdService]
     [Wasm]  : w2c_WebClient_f167787(19012868, 19012872, 19012876, 3225580, &CreateWithEngineContext_AdService)
     [Wasm]  : w2c_WebClient_f147406(local_2, &CreateWithEngineContext_AdService)
-    [XREF #2 @0xfd8826] Classe  : RBX::EnableAds (Inferido)
+    [XREF #2 @0xfd8826] Classe  : RBX::EngineSubsystem (Inferido)
     [XREF #2 @0xfd8826] Fórmula : EnableAdsMouseUnlock
     [XREF #2 @0xfd8826] Altera  : this->field_0x320, this->field_0x328
   
   === [Decompilacao C++ da Funcao 0xfd8540..0xfd86f5] ===
-    struct RBX::EnableAds {
-      /* +0x320 */ void*   field_0x320;
+    struct RBX::EngineSubsystem {
+      /* +0x320 */ uint64_t field_0x320;
       /* +0x328 */ void*   field_0x328;
     };
     
     // Flag defaults: EnableAdsMouseUnlock = true
-    bool RBX::EnableAds::func_0xfd8540(RBX::EnableAds* this, int64_t param_2) {
+    bool RBX::EngineSubsystem::func_0xfd8540(RBX::EngineSubsystem* this, void* param_2) {
       int32_t v_rbx_8 = 0;
       void* v_r8_9;
       void* v_r15_10;
@@ -37,17 +37,29 @@ Operação  : 0xfd8678: cmp byte [flag], imm8 ; fn=0xfd8540..0xfd86f5
         void* v_r10_2 = 0;
         void* v_r15_3 = 0;
         if (param_2->field_0x8 != 0) {
-          while (param_2->field_0x8->field_0x8 != 0) {
-            atomic_try_incref(&param_2->field_0x8->field_0x8);
-            if (atomic_cas(&param_2->field_0x8->field_0x8, param_2->field_0x8->field_0x8, param_2->field_0x8->field_0x8 + 1) == 0) break;
+          if (param_2->field_0x8->field_0x8 != 0) {
+            int32_t i_eax = param_2->field_0x8->field_0x8;
+            do { // L_0xfd8590
+              if (atomic_cas(&param_2->field_0x8->field_0x8, i_eax, i_eax + 1)) {
+                v_r10_2 = param_2->field_0x0;
+                v_r15_3 = param_2->field_0x8;
+                break;
+              }
+            } while (i_eax != 0); // loop -> L_0xfd8590
           }
         }
         void* v_r8_5 = 0;
         void* v_r9_6 = 0;
         if (this->field_0x328 != 0) {
-          while (this->field_0x328->field_0x8 != 0) {
-            atomic_try_incref(&this->field_0x328->field_0x8);
-            if (atomic_cas(&this->field_0x328->field_0x8, this->field_0x328->field_0x8, this->field_0x328->field_0x8 + 1) == 0) break;
+          int32_t i_eax_2 = this->field_0x328->field_0x8;
+          if (this->field_0x328->field_0x8 != 0) {
+            do { // L_0xfd85c0
+              if (atomic_cas(&this->field_0x328->field_0x8, i_eax_2, i_eax_2 + 1)) {
+                v_r8_5 = this->field_0x328;
+                v_r9_6 = this->field_0x320;
+                break;
+              }
+            } while (i_eax_2 != 0); // loop -> L_0xfd85c0
           }
         }
         if (v_r9_6 != v_r10_2) {
@@ -86,26 +98,37 @@ Operação  : 0xfd8678: cmp byte [flag], imm8 ; fn=0xfd8540..0xfd86f5
       }
       if (v_r14b_14 != 0) {
         void* v_rdx_20 = 0;
+        void* v_rbp_21 = 0;
         if (param_2->field_0x8 != 0) {
           param_2->field_0x8->field_0xc++;
           v_rdx_20 = param_2->field_0x8;
+          v_rbp_21 = param_2->field_0x0;
         }
-        this->field_0x320 = 0;
+        this->field_0x320 = v_rbp_21;
         void* prev_0x328_1 = this->field_0x328;
         this->field_0x328 = v_rdx_20;
-        if (prev_0x328_1 != 0 && atomic_fetch_sub(&this->field_0x328->field_0xc, 1) == 1) {
-          this->field_0x328->vfunc_0x8();
+        if (prev_0x328_1 != 0) {
+          int32_t atomic_5 = atomic_fetch_sub(&this->field_0x328->field_0xc, 1);
+          if (atomic_5 == 1) {
+            this->field_0x328->vfunc_0x8();
+          }
         }
         if (EnableAdsMouseUnlock) {
           call_0xfd7f90(this);
         }
-        if (param_2->field_0x8 != 0 && atomic_fetch_sub(&param_2->field_0x8->field_0xc, 1) == 1) {
-          param_2->field_0x8->vfunc_0x8();
+        if (param_2->field_0x8 != 0) {
+          int32_t atomic_8 = atomic_fetch_sub(&param_2->field_0x8->field_0xc, 1);
+          if (atomic_8 == 1) {
+            param_2->field_0x8->vfunc_0x8();
+          }
         }
         return true;
       }
-      if (param_2->field_0x8 != 0 && atomic_fetch_sub(&param_2->field_0x8->field_0xc, 1) == 1) {
-        param_2->field_0x8->vfunc_0x8();
+      if (param_2->field_0x8 != 0) {
+        int32_t atomic_3 = atomic_fetch_sub(&param_2->field_0x8->field_0xc, 1);
+        if (atomic_3 == 1) {
+          param_2->field_0x8->vfunc_0x8();
+        }
       }
       return false;
     }
@@ -266,80 +289,101 @@ Operação  : 0xfd8678: cmp byte [flag], imm8 ; fn=0xfd8540..0xfd86f5
     0xfd86f4 | c3                       | ret
   
   === [Decompilacao C++ do XREF Runtime #2: 0xfd8700..0xfd886b (insn @0xfd8826: cmp byte [flag], imm8)] ===
-    struct RBX::EnableAds {
-      /* +0x320 */ void*   field_0x320;
+    struct RBX::EngineSubsystem {
+      /* +0x320 */ uint64_t field_0x320;
       /* +0x328 */ void*   field_0x328;
     };
     
     // Flag defaults: EnableAdsMouseUnlock = true
-    void RBX::EnableAds::func_0xfd8700(RBX::EnableAds* this, int64_t param_2) {
+    void RBX::EngineSubsystem::func_0xfd8700(RBX::EngineSubsystem* this, void* param_2) {
       int32_t v_rbx_5 = 0;
       void* v_r8_6;
       void* v_r14_7;
       int32_t v_rbx_8;
-      void* v_r8_9;
-      void* v_r14_10;
+      uint8_t v_bpl_9;
+      void* v_r8_10;
+      void* v_r14_11;
       if (this->field_0x328 != 0 && this->field_0x328->field_0x8 != 0) {
         void* v_r10_1 = 0;
         void* v_r14_2 = 0;
         if (param_2->field_0x8 != 0 && param_2->field_0x8->field_0x8 != 0) {
+          int32_t i_eax = param_2->field_0x8->field_0x8;
           do { // L_0xfd8750
-            atomic_try_incref(&param_2->field_0x8->field_0x8);
-            if (atomic_cas(&param_2->field_0x8->field_0x8, param_2->field_0x8->field_0x8, param_2->field_0x8->field_0x8 + 1) == 0) break;
-          } while (param_2->field_0x8->field_0x8 != 0); // loop -> L_0xfd8750
+            if (atomic_cas(&param_2->field_0x8->field_0x8, i_eax, i_eax + 1)) {
+              v_r10_1 = param_2->field_0x0;
+              v_r14_2 = param_2->field_0x8;
+              break;
+            }
+          } while (i_eax != 0); // loop -> L_0xfd8750
         }
         void* v_r8_3 = 0;
         void* v_r9_4 = 0;
-        if (this->field_0x328 != 0 && this->field_0x328->field_0x8 != 0) {
-          do { // L_0xfd8780
-            atomic_try_incref(&this->field_0x328->field_0x8);
-            if (atomic_cas(&this->field_0x328->field_0x8, this->field_0x328->field_0x8, this->field_0x328->field_0x8 + 1) == 0) break;
-          } while (this->field_0x328->field_0x8 != 0); // loop -> L_0xfd8780
+        if (this->field_0x328 != 0) {
+          int32_t i_eax_2 = this->field_0x328->field_0x8;
+          if (this->field_0x328->field_0x8 != 0) {
+            do { // L_0xfd8780
+              if (atomic_cas(&this->field_0x328->field_0x8, i_eax_2, i_eax_2 + 1)) {
+                v_r8_3 = this->field_0x328;
+                v_r9_4 = this->field_0x320;
+                break;
+              }
+            } while (i_eax_2 != 0); // loop -> L_0xfd8780
+          }
         }
         if (v_r9_4 == v_r10_1) {
           v_rbx_8 = 3;
-          v_r8_9 = v_r8_3;
-          v_r14_10 = v_r14_2;
+          v_bpl_9 = 1;
+          v_r8_10 = v_r8_3;
+          v_r14_11 = v_r14_2;
         } else {
           v_rbx_5 = 3;
           v_r8_6 = v_r8_3;
           v_r14_7 = v_r14_2;
           v_rbx_8 = v_rbx_5;
-          v_r8_9 = v_r8_6;
-          v_r14_10 = v_r14_7;
+          v_bpl_9 = 0;
+          v_r8_10 = v_r8_6;
+          v_r14_11 = v_r14_7;
         }
       } else {
         v_r8_6 = param_2;
         v_r14_7 = param_2;
         v_rbx_8 = v_rbx_5;
-        v_r8_9 = v_r8_6;
-        v_r14_10 = v_r14_7;
+        v_bpl_9 = 0;
+        v_r8_10 = v_r8_6;
+        v_r14_11 = v_r14_7;
       }
-      int32_t v_rbx_11 = v_rbx_8;
+      int32_t v_rbx_12 = v_rbx_8;
       if (((uint8_t)v_rbx_8 & 0x2) != 0) {
-        if (v_r8_9 != 0) {
-          call_0x6daf40(v_r8_9);
-          v_rbx_11 = v_rbx_8 & 0xfffffffd;
+        if (v_r8_10 != 0) {
+          call_0x6daf40(v_r8_10);
+          v_rbx_12 = v_rbx_8 & 0xfffffffd;
         } else {
-          v_rbx_11 = v_rbx_8 & 0xfffffffd;
+          v_rbx_12 = v_rbx_8 & 0xfffffffd;
         }
       }
-      if (((uint8_t)v_rbx_11 & 0x1) != 0 && v_r14_10 != 0) {
-        call_0x6daf40(v_r14_10);
+      if (((uint8_t)v_rbx_12 & 0x1) != 0 && v_r14_11 != 0) {
+        call_0x6daf40(v_r14_11);
       }
-      if (1) {
+      if (v_bpl_9 != 0) {
         this->field_0x320 = 0;
         void* prev_0x328_1 = this->field_0x328;
         this->field_0x328 = 0;
-        if (prev_0x328_1 != 0 && atomic_fetch_sub(&this->field_0x328->field_0xc, 1) == 1) {
-          this->field_0x328->vfunc_0x8();
+        if (prev_0x328_1 != 0) {
+          int32_t atomic_3 = atomic_fetch_sub(&this->field_0x328->field_0xc, 1);
+          if (atomic_3 == 1) {
+            this->field_0x328->vfunc_0x8();
+          }
         }
         if (EnableAdsMouseUnlock) {
           call_0xfd84b0(this);
         }
       }
-      if (param_2->field_0x8 != 0 && atomic_fetch_sub(&param_2->field_0x8->field_0xc, 1) == 1) {
-        param_2->field_0x8->vfunc_0x8();
+      if (param_2->field_0x8 != 0) {
+        int32_t atomic_6 = atomic_fetch_sub(&param_2->field_0x8->field_0xc, 1);
+        if (atomic_6 == 1) {
+          param_2->field_0x8->vfunc_0x8();
+          return;
+        }
       }
     }
   
@@ -475,7 +519,7 @@ Operação  : 0xfd8678: cmp byte [flag], imm8 ; fn=0xfd8540..0xfd86f5
 
 [Co-Flags na mesma função]
   * FFlagVideoCaptureEncoderOpenHangDetection = true (default)
-  * DFIntHumanoidAssetSwapperOnApplyNewMakeupAssetsLoggingHundredthsPercentage = 1000 (default)
+  * DFIntHumanoidAssetSwapperOnApplyNewMakeupAssetsLoggingHundredthsPercentage = 0 (default)
   * DFFlagRemoveImmersiveAdHealthPoints = false (default) [vizinha em .data]
   * DFFlagEnableImmersiveAdHealthCounters = false (default) [vizinha em .data]
   * DFIntEstimatedGmaSafeVideoMemoryMB = 150 (default) [vizinha em .data]

@@ -5,31 +5,40 @@ Insn RVA  : 0x4cb894f
 Operação  : 0x4cb894f: cmp byte [flag], imm8 ; fn=0x4cb8900..0x4cb89a5
 
 [Disassembly .text]
-  === [Resumo do Efeito da FFlag no Engine (RBX::AddTeleport)] ===
-    Classe  : RBX::AddTeleport (Inferido)
+  === [Resumo do Efeito da FFlag no Engine (RBX::EngineSubsystem)] ===
+    Classe  : RBX::EngineSubsystem (Inferido)
     Padrão  : DFFlagAddTeleportFailedToDurationLogger = true (default) [bool, mode=2]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
     Fórmula : AddTeleportFailedToDurationLogger
   
   === [Decompilacao C++ da Funcao 0x4cb8900..0x4cb89a5] ===
-    struct RBX::AddTeleport {
+    struct RBX::EngineSubsystem {
       /* +0x30 */ void*   field_0x30;
       /* +0x38 */ void*   field_0x38;
     };
     
     // Flag defaults: AddTeleportFailedToDurationLogger = true
-    void RBX::AddTeleport::func_0x4cb8900(RBX::AddTeleport* this) {
-      auto* f_38 = this->field_0x38;
-      if (f_38 != 0 && f_38->field_0x8 != 0) {
+    void RBX::EngineSubsystem::func_0x4cb8900(RBX::EngineSubsystem* this) {
+      if (this->field_0x38 != 0 && this->field_0x38->field_0x8 != 0) {
+        int32_t i_eax = this->field_0x38->field_0x8;
         do { // L_0x4cb8920
-          atomic_try_incref(&f_38->field_0x8);
-          auto* f_38_2 = this->field_0x38;
-          if (atomic_cas(&f_38_2->field_0x8, f_38_2->field_0x8, f_38_2->field_0x8 + 1) == 0) break;
-        } while (this->field_0x38->field_0x8 != 0); // loop -> L_0x4cb8920
+          if (atomic_cas(&this->field_0x38->field_0x8, i_eax, i_eax + 1)) {
+            auto* f_30 = this->field_0x30;
+            if (f_30 != 0) {
+              atomic_exchange(&f_30->field_0x5b8, 0);
+            }
+            if (this->field_0x38 != 0) {
+              call_0x6daf40(this->field_0x38);
+            }
+            break;
+          }
+        } while (i_eax != 0); // loop -> L_0x4cb8920
       }
       if (AddTeleportFailedToDurationLogger) {
-        auto ret_0x445b800_2 = call_0x445b800(&local_0x30);
-        call_0x4459660(ret_0x445b800_2->field_0x0, std::string_view("experience_launch_failed", 24));
+        uint64_t local_0x30;
+        auto ret_0x445b800_3 = call_0x445b800(&local_0x30);
+        call_0x4459660(ret_0x445b800_3->field_0x0, std::string_view("experience_launch_failed", 24), this, 0);
+        uint64_t local_0x38;
         if (local_0x38 != 0) {
           call_0x6daf40(local_0x38);
           return;

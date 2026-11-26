@@ -15,10 +15,10 @@ Operação  : 0x45225a3: cmp byte [flag], imm8 ; fn=0x4522590..0x45225fe
   === [Decompilacao C++ da Funcao 0x4522590..0x45225fe] ===
     struct RBX::SoundOutput {
       /* +0x0 */ void*   field_0x0;
-      /* +0x30 */ void*   field_0x30;
-      /* +0x40 */ void*   field_0x40;
-      /* +0x48 */ void*   field_0x48;
-      /* +0xd8 */ void*   field_0xd8;
+      /* +0x30 */ uint64_t field_0x30;
+      /* +0x40 */ uint64_t field_0x40;
+      /* +0x48 */ uint64_t field_0x48;
+      /* +0xd8 */ uint64_t field_0xd8;
     };
     
     // Flag defaults: CloseSoundOutputOnDestroy = true
@@ -82,17 +82,27 @@ Operação  : 0x45225a3: cmp byte [flag], imm8 ; fn=0x4522590..0x45225fe
   
   === [Sub-Rotina Chamada: 0x4523250..0x452335f via call @0x45225ac (Direct Engine Sub-Call)] ===
     struct SubObj_0x4523250 {
-      /* +0xb0 */ void*   field_0xb0;
-      /* +0xb8 */ void*   field_0xb8;
+      /* +0xb0 */ uint64_t field_0xb0;
+      /* +0xb8 */ uint64_t field_0xb8;
     };
     
     // Flag defaults: SerializeSoundOutputOpenClose = false
-    void SubObj_0x4523250::func_0x4523250(SubObj_0x4523250* this) {
+    auto SubObj_0x4523250::func_0x4523250(SubObj_0x4523250* this) {
+      uint64_t local_0x28;
       call_0x2e13a20(&local_0x28, &this->field_0x30, 2);
       uint64_t v_rbx_1;
       if (SerializeSoundOutputOpenClose) {
-        call_0x2e12fd0(local_0x28 & 0xfffffffe);
-        v_rbx_1 = local_0x28 & 0xfffffffe | 0x1;
+        if ((local_0x28 & 0xfffffffffffffffeULL) != 0 && ((uint8_t)local_0x28 & 0x1) == 0) {
+          call_0x2e12fd0(local_0x28 & 0xfffffffffffffffeULL);
+          uint64_t mem_1_1 = local_0x28;
+          local_0x28 = local_0x28 & 0xfffffffffffffffeULL | 0x1ULL;
+          v_rbx_1 = mem_1_1 & 0xfffffffffffffffeULL | 0x1ULL;
+        } else {
+          auto ret_0x5e12400_2 = call_0x5e12400(2);
+          call_0x6dacf0(ret_0x5e12400_2, "RSL PANIC: %s\\n", "Condition failed: s.ptr() && !s.owned()", 0);
+          call_0x4971000();
+          return; // noreturn
+        }
       } else {
         v_rbx_1 = local_0x28;
       }
@@ -103,12 +113,13 @@ Operação  : 0x45225a3: cmp byte [flag], imm8 ; fn=0x4522590..0x45225fe
         call_0x280e790(this->field_0xb0);
         this->field_0xb0 = 0;
       }
-      if ((v_rbx_1 & 0x1) != 0) {
-        if ((v_rbx_1 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(v_rbx_1 & 0xfffffffe)->field_0x0, (v_rbx_1 & 0xfffffffe)->field_0x0, 1) != 0) {
-          call_0xdac0(v_rbx_1 & 0xfffffffe);
-          return;
+      if (((uint8_t)v_rbx_1 & 0x1) != 0) {
+        if ((v_rbx_1 & 0xfffffffffffffffeULL)->field_0x0 != 3 || !atomic_cas(&(v_rbx_1 & 0xfffffffffffffffeULL)->field_0x0, (v_rbx_1 & 0xfffffffffffffffeULL)->field_0x0, 1)) {
+          return call_0xdac0(v_rbx_1 & 0xfffffffffffffffeULL);
         }
+        return (v_rbx_1 & 0xfffffffffffffffeULL)->field_0x0;
       }
+      return (uint8_t)v_rbx_1 & 0x1;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x4523250..0x452335f)] ===
@@ -207,8 +218,8 @@ Operação  : 0x45225a3: cmp byte [flag], imm8 ; fn=0x4522590..0x45225fe
   
   === [Decompilacao de Metodo da Classe RBX::SoundOutput: 0x4520c80..0x4520cca (vfunc_0x8)] ===
     struct RBX::Soundscape::SoundServiceClient {
-      /* +0x0 */ void*   field_0x0;
-      /* +0x8 */ void*   field_0x8;
+      /* +0x0 */ uint64_t field_0x0;
+      /* +0x8 */ uint64_t field_0x8;
     };
     
     void RBX::Soundscape::SoundServiceClient::func_0x4520c80(RBX::Soundscape::SoundServiceClient* this, int64_t param_2) {
@@ -226,8 +237,8 @@ Operação  : 0x45225a3: cmp byte [flag], imm8 ; fn=0x4522590..0x45225fe
   
   === [Decompilacao de Metodo da Classe RBX::SoundOutput: 0x4520cd0..0x4520dc7 (vfunc_0x10)] ===
     struct RBX::Soundscape::SoundServiceClient {
-      /* +0x0 */ void*   field_0x0;
-      /* +0x8 */ void*   field_0x8;
+      /* +0x0 */ uint64_t field_0x0;
+      /* +0x8 */ uint64_t field_0x8;
     };
     
     void RBX::Soundscape::SoundServiceClient::func_0x4520cd0(RBX::Soundscape::SoundServiceClient* this) {
@@ -239,34 +250,39 @@ Operação  : 0x45225a3: cmp byte [flag], imm8 ; fn=0x4522590..0x45225fe
         if (this->field_0x8->field_0x218 != 0) {
           int64_t idx_1 = (uint32_t)((uint32_t)this >> 5 ^ this) >> 4 & this->field_0x8->field_0x218 - 1;
           void* v_r8_1 = this->field_0x8->field_0x208 + idx_1 * 8;
-          if (this != (this->field_0x8->field_0x208 + idx_1 * 8)->field_0x0) {
-            void* i_eax = (this->field_0x8->field_0x208 + idx_1 * 8)->field_0x0;
+          int32_t v_r9_2 = 1;
+          if (this != (this->field_0x8->field_0x208 + (idx_1 * 8))->field_0x0) {
+            uint64_t i_eax = (this->field_0x8->field_0x208 + (idx_1 * 8))->field_0x0;
             int32_t i_r9d = 1;
             int32_t i_ecx = (uint32_t)((uint32_t)this >> 5 ^ this) >> 4 & this->field_0x8->field_0x218 - 1;
             int64_t idx_2;
             do { // L_0x4520d50
-              if (i_eax == -0x1000) break;
+              if (i_eax == -0x1000) {
+                break;
+              }
               int32_t prev_i_r9d_2 = i_r9d;
               i_r9d++;
               idx_2 = i_ecx + prev_i_r9d_2 & this->field_0x8->field_0x218 - 1;
-              i_eax = (this->field_0x8->field_0x208 + idx_2 * 8)->field_0x0;
+              i_eax = (this->field_0x8->field_0x208 + (idx_2 * 8))->field_0x0;
               i_ecx = i_ecx + prev_i_r9d_2 & this->field_0x8->field_0x218 - 1;
-            } while (this != (this->field_0x8->field_0x208 + idx_2 * 8)->field_0x0); // loop -> L_0x4520d50
+            } while (this != i_eax); // loop -> L_0x4520d50
+            v_r8_1 = this->field_0x8->field_0x208 + idx_2 * 8;
+            v_r9_2 = i_r9d;
             v_r8_1->field_0x0 = -8192;
             this->field_0x8->field_0x210--;
             this->field_0x8->field_0x214++;
             if (this->field_0x8->field_0x449 != 0) {
-              this->vfunc_0x30(this);
+              this->vfunc_0x30(this, this->field_0x8, v_r8_1, v_r9_2, &this->field_0x8->field_0x220, this->field_0x8->field_0x220);
             }
-            this->vfunc_0x20(this);
+            this->vfunc_0x20(this, &this->field_0x8->field_0x220, this->field_0x8->field_0x220);
           } else {
             v_r8_1->field_0x0 = -8192;
             this->field_0x8->field_0x210--;
             this->field_0x8->field_0x214++;
             if (this->field_0x8->field_0x449 != 0) {
-              this->vfunc_0x30(this);
+              this->vfunc_0x30(this, this->field_0x8, v_r8_1, v_r9_2, &this->field_0x8->field_0x220, this->field_0x8->field_0x220);
             }
-            this->vfunc_0x20(this);
+            this->vfunc_0x20(this, &this->field_0x8->field_0x220, this->field_0x8->field_0x220);
           }
         }
         this->field_0x8->field_0x220 = prev_0x220_1;
@@ -282,8 +298,8 @@ Operação  : 0x45225a3: cmp byte [flag], imm8 ; fn=0x4522590..0x45225fe
   * FFlagSerializeSoundOutputOpenClose = false (default)
   * DFFlagOpusSendPipelineNoDiscontinuousTransmission = false (default) [vizinha em .data]
   * DFIntOpusSendPipelineComplexity = 9 (default) [vizinha em .data]
-  * DFIntAudioDriftUpperThresholdMs = 100 (default) [vizinha em .data]
-  * DFIntAudioDriftLowerThresholdMs = 40 (default) [vizinha em .data]
+  * DFIntAudioDriftUpperThresholdMs = 60 (default) [vizinha em .data]
+  * DFIntAudioDriftLowerThresholdMs = 20 (default) [vizinha em .data]
   * DFIntAudioDriftSampleRateRatio = 5 (default) [vizinha em .data]
   * DFIntWiringApiEventIngestHundredthsPercent = 1000 (default) [vizinha em .data]
   * DFIntWiringApiReportingHundredthsPercent = 1000 (default) [vizinha em .data]

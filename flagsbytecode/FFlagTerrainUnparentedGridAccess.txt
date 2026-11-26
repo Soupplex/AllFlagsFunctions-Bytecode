@@ -9,12 +9,12 @@ Operação  : 0x336a025: cmp byte [flag], imm8 ; fn=0x336a020..0x336a0c6
     Classe  : RBX::MegaClusterInstance (RTTI Resolvido)
     Padrão  : FFlagTerrainUnparentedGridAccess = true (default) [bool, mode=1]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
-    Fórmula : !TerrainUnparentedGridAccess || this->field_0x206 == 0
+    Fórmula : TerrainUnparentedGridAccess && this->field_0x206 != 0
     [XREF #2 @0x336a14e] Classe  : RBX::TerrainUnparented (Inferido)
     [XREF #2 @0x336a14e] Fórmula : TerrainUnparentedGridAccess
     [XREF #3 @0x336a212] Classe  : RBX::TerrainUnparented (Inferido)
     [XREF #3 @0x336a212] Fórmula : TerrainUnparentedGridAccess && this->field_0x238 == 0
-    [XREF #4 @0x336a611] Classe  : RBX::Voxel2::Grid_NEW (RTTI Resolvido)
+    [XREF #4 @0x336a611] Classe  : RBX::TerrainUnparented (Inferido)
     [XREF #4 @0x336a611] Fórmula : TerrainUnparentedGridAccess && this->field_0x206 != 0
     [XREF #4 @0x336a611] Altera  : this->field_0x238, this->field_0x240, this->field_0x206, this->field_0x178->field_0x210->field_0x48, this->field_0x258, this->field_0x260
     [XREF #5 @0x336bfab] Classe  : RBX::MegaClusterInstance (RTTI Resolvido)
@@ -31,7 +31,7 @@ Operação  : 0x336a025: cmp byte [flag], imm8 ; fn=0x336a020..0x336a0c6
     [XREF #8 @0x336ca53] Fórmula : TerrainUnparentedGridAccess && this->field_0x4e != 0
     [XREF #8 @0x336ca53] Altera  : this->field_0x1c, this->field_0x4d, this->field_0xb0->field_0x0, this->field_0xb0->field_0x8, this->field_0xb0->field_0x10, this->field_0xb0->field_0x18
     [XREF #9 @0x336cd43] Classe  : RBX::MegaClusterInstance (RTTI Resolvido)
-    [XREF #9 @0x336cd43] Fórmula : TerrainUnparentedGridAccess && (param_2->field_0x0 != 0 || param_2->field_0x28 != 0)
+    [XREF #9 @0x336cd43] Fórmula : TerrainUnparentedGridAccess && (param_2->field_0x0 != 0 || param_2->field_0x28 != 0) && this->field_0x4d == 0
     [XREF #9 @0x336cd43] Fórmula : TerrainUnparentedGridAccess && this->field_0x4e != 0
     [XREF #9 @0x336cd43] Altera  : this->field_0x4d, this->field_0xb0->field_0x0, this->field_0xb0->field_0x8, this->field_0xb0->field_0x10, this->field_0xb0->field_0x18, this->field_0xb0
   
@@ -41,14 +41,30 @@ Operação  : 0x336a025: cmp byte [flag], imm8 ; fn=0x336a020..0x336a0c6
     };
     
     // Flag defaults: TerrainUnparentedGridAccess = true
-    void RBX::MegaClusterInstance::func_0x336a020(RBX::MegaClusterInstance* this, int64_t param_2) {
-      if (!TerrainUnparentedGridAccess || this->field_0x206 == 0) {
+    void RBX::MegaClusterInstance::func_0x336a020(RBX::MegaClusterInstance* this, void* param_2) {
+      void* v_rax_1;
+      uint64_t local_0x20;
+      if (TerrainUnparentedGridAccess && this->field_0x206 != 0) {
         if (param_2 != 0) {
-          call_0xa3e040(this);
-        } else {
-          if (param_2 == 0) {
-            return;
-          }
+          call_0x4973aa0("Unable to change Terrain's parent. Its voxel data was initialized outside a place");
+          return; // noreturn
+        }
+      } else if (param_2 != 0) {
+        auto ret_0xa3e040_1 = call_0xa3e040();
+        v_rax_1 = param_2->field_0x18->field_0x1c0 - ret_0xa3e040_1->field_0x1c0 <= ret_0xa3e040_1->field_0x1c2 ? param_2 : 0;
+        if (v_rax_1 != 0 && v_rax_1->field_0x4b0 == 0) {
+          return;
+        }
+        call_0x49738e0(&local_0x20, "Unable to change Terrain's parent. Workspace already has Terrain", 0, 0);
+        call_0x5e066f0(&local_0x20, &sym_0x80cc8c0);
+        return; // noreturn
+      }
+      if (param_2 != 0) {
+        v_rax_1 = 0;
+        if (v_rax_1 == 0 || v_rax_1->field_0x4b0 != 0) {
+          call_0x49738e0(&local_0x20, "Unable to change Terrain's parent. Workspace already has Terrain", 0, 0);
+          call_0x5e066f0(&local_0x20, &sym_0x80cc8c0);
+          return; // noreturn
         }
       }
     }
@@ -107,7 +123,7 @@ Operação  : 0x336a025: cmp byte [flag], imm8 ; fn=0x336a020..0x336a0c6
     struct RBX::TerrainUnparented {
       /* +0x1f1 */ uint8_t field_0x1f1;
       /* +0x205 */ uint8_t field_0x205;
-      /* +0x238 */ void*   field_0x238;
+      /* +0x238 */ uint64_t field_0x238;
     };
     
     // Flag defaults: TerrainUnparentedGridAccess = true, TerrainPerPlaceGrid2 = true, DebugDisableExpandedTerrainGrid = false, ExpandedTerrainThreePhaseRolloutProperty = true, ExpandedTerrainDefaultEnabled = false
@@ -117,7 +133,7 @@ Operação  : 0x336a025: cmp byte [flag], imm8 ; fn=0x336a020..0x336a0c6
         uint8_t v_sil_1 = 0;
         if (ret_0x8084b0_1 == 0) {
           if (TerrainUnparentedGridAccess) {
-            if (this->field_0x205 == 0 ? ExpandedTerrainDefaultEnabled : this->field_0x205 == 2 && !DebugDisableExpandedTerrainGrid) {
+            if ((this->field_0x205 == 0 ? ExpandedTerrainDefaultEnabled : this->field_0x205 == 2) != 0 && !DebugDisableExpandedTerrainGrid) {
               v_sil_1 = 1;
             } else {
               v_sil_1 = 1;
@@ -208,46 +224,55 @@ Operação  : 0x336a025: cmp byte [flag], imm8 ; fn=0x336a020..0x336a0c6
   
   === [Decompilacao C++ do XREF Runtime #3: 0x336a200..0x336a2e8 (insn @0x336a212: cmp byte [flag], imm8)] ===
     struct RBX::TerrainUnparented {
-      /* +0x50 */ void*   field_0x50;
-      /* +0x238 */ void*   field_0x238;
+      /* +0x50 */ uint64_t field_0x50;
+      /* +0x238 */ uint64_t field_0x238;
     };
     
     // Flag defaults: TerrainUnparentedGridAccess = true
     auto RBX::TerrainUnparented::func_0x336a200(RBX::TerrainUnparented* this) {
       if (TerrainUnparentedGridAccess && this->field_0x238 == 0) {
-        uint64_t v_rbx_2;
+        void* v_rbx_2;
         uint64_t v_rdi_3;
-        uint64_t stk_5;
-        auto expr_1 = this->field_0x50 & 0xfffffff8;
-        if (expr_1->field_0x20 != 0) {
-          auto vret_1 = ((expr_1->field_0x20)->field_0x0)->vfunc_0x28(expr_1->field_0x20, &local_0x30);
+        uint64_t local_0x28;
+        uint64_t local_0x20;
+        void* vret_1;
+        if ((this->field_0x50 & 0xfffffffffffffff8ULL)->field_0x20 != 0) {
+          uint64_t local_0x30;
+          vret_1 = (*(((this->field_0x50 & 0xfffffffffffffff8ULL)->field_0x20)->field_0x0)->field_0x28)((this->field_0x50 & 0xfffffffffffffff8ULL)->field_0x20, &local_0x30);
+          local_0x20 = vret_1->field_0x0;
+          local_0x28 = vret_1->field_0x8;
           void* prev_0x0_1 = vret_1->field_0x0;
           vret_1->field_0x0 = 0;
           void* prev_0x8_2 = vret_1->field_0x8;
           vret_1->field_0x8 = 0;
+          uint64_t local_0x38;
           if (local_0x38 != 0) {
             call_0x6daf40(local_0x38);
             v_rbx_2 = prev_0x0_1;
             v_rdi_3 = prev_0x8_2;
-            stk_5 = vret_1->field_0x8;
           } else {
             v_rbx_2 = prev_0x0_1;
             v_rdi_3 = prev_0x8_2;
-            stk_5 = vret_1->field_0x8;
           }
         } else {
-          v_rbx_2 = expr_1->field_0x20;
-          v_rdi_3 = expr_1->field_0x20;
-          stk_5 = expr_1->field_0x20;
+          local_0x20 = (this->field_0x50 & 0xfffffffffffffff8ULL)->field_0x20;
+          local_0x28 = (this->field_0x50 & 0xfffffffffffffff8ULL)->field_0x20;
+          v_rbx_2 = (this->field_0x50 & 0xfffffffffffffff8ULL)->field_0x20;
+          v_rdi_3 = (this->field_0x50 & 0xfffffffffffffff8ULL)->field_0x20;
         }
-        void* v_rdi_6 = v_rdi_3;
+        void* v_rdi_4 = v_rdi_3;
         if (v_rbx_2 != 0) {
-          call_0xc8a0();
-          v_rdi_6 = stk_5;
+          auto ret_0xc8a0_3 = call_0xc8a0(vret_1->field_0x0, vret_1->field_0x8);
+          if (v_rbx_2->field_0x700 == ret_0xc8a0_3 && v_rbx_2->field_0x55d == 0) {
+            v_rdi_4 = local_0x28;
+          } else {
+            call_0x4973aa0("This Terrain is not loaded yet; access it from serial (non-parallel) code first");
+            return; // noreturn
+          }
         }
         call_0x336a110(this);
-        if (v_rdi_6 != 0) {
-          call_0x6daf40(v_rdi_6);
+        if (v_rdi_4 != 0) {
+          call_0x6daf40(v_rdi_4);
         }
       }
       return this->field_0x238;
@@ -319,273 +344,440 @@ Operação  : 0x336a025: cmp byte [flag], imm8 ; fn=0x336a020..0x336a0c6
     0x336a2e3 | e8 b8 97 60 01           | call 0x4973aa0
   
   === [Decompilacao C++ do XREF Runtime #4: 0x336a310..0x336ad96 (insn @0x336a611: cmp byte [flag], imm8)] ===
-    struct RBX::Voxel2::Grid_NEW {
+    struct RBX::TerrainUnparented {
       /* +0x178 */ void*   field_0x178;
       /* +0x206 */ uint8_t field_0x206;
       /* +0x238 */ void*   field_0x238;
-      /* +0x240 */ void*   field_0x240;
-      /* +0x258 */ void*   field_0x258;
-      /* +0x260 */ void*   field_0x260;
-      /* +0x268 */ void*   field_0x268;
-      /* +0x270 */ void*   field_0x270;
-      /* +0x278 */ void*   field_0x278;
+      /* +0x240 */ uint64_t field_0x240;
+      /* +0x258 */ uint64_t field_0x258;
+      /* +0x260 */ uint64_t field_0x260;
+      /* +0x268 */ uint64_t field_0x268;
+      /* +0x270 */ uint64_t field_0x270;
+      /* +0x278 */ uint64_t field_0x278;
     };
     
-    // Flag defaults: TerrainUnparentedGridAccess = true, MicroProfilerMemoryScope = true
-    void RBX::Voxel2::Grid_NEW::func_0x336a310(RBX::Voxel2::Grid_NEW* this, int64_t param_2, void* param_3) {
+    // Flag defaults: TerrainUnparentedGridAccess = true, MicroProfilerMemoryScope = false
+    void RBX::TerrainUnparented::func_0x336a310(RBX::TerrainUnparented* this, int64_t param_2, int64_t param_3) {
       if (this->field_0x238 == 0) {
-        if (global_0x8dba374 > rbp->field_0x58->field_0x0->field_0x0[40]) {
+        if (global_0x8dba374 > __readgsqword(0x58)->field_0x0->field_0x0[40]) {
           call_0x12e0(&sym_0x8dba374);
-        }
-        call_0x2924c40(&local_0x30, global_0x8dba378, -1, 0);
-        void* v_rbx_2;
-        void* v_rsi_3;
-        if (param_2 == 0) {
-          auto ret_0x4956040_2 = call_0x4956040(208);
-          if (ret_0x4956040_2 != 0) {
-            ret_0x4956040_2->field_0x8 = 1;
-            ret_0x4956040_2->field_0xc = 1;
-            ret_0x4956040_2->field_0x0 = &sym_0x7151548;
-            call_0x4b71730(&ret_0x4956040_2->field_0x10, 1);
-            v_rbx_2 = ret_0x4956040_2;
-            v_rsi_3 = &ret_0x4956040_2->field_0x10;
-            this->field_0x238 = v_rsi_3;
-            void* prev_0x240_3 = this->field_0x240;
-            this->field_0x240 = v_rbx_2;
-            if (prev_0x240_3 != 0) {
-              call_0x6daf40(prev_0x240_3);
-            }
-            if (param_3 != 0) {
-              this->field_0x206 = 1;
-            }
-            L_0x336a534:
-            this->field_0x238->vfunc_0x10(this->field_0x238, &this->field_0x1f8);
-            this->field_0x178->field_0x210->field_0x48 = call_0x336a200(this);
-            auto ret_0x2e13190_16 = call_0x2e13190();
-            if (ret_0x2e13190_16 == this->field_0x258) {
-              void* v_rbx_5 = 0;
-              void* v_rsi_6;
-              uint64_t v_r12_7;
-              void* v_r13_8 = 0;
-              void* v_r14_9 = 0;
-              void* stk_13;
-              if (&local_0xb0 != &this->field_0x258) {
-                this->field_0x258 = ret_0x2e13190_16;
-                void* prev_0x260_6 = this->field_0x260;
-                this->field_0x260 = 0;
-                void* prev_0x268_7 = this->field_0x268;
-                this->field_0x268 = 0;
-                void* prev_0x270_8 = this->field_0x270;
-                this->field_0x270 = 0;
-                v_rbx_5 = prev_0x260_6;
-                v_rsi_6 = prev_0x268_7;
-                v_r12_7 = prev_0x260_6;
-                v_r13_8 = prev_0x270_8;
-                v_r14_9 = prev_0x268_7;
-                stk_13 = this->field_0x258;
-              } else {
-                v_rsi_6 = 0.0;
-                v_r12_7 = 0.0;
-                stk_13 = ret_0x2e13190_16;
-              }
-              if (TerrainUnparentedGridAccess && this->field_0x206 != 0) {
-                if (v_rbx_5 != v_r14_9) {
-                  do { // L_0x336a640
+          if (global_0x8dba374 == -1) {
+            uint64_t local_0x180;
+            local_0x180 = "ensureResolvedGrid";
+            void* mem_1_1 = local_0x180;
+            local_0x180 = "Voxel";
+            int32_t i_eax = 0;
+            int64_t ret_0x29a3390_2;
+            uint64_t local_0x20;
+            do { // L_0x336a370
+              int32_t prev_i_eax_2 = i_eax;
+              i_eax++;
+              if ((local_0x180 - 0x18ca4)[prev_i_eax_2] != "GPU"[i_eax - 1]) break;
+              if (i_eax == 4) {
+                local_0x20 = 255;
+                ret_0x29a3390_2 = call_0x29a3390(local_0x180 - 0x18ca4, mem_1_1 - 0xa53e0, -1, cond, 255);
+                global_0x8dba378 = ret_0x29a3390_2;
+                call_0x14f0(&sym_0x8dba374);
+                L_0x336a391:
+                uint64_t local_0x40;
+                local_0x40 = 0.0;
+                uint64_t local_0x60;
+                local_0x60 = 0.0;
+                uint64_t local_0x68;
+                local_0x68 = 0.0;
+                uint64_t local_0x70;
+                local_0x70 = 0;
+                uint64_t local_0x78;
+                local_0x78 = 0;
+                uint64_t local_0x80;
+                local_0x80 = 0;
+                uint64_t local_0x88;
+                local_0x88 = 0;
+                uint64_t local_0x98;
+                local_0x98 = 0;
+                uint64_t local_0xa0;
+                local_0xa0 = 0;
+                local_0x20 = 0;
+                auto local_0x30 = 0.0;
+                auto local_0x34 = 0.0;
+                auto local_0x38 = 0.0;
+                auto local_0x3c = 0.0;
+                auto local_0x44 = 0.0;
+                auto local_0x48 = 0.0;
+                auto local_0x4c = 0.0;
+                auto local_0x50 = global_0x75b2c80;
+                auto local_0x54 = *(uint32_t*)((uint8_t*)&global_0x75b2c80 + 0x4);
+                auto local_0x58 = *(uint32_t*)((uint8_t*)&global_0x75b2c80 + 0x8);
+                auto local_0x5c = *(uint32_t*)((uint8_t*)&global_0x75b2c80 + 0xc);
+                auto local_0x64 = 0.0;
+                auto local_0x6c = 0.0;
+                auto local_0x90 = 0;
+                call_0x2924c40(&local_0x30, global_0x8dba378, -1, 0, 0);
+                int64_t v_rbx_1;
+                int64_t v_rsi_2;
+                void* prev_0x240_5;
+                if ((uint8_t)param_2 != 0) {
+                  void* prev_0x278_3 = this->field_0x278;
+                  auto ret_0x4956040_9 = call_0x4956040(1360);
+                  if (ret_0x4956040_9 != 0) {
+                    local_0x180 = ret_0x4956040_9;
+                    ret_0x4956040_9->field_0x8 = 1;
+                    ret_0x4956040_9->field_0xc = 1;
+                    ret_0x4956040_9->field_0x0 = &sym_0x7151570;
+                    call_0x4b202b0(ret_0x4956040_9 + 0x10, 1, prev_0x278_3);
+                    if (ret_0x4956040_9 != -16) {
+                    if ((ret_0x4956040_9 + 0x10)->field_0x30 != 0) {
+                    if (((ret_0x4956040_9 + 0x10)->field_0x30)->field_0x8 == 0) {
+                    L_0x336a487:
+                    ret_0x4956040_9->field_0x8++;
+                    ret_0x4956040_9->field_0xc++;
+                    (ret_0x4956040_9 + 0x10)->field_0x28 = ret_0x4956040_9 + 0x10;
+                    void* prev_0x30_4 = (ret_0x4956040_9 + 0x10)->field_0x30;
+                    (ret_0x4956040_9 + 0x10)->field_0x30 = ret_0x4956040_9;
+                    if (prev_0x30_4 != 0) {
+                    int32_t atomic_13 = atomic_fetch_sub(&prev_0x30_4->field_0xc, 1);
+                    if (atomic_13 == 1) {
+                    prev_0x30_4->vfunc_0x8();
+                    }
+                    }
+                    call_0x6daf40(ret_0x4956040_9);
+                    v_rbx_1 = ret_0x4956040_9;
+                    v_rsi_2 = ret_0x4956040_9 + 0x10;
+                    } else {
+                    v_rbx_1 = ret_0x4956040_9;
+                    v_rsi_2 = ret_0x4956040_9 + 0x10;
+                    }
+                    } else {
+                    goto L_0x336a487;
+                    }
+                    } else {
+                    v_rbx_1 = ret_0x4956040_9;
+                    v_rsi_2 = ret_0x4956040_9 + 0x10;
+                    }
+                    this->field_0x238 = v_rsi_2;
+                    prev_0x240_5 = this->field_0x240;
+                    this->field_0x240 = v_rbx_1;
+                    if (prev_0x240_5 != 0) {
+                    call_0x6daf40(prev_0x240_5);
+                    }
+                    if ((uint8_t)param_3 != 0) {
+                    this->field_0x206 = 1;
+                    }
+                    L_0x336a534:
+                    this->field_0x238->vfunc_0x10(this->field_0x238, &this->field_0x1f8);
+                    this->field_0x178->field_0x210->field_0x48 = call_0x336a200(this);
+                    auto ret_0x2e13190_19 = call_0x2e13190();
+                    void* local_0xb0;
+                    local_0xb0 = ret_0x2e13190_19;
+                    uint64_t local_0xb8;
+                    local_0xb8 = 0.0;
+                    uint64_t local_0xc0;
+                    local_0xc0 = 0.0;
+                    uint64_t local_0xc8;
+                    local_0xc8 = 0;
+                    uint64_t local_0x118;
+                    if (ret_0x2e13190_19 == this->field_0x258) {
+                    void* v_rbx_4 = 0;
+                    void* v_rsi_5;
+                    uint64_t v_r12_6;
+                    void* v_r13_7 = 0;
+                    void* v_r14_8 = 0;
+                    if (&local_0xb0 != &this->field_0x258) {
+                    local_0xb0 = this->field_0x258;
+                    this->field_0x258 = ret_0x2e13190_19;
+                    local_0xb8 = this->field_0x260;
+                    void* prev_0x260_9 = this->field_0x260;
+                    this->field_0x260 = 0;
+                    local_0xc0 = this->field_0x268;
+                    void* prev_0x268_10 = this->field_0x268;
+                    this->field_0x268 = 0;
+                    local_0xc8 = this->field_0x270;
+                    void* prev_0x270_11 = this->field_0x270;
+                    this->field_0x270 = 0;
+                    v_rbx_4 = prev_0x260_9;
+                    v_rsi_5 = prev_0x268_10;
+                    v_r12_6 = prev_0x260_9;
+                    v_r13_7 = prev_0x270_11;
+                    v_r14_8 = prev_0x268_10;
+                    } else {
+                    v_rsi_5 = local_0xc0;
+                    v_r12_6 = local_0xb8;
+                    }
+                    local_0x180 = v_rsi_5;
+                    uint64_t local_0x74;
+                    uint64_t local_0x8c;
+                    uint64_t local_0x28;
+                    float local_0xbc;
+                    float local_0xc4;
+                    uint64_t local_0xd0;
+                    uint64_t local_0x198;
+                    if (TerrainUnparentedGridAccess && this->field_0x206 != 0) {
+                    if (v_rbx_4 != v_r14_8) {
+                    local_0xd0 = &sym_0x7597f0;
+                    uint64_t i_ebx_3 = v_rbx_4;
+                    local_0xbc = 0.0;
+                    local_0xc4 = 0.0;
+                    do { // L_0x336a640
+                    uint64_t local_0xd8;
+                    local_0xd8 = i_ebx_3;
+                    uint64_t local_0xf0;
+                    local_0xf0 = local_0xd0;
+                    auto local_0xf8 = local_0xd8;
                     call_0x336a2f0(&local_0xf0);
-                    i_ebx += 0x20;
-                  } while (i_ebx != v_r14_9); // loop -> L_0x336a640
-                }
-                if (v_r12_7 != 0) {
-                  if (v_r12_7 != v_rsi_6) {
+                    i_ebx_3 += 0x20;
+                    } while (i_ebx_3 != v_r14_8); // loop -> L_0x336a640
+                    }
+                    if (v_r12_6 != 0) {
+                    if (v_r12_6 != v_rsi_5) {
+                    uint64_t i_ebx_4 = v_r12_6;
                     do { // L_0x336a680
-                    call_0x6db7e0(i_ebx);
-                    i_ebx += 0x20;
-                    } while (i_ebx != v_rsi_6); // loop -> L_0x336a680
-                  }
-                  stk_13->vfunc_0x10(stk_13, v_r12_7, v_r13_8 - v_r12_7 & 0xffffffe0, 8);
-                }
-                if (global_0x75b2c80 != -1) {
-                  if (0) {
-                    call_0x29a42e0(33, ((0) + 2) << 48, 0, 0);
-                  }
-                  if (global_0x84a44d6 != 0 && MicroProfilerMemoryScope) {
-                    auto ret_0x497fea0_34 = call_0x497fea0();
-                    void* v_rcx_34 = ret_0x497fea0_34->field_0x0;
-                    if (ret_0x497fea0_34->field_0x0 == 0) {
-                    v_rcx_34 = &ret_0x497fea0_34->field_0x8;
+                    call_0x6db7e0(i_ebx_4);
+                    i_ebx_4 += 0x20;
+                    } while (i_ebx_4 != v_rsi_5); // loop -> L_0x336a680
                     }
-                    uint64_t stk_35;
-                    uint64_t stk_36;
-                    uint64_t stk_37;
-                    void* stk_38;
-                    if (0) {
-                    stk_35 = local_0x70 + (v_rcx_34->field_0x0);
-                    stk_36 = local_0x74 + (v_rcx_34->field_0x4);
-                    stk_37 = local_0x60 + (v_rcx_34->field_0x8);
-                    stk_38 = local_0x68 + (v_rcx_34->field_0x10);
+                    local_0xb0->vfunc_0x10(local_0xb0, v_r12_6, v_r13_7 - v_r12_6 & 0xffffffffffffffe0ULL, 8);
+                    }
+                    if (local_0x58 != -1) {
+                    if (local_0x98 != 0) {
+                    local_0x198 = 0;
+                    local_0x28 = &local_0x198;
+                    local_0x20 = 0;
+                    call_0x29a42e0(33, ((local_0xa0 == 1) + 2) << 48 | local_0x98 & 0xffffffffffff, 0, 0, 0, &local_0x198);
+                    local_0xa0 = 0;
+                    }
+                    if (global_0x84a44d6 != 0 && MicroProfilerMemoryScope) {
+                    auto ret_0x497fea0_41 = call_0x497fea0();
+                    void* v_rcx_23 = ret_0x497fea0_41->field_0x0;
+                    if (ret_0x497fea0_41->field_0x0 == 0) {
+                    v_rcx_23 = ret_0x497fea0_41 + 8;
+                    }
+                    if (local_0x88 != 0 && v_rcx_23->field_0x8 >= local_0x78 && v_rcx_23->field_0x10 >= local_0x80 && v_rcx_23->field_0x0 >= local_0x88 && v_rcx_23->field_0x4 >= local_0x8c) {
+                    local_0x60 = local_0x60 + (v_rcx_23->field_0x8 - local_0x78);
+                    local_0x68 = local_0x68 + (v_rcx_23->field_0x10 - local_0x80);
+                    local_0x70 = local_0x70 + (v_rcx_23->field_0x0 - local_0x88);
+                    local_0x74 = local_0x74 + (v_rcx_23->field_0x4 - local_0x8c);
+                    }
+                    if (local_0x38 != 0) {
+                    local_0x38->field_0x48 = v_rcx_23->field_0x8;
+                    local_0x38->field_0x50 = v_rcx_23->field_0x10;
+                    local_0x38->field_0x58 = v_rcx_23->field_0x0;
+                    local_0x38->field_0x5c = v_rcx_23->field_0x4;
+                    }
+                    local_0xd0 = local_0x60 << 32 | local_0x68;
+                    if (((local_0x70 & 0xffffff) << 24 | local_0x74 & 0xffffff) == 0) {
+                    if ((local_0x60 << 32 | local_0x68) != 0) {
+                    L_0x336a813:
+                    local_0x198 = 0;
+                    local_0x28 = &local_0x198;
+                    local_0x20 = 0;
+                    call_0x29a42e0(20, (local_0x70 & 0xffffff) << 24 | local_0x74 & 0xffffff, &local_0xd0, 8, 0, &local_0x198);
+                    }
                     } else {
-                    stk_35 = 0;
-                    stk_36 = 0;
-                    stk_37 = 0.0;
-                    stk_38 = 0.0;
+                    goto L_0x336a813;
                     }
-                    if (((stk_35 & 0xffffff) << 24 | stk_36 & 0xffffff) == 0) {
-                    if ((stk_37 << 32 | stk_38) != 0) {
-                    auto local_0xd0 = stk_37 << 32 | stk_38;
-                    call_0x29a42e0(20, (stk_35 & 0xffffff) << 24 | stk_36 & 0xffffff, &local_0xd0, 8);
                     }
-                    } else {
-                    auto local_0xd0 = stk_37 << 32 | stk_38;
-                    call_0x29a42e0(20, (stk_35 & 0xffffff) << 24 | stk_36 & 0xffffff, &local_0xd0, 8);
-                    }
-                  }
-                  if (global_0x75b2c80 != -1) {
-                    auto ret_0x29a1bc0_36 = call_0x29a1bc0();
-                    if (ret_0x29a1bc0_36->field_0x0 != 0) {
+                    if (local_0x58 != -1) {
+                    auto ret_0x29a1bc0_43 = call_0x29a1bc0();
+                    if (ret_0x29a1bc0_43->field_0x0 != 0) {
                     uint64_t tsc_0x336a86b = rdtsc();
-                    void* v_rcx_46;
+                    void* v_rcx_27;
+                    int32_t v_r8_28;
+                    void* v_r9_29;
                     if ((global_0x816d648->field_0xb8 & (uint64_t)local_0x40 >> 14) != 0) {
-                    if (ret_0x29a1bc0_36->field_0x0->field_0x565 != 0) {
-                    void* v_rax_44;
-                    void* v_rbx_45 = ret_0x29a1bc0_36->field_0x0;
+                    if (ret_0x29a1bc0_43->field_0x0->field_0x565 != 0) {
+                    int64_t v_rax_25;
+                    void* v_rbx_26 = ret_0x29a1bc0_43->field_0x0;
                     if (global_0x816d648->field_0x26d5a0 == 0) {
-                    v_rax_44 = -1;
+                    v_rax_25 = -1;
                     } else {
-                    void* prev_0x0_10 = ret_0x29a1bc0_36->field_0x0;
-                    auto vret_37 = global_0x816d648->vfunc_0x26d5a0(ret_0x29a1bc0_36->field_0x0->field_0x30);
-                    v_rax_44 = vret_37;
-                    v_rbx_45 = prev_0x0_10;
+                    void* prev_0x0_13 = ret_0x29a1bc0_43->field_0x0;
+                    auto vret_44 = (*global_0x816d648->field_0x26d5a0)(ret_0x29a1bc0_43->field_0x0->field_0x30);
+                    v_rax_25 = vret_44;
+                    v_rbx_26 = prev_0x0_13;
                     }
-                    call_0x29a3900(local_0x40, v_rax_44, 0, global_0x8479b18);
-                    v_rcx_46 = v_rbx_45->field_0x44;
-                    call_0x29a3900(v_rcx_46, tsc_0x336a86b - global_0x8cda630, 4, global_0x8479b18);
+                    call_0x29a3900(local_0x40, v_rax_25, 0, global_0x8479b18);
+                    v_rcx_27 = v_rbx_26->field_0x44;
+                    v_r8_28 = 4;
+                    v_r9_29 = global_0x8479b18;
+                    call_0x29a3900(v_rcx_27, tsc_0x336a86b - global_0x8cda630, v_r8_28, v_r9_29);
                     }
                     } else {
-                    v_rcx_46 = local_0x40;
-                    call_0x29a3900(v_rcx_46, tsc_0x336a86b - global_0x8cda630, 4, global_0x8479b18);
+                    v_rcx_27 = local_0x40;
+                    v_r8_28 = 0;
+                    v_r9_29 = ret_0x29a1bc0_43->field_0x0;
+                    call_0x29a3900(v_rcx_27, tsc_0x336a86b - global_0x8cda630, v_r8_28, v_r9_29);
                     }
                     }
-                  }
-                  if ((global_0x8629678 & (uint64_t)local_0x40 >> 14 & global_0x86295f8) != 0 && global_0x84dcf68 != 0) {
+                    }
+                    if ((global_0x8629678 & (uint64_t)local_0x40 >> 14 & global_0x86295f8) != 0 && global_0x84dcf68 != 0) {
                     (*global_0x84dcf68)();
-                  }
-                }
-                auto ret_0x29243d0_41 = call_0x29243d0();
-                ret_0x29243d0_41->field_0x0 = local_0x38;
-                L_0x336a930:
-                return;
-              }
-              void* i_ebx = v_rbx_5;
-              while (i_ebx != v_r14_9) {
-                void* v_rdx_32 = i_ebx;
-                if ((i_ebx->field_0x18 >> 1 & 0x1) == 0) {
-                  v_rdx_32 = i_ebx->field_0x0;
-                }
-                (i_ebx->field_0x18 & 0xfffffff8)->vfunc_0x0(v_rdx_32);
-                i_ebx += 0x20;
-              }
-              if (v_r12_7 != 0) {
-                if (v_r12_7 != v_rsi_6) {
-                  do { // L_0x336a9c0
+                    }
+                    }
+                    auto ret_0x29243d0_48 = call_0x29243d0();
+                    ret_0x29243d0_48->field_0x0 = local_0x38;
+                    if (local_0x38 != 0) {
+                    local_0x38->field_0x0 = 0;
+                    }
+                    L_0x336a930:
+                    return;
+                    }
+                    uint8_t* i_ebx_2 = v_rbx_4;
+                    local_0xbc = 0.0;
+                    local_0xc4 = 0.0;
+                    while (i_ebx_2 != v_r14_8) {
+                    if ((i_ebx_2->field_0x18 & 0xfffffffffffffff8ULL) == 0) {
+                    call_0x6db790(&local_0x118);
+                    call_0x5e066f0(&local_0x118, &sym_0x80cbfc8);
+                    return; // noreturn
+                    }
+                    void* v_rdx_19 = i_ebx_2;
+                    if (((int8_t)(uint8_t)i_ebx_2->field_0x18 >> 1 & 0x1) == 0) {
+                    v_rdx_19 = i_ebx_2->field_0x0;
+                    }
+                    (*(i_ebx_2->field_0x18 & 0xfffffffffffffff8ULL)->field_0x0)(v_rdx_19);
+                    i_ebx_2 += 0x20;
+                    }
+                    if (v_r12_6 != 0) {
+                    if (v_r12_6 != local_0x180) {
+                    uint64_t i_ebx = v_r12_6;
+                    do { // L_0x336a9c0
                     call_0x6db7e0(i_ebx);
                     i_ebx += 0x20;
-                  } while (i_ebx != v_rsi_6); // loop -> L_0x336a9c0
-                }
-                stk_13->vfunc_0x10(stk_13, v_r12_7, v_r13_8 - v_r12_7 & 0xffffffe0, 8);
-              }
-              if (global_0x75b2c80 != -1) {
-                if (0) {
-                  call_0x29a42e0(33, ((0) + 2) << 48, 0, 0);
-                }
-                if (global_0x84a44d6 != 0 && MicroProfilerMemoryScope) {
-                  call_0x497fea0();
-                }
-                if (global_0x75b2c80 != -1) {
-                  auto ret_0x29a1bc0_24 = call_0x29a1bc0();
-                  if (ret_0x29a1bc0_24->field_0x0 != 0) {
-                    rdtsc();
+                    } while (i_ebx != v_rsi_5); // loop -> L_0x336a9c0
+                    }
+                    local_0xb0->vfunc_0x10(local_0xb0, v_r12_6, v_r13_7 - v_r12_6 & 0xffffffffffffffe0ULL, 8);
+                    }
+                    if (local_0x58 != -1) {
+                    if (local_0x98 != 0) {
+                    local_0x198 = 0;
+                    local_0x28 = &local_0x198;
+                    local_0x20 = 0;
+                    call_0x29a42e0(33, ((local_0xa0 == 1) + 2) << 48 | local_0x98 & 0xffffffffffff, 0, 0, 0, &local_0x198);
+                    local_0xa0 = 0;
+                    }
+                    if (global_0x84a44d6 != 0 && MicroProfilerMemoryScope) {
+                    auto ret_0x497fea0_26 = call_0x497fea0();
+                    void* v_rcx_10 = ret_0x497fea0_26->field_0x0;
+                    if (ret_0x497fea0_26->field_0x0 == 0) {
+                    v_rcx_10 = ret_0x497fea0_26 + 8;
+                    }
+                    if (local_0x88 != 0 && v_rcx_10->field_0x8 >= local_0x78 && v_rcx_10->field_0x10 >= local_0x80 && v_rcx_10->field_0x0 >= local_0x88 && v_rcx_10->field_0x4 >= local_0x8c) {
+                    local_0x60 = local_0x60 + (v_rcx_10->field_0x8 - local_0x78);
+                    local_0x68 = local_0x68 + (v_rcx_10->field_0x10 - local_0x80);
+                    local_0x70 = local_0x70 + (v_rcx_10->field_0x0 - local_0x88);
+                    local_0x74 = local_0x74 + (v_rcx_10->field_0x4 - local_0x8c);
+                    }
+                    if (local_0x38 != 0) {
+                    local_0x38->field_0x48 = v_rcx_10->field_0x8;
+                    local_0x38->field_0x50 = v_rcx_10->field_0x10;
+                    local_0x38->field_0x58 = v_rcx_10->field_0x0;
+                    local_0x38->field_0x5c = v_rcx_10->field_0x4;
+                    }
+                    local_0xd0 = local_0x60 << 32 | local_0x68;
+                    if (((local_0x70 & 0xffffff) << 24 | local_0x74 & 0xffffff) == 0) {
+                    if ((local_0x60 << 32 | local_0x68) != 0) {
+                    L_0x336ab53:
+                    local_0x198 = 0;
+                    local_0x28 = &local_0x198;
+                    local_0x20 = 0;
+                    call_0x29a42e0(20, (local_0x70 & 0xffffff) << 24 | local_0x74 & 0xffffff, &local_0xd0, 8, 0, &local_0x198);
+                    }
+                    } else {
+                    goto L_0x336ab53;
+                    }
+                    }
+                    if (local_0x58 != -1) {
+                    auto ret_0x29a1bc0_28 = call_0x29a1bc0();
+                    if (ret_0x29a1bc0_28->field_0x0 != 0) {
+                    uint64_t tsc_0x336abab = rdtsc();
+                    void* v_rcx_14;
+                    int32_t v_r8_15;
+                    void* v_r9_16;
                     if ((global_0x816d648->field_0xb8 & (uint64_t)local_0x40 >> 14) != 0) {
-                    if (ret_0x29a1bc0_24->field_0x0->field_0x565 != 0) {
-                    int32_t v_r15_31 = -1;
+                    if (ret_0x29a1bc0_28->field_0x0->field_0x565 != 0) {
+                    void* v_rbx_12 = ret_0x29a1bc0_28->field_0x0;
+                    int32_t v_r15_13 = -1;
                     if (global_0x816d648->field_0x26d5a0 != 0) {
-                    auto vret_27 = global_0x816d648->vfunc_0x26d5a0(ret_0x29a1bc0_24->field_0x0->field_0x30);
-                    v_r15_31 = vret_27;
+                    void* prev_0x0_12 = ret_0x29a1bc0_28->field_0x0;
+                    auto vret_29 = (*global_0x816d648->field_0x26d5a0)(ret_0x29a1bc0_28->field_0x0->field_0x30);
+                    v_rbx_12 = prev_0x0_12;
+                    v_r15_13 = vret_29;
                     }
-                    call_0x29a3900(local_0x40, v_r15_31, 0, global_0x8479b18);
+                    call_0x29a3900(local_0x40, v_r15_13, 0, global_0x8479b18);
+                    v_rcx_14 = v_rbx_12->field_0x44;
+                    v_r8_15 = 4;
+                    v_r9_16 = global_0x8479b18;
+                    call_0x29a3900(v_rcx_14, tsc_0x336abab - global_0x8cda630, v_r8_15, v_r9_16);
+                    }
+                    } else {
+                    v_rcx_14 = local_0x40;
+                    v_r8_15 = 0;
+                    v_r9_16 = ret_0x29a1bc0_28->field_0x0;
+                    call_0x29a3900(v_rcx_14, tsc_0x336abab - global_0x8cda630, v_r8_15, v_r9_16);
                     }
                     }
+                    }
+                    if ((global_0x8629678 & (uint64_t)local_0x40 >> 14 & global_0x86295f8) != 0 && global_0x84dcf68 != 0) {
+                    (*global_0x84dcf68)();
+                    }
+                    }
+                    auto ret_0x29243d0_33 = call_0x29243d0();
+                    ret_0x29243d0_33->field_0x0 = local_0x38;
+                    if (local_0x38 != 0) {
+                    local_0x38->field_0x0 = 0;
+                    return;
+                    }
+                    return;
+                    }
+                    auto ret_0x5e12400_20 = call_0x5e12400(2);
+                    call_0x6dacf0(ret_0x5e12400_20, "RSL PANIC: %s\\n", "can't swap vectors with different memory arenas, use 'copyFrom' methods instead", 0);
+                    call_0x4971000();
+                    call_0x6db790(&local_0x118);
+                    call_0x5e066f0(&local_0x118, &sym_0x80cbfc8);
+                    return; // noreturn
+                  } else {
+                    uint64_t local_0x100;
+                    call_0x6ca7d0(&local_0x100);
+                    call_0x5e066f0(&local_0x100, &sym_0x80cbbc0);
+                    return; // noreturn
+                  }
+                } else {
+                  auto ret_0x4956040_5 = call_0x4956040(208);
+                  if (ret_0x4956040_5 != 0) {
+                    local_0x180 = ret_0x4956040_5;
+                    ret_0x4956040_5->field_0x8 = 1;
+                    ret_0x4956040_5->field_0xc = 1;
+                    ret_0x4956040_5->field_0x0 = &sym_0x7151548;
+                    call_0x4b71730(ret_0x4956040_5 + 0x10, 1);
+                    v_rbx_1 = ret_0x4956040_5;
+                    v_rsi_2 = ret_0x4956040_5 + 0x10;
+                    this->field_0x238 = v_rsi_2;
+                    prev_0x240_5 = this->field_0x240;
+                    this->field_0x240 = v_rbx_1;
+                    if (prev_0x240_5 != 0) {
+                    call_0x6daf40(prev_0x240_5);
+                    }
+                    if ((uint8_t)param_3 != 0) {
+                    this->field_0x206 = 1;
+                    }
+                    goto L_0x336a534;
+                  } else {
+                    uint64_t local_0x130;
+                    call_0x6ca7d0(&local_0x130);
+                    call_0x5e066f0(&local_0x130, &sym_0x80cbbc0);
+                    return; // noreturn
                   }
                 }
-                if ((global_0x8629678 & (uint64_t)local_0x40 >> 14 & global_0x86295f8) != 0 && global_0x84dcf68 != 0) {
-                  (*global_0x84dcf68)();
-                }
+                break;
               }
-              auto ret_0x29243d0_26 = call_0x29243d0();
-              ret_0x29243d0_26->field_0x0 = local_0x38;
-              if (local_0x38 != 0) {
-                return;
-              }
-              return;
-            }
-            auto ret_0x5e12400_17 = call_0x5e12400(2);
-            call_0x6dacf0(ret_0x5e12400_17, "RSL PANIC: %s\n", "can't swap vectors with different memory arenas, use 'copyFrom' methods instead");
-            call_0x4971000();
-          } else {
-            call_0x6ca7d0(&local_0x130);
-            call_0x5e066f0(&local_0x130, &sym_0x80cbbc0);
-            call_0x12e0(&sym_0x8dba374);
+            } while (true); // loop -> L_0x336a370
+            local_0x20 = 255;
+            ret_0x29a3390_2 = call_0x29a3390(local_0x180 - 0x18ca4, mem_1_1 - 0xa53e0, -1, cond, 255);
+            global_0x8dba378 = ret_0x29a3390_2;
+            call_0x14f0(&sym_0x8dba374);
           }
         }
-        void* prev_0x278_1 = this->field_0x278;
-        auto ret_0x4956040_7 = call_0x4956040(1360);
-        if (ret_0x4956040_7 != 0) {
-          ret_0x4956040_7->field_0x8 = 1;
-          ret_0x4956040_7->field_0xc = 1;
-          ret_0x4956040_7->field_0x0 = &sym_0x7151570;
-          call_0x4b202b0(&ret_0x4956040_7->field_0x10, 1, prev_0x278_1);
-          if (&ret_0x4956040_7->field_0x10 != 0) {
-            if (ret_0x4956040_7->field_0x40 != 0) {
-              if (ret_0x4956040_7->field_0x40->field_0x8 == 0) {
-                L_0x336a487:
-                ret_0x4956040_7->field_0x8++;
-                ret_0x4956040_7->field_0xc++;
-                ret_0x4956040_7->field_0x38 = &ret_0x4956040_7->field_0x10;
-                void* prev_0x40_2 = ret_0x4956040_7->field_0x40;
-                ret_0x4956040_7->field_0x40 = ret_0x4956040_7;
-                if (prev_0x40_2 != 0 && atomic_fetch_sub(&ret_0x4956040_7->field_0x40->field_0xc, 1) == 1) {
-                  ret_0x4956040_7->field_0x40->vfunc_0x8();
-                }
-                call_0x6daf40(ret_0x4956040_7);
-                v_rbx_2 = ret_0x4956040_7;
-                v_rsi_3 = &ret_0x4956040_7->field_0x10;
-              } else {
-                v_rbx_2 = ret_0x4956040_7;
-                v_rsi_3 = &ret_0x4956040_7->field_0x10;
-              }
-            } else {
-              goto L_0x336a487;
-            }
-          } else {
-            v_rbx_2 = ret_0x4956040_7;
-            v_rsi_3 = &ret_0x4956040_7->field_0x10;
-          }
-          this->field_0x238 = v_rsi_3;
-          void* prev_0x240_3 = this->field_0x240;
-          this->field_0x240 = v_rbx_2;
-          if (prev_0x240_3 != 0) {
-            call_0x6daf40(prev_0x240_3);
-          }
-          if (param_3 != 0) {
-            this->field_0x206 = 1;
-          }
-          goto L_0x336a534;
-        } else {
-          call_0x6ca7d0(&local_0x100);
-          call_0x5e066f0(&local_0x100, &sym_0x80cbbc0);
-          auto ret_0x5e12400_17 = call_0x5e12400(2);
-          call_0x6dacf0(ret_0x5e12400_17, "RSL PANIC: %s\n", "can't swap vectors with different memory arenas, use 'copyFrom' methods instead");
-          call_0x4971000();
-        }
+        goto L_0x336a391;
       }
       goto L_0x336a930;
     }
@@ -1248,53 +1440,73 @@ Operação  : 0x336a025: cmp byte [flag], imm8 ; fn=0x336a020..0x336a0c6
   === [Decompilacao C++ do XREF Runtime #5: 0x336bf60..0x336c0f4 (insn @0x336bfab: cmp byte [flag], imm8)] ===
     struct RBX::MegaClusterInstance {
       /* +0x4d */ uint8_t field_0x4d;
-      /* +0x80 */ void*   field_0x80;
+      /* +0x80 */ uint64_t field_0x80;
       /* +0xb0 */ void*   field_0xb0;
-      /* +0xb8 */ void*   field_0xb8;
+      /* +0xb8 */ uint64_t field_0xb8;
     };
     
     // Flag defaults: TerrainUnparentedGridAccess = true, TerrainPerPlaceGrid2 = true
-    void RBX::MegaClusterInstance::func_0x336bf60(RBX::MegaClusterInstance* this, int64_t param_2) {
+    void RBX::MegaClusterInstance::func_0x336bf60(RBX::MegaClusterInstance* this, void* param_2) {
+      uint64_t local_0x30;
+      local_0x30 = this;
+      int64_t local_0x60;
       if (TerrainPerPlaceGrid2 && this->field_0x80 == 0) {
         if (TerrainUnparentedGridAccess && param_2->field_0x10 != 0 && this->field_0x4d == 0) {
           this->field_0x4d = 1;
         }
-        auto local_0x30 = this;
-        call_0x1116f90(&local_0x30, param_2);
+        call_0x1116f90(&local_0x30);
+        uint64_t local_0x40;
+        local_0x40 = &this->field_m0x1b8;
+        uint64_t local_0x38;
+        uint64_t local_0x50;
+        local_0x50 = local_0x38;
+        float mem_2_2 = local_0x30;
+        local_0x30 = 0.0;
         void* v_r12_1;
         if (this->field_0xb0 != this->field_0xb8) {
           this->field_0xb0->field_0x0 = &this->field_m0x1b8;
-          this->field_0xb0->field_0x8 = local_0x30;
+          this->field_0xb0->field_0x8 = mem_2_2;
           this->field_0xb0->field_0x10 = local_0x38;
-          this->field_0xb0->field_0x18 = &sym_0x70a7250 | 0x6;
+          this->field_0xb0->field_0x18 = &sym_0x70a7250 | 0x6ULL;
           this->field_0xb0 = this->field_0xb0 + 0x20;
           v_r12_1 = 0;
         } else {
-          auto local_0x40 = &this->field_m0x1b8;
+          auto local_0x48 = local_0x30;
+          local_0x60 = param_2;
           call_0x33819b0(&this->field_0xa0, this->field_0xb0, &local_0x40);
           v_r12_1 = local_0x50;
         }
         if (v_r12_1 != 0) {
           call_0x6daf40(v_r12_1);
         }
-      } else {
-        if (param_2->field_0x10 != 0) {
-          auto ret_0x336a200_1 = call_0x336a200(this - 0x1b8);
-          int32_t i_esi = 0;
-          while (i_esi < 16) {
-            int32_t i_edi = 0;
-            while (i_edi < 4) {
-              int32_t i_ebx = 0;
-              while (i_ebx < 16) {
-                auto local_0x20 = i_esi - 8;
-                auto local_0x24 = i_ebx - 8;
-                call_0x4b75ca0(ret_0x336a200_1, &local_0x20, param_2, &local_0x28);
-                i_ebx++;
-              }
-              i_edi++;
+        local_0x38 = 0.0;
+        uint64_t local_0x3c;
+        local_0x3c = 0.0;
+        uint64_t local_0x34;
+        local_0x34 = 0.0;
+      } else if (param_2->field_0x10 != 0) {
+        auto ret_0x336a200_1 = call_0x336a200(&this->field_m0x1b8);
+        uint64_t local_0x28;
+        local_0x28 = 0;
+        int32_t i_esi = 0;
+        local_0x60 = param_2;
+        while (i_esi < 16) {
+          int32_t i_edi = 0;
+          while (i_edi < 4) {
+            int32_t i_ebx = 0;
+            while (i_ebx < 16) {
+              uint64_t local_0x20;
+              local_0x20 = i_esi - 8;
+              uint64_t local_0x22;
+              local_0x22 = i_edi;
+              uint64_t local_0x24;
+              local_0x24 = i_ebx - 8;
+              call_0x4b75ca0(ret_0x336a200_1, &local_0x20, param_2, &local_0x28);
+              i_ebx++;
             }
-            i_esi++;
+            i_edi++;
           }
+          i_esi++;
         }
       }
       call_0x6f8fb0(param_2);
@@ -1423,53 +1635,73 @@ Operação  : 0x336a025: cmp byte [flag], imm8 ; fn=0x336a020..0x336a0c6
   === [Decompilacao C++ do XREF Runtime #6: 0x336c130..0x336c2c4 (insn @0x336c17b: cmp byte [flag], imm8)] ===
     struct RBX::MegaClusterInstance {
       /* +0x4d */ uint8_t field_0x4d;
-      /* +0x80 */ void*   field_0x80;
+      /* +0x80 */ uint64_t field_0x80;
       /* +0xb0 */ void*   field_0xb0;
-      /* +0xb8 */ void*   field_0xb8;
+      /* +0xb8 */ uint64_t field_0xb8;
     };
     
     // Flag defaults: TerrainUnparentedGridAccess = true, TerrainPerPlaceGrid2 = true
-    void RBX::MegaClusterInstance::func_0x336c130(RBX::MegaClusterInstance* this, int64_t param_2) {
+    void RBX::MegaClusterInstance::func_0x336c130(RBX::MegaClusterInstance* this, void* param_2) {
+      uint64_t local_0x30;
+      local_0x30 = this;
+      int64_t local_0x60;
       if (TerrainPerPlaceGrid2 && this->field_0x80 == 0) {
         if (TerrainUnparentedGridAccess && param_2->field_0x10 != 0 && this->field_0x4d == 0) {
           this->field_0x4d = 1;
         }
-        auto local_0x30 = this;
-        call_0x1116f90(&local_0x30, param_2);
+        call_0x1116f90(&local_0x30);
+        uint64_t local_0x40;
+        local_0x40 = &this->field_m0x1b8;
+        uint64_t local_0x38;
+        uint64_t local_0x50;
+        local_0x50 = local_0x38;
+        float mem_2_2 = local_0x30;
+        local_0x30 = 0.0;
         void* v_r12_1;
         if (this->field_0xb0 != this->field_0xb8) {
           this->field_0xb0->field_0x0 = &this->field_m0x1b8;
-          this->field_0xb0->field_0x8 = local_0x30;
+          this->field_0xb0->field_0x8 = mem_2_2;
           this->field_0xb0->field_0x10 = local_0x38;
-          this->field_0xb0->field_0x18 = &sym_0x70a7270 | 0x6;
+          this->field_0xb0->field_0x18 = &sym_0x70a7270 | 0x6ULL;
           this->field_0xb0 = this->field_0xb0 + 0x20;
           v_r12_1 = 0;
         } else {
-          auto local_0x40 = &this->field_m0x1b8;
+          auto local_0x48 = local_0x30;
+          local_0x60 = param_2;
           call_0x3381af0(&this->field_0xa0, this->field_0xb0, &local_0x40);
           v_r12_1 = local_0x50;
         }
         if (v_r12_1 != 0) {
           call_0x6daf40(v_r12_1);
         }
-      } else {
-        if (param_2->field_0x10 != 0) {
-          auto ret_0x336a200_1 = call_0x336a200(this - 0x1b8);
-          int32_t i_esi = 0;
-          while (i_esi < 16) {
-            int32_t i_edi = 0;
-            while (i_edi < 4) {
-              int32_t i_ebx = 0;
-              while (i_ebx < 16) {
-                auto local_0x20 = i_esi - 8;
-                auto local_0x24 = i_ebx - 8;
-                call_0x4b76140(ret_0x336a200_1, &local_0x20, param_2, &local_0x28);
-                i_ebx++;
-              }
-              i_edi++;
+        local_0x38 = 0.0;
+        uint64_t local_0x3c;
+        local_0x3c = 0.0;
+        uint64_t local_0x34;
+        local_0x34 = 0.0;
+      } else if (param_2->field_0x10 != 0) {
+        auto ret_0x336a200_1 = call_0x336a200(&this->field_m0x1b8);
+        uint64_t local_0x28;
+        local_0x28 = 0;
+        int32_t i_esi = 0;
+        local_0x60 = param_2;
+        while (i_esi < 16) {
+          int32_t i_edi = 0;
+          while (i_edi < 4) {
+            int32_t i_ebx = 0;
+            while (i_ebx < 16) {
+              uint64_t local_0x20;
+              local_0x20 = i_esi - 8;
+              uint64_t local_0x22;
+              local_0x22 = i_edi;
+              uint64_t local_0x24;
+              local_0x24 = i_ebx - 8;
+              call_0x4b76140(ret_0x336a200_1, &local_0x20, param_2, &local_0x28);
+              i_ebx++;
             }
-            i_esi++;
+            i_edi++;
           }
+          i_esi++;
         }
       }
       call_0x6f8fb0(param_2);
@@ -1598,28 +1830,34 @@ Operação  : 0x336a025: cmp byte [flag], imm8 ; fn=0x336a020..0x336a0c6
   === [Decompilacao C++ do XREF Runtime #7: 0x336c300..0x336c404 (insn @0x336c32b: cmp byte [flag], imm8)] ===
     struct RBX::MegaClusterInstance {
       /* +0x4d */ uint8_t field_0x4d;
-      /* +0x80 */ void*   field_0x80;
+      /* +0x80 */ uint64_t field_0x80;
       /* +0xb0 */ void*   field_0xb0;
-      /* +0xb8 */ void*   field_0xb8;
+      /* +0xb8 */ uint64_t field_0xb8;
     };
     
     // Flag defaults: TerrainUnparentedGridAccess = true, TerrainPerPlaceGrid2 = true
-    void RBX::MegaClusterInstance::func_0x336c300(RBX::MegaClusterInstance* this, int64_t param_2) {
+    void RBX::MegaClusterInstance::func_0x336c300(RBX::MegaClusterInstance* this, void* param_2) {
       if (TerrainPerPlaceGrid2 && this->field_0x80 == 0) {
         if (TerrainUnparentedGridAccess && param_2->field_0x10 != 0 && this->field_0x4d == 0) {
           this->field_0x4d = 1;
         }
+        uint64_t local_0x20;
         call_0x3381c30(&local_0x20, param_2);
+        uint64_t local_0x30;
+        local_0x30 = &this->field_m0x1b8;
+        uint64_t local_0x28;
+        uint64_t local_0x40;
+        local_0x40 = local_0x28;
         void* v_rcx_1;
         if (this->field_0xb0 != this->field_0xb8) {
           this->field_0xb0->field_0x0 = &this->field_m0x1b8;
           this->field_0xb0->field_0x8 = local_0x20;
           this->field_0xb0->field_0x10 = local_0x28;
-          this->field_0xb0->field_0x18 = &sym_0x70a7290 | 0x6;
+          this->field_0xb0->field_0x18 = &sym_0x70a7290 | 0x6ULL;
           this->field_0xb0 = this->field_0xb0 + 0x20;
           v_rcx_1 = 0;
         } else {
-          auto local_0x30 = &this->field_m0x1b8;
+          auto local_0x38 = local_0x20;
           call_0x3381cd0(&this->field_0xa0, this->field_0xb0, &local_0x30);
           v_rcx_1 = local_0x40;
         }
@@ -1628,6 +1866,10 @@ Operação  : 0x336a025: cmp byte [flag], imm8 ; fn=0x336a020..0x336a0c6
           return;
         }
         return;
+      }
+      if (param_2->field_0x10 != 0) {
+        auto ret_0x336a200_1 = call_0x336a200(&this->field_m0x1b8);
+        call_0x4b767f0(ret_0x336a200_1, param_2);
       }
     }
   
@@ -1706,32 +1948,42 @@ Operação  : 0x336a025: cmp byte [flag], imm8 ; fn=0x336a020..0x336a0c6
       /* +0x1c */ int32_t field_0x1c;
       /* +0x4d */ uint8_t field_0x4d;
       /* +0x4e */ uint8_t field_0x4e;
-      /* +0x80 */ void*   field_0x80;
+      /* +0x80 */ uint64_t field_0x80;
       /* +0xb0 */ void*   field_0xb0;
-      /* +0xb8 */ void*   field_0xb8;
+      /* +0xb8 */ uint64_t field_0xb8;
     };
     
     // Flag defaults: VoxelGridLeanDMOldGridBackCompatHardened = true, TerrainPerPlaceGrid2 = true, TerrainUnparentedGridAccess = true, VoxelGridLeanDMOldGridBackCompat = false, GridSerializationIntegrityCheck = false
-    void RBX::MegaClusterInstance::func_0x336ca20(RBX::MegaClusterInstance* this, int64_t param_2) {
+    void RBX::MegaClusterInstance::func_0x336ca20(RBX::MegaClusterInstance* this, void* param_2) {
+      uint64_t local_0x28;
+      uint64_t local_0x20;
       if (TerrainPerPlaceGrid2 && this->field_0x80 == 0) {
         if (TerrainUnparentedGridAccess && param_2->field_0x10 != 0) {
           void* v_rax_3 = param_2;
           if (param_2->field_0x18 >= 16) {
             v_rax_3 = param_2->field_0x0;
           }
-          this->field_0x4d = (v_rax_3->field_0x0 >= 2) + 1;
+          this->field_0x4d = (uint8_t)((v_rax_3->field_0x0 >= 2) + 1);
         }
         call_0x3381c30(&local_0x20, param_2);
+        uint64_t local_0x30;
+        local_0x30 = &this->field_m0x1b8;
+        uint64_t local_0x40;
+        local_0x40 = local_0x28;
+        float mem_3_3 = local_0x20;
+        local_0x20 = 0.0;
+        float mem_4_4 = local_0x28;
+        local_0x28 = 0.0;
         void* v_rdi_4;
         if (this->field_0xb0 != this->field_0xb8) {
           this->field_0xb0->field_0x0 = &this->field_m0x1b8;
-          this->field_0xb0->field_0x8 = local_0x20;
-          this->field_0xb0->field_0x10 = local_0x28;
-          this->field_0xb0->field_0x18 = &sym_0x70a72b0 | 0x6;
+          this->field_0xb0->field_0x8 = mem_3_3;
+          this->field_0xb0->field_0x10 = mem_4_4;
+          this->field_0xb0->field_0x18 = &sym_0x70a72b0 | 0x6ULL;
           this->field_0xb0 = this->field_0xb0 + 0x20;
           v_rdi_4 = 0;
         } else {
-          auto local_0x30 = &this->field_m0x1b8;
+          auto local_0x38 = local_0x20;
           call_0x3381e10(&this->field_0xa0, this->field_0xb0, &local_0x30);
           v_rdi_4 = local_0x40;
         }
@@ -1740,16 +1992,27 @@ Operação  : 0x336a025: cmp byte [flag], imm8 ; fn=0x336a020..0x336a0c6
         }
         return;
       }
-      int64_t local_0x20;
       if (param_2->field_0x10 != 0) {
         if (TerrainUnparentedGridAccess && this->field_0x4e != 0) {
-          call_0x336a200(this - 0x1b8);
+          auto ret_0x336a200_1 = call_0x336a200(&this->field_m0x1b8);
+          if (ret_0x336a200_1->field_0x15 != 0) {
+            void* v_rax_1 = param_2;
+            if (param_2->field_0x18 >= 16) {
+              v_rax_1 = param_2->field_0x0;
+            }
+            if ((uint8_t)(v_rax_1->field_0x0 - 3) > 1) {
+              call_0x4973aa0("Terrain copy uses an unsupported voxel format");
+              return; // noreturn
+            }
+          }
         }
+        void* v_rax_2;
+        void* ret_0x336a200_3;
         if (!VoxelGridLeanDMOldGridBackCompatHardened) {
           if (VoxelGridLeanDMOldGridBackCompat) {
-            auto ret_0x336a200_2 = call_0x336a200(&this->field_m0x1b8);
-            if (ret_0x336a200_2->field_0x15 == 0) {
-              void* v_rax_2 = param_2;
+            ret_0x336a200_3 = call_0x336a200(&this->field_m0x1b8);
+            if (ret_0x336a200_3->field_0x15 == 0) {
+              v_rax_2 = param_2;
               if (param_2->field_0x18 >= 16) {
                 v_rax_2 = param_2->field_0x0;
               }
@@ -1761,34 +2024,37 @@ Operação  : 0x336a025: cmp byte [flag], imm8 ; fn=0x336a020..0x336a0c6
           if (this->field_0x1c == 0) {
             (*global_0x80f4c78)(&this->field_m0x1b8);
             if (this->field_0x1c != 1) {
+              L_0x336cbbc:
               this->field_0x1c = 1;
               local_0x20 = &sym_0x6ee9278;
+              local_0x28 = &sym_0x851d890;
               call_0x1c1f220(&this->field_m0x1b8, &local_0x20);
             }
           }
           L_0x336cbdf:
-          auto ret_0x336a200_5 = call_0x336a200(&this->field_m0x1b8);
+          auto ret_0x336a200_6 = call_0x336a200(&this->field_m0x1b8);
           auto local_0x80 = 0;
-          ret_0x336a200_5->vfunc_0x100(ret_0x336a200_5, param_2, &local_0x80);
-          auto ret_0x336a200_7 = call_0x336a200(&this->field_m0x1b8);
-          if (ret_0x336a200_7->field_0x15 != 0 && GridSerializationIntegrityCheck) {
-            auto ret_0x336a200_8 = call_0x336a200(&this->field_m0x1b8);
-            call_0x336c410(ret_0x336a200_8, param_2);
+          ret_0x336a200_6->vfunc_0x100(ret_0x336a200_6, param_2, &local_0x80);
+          auto ret_0x336a200_8 = call_0x336a200(&this->field_m0x1b8);
+          if (ret_0x336a200_8->field_0x15 != 0 && GridSerializationIntegrityCheck) {
+            auto ret_0x336a200_9 = call_0x336a200(&this->field_m0x1b8);
+            call_0x336c410(ret_0x336a200_9, param_2);
           }
-          auto ret_0x336a200_10 = call_0x336a200(&this->field_m0x1b8);
-          if (ret_0x336a200_10->field_0x15 != 0) {
+          auto ret_0x336a200_11 = call_0x336a200(&this->field_m0x1b8);
+          if (ret_0x336a200_11->field_0x15 != 0) {
             if (!TerrainPerPlaceGrid2 || this->field_0x80 != 0) {
-              auto ret_0x336a200_12 = call_0x336a200(&this->field_m0x1b8);
-              ret_0x336a200_12->vfunc_0xe8(ret_0x336a200_12);
+              auto ret_0x336a200_13 = call_0x336a200(&this->field_m0x1b8);
+              ret_0x336a200_13->vfunc_0xe8(ret_0x336a200_13);
             }
           } else {
             call_0x336efc0(&this->field_m0x1b8);
           }
-          if ((1) != 0) {
+          if (cond != 0) {
             (*global_0x80f4c78)(&this->field_m0x1b8);
             if (this->field_0x1c != 0) {
               this->field_0x1c = 0;
               local_0x20 = &sym_0x6ee9278;
+              local_0x28 = &sym_0x851d890;
               call_0x1c1f220(&this->field_m0x1b8, &local_0x20);
               return;
             }
@@ -1796,9 +2062,9 @@ Operação  : 0x336a025: cmp byte [flag], imm8 ; fn=0x336a020..0x336a0c6
           }
           return;
         }
-        auto ret_0x336a200_2 = call_0x336a200(&this->field_m0x1b8);
-        if (ret_0x336a200_2->field_0x15 == 0) {
-          void* v_rax_2 = param_2;
+        ret_0x336a200_3 = call_0x336a200(&this->field_m0x1b8);
+        if (ret_0x336a200_3->field_0x15 == 0) {
+          v_rax_2 = param_2;
           if (param_2->field_0x18 >= 16) {
             v_rax_2 = param_2->field_0x0;
           }
@@ -2019,341 +2285,475 @@ Operação  : 0x336a025: cmp byte [flag], imm8 ; fn=0x336a020..0x336a0c6
       /* +0x1c */ int32_t field_0x1c;
       /* +0x4d */ uint8_t field_0x4d;
       /* +0x4e */ uint8_t field_0x4e;
-      /* +0x80 */ void*   field_0x80;
+      /* +0x80 */ uint64_t field_0x80;
       /* +0xb0 */ void*   field_0xb0;
-      /* +0xb8 */ void*   field_0xb8;
+      /* +0xb8 */ uint64_t field_0xb8;
     };
     
     // Flag defaults: TerrainUnparentedGridAccess = true, TerrainPerPlaceGrid2 = true, VoxelGridLeanDMOldGridBackCompatHardened = true, VoxelGridLeanDMOldGridBackCompat = false
-    void RBX::MegaClusterInstance::func_0x336cd00(RBX::MegaClusterInstance* this, int64_t param_2) {
-      void* v_rcx_21 = this;
-      void* v_rcx_22;
-      auto expr_2 = param_2->field_0x8 + (1 << param_2->field_0x1c) * 4;
+    void RBX::MegaClusterInstance::func_0x336cd00(RBX::MegaClusterInstance* this, void* param_2) {
+      uint64_t local_0xc0;
+      local_0xc0 = 0;
       if (TerrainPerPlaceGrid2) {
-        auto expr_3 = (param_2->field_0x4 + param_2->field_0x4 * 4) << 4;
+        uint64_t local_0x20;
+        uint64_t local_0x58;
+        uint64_t local_0x50;
+        uint64_t local_0x40;
+        uint64_t local_0x38;
+        uint64_t local_0x30;
         if (this->field_0x80 == 0) {
-          if (TerrainUnparentedGridAccess && (param_2->field_0x0 != 0 || param_2->field_0x28 != 0)) {
-            if (this->field_0x4d == 0) {
-              this->field_0x4d = 2;
+          if (TerrainUnparentedGridAccess && (param_2->field_0x0 != 0 || param_2->field_0x28 != 0) && this->field_0x4d == 0) {
+            this->field_0x4d = 2;
+          }
+          auto ret_0x4956040_29 = call_0x4956040(64);
+          if (ret_0x4956040_29 != 0) {
+            ret_0x4956040_29->field_0x8 = 1;
+            ret_0x4956040_29->field_0xc = 1;
+            ret_0x4956040_29->field_0x0 = &sym_0x70a7378;
+            (ret_0x4956040_29 + 0x10)->field_0x20 = param_2->field_0x20;
+            (ret_0x4956040_29 + 0x10)->field_0x0 = param_2->field_0x0;
+            (ret_0x4956040_29 + 0x10)->field_0x4 = param_2->field_0x4;
+            (ret_0x4956040_29 + 0x10)->field_0x18 = param_2->field_0x18;
+            (ret_0x4956040_29 + 0x10)->field_0x1c = param_2->field_0x1c;
+            (ret_0x4956040_29 + 0x10)->field_0x8 = param_2->field_0x8;
+            (ret_0x4956040_29 + 0x10)->field_0x10 = param_2->field_0x10;
+            param_2->field_0x0 = 0;
+            param_2->field_0x10 = 0;
+            param_2->field_0x8 = 0;
+            param_2->field_0x18 = 0;
+            (ret_0x4956040_29 + 0x10)->field_0x28 = param_2->field_0x28;
+            local_0x30 = &this->field_m0x1b8;
+            local_0x38 = ret_0x4956040_29 + 0x10;
+            local_0x40 = ret_0x4956040_29;
+            local_0x50 = 0.0;
+            local_0x58 = 0.0;
+            void* v_rcx_14;
+            if (this->field_0xb0 != this->field_0xb8) {
+              this->field_0xb0->field_0x0 = &this->field_m0x1b8;
+              this->field_0xb0->field_0x8 = ret_0x4956040_29 + 0x10;
+              this->field_0xb0->field_0x10 = ret_0x4956040_29;
+              this->field_0xb0->field_0x18 = &sym_0x70a7228 | 0x6ULL;
+              this->field_0xb0 = this->field_0xb0 + 0x20;
+              v_rcx_14 = 0;
+            } else {
+              call_0x3381f50(&this->field_0xa0, this->field_0xb0, &local_0x30);
+              v_rcx_14 = local_0x40;
             }
-          }
-          auto ret_0x4956040_18 = call_0x4956040(64);
-          ret_0x4956040_18->field_0x8 = 1;
-          ret_0x4956040_18->field_0xc = 1;
-          ret_0x4956040_18->field_0x0 = &sym_0x70a7378;
-          ret_0x4956040_18->field_0x30 = param_2->field_0x20;
-          ret_0x4956040_18->field_0x10 = param_2->field_0x0;
-          ret_0x4956040_18->field_0x14 = param_2->field_0x4;
-          ret_0x4956040_18->field_0x28 = param_2->field_0x18;
-          ret_0x4956040_18->field_0x2c = param_2->field_0x1c;
-          ret_0x4956040_18->field_0x18 = param_2->field_0x8;
-          ret_0x4956040_18->field_0x20 = param_2->field_0x10;
-          ret_0x4956040_18->field_0x38 = param_2->field_0x28;
-          if (this->field_0xb0 != this->field_0xb8) {
-            this->field_0xb0->field_0x0 = &this->field_m0x1b8;
-            this->field_0xb0->field_0x8 = &ret_0x4956040_18->field_0x10;
-            this->field_0xb0->field_0x10 = ret_0x4956040_18;
-            this->field_0xb0->field_0x18 = &sym_0x70a7228 | 0x6;
-            this->field_0xb0 = this->field_0xb0 + 0x20;
-            v_rcx_22 = 0;
-          } else {
-            v_rcx_21 = &this->field_0xa0;
-            call_0x3381f50(v_rcx_21, param_2, &local_0x30);
-            v_rcx_22 = local_0x40;
-          }
-          if (v_rcx_22 != 0) {
-            call_0x6daf40(v_rcx_22);
-          }
-          if (param_2->field_0x0 != 0) {
-            int64_t idx_7 = expr_2->field_0x10;
-            int32_t v_r9_24 = expr_2->field_0x4;
-            if (expr_2->field_0x4 != 0) {
-              L_0x336ce80:
-              do { // L_0x336ce80
-                if (((expr_2 + idx_7 * 8)->field_0x18[((uint32_t)(i_r9d - 1) >> 6) * 8] & 1 << (i_r9d - 1 & 0x3f)) == 0) break;
-                i_r9d = i_r9d - 1;
-              } while (i_r9d != 1); // loop -> L_0x336ce80
+            if (v_rcx_14 != 0) {
+              call_0x6daf40(v_rcx_14);
             }
-            expr_2->field_0x4 = v_r9_24;
-            int64_t idx_8 = expr_2->field_0x10;
-            if (v_r9_24 != 0) {
-              L_0x336ced2:
-              do { // L_0x336ced2
-                if (((expr_2 + idx_8 * 8)->field_0x18[((uint64_t)i_r14d >> 6) * 8] & i_ebx) == 0) {
-                  call_0x6f8fb0(param_2->field_0x10 + i_r15d + 0x20);
-                  call_0x6f8fb0(param_2->field_0x10 + i_r15d);
-                }
-                i_r14d++;
-                i_r15d += 0x50;
-                i_r12d--;
-                i_ebx = rotl(i_ebx, 1);
-              } while (i_r12d != 0); // loop -> L_0x336ced2
+            if (param_2->field_0x0 != 0) {
+              void* ptr_13 = param_2->field_0x8 + (1 << (uint8_t)param_2->field_0x1c) * 4;
+              int64_t idx_14 = (param_2->field_0x8 + ((1 << (uint8_t)param_2->field_0x1c) * 4))->field_0x10;
+              int32_t v_r9_15 = ptr_13->field_0x4;
+              if (ptr_13->field_0x4 != 0) {
+                int32_t i_r9d_4 = ptr_13->field_0x4;
+                do { // L_0x336ce80
+                  if (((ptr_13 + (idx_14 * 8))->field_0x18[((uint32_t)(i_r9d_4 - 1) >> 6) * 8] & 1 << (uint8_t)((i_r9d_4 - 1) & 0x3f)) == 0) {
+                    v_r9_15 = i_r9d_4;
+                    break;
+                  }
+                  i_r9d_4 = i_r9d_4 - 1;
+                } while (i_r9d_4 != 0); // loop -> L_0x336ce80
+                v_r9_15 = i_r9d_4;
+              }
+              ptr_13->field_0x4 = v_r9_15;
+              void* ptr_15 = param_2->field_0x8 + (1 << (uint8_t)param_2->field_0x1c) * 4;
+              int64_t idx_16 = (param_2->field_0x8 + ((1 << (uint8_t)param_2->field_0x1c) * 4))->field_0x10;
+              if (v_r9_15 != 0) {
+                int32_t i_ebx_4 = 1;
+                int32_t i_r12d_4 = v_r9_15;
+                int32_t i_r14d_4 = 0;
+                int32_t i_r15d_4 = 0;
+                do { // L_0x336ced2
+                  if (((ptr_15 + (idx_16 * 8))->field_0x18[((uint64_t)i_r14d_4 >> 6) * 8] & i_ebx_4) == 0) {
+                    call_0x6f8fb0(param_2->field_0x10 + i_r15d_4 + 0x20);
+                    call_0x6f8fb0(param_2->field_0x10 + i_r15d_4);
+                  }
+                  i_r14d_4++;
+                  i_r15d_4 += 0x50;
+                  i_r12d_4--;
+                  i_ebx_4 = rotl(i_ebx_4, 1);
+                } while (i_r12d_4 != 0); // loop -> L_0x336ced2
+              }
+              L_0x336cf08:
             }
-            L_0x336cf08:
-          }
-          L_0x336cf0b:
-          if (param_2->field_0x10 != 0) {
             local_0xc0 = param_2->field_0x10;
-            local_0x30 = expr_3 + 7 & 0xfffffff8;
-            param_2->field_0x20->vfunc_0x30(param_2->field_0x20, &local_0xc0, &local_0x30, &local_0x50);
-          }
-          if (param_2->field_0x8 != 0) {
-            L_0x336cf87:
-            void* prev_0x20_7 = param_2->field_0x20;
-            auto ret_0x6fdb30_24 = call_0x6fdb30(param_2->field_0x4);
+            if (param_2->field_0x10 != 0) {
+              L_0x336cf1f:
+              local_0x50 = 0;
+              local_0x58 = 0;
+              local_0x30 = (param_2->field_0x4 * 5 << 4) + 7 & 0xfffffffffffffff8ULL;
+              local_0x38 = 8;
+              local_0x20 = &sym_0x2e132f0;
+              param_2->field_0x20->vfunc_0x30(param_2->field_0x20, &local_0xc0, &local_0x30, &local_0x50, &sym_0x2e132f0);
+            }
             local_0xc0 = param_2->field_0x8;
-            local_0x30 = &ret_0x6fdb30_24->field_0x3f & 0xffffffc0;
-            prev_0x20_7->vfunc(prev_0x20_7, &local_0xc0, &local_0x30, &local_0x50);
+            if (param_2->field_0x8 != 0) {
+              local_0x50 = 0;
+              local_0x58 = 0;
+              L_0x336cf87:
+              void* prev_0x20_13 = param_2->field_0x20;
+              auto ret_0x6fdb30_37 = call_0x6fdb30(param_2->field_0x4);
+              local_0x30 = ret_0x6fdb30_37 + 0x3f & 0xffffffffffffffc0ULL;
+              local_0x38 = 64;
+              local_0x20 = &sym_0x2e132f0;
+              param_2->field_0x20->vfunc_0x30(prev_0x20_13, &local_0xc0, &local_0x30, &local_0x50, &sym_0x2e132f0);
+              return;
+            }
             return;
           }
-          return;
-        }
-        int32_t v_r14_2;
-        uint8_t v_r15b_3;
-        if (TerrainUnparentedGridAccess && this->field_0x4e != 0) {
-          v_r14_2 = (param_2->field_0x28 != 0 ? -1 : 0) & 0x2;
-          v_r15b_3 = 1;
+          call_0x6ca7d0(&local_0x50);
+          call_0x5e066f0(&local_0x50, &sym_0x80cbbc0);
+          return; // noreturn
         } else {
-          v_r14_2 = 0;
-          v_r15b_3 = 0;
-        }
-        auto ret_0x336a200_1 = call_0x336a200(&this->field_m0x1b8);
-        int32_t i_r12d;
-        int32_t i_r15d;
-        int32_t i_ebx;
-        int32_t i_r14d;
-        int32_t i_r9d;
-        auto expr_4 = (this->field_m0x168 & 0xfffffff8)->field_0x20;
-        auto expr_1 = (expr_4)->field_0x0;
-        if (ret_0x336a200_1->field_0x15 == 0) {
-          if (v_r15b_3 != 0) {
-            if (!VoxelGridLeanDMOldGridBackCompatHardened) {
-              call_0x1bf5200(2, "Terrain copy voxel data can't be converted for this grid, skipping it", 4, &local_0x50);
-              if (param_2->field_0x0 != 0) {
-                int64_t idx_5 = expr_2->field_0x10;
-                int32_t v_r9_20 = expr_2->field_0x4;
-                if (expr_2->field_0x4 != 0) {
-                  do { // L_0x336d0f0
-                    if (((expr_2 + idx_5 * 8)->field_0x18[((uint32_t)(i_r9d - 1) >> 6) * 8] & 1 << (i_r9d - 1 & 0x3f)) == 0) break;
+          int32_t v_rax_1;
+          int32_t v_r14_2;
+          uint8_t v_r15b_3;
+          if (TerrainUnparentedGridAccess && this->field_0x4e != 0) {
+            v_rax_1 = param_2->field_0x28 != 0;
+            v_r14_2 = (param_2->field_0x28 != 0 ? -1 : 0) & 0x2;
+            v_r15b_3 = 1;
+          } else {
+            v_rax_1 = 0;
+            v_r14_2 = local_0xc0;
+            v_r15b_3 = 0;
+          }
+          uint64_t local_0x48;
+          if ((uint8_t)v_rax_1 != 0) {
+            local_0x30 = 0;
+            local_0x48 = 15;
+            local_0x40 = 0;
+            local_0x50 = 0.0;
+            local_0x58 = 0.0;
+            local_0x20 = &local_0x30;
+            call_0x1bf5200(2, "Terrain copy references voxel data stored with its place, which can't load outside it", 4, &local_0x50, &local_0x30);
+          }
+          auto ret_0x336a200_2 = call_0x336a200(&this->field_m0x1b8);
+          if (ret_0x336a200_2->field_0x15 == 0) {
+            int32_t i_r15d_3;
+            int32_t i_r12d_3;
+            int32_t i_ebx_3;
+            int64_t idx_8;
+            void* ptr_7;
+            int32_t i_r9d_3;
+            int64_t idx_6;
+            void* ptr_5;
+            int64_t ret_0x336a0d0_21;
+            int64_t ret_0x336a200_19;
+            void* v_r14_10;
+            int32_t v_r13_9;
+            int32_t i_r14d_3;
+            int32_t v_r13_11;
+            int32_t v_r9_12;
+            if (v_r15b_3 != 0) {
+              if (!VoxelGridLeanDMOldGridBackCompatHardened) {
+                local_0x30 = 0;
+                local_0x48 = 15;
+                local_0x40 = 0;
+                local_0x50 = 0.0;
+                local_0x58 = 0.0;
+                local_0x20 = &local_0x30;
+                call_0x1bf5200(2, "Terrain copy voxel data can't be converted for this grid, skipping it", 4, &local_0x50, &local_0x30);
+                if (param_2->field_0x0 != 0) {
+                  void* ptr_9 = param_2->field_0x8 + (1 << (uint8_t)param_2->field_0x1c) * 4;
+                  int64_t idx_10 = (param_2->field_0x8 + ((1 << (uint8_t)param_2->field_0x1c) * 4))->field_0x10;
+                  int32_t v_r9_13 = ptr_9->field_0x4;
+                  if (ptr_9->field_0x4 != 0) {
+                    int32_t i_r9d = ptr_9->field_0x4;
+                    do { // L_0x336d0f0
+                    if (((ptr_9 + (idx_10 * 8))->field_0x18[((uint32_t)(i_r9d - 1) >> 6) * 8] & 1 << (uint8_t)((i_r9d - 1) & 0x3f)) == 0) {
+                    v_r9_13 = i_r9d;
+                    break;
+                    }
                     i_r9d = i_r9d - 1;
-                  } while (i_r9d != 1); // loop -> L_0x336d0f0
-                }
-                expr_2->field_0x4 = v_r9_20;
-                if (v_r9_20 != 0) {
-                  do { // L_0x336d150
+                    } while (i_r9d != 0); // loop -> L_0x336d0f0
+                    v_r9_13 = i_r9d;
+                  }
+                  ptr_9->field_0x4 = v_r9_13;
+                  void* ptr_11 = param_2->field_0x8 + (1 << (uint8_t)param_2->field_0x1c) * 4;
+                  int64_t idx_12 = (param_2->field_0x8 + ((1 << (uint8_t)param_2->field_0x1c) * 4))->field_0x10;
+                  if (v_r9_13 != 0) {
+                    int32_t i_ebx = 1;
+                    int32_t i_r12d = v_r9_13;
+                    int32_t i_r14d = 0;
+                    int32_t i_r15d = 0;
+                    do { // L_0x336d150
+                    if (((ptr_11 + (idx_12 * 8))->field_0x18[((uint64_t)i_r14d >> 6) * 8] & i_ebx) == 0) {
+                    call_0x6f8fb0(param_2->field_0x10 + i_r15d + 0x20);
+                    call_0x6f8fb0(param_2->field_0x10 + i_r15d);
+                    }
                     i_r14d++;
                     i_r15d += 0x50;
                     i_r12d--;
                     i_ebx = rotl(i_ebx, 1);
-                  } while (i_r12d != 0); // loop -> L_0x336d150
+                    } while (i_r12d != 0); // loop -> L_0x336d150
+                  }
+                }
+                local_0xc0 = param_2->field_0x10;
+                if (param_2->field_0x10 != 0) {
+                  goto L_0x336cf1f;
+                }
+                local_0xc0 = param_2->field_0x8;
+                if (param_2->field_0x8 != 0) {
+                  local_0x50 = 0;
+                  local_0x58 = 0;
+                  goto L_0x336cf87;
+                }
+                return;
+              }
+              local_0xc0 = 0;
+              if (v_r15b_3 != 0) {
+                v_r13_11 = v_r14_2;
+              } else {
+                v_r13_9 = 0;
+                if ((this->field_m0x168 & 0xfffffffffffffff8ULL)->field_0x20 != 0) {
+                  L_0x336d1c3:
+                  auto vret_16 = (*(((this->field_m0x168 & 0xfffffffffffffff8ULL)->field_0x20)->field_0x0)->field_0x28)((this->field_m0x168 & 0xfffffffffffffff8ULL)->field_0x20, &local_0x50);
+                  void* prev_0x0_4 = vret_16->field_0x0;
+                  vret_16->field_0x0 = 0;
+                  void* prev_0x8_5 = vret_16->field_0x8;
+                  vret_16->field_0x8 = 0;
+                  if (local_0x58 != 0) {
+                    call_0x6daf40(local_0x58);
+                  }
+                  if (prev_0x0_4 != 0) {
+                    v_r13_9 = vret_16->field_0x0->field_0x518;
+                    v_r14_10 = prev_0x8_5;
+                  } else {
+                    v_r13_9 = local_0xc0;
+                    v_r14_10 = prev_0x8_5;
+                  }
+                } else {
+                  v_r14_10 = 0;
+                }
+                if (v_r14_10 != 0) {
+                  call_0x6daf40(v_r14_10);
+                  v_r13_11 = v_r13_9;
+                } else {
+                  v_r13_11 = v_r13_9;
                 }
               }
-              if (param_2->field_0x10 != 0) {
-                local_0xc0 = param_2->field_0x10;
-                local_0x30 = expr_3 + 7 & 0xfffffff8;
-                param_2->field_0x20->vfunc_0x30(param_2->field_0x20, &local_0xc0, &local_0x30, &local_0x50);
+              ret_0x336a200_19 = call_0x336a200(&this->field_m0x1b8);
+              call_0x336c800(ret_0x336a200_19, param_2, v_r13_11, v_r15b_3);
+              if (this->field_0x1c == 0) {
+                ret_0x336a0d0_21 = call_0x336a0d0(&this->field_m0x1b8);
+                if ((uint8_t)ret_0x336a0d0_21 != 0) {
+                  call_0xa1cc10(this, 1);
+                }
               }
+              if (param_2->field_0x0 != 0) {
+                ptr_5 = param_2->field_0x8 + (1 << (uint8_t)param_2->field_0x1c) * 4;
+                idx_6 = (param_2->field_0x8 + ((1 << (uint8_t)param_2->field_0x1c) * 4))->field_0x10;
+                v_r9_12 = ptr_5->field_0x4;
+                if (ptr_5->field_0x4 != 0) {
+                  i_r9d_3 = ptr_5->field_0x4;
+                  L_0x336d280:
+                  do { // L_0x336d280
+                    if (((ptr_5 + (idx_6 * 8))->field_0x18[((uint32_t)(i_r9d_3 - 1) >> 6) * 8] & 1 << (uint8_t)((i_r9d_3 - 1) & 0x3f)) == 0) {
+                    v_r9_12 = i_r9d_3;
+                    break;
+                    }
+                    i_r9d_3 = i_r9d_3 - 1;
+                  } while (i_r9d_3 != 0); // loop -> L_0x336d280
+                  v_r9_12 = i_r9d_3;
+                }
+                ptr_5->field_0x4 = v_r9_12;
+                ptr_7 = param_2->field_0x8 + (1 << (uint8_t)param_2->field_0x1c) * 4;
+                idx_8 = (param_2->field_0x8 + ((1 << (uint8_t)param_2->field_0x1c) * 4))->field_0x10;
+                if (v_r9_12 != 0) {
+                  i_ebx_3 = 1;
+                  i_r12d_3 = v_r9_12;
+                  i_r14d_3 = 0;
+                  i_r15d_3 = 0;
+                  L_0x336d2d2:
+                  do { // L_0x336d2d2
+                    if (((ptr_7 + (idx_8 * 8))->field_0x18[((uint64_t)i_r14d_3 >> 6) * 8] & i_ebx_3) == 0) {
+                    call_0x6f8fb0(param_2->field_0x10 + i_r15d_3 + 0x20);
+                    call_0x6f8fb0(param_2->field_0x10 + i_r15d_3);
+                    }
+                    i_r14d_3++;
+                    i_r15d_3 += 0x50;
+                    i_r12d_3--;
+                    i_ebx_3 = rotl(i_ebx_3, 1);
+                  } while (i_r12d_3 != 0); // loop -> L_0x336d2d2
+                }
+              }
+              L_0x336d308:
+              local_0xc0 = param_2->field_0x10;
+              if (param_2->field_0x10 != 0) {
+                L_0x336d31f:
+                local_0x50 = 0;
+                local_0x58 = 0;
+                local_0x30 = (param_2->field_0x4 * 5 << 4) + 7 & 0xfffffffffffffff8ULL;
+                local_0x38 = 8;
+                local_0x20 = &sym_0x2e132f0;
+                param_2->field_0x20->vfunc_0x30(param_2->field_0x20, &local_0xc0, &local_0x30, &local_0x50, &sym_0x2e132f0);
+              }
+              local_0xc0 = param_2->field_0x8;
               if (param_2->field_0x8 != 0) {
+                local_0x50 = 0;
+                local_0x58 = 0;
                 goto L_0x336cf87;
               }
               return;
             }
-            L_0x336d1a1:
-            int32_t v_r13_17;
-            if (v_r15b_3 != 0) {
-              v_r13_17 = v_r14_2;
-            } else {
-              int32_t v_r13_15 = 0;
-              void* v_r14_16;
-              if (expr_4 != 0) {
-                auto vret_11 = expr_1->vfunc_0x28(expr_4, &local_0x50);
-                void* prev_0x0_3 = vret_11->field_0x0;
-                vret_11->field_0x0 = 0;
-                void* prev_0x8_4 = vret_11->field_0x8;
-                vret_11->field_0x8 = 0;
-                if (prev_0x0_3 != 0) {
-                  v_r13_15 = vret_11->field_0x0->field_0x518;
-                  v_r14_16 = prev_0x8_4;
-                } else {
-                  v_r14_16 = prev_0x8_4;
-                }
+            if (VoxelGridLeanDMOldGridBackCompatHardened || VoxelGridLeanDMOldGridBackCompat) {
+              local_0xc0 = 0;
+              if (v_r15b_3 != 0) {
+                v_r13_11 = v_r14_2;
               } else {
-                v_r14_16 = 0;
+                v_r13_9 = 0;
+                if ((this->field_m0x168 & 0xfffffffffffffff8ULL)->field_0x20 != 0) {
+                  goto L_0x336d1c3;
+                } else {
+                  v_r14_10 = 0;
+                }
+                if (v_r14_10 != 0) {
+                  call_0x6daf40(v_r14_10);
+                  v_r13_11 = v_r13_9;
+                } else {
+                  v_r13_11 = v_r13_9;
+                }
               }
-              if (v_r14_16 == 0) {
-                v_r13_17 = v_r13_15;
-              }
-            }
-            auto ret_0x336a200_12 = call_0x336a200(&this->field_m0x1b8);
-            call_0x336c800(ret_0x336a200_12, param_2, v_r13_17, v_r15b_3);
-            if (this->field_0x1c == 0) {
-              auto ret_0x336a0d0_14 = call_0x336a0d0(&this->field_m0x1b8);
-              if ((uint8_t)ret_0x336a0d0_14 != 0) {
-                call_0xa1cc10(this, 1);
+              ret_0x336a200_19 = call_0x336a200(&this->field_m0x1b8);
+              call_0x336c800(ret_0x336a200_19, param_2, v_r13_11, v_r15b_3);
+              if (this->field_0x1c == 0) {
+                ret_0x336a0d0_21 = call_0x336a0d0(&this->field_m0x1b8);
+                if ((uint8_t)ret_0x336a0d0_21 != 0) {
+                  call_0xa1cc10(this, 1);
+                }
               }
             }
             if (param_2->field_0x0 != 0) {
-              int64_t idx_3 = expr_2->field_0x10;
-              int32_t v_r9_18 = expr_2->field_0x4;
-              if (expr_2->field_0x4 != 0) {
-                L_0x336d280:
-                do { // L_0x336d280
-                  if (((expr_2 + idx_3 * 8)->field_0x18[((uint32_t)(i_r9d - 1) >> 6) * 8] & 1 << (i_r9d - 1 & 0x3f)) == 0) break;
-                  i_r9d = i_r9d - 1;
-                } while (i_r9d != 1); // loop -> L_0x336d280
+              ptr_5 = param_2->field_0x8 + (1 << (uint8_t)param_2->field_0x1c) * 4;
+              idx_6 = (param_2->field_0x8 + ((1 << (uint8_t)param_2->field_0x1c) * 4))->field_0x10;
+              v_r9_12 = ptr_5->field_0x4;
+              if (ptr_5->field_0x4 != 0) {
+                i_r9d_3 = ptr_5->field_0x4;
+                goto L_0x336d280;
               }
-              expr_2->field_0x4 = v_r9_18;
-              if (v_r9_18 != 0) {
-                L_0x336d2d2:
-                do { // L_0x336d2d2
-                  i_r14d++;
-                  i_r15d += 0x50;
-                  i_r12d--;
-                  i_ebx = rotl(i_ebx, 1);
-                } while (i_r12d != 0); // loop -> L_0x336d2d2
+              ptr_5->field_0x4 = v_r9_12;
+              ptr_7 = param_2->field_0x8 + (1 << (uint8_t)param_2->field_0x1c) * 4;
+              idx_8 = (param_2->field_0x8 + ((1 << (uint8_t)param_2->field_0x1c) * 4))->field_0x10;
+              if (v_r9_12 != 0) {
+                i_ebx_3 = 1;
+                i_r12d_3 = v_r9_12;
+                i_r14d_3 = 0;
+                i_r15d_3 = 0;
+                goto L_0x336d2d2;
               }
             }
-            L_0x336d308:
+            local_0xc0 = param_2->field_0x10;
             if (param_2->field_0x10 != 0) {
-              auto local_0xc0 = param_2->field_0x10;
-              auto local_0x30 = expr_3 + 7 & 0xfffffff8;
-              param_2->field_0x20->vfunc_0x30(param_2->field_0x20, &local_0xc0, &local_0x30, &local_0x50);
+              goto L_0x336d31f;
             }
+            local_0xc0 = param_2->field_0x8;
             if (param_2->field_0x8 != 0) {
+              local_0x50 = 0;
+              local_0x58 = 0;
               goto L_0x336cf87;
             }
             return;
           }
-          if (VoxelGridLeanDMOldGridBackCompatHardened || VoxelGridLeanDMOldGridBackCompat) {
-            int32_t v_r13_17;
-            if (v_r15b_3 != 0) {
-              v_r13_17 = v_r14_2;
+          auto ret_0x336a200_3 = call_0x336a200(&this->field_m0x1b8);
+          local_0x20 = 0;
+          auto ret_0x5e064d0_4 = call_0x5e064d0(ret_0x336a200_3, 0, &sym_0x81c2310, &sym_0x81c22e0, 0);
+          if (ret_0x5e064d0_4 != 0) {
+            int32_t v_rax_4;
+            uint64_t v_rbx_5;
+            void* v_rdi_6;
+            if ((this->field_m0x168 & 0xfffffffffffffff8ULL)->field_0x20 != 0) {
+              auto vret_6 = (*(((this->field_m0x168 & 0xfffffffffffffff8ULL)->field_0x20)->field_0x0)->field_0x28)((this->field_m0x168 & 0xfffffffffffffff8ULL)->field_0x20, &local_0x50, &sym_0x81c2310, &sym_0x81c22e0);
+              local_0x30 = vret_6->field_0x0;
+              local_0x38 = vret_6->field_0x8;
+              void* prev_0x0_1 = vret_6->field_0x0;
+              vret_6->field_0x0 = 0;
+              void* prev_0x8_2 = vret_6->field_0x8;
+              vret_6->field_0x8 = 0;
+              v_rax_4 = 80;
+              v_rbx_5 = prev_0x8_2;
+              v_rdi_6 = prev_0x0_1;
             } else {
-              int32_t v_r13_15 = 0;
-              void* v_r14_16;
-              if (expr_4 != 0) {
-                goto L_0x336d1c3;
+              local_0x30 = (this->field_m0x168 & 0xfffffffffffffff8ULL)->field_0x20;
+              local_0x38 = (this->field_m0x168 & 0xfffffffffffffff8ULL)->field_0x20;
+              v_rax_4 = 64;
+              v_rbx_5 = (this->field_m0x168 & 0xfffffffffffffff8ULL)->field_0x20;
+              v_rdi_6 = (this->field_m0x168 & 0xfffffffffffffff8ULL)->field_0x20;
+            }
+            if (((uint8_t)v_rax_4 & 0x10) != 0 && local_0x58 != 0) {
+              call_0x6daf40(local_0x58);
+            }
+            if (v_rdi_6 != 0) {
+              call_0xfebfc0(&this->field_m0x1b8);
+              void* v_rbx_7 = v_rbx_5;
+              uint64_t local_0x28;
+              if (v_r15b_3 != 0) {
+                local_0x28 = 1;
+                call_0x4b31a10(ret_0x5e064d0_4, param_2, v_r14_2);
               } else {
-                v_r14_16 = 0;
+                local_0x50 = v_rdi_6;
+                local_0x58 = v_rbx_5;
+                local_0x30 = 0.0;
+                local_0x38 = 0.0;
+                local_0xc0 = &local_0x50;
+                local_0x28 = 0;
+                call_0x4b31a10(ret_0x5e064d0_4, param_2, v_rdi_6->field_0x518);
+                if (local_0x58 != 0) {
+                  call_0x6daf40(local_0x58);
+                }
+                v_rbx_7 = local_0x38;
               }
-              if (v_r14_16 == 0) {
-                v_r13_17 = v_r13_15;
+              if (v_rbx_7 != 0) {
+                call_0x6daf40(v_rbx_7);
               }
-            }
-            auto ret_0x336a200_12 = call_0x336a200(&this->field_m0x1b8);
-            call_0x336c800(ret_0x336a200_12, param_2, v_r13_17, v_r15b_3);
-            if (this->field_0x1c == 0) {
-              auto ret_0x336a0d0_14 = call_0x336a0d0(&this->field_m0x1b8);
-              if ((uint8_t)ret_0x336a0d0_14 != 0) {
-                call_0xa1cc10(this, 1);
+              if (param_2->field_0x0 != 0) {
+                void* ptr_1 = param_2->field_0x8 + (1 << (uint8_t)param_2->field_0x1c) * 4;
+                int64_t idx_2 = (param_2->field_0x8 + ((1 << (uint8_t)param_2->field_0x1c) * 4))->field_0x10;
+                int32_t v_r9_8 = ptr_1->field_0x4;
+                if (ptr_1->field_0x4 != 0) {
+                  int32_t i_r9d_2 = ptr_1->field_0x4;
+                  do { // L_0x336d4e0
+                    if (((ptr_1 + (idx_2 * 8))->field_0x18[((uint32_t)(i_r9d_2 - 1) >> 6) * 8] & 1 << (uint8_t)((i_r9d_2 - 1) & 0x3f)) == 0) {
+                    v_r9_8 = i_r9d_2;
+                    break;
+                    }
+                    i_r9d_2 = i_r9d_2 - 1;
+                  } while (i_r9d_2 != 0); // loop -> L_0x336d4e0
+                  v_r9_8 = i_r9d_2;
+                }
+                ptr_1->field_0x4 = v_r9_8;
+                void* ptr_3 = param_2->field_0x8 + (1 << (uint8_t)param_2->field_0x1c) * 4;
+                int64_t idx_4 = (param_2->field_0x8 + ((1 << (uint8_t)param_2->field_0x1c) * 4))->field_0x10;
+                if (v_r9_8 != 0) {
+                  int32_t i_ebx_2 = 1;
+                  int32_t i_r12d_2 = v_r9_8;
+                  int32_t i_r14d_2 = 0;
+                  int32_t i_r15d_2 = 0;
+                  do { // L_0x336d540
+                    if (((ptr_3 + (idx_4 * 8))->field_0x18[((uint64_t)i_r14d_2 >> 6) * 8] & i_ebx_2) == 0) {
+                    call_0x6f8fb0(param_2->field_0x10 + i_r15d_2 + 0x20);
+                    call_0x6f8fb0(param_2->field_0x10 + i_r15d_2);
+                    }
+                    i_r14d_2++;
+                    i_r15d_2 += 0x50;
+                    i_r12d_2--;
+                    i_ebx_2 = rotl(i_ebx_2, 1);
+                  } while (i_r12d_2 != 0); // loop -> L_0x336d540
+                }
               }
-            }
-          }
-          if (param_2->field_0x0 != 0) {
-            int64_t idx_3 = expr_2->field_0x10;
-            int32_t v_r9_18 = expr_2->field_0x4;
-            if (expr_2->field_0x4 != 0) {
-              goto L_0x336d280;
-            }
-            expr_2->field_0x4 = v_r9_18;
-            if (v_r9_18 != 0) {
-              goto L_0x336d2d2;
-            }
-          }
-          if (param_2->field_0x10 != 0) {
-            auto local_0xc0 = param_2->field_0x10;
-            auto local_0x30 = expr_3 + 7 & 0xfffffff8;
-            param_2->field_0x20->vfunc_0x30(param_2->field_0x20, &local_0xc0, &local_0x30, &local_0x50);
-          }
-          if (param_2->field_0x8 != 0) {
-            goto L_0x336cf87;
-          }
-          return;
-          goto L_0x336d1a1;
-        } else {
-          auto ret_0x336a200_2 = call_0x336a200(&this->field_m0x1b8);
-          auto ret_0x5e064d0_3 = call_0x5e064d0(ret_0x336a200_2, 0, &sym_0x81c2310, &sym_0x81c22e0);
-          int32_t v_rax_4;
-          uint64_t v_rbx_5;
-          uint64_t v_rdi_6;
-          if (expr_4 != 0) {
-            auto vret_4 = expr_1->vfunc_0x28(expr_4, &local_0x50);
-            void* prev_0x0_1 = vret_4->field_0x0;
-            vret_4->field_0x0 = 0;
-            void* prev_0x8_2 = vret_4->field_0x8;
-            vret_4->field_0x8 = 0;
-            v_rax_4 = 80;
-            v_rbx_5 = prev_0x8_2;
-            v_rdi_6 = prev_0x0_1;
-          } else {
-            v_rax_4 = 64;
-            v_rbx_5 = expr_4;
-            v_rdi_6 = expr_4;
-          }
-          if (((uint8_t)v_rax_4 & 0x10) != 0 && local_0x58 != 0) {
-            call_0x6daf40(local_0x58);
-          }
-          if (v_rdi_6 != 0) {
-            call_0xfebfc0(&this->field_m0x1b8);
-            void* v_rbx_9 = v_rbx_5;
-            if (v_r15b_3 != 0) {
-              call_0x4b31a10(ret_0x5e064d0_3, param_2, v_r14_2);
+              goto L_0x336d308;
             } else {
-              call_0x4b31a10(ret_0x5e064d0_3, param_2, v_rdi_6->field_0x518);
-              v_rbx_9 = 0.0;
+              call_0x4973aa0("Unable to get datamodel in new grid AssetContentMapCallback.");
+              return; // noreturn
             }
-            if (v_rbx_9 != 0) {
-              call_0x6daf40(v_rbx_9);
-            }
-            if (param_2->field_0x0 != 0) {
-              int64_t idx_1 = expr_2->field_0x10;
-              int32_t v_r9_14 = expr_2->field_0x4;
-              if (expr_2->field_0x4 != 0) {
-                i_r9d = expr_2->field_0x4;
-                do { // L_0x336d4e0
-                  if (((expr_2 + idx_1 * 8)->field_0x18[((uint32_t)(i_r9d - 1) >> 6) * 8] & 1 << (i_r9d - 1 & 0x3f)) == 0) break;
-                  i_r9d = i_r9d - 1;
-                } while (i_r9d != 1); // loop -> L_0x336d4e0
-              }
-              expr_2->field_0x4 = v_r9_14;
-              if (v_r9_14 != 0) {
-                i_ebx = 1;
-                i_r12d = v_r9_14;
-                i_r14d = 0;
-                i_r15d = 0;
-                do { // L_0x336d540
-                  i_r14d++;
-                  i_r15d += 0x50;
-                  i_r12d--;
-                  i_ebx = rotl(i_ebx, 1);
-                } while (i_r12d != 0); // loop -> L_0x336d540
-              }
-            }
-            goto L_0x336d308;
           } else {
-            call_0x4973aa0("Unable to get datamodel in new grid AssetContentMapCallback.");
+            call_0x4973aa0("Terrain AssetContentMap setter called with the old grid.", 0, &sym_0x81c2310, &sym_0x81c22e0);
+            return; // noreturn
           }
-        }
-      }
-      call_0x3381f50(v_rcx_21, param_2, &local_0x30);
-      v_rcx_22 = local_0x40;
-      if (v_rcx_22 != 0) {
-        call_0x6daf40(v_rcx_22);
-      }
-      if (param_2->field_0x0 != 0) {
-        int64_t idx_7 = expr_2->field_0x10;
-        int32_t v_r9_24 = expr_2->field_0x4;
-        if (expr_2->field_0x4 != 0) {
-          goto L_0x336ce80;
-        }
-        expr_2->field_0x4 = v_r9_24;
-        int64_t idx_8 = expr_2->field_0x10;
-        if (v_r9_24 != 0) {
-          goto L_0x336ced2;
         }
         goto L_0x336cf08;
       }
-      goto L_0x336cf0b;
     }
   
   === [Instrucoes x86-64 do XREF Runtime #9 (0x336cd00..0x336d5ae)] ===
@@ -2373,7 +2773,7 @@ Operação  : 0x336a025: cmp byte [flag], imm8 ; fn=0x336a020..0x336a0c6
     0x336cd22 | 45 33 ed                 | xor r13d, r13d
     0x336cd25 | 44 89 6d 50              | mov dword ptr [rbp + 0x50], r13d
     0x336cd29 | 44 38 2d 50 75 d8 04     | cmp byte ptr [rip + 0x4d87550], r13b ; FFlagTerrainPerPlaceGrid2
-    0x336cd30 | 0f 84 fc 00 00 00        | je 0x336ce32 ; [Nanomite Reconstructed: je +0xfc via cfg_exit_block_resolver]
+    0x336cd30 | 0f 84 8e 02 00 00        | je 0x336cfc4 ; [Nanomite Reconstructed: je +0x28e via cfg_epilogue_exit_resolver]
     0x336cd36 | 4c 39 a9 80 00 00 00     | cmp qword ptr [rcx + 0x80], r13
     0x336cd3d | 0f 85 99 02 00 00        | jne 0x336cfdc
     0x336cd43 | 44 38 2d 56 95 da 04     | cmp byte ptr [rip + 0x4da9556], r13b ; FFlagTerrainUnparentedGridAccess
@@ -3001,9 +3401,9 @@ Operação  : 0x336a025: cmp byte [flag], imm8 ; fn=0x336a020..0x336a0c6
     0x336d5a9 | e8 42 91 a9 02           | call 0x5e066f0
   
   === [Estrutura RTTI & VTable da Classe (RBX::MegaClusterInstance)] ===
-    VTable  : 0x6f2e6b0 (offset +0x0, 77 slots virtuais)
-    Herança : RBX::PropertyDescriptor, RBX::MemberDescriptor, RBX::Descriptor
-    +0x0 -> fn_0x3369a70
+    VTable  : 0x70a6b58 (offset +0x0, 81 slots virtuais)
+    Herança : RBX::BasePart, RBX::Reflection::Described, RBX::PVInstance, RBX::Instance, RBX::Object, RBX::DescribedBase, RBX::EventSource, RBX::enable_shared_from_this (+0x8), RBX::GuidItem (+0x28), RBX::ObjectProp (+0x38), RBX::Noncopyable (+0x38), RBX::Diagnostics::Countable (+0x58), RBX::InstanceProp (+0x58), RBX::PVInstanceProp (+0x98)
+    +0x0 -> fn_0x33817b0
     +0x8 -> fn_0x1c1f1a0
     +0x10 -> fn_0xd6a600
     +0x18 -> fn_0x1c44010
@@ -3020,14 +3420,14 @@ Operação  : 0x336a025: cmp byte [flag], imm8 ; fn=0x336a020..0x336a0c6
     +0xc0 -> fn_0x1c43cb0
     +0xd0 -> fn_0x1c3da30
   
-  === [Decompilacao de Metodo da Classe RBX::MegaClusterInstance: 0x3369a70..0x3369aae (vfunc_0x0)] ===
+  === [Decompilacao de Metodo da Classe RBX::MegaClusterInstance: 0x33817b0..0x33817ee (vfunc_0x0)] ===
     struct RBX::MegaClusterInstance {
-      /* +0x4d8 */ void*   field_0x4d8;
+      /* +0x1c0 */ void*   field_0x1c0;
     };
     
-    auto RBX::MegaClusterInstance::func_0x3369a70(RBX::MegaClusterInstance* this, int64_t param_2) {
-      call_0x3369ad0(this);
-      this->field_0x4d8 = &sym_0x6f6d6f0;
+    auto RBX::MegaClusterInstance::func_0x33817b0(RBX::MegaClusterInstance* this, int64_t param_2) {
+      call_0x33816d0(this);
+      this->field_0x1c0 = &sym_0x6f6d6f0;
       if (((uint8_t)param_2 & 0x1) != 0) {
         call_0x4955ac0(this);
       }
@@ -3035,89 +3435,115 @@ Operação  : 0x336a025: cmp byte [flag], imm8 ; fn=0x336a020..0x336a0c6
     }
   
   === [Decompilacao de Metodo da Classe RBX::MegaClusterInstance: 0xd6a600..0xd6a73b (vfunc_0x10)] ===
-    struct RBX::BasePart {
-      /* +0x178 */ void*   field_0x178;
-    };
-    
-    // Flag defaults: DMCTMigrateBasePartNetwork = true, ServerAutomaticNetworkOwnershipBufferMs = 3000
-    void RBX::BasePart::func_0xd6a600(RBX::BasePart* this, int64_t param_2, void* param_3, void* param_4) {
+    // Flag defaults: DMCTMigrateBasePartNetwork = true, ServerAutomaticNetworkOwnershipBufferMs = 0
+    void RBX::SpawnLocation::func_0xd6a600(RBX::SpawnLocation* this, int64_t param_2, void* param_3, void* param_4) {
       if (param_2 == &sym_0x85afc60) {
-        call_0xd75190(this);
-        void* sel_rax_1 = param_3->field_0x0->field_0x8 == 0 ? 0 : param_3->field_0x0->field_0x10;
-        int32_t v_rbx_1;
-        if (DMCTMigrateBasePartNetwork) {
-          void* sel_rax_3 = this == 0 ? 0 : this;
-          v_rbx_1 = sel_rax_3->field_0x178->field_0x258;
-        } else {
-          void* sel_rax_2 = this == 0 ? 0 : this;
-          v_rbx_1 = sel_rax_2->field_0x178->field_0x1dc;
-        }
-        int32_t v_rdi_2 = sel_rax_1->field_0x0;
-        auto expr_1 = (double)((float)ServerAutomaticNetworkOwnershipBufferMs / 1000.0f);
-        if (sel_rax_1->field_0x0 == 1) {
-          if (v_rbx_1 != param_4->field_0x0) {
-            auto prev_0x0_3 = param_4->field_0x0;
-            auto prev_0x0_4 = sel_rax_1->field_0x0;
-            auto ret_0x4062490_2 = call_0x4062490(this);
-            if (ret_0x4062490_2 != 0 && ret_0x4062490_2->field_0x970 == 2) {
-              if (prev_0x0_4 != 1 || v_rbx_1 != prev_0x0_3) {
-                return;
+        void* prev_0x0_1 = param_3->field_0x0->field_0x0;
+        auto ret_0xd75190_1 = call_0xd75190(this);
+        if (prev_0x0_1 == ret_0xd75190_1) {
+          void* sel_rax_1 = param_3->field_0x0->field_0x8 == 0 ? 0 : &param_3->field_0x0->field_0x10;
+          int32_t v_rbx_1;
+          if (DMCTMigrateBasePartNetwork) {
+            void* sel_rax_3 = this == 0 ? 0 : this;
+            v_rbx_1 = sel_rax_3->field_0x178->field_0x258;
+          } else {
+            void* sel_rax_2 = this == 0 ? 0 : this;
+            v_rbx_1 = sel_rax_2->field_0x178->field_0x1dc;
+          }
+          int32_t v_rdi_2 = sel_rax_1->field_0x0;
+          void* ret_0x4062490_3;
+          int64_t prev_0x0_4;
+          int64_t prev_0x0_3;
+          auto expr_1 = (double)((float)ServerAutomaticNetworkOwnershipBufferMs / 1000.0f);
+          if (sel_rax_1->field_0x0 == 1) {
+            if (v_rbx_1 != param_4->field_0x0) {
+              prev_0x0_3 = param_4->field_0x0;
+              prev_0x0_4 = sel_rax_1->field_0x0;
+              ret_0x4062490_3 = call_0x4062490(this);
+              if (ret_0x4062490_3 != 0 && ret_0x4062490_3->field_0x970 == 2) {
+                if (prev_0x0_4 != 1 || v_rbx_1 != prev_0x0_3) {
+                  return;
+                }
+                v_rdi_2 = prev_0x0_4;
               }
               v_rdi_2 = prev_0x0_4;
             }
+            call_0xdf0d00(&this->field_0xa8, v_rdi_2);
+            call_0xd5df40(this, expr_1);
+            call_0xd5df40(this, 3.0);
+            return;
+          }
+          prev_0x0_3 = param_4->field_0x0;
+          prev_0x0_4 = sel_rax_1->field_0x0;
+          ret_0x4062490_3 = call_0x4062490(this);
+          if (ret_0x4062490_3 != 0 && ret_0x4062490_3->field_0x970 == 2) {
+            if (prev_0x0_4 != 1 || v_rbx_1 != prev_0x0_3) {
+              return;
+            }
             v_rdi_2 = prev_0x0_4;
           }
+          v_rdi_2 = prev_0x0_4;
           call_0xdf0d00(&this->field_0xa8, v_rdi_2);
           call_0xd5df40(this, expr_1);
           call_0xd5df40(this, 3.0);
           return;
         }
-        auto prev_0x0_3 = param_4->field_0x0;
-        auto prev_0x0_4 = sel_rax_1->field_0x0;
-        auto ret_0x4062490_2 = call_0x4062490(this);
-        if (ret_0x4062490_2 != 0 && ret_0x4062490_2->field_0x970 == 2) {
-          if (prev_0x0_4 != 1 || v_rbx_1 != prev_0x0_3) {
-            return;
-          }
-          v_rdi_2 = prev_0x0_4;
-        }
-        v_rdi_2 = prev_0x0_4;
-        call_0xdf0d00(&this->field_0xa8, v_rdi_2);
-        call_0xd5df40(this, expr_1);
-        call_0xd5df40(this, 3.0);
-        return;
-      }
-      switch (param_2->field_0x0->field_0x38) {
+        call_0x4973aa0("Variant cast failed");
+        return; // noreturn
       }
     }
   
   === [Decompilacao de Metodo da Classe RBX::MegaClusterInstance: 0x1c44010..0x1c44138 (vfunc_0x18)] ===
     struct RBX::Instance {
       /* +0x48 */ void*   field_0x48;
-      /* +0x60 */ void*   field_0x60;
+      /* +0x60 */ uint64_t field_0x60;
     };
     
     // Flag defaults: CheckEngineContextOnInstanceAccess2 = false
-    void RBX::Instance::func_0x1c44010(RBX::Instance* this, int64_t param_2, void* param_3, void* param_4) {
+    void RBX::Instance::func_0x1c44010(RBX::Instance* this, int64_t param_2, int64_t param_3, int64_t param_4) {
       if (this->field_0x60 != 0) {
-        (*global_0x80f4c48)(this);
-      }
-      auto ret_0x4956040_2 = call_0x4956040(24);
-      auto ret_0xffc540_3 = call_0xffc540(ret_0x4956040_2, param_3);
-      call_0xd29440(&local_0x40, ret_0xffc540_3);
-      auto* f_48 = this->field_0x48;
-      if (f_48 != 0 && f_48->field_0x8 != 0) {
-        auto ret_0xc700_5 = call_0xc700(global_0x84cf408, 1);
-        if (ret_0xc700_5->field_0x0 == 0) {
-          auto local_0x20 = 3;
-          call_0x7d7f00(this->field_0x48, &local_0x20, &local_0x28);
-        } else {
-          call_0x49710d0("Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel ", &sym_0x6647145);
+        void* v_rax_1 = global_0x80f4c48;
+        if (!CheckEngineContextOnInstanceAccess2) {
+          v_rax_1 = global_0x80f4c50;
         }
+        (*v_rax_1)(this);
       }
-      if (local_0x48 != 0) {
-        call_0x6daf40(local_0x48);
+      uint64_t local_0x30;
+      local_0x30 = &sym_0x70375b0;
+      auto ret_0x4956040_2 = call_0x4956040(24);
+      uint64_t local_0x60;
+      if (ret_0x4956040_2 != 0) {
+        uint64_t local_0x28;
+        local_0x28 = ret_0x4956040_2;
+        auto ret_0xffc540_3 = call_0xffc540(ret_0x4956040_2, param_3);
+        uint64_t local_0x40;
+        call_0xd29440(&local_0x40, ret_0xffc540_3);
+        local_0x28 = &local_0x30;
+        uint64_t local_0x20;
+        local_0x20 = 3;
+        auto* f_48 = this->field_0x48;
+        if (f_48 != 0 && f_48->field_0x8 != 0) {
+          auto ret_0xc700_5 = call_0xc700(global_0x84cf408, 1);
+          if (ret_0xc700_5->field_0x0 == 0) {
+            auto local_0x38 = param_2;
+            call_0x7d7f00(this->field_0x48, &local_0x20, &local_0x28);
+          } else {
+            call_0x49710d0("Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel execution.", &sym_0x6647145);
+            call_0x6ca7d0(&local_0x60);
+            call_0x5e066f0(&local_0x60, &sym_0x80cbbc0);
+            return; // noreturn
+          }
+        }
+        uint64_t local_0x48;
+        if (local_0x48 != 0) {
+          call_0x6daf40(local_0x48);
+          return;
+        }
+        return;
       }
+      call_0x6ca7d0(&local_0x60);
+      call_0x5e066f0(&local_0x60, &sym_0x80cbbc0);
+      return; // noreturn
     }
 
 [Strings .rdata na função]
@@ -3135,23 +3561,19 @@ Operação  : 0x336a025: cmp byte [flag], imm8 ; fn=0x336a020..0x336a0c6
   * "Terrain copy voxel data can't be converted for this grid, skipping it"  [@rdata 0x739e030, ref @0x336d0ad, literal, 69B]
   * "Unable to get datamodel in new grid AssetContentMapCallback."  [@rdata 0x739e1f8, ref @0x336d57b, literal, 60B]
   * "Terrain AssetContentMap setter called with the old grid."  [@rdata 0x739e1b8, ref @0x336d588, literal, 56B]
-  * "Variant cast failed"  [@rdata 0x7191e38, ref @0xd6a72f, literal, 19B]
-  * "Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel "  [@rdata 0x7280e40, ref @0x1c44110, literal, 96B]
 
 [Co-Flags na mesma função]
   * FFlagTerrainPerPlaceGrid2 = true (default)
   * DFFlagExpandedTerrainDefaultEnabled = false (default)
   * DFFlagDebugDisableExpandedTerrainGrid = false (default)
   * DFFlagExpandedTerrainThreePhaseRolloutProperty = true (default)
-  * DFFlagMicroProfilerMemoryScope = true (default)
+  * DFFlagMicroProfilerMemoryScope = false (default)
   * DFFlagVoxelGridLeanDMOldGridBackCompatHardened = true (default)
   * DFFlagVoxelGridLeanDMOldGridBackCompat = false (default)
   * FFlagGridSerializationIntegrityCheck = false (default)
-  * FFlagDMCTMigrateBasePartNetwork = true (default)
-  * DFIntServerAutomaticNetworkOwnershipBufferMs = 3000 (default)
-  * DFFlagCheckEngineContextOnInstanceAccess2 = false (default)
   * FIntVoxelBufferMaxSize = 33554432 (default) [vizinha em .data]
   * DFFlagCLI237093C = true (default) [vizinha em .data]
   * DFFlagCLI237093D = true (default) [vizinha em .data]
   * FFlagDebugVoxelGridMultiResTools = false (default) [vizinha em .data]
   * FIntTerrainMaxBufferSizeBytes = 1073741824 (default) [vizinha em .data]
+  * FLogTerrainCellListener = 0 (default) [vizinha em .data]

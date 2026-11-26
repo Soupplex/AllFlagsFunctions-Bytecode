@@ -22,16 +22,19 @@ Operação  : 0x2166274: cmp byte [flag], imm8 ; fn=0x2166210..0x21662d4
   === [Decompilacao C++ da Funcao 0x2166210..0x21662d4] ===
     struct RBX::BbrFirst {
       /* +0x158 */ int32_t field_0x158;
-      /* +0x1b0 */ void*   field_0x1b0;
+      /* +0x1b0 */ uint64_t field_0x1b0;
       /* +0x250 */ int32_t field_0x250;
     };
     
     // Flag defaults: BbrFirstRttPacingReset = true
-    void RBX::BbrFirst::func_0x2166210(RBX::BbrFirst* this, int64_t param_2, void* param_3) {
+    void RBX::BbrFirst::func_0x2166210(RBX::BbrFirst* this, void* param_2, int64_t param_3) {
       if (this->field_0x1b0 != 0) {
-        int64_t tmp_1 = ((uint64_t)(0x246139ca800000 / param_3 / this->field_0x1b0 - 0x246139ca800000 / param_3 % this->field_0x1b0) >> 1) + 0x246139ca800000 / param_3 % this->field_0x1b0;
+        auto expr_2 = (uint64_t)0x246139ca800000 / (uint64_t)param_3;
+        auto expr_1 = (uint64_t)expr_2 / (uint64_t)this->field_0x1b0;
+        int64_t tmp_1 = (uint64_t)expr_2 / (uint64_t)this->field_0x1b0 - mulhi(0x4afd6a052bf5a815, expr_1);
+        int64_t tmp_2 = (uint64_t)(((uint64_t)tmp_1 >> 1) + mulhi(0x4afd6a052bf5a815, expr_1)) >> 6;
         if (BbrFirstRttPacingReset) {
-          if (this->field_0x158 == 0 && std::max<uint64_t>((uint64_t)tmp_1 >> 6, 1) >= param_2->field_0xa0) {
+          if (this->field_0x158 == 0 && std::max<uint64_t>(tmp_2, 1) >= param_2->field_0xa0) {
             if (this->field_0x250 == this->field_0x158 && param_2->field_0x28 != -1) {
               call_0x2166110(this, param_2);
               this->field_0x250 = 1;
@@ -41,12 +44,12 @@ Operação  : 0x2166274: cmp byte [flag], imm8 ; fn=0x2166210..0x21662d4
             return;
           }
         } else {
-          if (this->field_0x158 != 0 || std::max<uint64_t>((uint64_t)tmp_1 >> 6, 1) < param_2->field_0xa0) {
-            param_2->field_0xa0 = std::max<uint64_t>((uint64_t)tmp_1 >> 6, 1);
+          if (this->field_0x158 != 0 || std::max<uint64_t>(tmp_2, 1) < param_2->field_0xa0) {
+            param_2->field_0xa0 = std::max<uint64_t>(tmp_2, 1);
           }
           return;
         }
-        param_2->field_0xa0 = std::max<uint64_t>((uint64_t)tmp_1 >> 6, 1);
+        param_2->field_0xa0 = std::max<uint64_t>(tmp_2, 1);
         goto L_0x21662c9;
       }
     }
@@ -111,18 +114,24 @@ Operação  : 0x2166274: cmp byte [flag], imm8 ; fn=0x2166210..0x21662d4
   === [Sub-Rotina Chamada: 0x2166110..0x2166206 via call @0x216629f (Direct Engine Sub-Call)] ===
     struct SubObj_0x2166110 {
       /* +0x0 */ void*   field_0x0;
-      /* +0x48 */ void*   field_0x48;
+      /* +0x48 */ uint64_t field_0x48;
     };
     
     // Flag defaults: BbrInitialPacingRttMs = 0
-    auto SubObj_0x2166110::func_0x2166110(SubObj_0x2166110* this, int64_t param_2) {
-      param_2->field_0xa0 = std::max<uint64_t>(((uint64_t)param_2 >> 7) / this->field_0x48, 1);
+    void SubObj_0x2166110::func_0x2166110(SubObj_0x2166110* this, void* param_2) {
+      void* v_rax_1;
+      if (param_2->field_0x28 != -1) {
+        v_rax_1 = param_2->field_0x10;
+      } else if (BbrInitialPacingRttMs > 0) {
+        v_rax_1 = BbrInitialPacingRttMs * 1000000;
+      } else {
+        v_rax_1 = 1000000;
+      }
+      param_2->field_0xa0 = std::max<uint64_t>((uint64_t)((uint64_t)mulhi(0x764bc88c79fe26d1, v_rax_1 * 102400) >> 7) / (uint64_t)this->field_0x48, 1);
       auto* f_0 = this->field_0x0;
       if (f_0->field_0x0 != 0 && (f_0->field_0x8 & 0x40) != 0) {
-        auto vret_1 = this->vfunc_0x0(f_0->field_0x20, "I%08llu 0x%s %s bbr_init_pacing_rate first_rtt_sample_ts=%llu smoothed_rtt=%llu pacing_rtt_ms=%d", (uint64_t)(((uint64_t)param_2 >> 7) % this->field_0x48) >> 18, &f_0->field_0x28);
-        return vret_1;
+        this->vfunc_0x0(f_0->field_0x20, "I%08llu 0x%s %s bbr_init_pacing_rate first_rtt_sample_ts=%llu smoothed_rtt=%llu pacing_rtt_ms=%d initial_cwnd=%llu pacing_interval_m=%llu", ((uint64_t)mulhi(0x431bde82d7b634db, (f_0->field_0x18 - f_0->field_0x10)) >> 18), &f_0->field_0x28, "cca", param_2->field_0x28, param_2->field_0x10, BbrInitialPacingRttMs, this->field_0x48, std::max<uint64_t>(((uint64_t)((uint64_t)mulhi(0x764bc88c79fe26d1, (v_rax_1 * 102400)) >> 7) / (uint64_t)this->field_0x48), 1));
       }
-      return 1;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x2166110..0x2166206)] ===
@@ -180,7 +189,7 @@ Operação  : 0x2166274: cmp byte [flag], imm8 ; fn=0x2166210..0x21662d4
     0x21661d9 | 4c 8b c2                 | mov r8, rdx
     0x21661dc | 48 89 7c 24 28           | mov qword ptr [rsp + 0x28], rdi
     0x21661e1 | 48 89 44 24 20           | mov qword ptr [rsp + 0x20], rax
-    0x21661e6 | 48 8d 15 d3 01 15 05     | lea rdx, [rip + 0x51501d3] ; "I%08llu 0x%s %s bbr_init_pacing_rate first_rtt_sample_ts=%llu smoothed_rtt=%llu pacing_rtt_ms=%d"
+    0x21661e6 | 48 8d 15 d3 01 15 05     | lea rdx, [rip + 0x51501d3] ; "I%08llu 0x%s %s bbr_init_pacing_rate first_rtt_sample_ts=%llu smoothed_rtt=%llu pacing_rtt_ms=%d initial_cwnd=%llu pacing_interval_m=%llu"
     0x21661ed | 48 8b 03                 | mov rax, qword ptr [rbx]
     0x21661f0 | ff 15 4a 3b 2d 04        | call qword ptr [rip + 0x42d3b4a] ; __guard_dispatch_icall_fptr (0x6439d40)
     L_0x21661f6:
@@ -192,13 +201,13 @@ Operação  : 0x2166274: cmp byte [flag], imm8 ; fn=0x2166210..0x21662d4
   
   === [Decompilacao da Rotina Chamadora (Caller): 0x2167930..0x2167a08 em RBX::BbrFirst] ===
     struct RBX::BbrFirst {
-      /* +0xf0 */ void*   field_0xf0;
-      /* +0x160 */ void*   field_0x160;
-      /* +0x228 */ void*   field_0x228;
+      /* +0xf0 */ uint64_t field_0xf0;
+      /* +0x160 */ uint64_t field_0x160;
+      /* +0x228 */ uint64_t field_0x228;
       /* +0x24c */ int32_t field_0x24c;
     };
     
-    void RBX::BbrFirst::func_0x2167930(RBX::BbrFirst* this, int64_t param_2, void* param_3) {
+    void RBX::BbrFirst::func_0x2167930(RBX::BbrFirst* this, void* param_2, void* param_3) {
       if (this->field_0x24c != 0 && param_3->field_0x18 != -1) {
         if (param_2->field_0x80 == -1 || param_3->field_0x18 > param_2->field_0x80) {
           this->field_0x24c = 0;
@@ -208,9 +217,9 @@ Operação  : 0x2166274: cmp byte [flag], imm8 ; fn=0x2166210..0x21662d4
         }
       }
       if (param_3->field_0x0 != 0) {
-        call_0x2166360(this, param_2, param_3, param_4);
+        call_0x2166360(this, param_2, param_3, 0);
         call_0x2166210(this, param_2, this->field_0x160);
-        param_2->field_0xa8 = std::max<uint64_t>(std::min<uint64_t>(1024000000 / param_2->field_0xa0, 65536), param_2->field_0x90 * 2);
+        param_2->field_0xa8 = std::max<uint64_t>(std::min<uint64_t>((uint64_t)1024000000 / (uint64_t)param_2->field_0xa0, 65536), param_2->field_0x90 * 2);
         call_0x2167480(this, param_2, param_3);
       }
     }
@@ -221,8 +230,8 @@ Operação  : 0x2166274: cmp byte [flag], imm8 ; fn=0x2166210..0x21662d4
 
 [Co-Flags na mesma função]
   * DFIntBbrInitialPacingRttMs = 0 (default)
-  * FFlagAckPaceEnabled = false (default) [vizinha em .data]
-  * FIntMinCwndMultiplier = 2 (default) [vizinha em .data]
+  * FFlagAckPaceEnabled = true (default) [vizinha em .data]
+  * FIntMinCwndMultiplier = 2147483647 (default) [vizinha em .data]
   * DFFlagBbrMaxBwFilterAdvanceOnce = true (default) [vizinha em .data]
   * FIntAckPaceQueueCapBdpNum = 4 (default) [vizinha em .data]
   * DFStringDebugRbxTransportGameFqdnOverride = "" (default) [vizinha em .data]

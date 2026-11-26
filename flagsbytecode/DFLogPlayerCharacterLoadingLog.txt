@@ -10,6 +10,7 @@ Operação  : 0x3d6a6a0: mov/math reg, [flag] ; fn=0x3d6a600..0x3d6a793
     Padrão  : DFLogPlayerCharacterLoadingLog = 0 (default) [log, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : (uint8_t)PlayerCharacterLoadingLog >= 6 && (uint8_t)((uint64_t)PlayerCharacterLoadingLog >> 8) >= 3
+    Fórmula : "[DFLog::PlayerCharacterLoadingLog] R6 character appearance loading failed: {}"
     Altera  : this->field_0x0->field_0x1130
   
   === [Decompilacao C++ da Funcao 0x3d6a600..0x3d6a793] ===
@@ -19,26 +20,48 @@ Operação  : 0x3d6a6a0: mov/math reg, [flag] ; fn=0x3d6a600..0x3d6a793
     };
     
     // Flag defaults: PlayerCharacterLoadingLog = 0, PCLRefactorFixR6LoadTimer = true
-    void RBX::PlayerCharacter::func_0x3d6a600(RBX::PlayerCharacter* this, int64_t param_2) {
+    void RBX::PlayerCharacter::func_0x3d6a600(RBX::PlayerCharacter* this, void* param_2) {
+      uint64_t local_0x60;
+      local_0x60 = param_2->field_0x0;
+      uint64_t local_0x70;
+      local_0x70 = param_2->field_0x10;
+      param_2->field_0x10 = 0;
+      param_2->field_0x18 = 15;
+      param_2->field_0x0 = 0;
       if (PCLRefactorFixR6LoadTimer) {
-        auto* f_8 = this->field_0x8;
-        if (f_8 != 0 && f_8->field_0x8 != 0) {
-          do { // L_0x3d6a673
-            atomic_try_incref(&f_8->field_0x8);
-            auto* f_8_2 = this->field_0x8;
-            if (atomic_cas(&f_8_2->field_0x8, f_8_2->field_0x8, f_8_2->field_0x8 + 1) == 0) break;
-          } while (this->field_0x8->field_0x8 != 0); // loop -> L_0x3d6a673
+        if (this->field_0x8 != 0) {
+          int32_t i_eax = this->field_0x8->field_0x8;
+          if (this->field_0x8->field_0x8 != 0) {
+            do { // L_0x3d6a673
+              if (atomic_cas(&this->field_0x8->field_0x8, i_eax, i_eax + 1)) {
+                auto* f_0 = this->field_0x0;
+                if (f_0 != 0) {
+                  f_0->field_0x1130 = -1;
+                }
+                if (this->field_0x8 != 0) {
+                  call_0x6daf40(this->field_0x8);
+                }
+                break;
+              }
+            } while (i_eax != 0); // loop -> L_0x3d6a673
+          }
         }
         if ((uint8_t)PlayerCharacterLoadingLog >= 6 && (uint8_t)((uint64_t)PlayerCharacterLoadingLog >> 8) >= 3) {
-          FLog::Log("[DFLog::PlayerCharacterLoadingLog] R6 character appearance loading failed: {}");
+          uint64_t local_0x30;
+          local_0x30 = "[DFLog::PlayerCharacterLoadingLog] R6 character appearance loading failed: {}";
+          uint64_t local_0x50;
+          local_0x50 = local_0x30 - 0x2e3c035;
+          local_0x30 = PlayerCharacterLoadingLog;
+          FLog::Log("[DFLog::PlayerCharacterLoadingLog] R6 character appearance loading failed: {}", local_0x60.c_str());
         }
       }
-      auto local_0x60 = param_2->field_0x0;
       auto local_0x64 = param_2->field_0x4;
       auto local_0x68 = param_2->field_0x8;
       auto local_0x6c = param_2->field_0xc;
-      auto local_0x70 = param_2->field_0x10;
       auto local_0x74 = param_2->field_0x14;
+      auto local_0x78 = param_2->field_0x18;
+      auto local_0x7c = param_2->field_0x1c;
+      auto local_0x80 = &local_0x60;
       call_0x6f8fb0(&local_0x60);
     }
   
@@ -134,25 +157,6 @@ Operação  : 0x3d6a6a0: mov/math reg, [flag] ; fn=0x3d6a600..0x3d6a793
     0x3d6a78a | 48 81 c4 b0 00 00 00     | add rsp, 0xb0
     0x3d6a791 | 5b                       | pop rbx
     0x3d6a792 | c3                       | ret
-  
-  === [Estrutura RTTI & VTable da Classe (Allocato::PlayerCharacterLoader::CharacterAppearanceAssetInfo)] ===
-    VTable  : 0x70e5d98 (offset +0x0, 3 slots virtuais)
-    Herança : RBX::PlayerCharacterLoader::CharacterAppearanceAssetInfo (+0x10)
-    +0x0 -> fn_0x3d6cb70
-    +0x8 -> fn_0x13275a0
-    +0x10 -> fn_0x3d6cc40
-  
-  === [Decompilacao de Metodo da Classe Allocato::PlayerCharacterLoader::CharacterAppearanceAssetInfo: 0x13275a0..0x13275ec (vfunc_0x8)] ===
-    struct RSL::MLR::Tensor {
-      /* +0x0 */ void*   field_0x0;
-      /* +0x10 */ void*   field_0x10;
-    };
-    
-    void RSL::MLR::Tensor::func_0x13275a0(RSL::MLR::Tensor* this) {
-      void* prev_0x10_1 = this->field_0x10;
-      this->vfunc_0x10(this, 0);
-      this->field_0x10->vfunc_0x10(prev_0x10_1, this, 136, 8);
-    }
 
 [Strings .rdata na função]
   * "[DFLog::PlayerCharacterLoadingLog] R6 character appearance loading failed: {}"  [@rdata 0x74106e0, ref @0x3d6a6cc, FLog format]
@@ -161,7 +165,7 @@ Operação  : 0x3d6a6a0: mov/math reg, [flag] ; fn=0x3d6a600..0x3d6a793
   * FFlagPCLRefactorFixR6LoadTimer = true (default)
   * FFlagAUMUnificationScaleUpdate2 = false (default) [vizinha em .data]
   * DFIntDefaultHeadFallbackEventThrottleHundrethsPercent = 10000 (default) [vizinha em .data]
-  * DFFlagAnimationSAAnimateScriptForCharacterController = false (default) [vizinha em .data]
+  * DFFlagAnimationSAAnimateScriptForCharacterController = true (default) [vizinha em .data]
   * DFLogThumbnailPlayerCharacterLoadingLog = 0 (default) [vizinha em .data]
   * FFlagCLI183642UseLocalFallbackProperty = true (default) [vizinha em .data]
   * FFlagLoadR15Override = false (default) [vizinha em .data]

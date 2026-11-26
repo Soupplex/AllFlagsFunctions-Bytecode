@@ -7,7 +7,7 @@ Operação  : 0x25f3eae: mov/math reg, [flag] ; fn=0x25f3e60..0x25f3fba
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::BatchWorkflow)] ===
     Classe  : RBX::BatchWorkflow (Inferido)
-    Padrão  : DFIntBatchWorkflowRefreshMinWaitMs = 30 (default) [int, mode=2]
+    Padrão  : DFIntBatchWorkflowRefreshMinWaitMs = 10 (default) [int, mode=2]
     Papel   : Parâmetro de configuração lido diretamente pela rotina
     Fórmula : param_2->field_0x20 != 0 ? BatchWorkflowRefreshMinWaitMs : BatchWorkflowMinWaitMs
     Altera  : this->field_0x0, this->field_0x4
@@ -18,8 +18,8 @@ Operação  : 0x25f3eae: mov/math reg, [flag] ; fn=0x25f3e60..0x25f3fba
       /* +0x4 */ uint8_t field_0x4;
     };
     
-    // Flag defaults: BatchWorkflowRefreshMaxBatchSize = 256, BatchWorkflowMaxBatchSize = 256, BatchWorkflowMaxWaitMs = 120, BatchWorkflowRefreshMaxWaitMs = 120, BatchWorkflowMinWaitMs = 30, BatchWorkflowRefreshMinWaitMs = 30, NumConcurrentBatchWorkflowsPerAssetProviderInstance = 2, NumConcurrentBatchRefreshWorkflowsPerAssetProviderInstance = 5
-    void RBX::BatchWorkflow::func_0x25f3e60(RBX::BatchWorkflow* this, int64_t param_2, void* param_3, void* param_4) {
+    // Flag defaults: BatchWorkflowRefreshMaxBatchSize = 2, BatchWorkflowMaxBatchSize = 2, BatchWorkflowMaxWaitMs = 40, BatchWorkflowRefreshMaxWaitMs = 40, BatchWorkflowMinWaitMs = 10, BatchWorkflowRefreshMinWaitMs = 10, NumConcurrentBatchWorkflowsPerAssetProviderInstance = 8, NumConcurrentBatchRefreshWorkflowsPerAssetProviderInstance = 10
+    void RBX::BatchWorkflow::func_0x25f3e60(RBX::BatchWorkflow* this, void* param_2, void* param_3, void* param_4) {
       int32_t selected_eax_1 = param_2->field_0x20 != 0 ? BatchWorkflowRefreshMaxBatchSize : BatchWorkflowMaxBatchSize;
       int32_t selected_eax_2 = param_2->field_0x20 != 0 ? BatchWorkflowRefreshMaxWaitMs : BatchWorkflowMaxWaitMs;
       int32_t selected_eax_3 = param_2->field_0x20 != 0 ? BatchWorkflowRefreshMinWaitMs : BatchWorkflowMinWaitMs;
@@ -27,34 +27,39 @@ Operação  : 0x25f3eae: mov/math reg, [flag] ; fn=0x25f3e60..0x25f3fba
       if (param_4->field_0x0 < selected_eax_4) {
         if (param_3->field_0x0 == param_3->field_0x8) {
           this->field_0x0 = 0;
-          this->field_0x4 = 0;
         } else {
+          uint64_t local_0x58;
           call_0x495a220(&local_0x58);
-          if ((param_3->field_0x8 - param_3->field_0x0) >> 5 >= selected_eax_1) {
-            this->field_0x0 = 1;
-            this->field_0x4 = 1;
-          } else {
-            double ftmp_1 = (local_0x58 - param_3->field_0x30->field_0x8) * 1000.0;
-            if (ftmp_1 >= (double)selected_eax_2) {
-              this->field_0x0 = 2;
+          if (param_3->field_0x30 != param_3->field_0x38 && param_3->field_0x60 != param_3->field_0x68) {
+            if ((int64_t)(param_3->field_0x8 - param_3->field_0x0) >> 5 >= selected_eax_1) {
+              this->field_0x0 = 1;
               this->field_0x4 = 1;
-              L_0x25f3f8f:
+            } else {
+              double ftmp_1 = (local_0x58 - param_3->field_0x30->field_0x8) * 1000.0;
+              if (ftmp_1 >= (double)selected_eax_2) {
+                this->field_0x0 = 2;
+                this->field_0x4 = 1;
+                L_0x25f3f8f:
+                return;
+              }
+              double ftmp_2 = (local_0x58 - param_3->field_0x60->field_0x8) * 1000.0;
+              if (ftmp_2 < (double)selected_eax_3) {
+                this->field_0x0 = 0;
+                this->field_0x4 = 0;
+                return;
+              }
+              this->field_0x0 = 3;
+              this->field_0x4 = 1;
               return;
             }
-            double ftmp_2 = (local_0x58 - param_3->field_0x60->field_0x8) * 1000.0;
-            if (ftmp_2 < (double)selected_eax_3) {
-              this->field_0x0 = 0;
-              this->field_0x4 = 0;
-              return;
-            }
-            this->field_0x0 = 3;
-            this->field_0x4 = 1;
             return;
           }
+          call_0x4971090(0, "Peeking into empty IndexedPriorityQueue");
+          return; // noreturn
         }
-        return;
+      } else {
+        this->field_0x0 = 4;
       }
-      this->field_0x0 = 4;
       this->field_0x4 = 0;
       goto L_0x25f3f8f;
     }
@@ -155,13 +160,13 @@ Operação  : 0x25f3eae: mov/math reg, [flag] ; fn=0x25f3e60..0x25f3fba
   * "Peeking into empty IndexedPriorityQueue"  [@rdata 0x72cb180, ref @0x25f3fac, literal, 39B]
 
 [Co-Flags na mesma função]
-  * DFIntBatchWorkflowMaxBatchSize = 256 (default)
-  * DFIntBatchWorkflowRefreshMaxBatchSize = 256 (default)
-  * DFIntBatchWorkflowMaxWaitMs = 120 (default)
-  * DFIntBatchWorkflowRefreshMaxWaitMs = 120 (default)
-  * DFIntBatchWorkflowMinWaitMs = 30 (default)
-  * DFIntNumConcurrentBatchWorkflowsPerAssetProviderInstance = 2 (default)
-  * DFIntNumConcurrentBatchRefreshWorkflowsPerAssetProviderInstance = 5 (default)
+  * DFIntBatchWorkflowMaxBatchSize = 2 (default)
+  * DFIntBatchWorkflowRefreshMaxBatchSize = 2 (default)
+  * DFIntBatchWorkflowMaxWaitMs = 40 (default)
+  * DFIntBatchWorkflowRefreshMaxWaitMs = 40 (default)
+  * DFIntBatchWorkflowMinWaitMs = 10 (default)
+  * DFIntNumConcurrentBatchWorkflowsPerAssetProviderInstance = 8 (default)
+  * DFIntNumConcurrentBatchRefreshWorkflowsPerAssetProviderInstance = 10 (default)
   * DFFlagReportRetriedAssetRequestLatency = false (default) [vizinha em .data]
-  * DFIntAssetProviderWorkflowExecutorSleepMicroSeconds = 150000 (default) [vizinha em .data]
+  * DFIntAssetProviderWorkflowExecutorSleepMicroSeconds = 15000 (default) [vizinha em .data]
   * FFlagAssetProviderADV3ParseErrorReason = false (default) [vizinha em .data]

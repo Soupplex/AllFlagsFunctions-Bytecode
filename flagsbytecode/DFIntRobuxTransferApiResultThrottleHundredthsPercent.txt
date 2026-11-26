@@ -11,6 +11,7 @@ Operação  : 0x124ce91: mov/math reg, [flag] ; fn=0x124cd10..0x124d119 [via DFL
     Padrão  : DFLogRobuxTransfers = 0 (default) [log, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : (uint8_t)RobuxTransfers >= 6 && (uint8_t)((uint64_t)RobuxTransfers >> 8) >= 5
+    Fórmula : "[DFLog::RobuxTransfers] Removing stale pending Robux transfer for user {} (elapsed: {}ms > {}ms)"
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
     Caller @0x124dc8f (in fn_0x124dbc0): call 0x124cd10  [rcx = rcx (this), arg2 = rdx/xmm1 (param_2)]
@@ -21,144 +22,247 @@ Operação  : 0x124ce91: mov/math reg, [flag] ; fn=0x124cd10..0x124d119 [via DFL
   === [Decompilacao C++ da Funcao 0x124cd10..0x124d119] ===
     struct RBX::PromptRobux {
       /* +0xb74 */ int32_t field_0xb74;
-      /* +0xb78 */ void*   field_0xb78;
+      /* +0xb78 */ uint64_t field_0xb78;
       /* +0xb8c */ int32_t field_0xb8c;
     };
     
     // Flag defaults: PromptRobuxTransferSubscriptionSignalWindowMilliseconds = 5000, RobuxTransfers = 0
     void RBX::PromptRobux::func_0x124cd10(RBX::PromptRobux* this) {
+      uint64_t local_0x58;
       call_0x495a220(&local_0x58);
-      void* v_rbx_6;
-      int32_t i_edx;
-      int32_t i_r8d;
+      uint64_t local_0x38;
+      local_0x38 = 0;
+      int32_t v_rdx_3 = 0;
+      void* v_rbx_4;
+      uint64_t local_0x30;
       if (this->field_0xb74 != 0) {
-        auto expr_3 = this->field_0xb78 + (1 << this->field_0xb8c) * 4;
-        int64_t idx_1 = expr_3->field_0x10;
-        if ((expr_3->field_0x18[idx_1 * 8] & 0x1) != 0) {
+        local_0x30 = &this->field_0xb70;
+        auto expr_1 = this->field_0xb78 + ((1 << (uint8_t)this->field_0xb8c) * 4);
+        int64_t idx_1 = expr_1->field_0x10;
+        if ((expr_1->field_0x18[idx_1 * 8] & 0x1) != 0) {
           if (this->field_0xb74 != 1) {
-            int64_t idx_2 = expr_3->field_0x10;
-            auto expr_1 = expr_3 + idx_2 * 8;
-            uint64_t v_rcx_1 = ~expr_1->field_0x18 & 0xfffffffe;
+            void* ptr_2 = this->field_0xb78 + (1 << (uint8_t)this->field_0xb8c) * 4;
+            int64_t idx_3 = expr_1->field_0x10;
+            uint64_t v_rcx_1 = ~(ptr_2 + (idx_3 * 8))->field_0x18 & 0xfffffffffffffffeULL;
             int32_t v_rdx_2 = 0;
-            if ((~expr_1->field_0x18 & 0xfffffffe) == 0) {
-              i_edx = 0;
-              i_r8d = 0;
+            if ((~(ptr_2 + (idx_3 * 8))->field_0x18 & 0xfffffffffffffffeULL) == 0) {
+              int32_t i_edx = 0;
+              int32_t i_r8d_2 = 0;
               do { // L_0x124cdf0
                 i_edx++;
-                i_r8d += 0x40;
-                if (i_r8d >= this->field_0xb74) break;
-              } while (~expr_1->field_0x18[i_edx * 8] == 0); // loop -> L_0x124cdf0
+                i_r8d_2 += 0x40;
+                if (i_r8d_2 >= this->field_0xb74) {
+                  L_0x124ce27:
+                  L_0x124ce29:
+                  local_0x38 = 0;
+                  L_0x124ce2d:
+                  local_0x30 = 0;
+                  v_rbx_4 = 0;
+                  break;
+                }
+              } while (~(ptr_2 + (idx_3 * 8))->field_0x18[i_edx * 8] == 0); // loop -> L_0x124cdf0
+              v_rcx_1 = ~(ptr_2 + (idx_3 * 8))->field_0x18[i_edx * 8];
+              v_rdx_2 = i_edx;
+              local_0x38 = (v_rdx_2 << 6) + ctz(v_rcx_1);
               if ((v_rdx_2 << 6) + ctz(v_rcx_1) == this->field_0xb74) {
-                L_0x124ce29:
-                L_0x124ce2d:
-                v_rbx_6 = 0;
+                local_0x38 = 0;
+                local_0x30 = 0;
+                v_rbx_4 = 0;
               } else {
-                v_rbx_6 = &this->field_0xb70;
+                v_rdx_3 = (v_rdx_2 << 6) + ctz(v_rcx_1);
+                v_rbx_4 = &this->field_0xb70;
               }
-            } else if ((v_rdx_2 << 6) + ctz(v_rcx_1) == this->field_0xb74) {
-              v_rbx_6 = 0;
             } else {
-              v_rbx_6 = &this->field_0xb70;
+              local_0x38 = (v_rdx_2 << 6) + ctz(v_rcx_1);
+              if ((v_rdx_2 << 6) + ctz(v_rcx_1) == this->field_0xb74) {
+                goto L_0x124ce27;
+              } else {
+                v_rdx_3 = (v_rdx_2 << 6) + ctz(v_rcx_1);
+                v_rbx_4 = &this->field_0xb70;
+              }
             }
           } else {
             goto L_0x124ce29;
           }
         } else {
-          v_rbx_6 = &this->field_0xb70;
+          v_rbx_4 = &this->field_0xb70;
         }
       } else {
         goto L_0x124ce2d;
       }
-      void* i_ebx = v_rbx_6;
+      void* i_edx_2 = v_rdx_3;
+      void* i_ebx = v_rbx_4;
       do { // L_0x124ce44
-        auto expr_2 = PromptRobuxTransferSubscriptionSignalWindowMilliseconds;
+        uint64_t i_eax;
+        uint64_t local_0x90;
+        uint64_t local_0x40;
+        double ftmp_1;
         if (i_ebx != 0) {
-          if (i_ebx->field_0x10->field_0x80[i_edx * 152] != 0 && i_ebx->field_0x10->field_0x90[i_edx * 152] == 0) {
-            double ftmp_1 = local_0x58 - i_ebx->field_0x10->field_0x78[i_edx * 152];
-            if (ftmp_1 > (double)expr_2 * 0.001) {
+          int32_t i_r8d;
+          int32_t i_ecx;
+          int64_t idx_5;
+          void* ptr_4;
+          int32_t v_r8_6;
+          uint64_t v_rdx_5;
+          if (i_ebx->field_0x10->field_0x80[i_edx_2 * 152] != 0 && i_ebx->field_0x10->field_0x90[i_edx_2 * 152] == 0) {
+            ftmp_1 = local_0x58 - i_ebx->field_0x10->field_0x78[i_edx_2 * 152];
+            if (ftmp_1 > (double)PromptRobuxTransferSubscriptionSignalWindowMilliseconds * 0.001) {
               if ((uint8_t)RobuxTransfers >= 6 && (uint8_t)((uint64_t)RobuxTransfers >> 8) >= 5) {
-                FLog::Log("[DFLog::RobuxTransfers] Removing stale pending Robux transfer for user {} (elapsed: {}ms > {}ms)", i_ebx->field_0x10->field_0x0[i_edx * 152], ftmp_1 * 1000.0, expr_2);
+                local_0x40 = "[DFLog::RobuxTransfers] Removing stale pending Robux transfer for user {} (elapsed: {}ms > {}ms)";
+                local_0x90 = local_0x40 - 0x2c0abc;
+                i_eax = -1;
+                L_0x124ced3:
+                do { // L_0x124ced3
+                  i_eax++;
+                } while ((local_0x40 - 0x2c0abc)[i_eax] != 0); // loop -> L_0x124ced3
+                uint64_t local_0x98;
+                local_0x98 = i_eax;
+                uint64_t local_0xb0;
+                local_0xb0 = i_ebx->field_0x10->field_0x0[i_edx_2 * 152];
+                uint64_t local_0xd0;
+                local_0xd0 = PromptRobuxTransferSubscriptionSignalWindowMilliseconds;
+                uint64_t local_0x110;
+                local_0x110 = local_0xb0;
+                uint64_t local_0xc0;
+                local_0xc0 = ftmp_1 * 1000.0;
+                uint64_t local_0x120;
+                local_0x120 = ftmp_1 * 1000.0;
+                uint64_t local_0x130;
+                local_0x130 = local_0xd0;
+                uint64_t local_0x80;
+                local_0x80 = 419;
+                uint64_t local_0x88;
+                local_0x88 = &local_0x110;
+                uint64_t local_0xe0;
+                local_0xe0 = local_0x80;
+                uint64_t local_0xf0;
+                local_0xf0 = local_0x90;
+                uint64_t local_0x100;
+                local_0x100 = RobuxTransfers;
+                uint64_t local_0x20;
+                local_0x20 = 1;
+                FLog::Log("[DFLog::RobuxTransfers] Removing stale pending Robux transfer for user {} (elapsed: {}ms > {}ms)", local_0x80);
               }
-              call_0x124cad0(i_ebx->field_0x10->field_0x0[i_edx * 152], "stale_removed", (int64_t)(ftmp_1 * 1000.0));
-              if ((i_ebx->field_0x10->field_0x60[i_edx * 152] & 0xfffffff8) != 0) {
+              call_0x124cad0(i_ebx->field_0x10->field_0x0[i_edx_2 * 152], "stale_removed", (int64_t)(ftmp_1 * 1000.0));
+              if ((i_ebx->field_0x10->field_0x60[i_edx_2 * 152] & 0xfffffffffffffff8ULL) != 0) {
+                L_0x124cf82:
+                uint64_t local_0x60;
+                local_0x60 = 0;
+                uint64_t local_0x70;
+                local_0x70 = 0;
+                uint64_t local_0x78;
+                local_0x78 = 15;
                 auto ret_0x6fd950_3 = call_0x6fd950(32);
+                local_0x70 = 29;
+                local_0x78 = 31;
                 memcpy(ret_0x6fd950_3, "Subscription upsell timed out", 29);
                 ret_0x6fd950_3->field_0x1c = global_0x72136e4;
-                auto local_0x60 = ret_0x6fd950_3;
-                call_0x77d0b0(&i_ebx->field_0x10->field_0x48 + i_edx * 152, &local_0x60);
+                ret_0x6fd950_3->field_0x1d = 0;
+                local_0x60 = ret_0x6fd950_3;
+                call_0x77d0b0(&i_ebx->field_0x10->field_0x48 + i_edx_2 * 152, &local_0x60);
               }
+              L_0x124cff6:
+              local_0x40 = local_0x30;
+              auto local_0x48 = local_0x38;
+              uint64_t local_0xa0;
               call_0x1195c90(&this->field_0xb70, &local_0xa0, &local_0x40);
-              i_edx = local_0xa8;
+              local_0x30 = local_0xa0;
+              uint64_t local_0xa8;
+              local_0x38 = local_0xa8;
+              i_edx_2 = local_0xa8;
               i_ebx = local_0xa0;
               continue;
             } else {
               L_0x124d02b:
-              if (i_edx + 1 == i_ebx->field_0x4) {
-                i_edx = 0;
+              if (i_edx_2 + 1 == i_ebx->field_0x4) {
+                local_0x30 = 0;
+                local_0x38 = 0;
+                i_edx_2 = 0;
                 i_ebx = 0;
                 continue;
               } else {
-                int64_t idx_3 = (i_ebx->field_0x8 + (1 << i_ebx->field_0x1c) * 4)->field_0x10;
-                uint64_t v_rdx_9 = ~((i_ebx->field_0x8 + (1 << i_ebx->field_0x1c) * 4) + idx_3 * 8)->field_0x18[((uint32_t)(i_edx + 1) >> 6) * 8] & -1 << (i_edx + 1 & 0x3f);
-                int32_t v_r8_10 = (uint32_t)(i_edx + 1) >> 6;
-                if ((~((i_ebx->field_0x8 + (1 << i_ebx->field_0x1c) * 4) + idx_3 * 8)->field_0x18[((uint32_t)(i_edx + 1) >> 6) * 8] & -1 << (i_edx + 1 & 0x3f)) == 0) {
-                  int32_t i_ecx = ((uint32_t)(i_edx + 1) >> 6) << 6;
+                ptr_4 = i_ebx->field_0x8 + (1 << (uint8_t)i_ebx->field_0x1c) * 4;
+                idx_5 = (i_ebx->field_0x8 + ((1 << (uint8_t)i_ebx->field_0x1c) * 4))->field_0x10;
+                v_rdx_5 = ~(ptr_4 + (idx_5 * 8))->field_0x18[((uint32_t)(i_edx_2 + 1) >> 6) * 8] & -1 << (uint8_t)((i_edx_2 + 1) & 0x3f);
+                v_r8_6 = (uint32_t)(i_edx_2 + 1) >> 6;
+                uint64_t local_0x54;
+                if ((~(ptr_4 + (idx_5 * 8))->field_0x18[((uint32_t)(i_edx_2 + 1) >> 6) * 8] & -1 << (uint8_t)((i_edx_2 + 1) & 0x3f)) == 0) {
+                  i_ecx = ((uint32_t)(i_edx_2 + 1) >> 6) << 6;
+                  i_r8d = (uint32_t)(i_edx_2 + 1) >> 6;
                   L_0x124d090:
                   do { // L_0x124d090
                     i_r8d++;
                     i_ecx += 0x40;
-                    if (i_ecx >= i_ebx->field_0x4) break;
-                  } while (~((i_ebx->field_0x8 + (1 << i_ebx->field_0x1c) * 4) + idx_3 * 8)->field_0x18[i_r8d * 8] == 0); // loop -> L_0x124d090
+                    if (i_ecx >= i_ebx->field_0x4) {
+                    L_0x124d0ce:
+                    local_0x30 = 0;
+                    local_0x38 = 0;
+                    i_edx_2 = 0;
+                    i_ebx = 0;
+                    break;
+                    }
+                  } while (~(ptr_4 + (idx_5 * 8))->field_0x18[i_r8d * 8] == 0); // loop -> L_0x124d090
+                  v_rdx_5 = ~(ptr_4 + (idx_5 * 8))->field_0x18[i_r8d * 8];
+                  v_r8_6 = i_r8d;
                   L_0x124d0a8:
-                  if ((v_r8_10 << 6) + ctz(v_rdx_9) != i_ebx->field_0x4) {
-                    i_edx = (v_r8_10 << 6) + ctz(v_rdx_9);
+                  local_0x54 = ctz(v_rdx_5);
+                  local_0x38 = (v_r8_6 << 6) + ctz(v_rdx_5);
+                  if ((v_r8_6 << 6) + ctz(v_rdx_5) != i_ebx->field_0x4) {
+                    i_edx_2 = (v_r8_6 << 6) + ctz(v_rdx_5);
                     continue;
                   }
-                  i_edx = 0;
+                  local_0x30 = 0;
+                  local_0x38 = 0;
+                  i_edx_2 = 0;
                   i_ebx = 0;
                 } else {
-                  if ((v_r8_10 << 6) + ctz(v_rdx_9) != i_ebx->field_0x4) {
-                    i_edx = (v_r8_10 << 6) + ctz(v_rdx_9);
+                  local_0x54 = ctz(v_rdx_5);
+                  local_0x38 = (v_r8_6 << 6) + ctz(v_rdx_5);
+                  if ((v_r8_6 << 6) + ctz(v_rdx_5) != i_ebx->field_0x4) {
+                    i_edx_2 = (v_r8_6 << 6) + ctz(v_rdx_5);
                     continue;
                   }
-                  i_edx = 0;
-                  i_ebx = 0;
+                  goto L_0x124d0ce;
                 }
               }
             }
-          } else if (i_edx + 1 == i_ebx->field_0x4) {
-            i_edx = 0;
+          } else if (i_edx_2 + 1 == i_ebx->field_0x4) {
+            local_0x30 = 0;
+            local_0x38 = 0;
+            i_edx_2 = 0;
             i_ebx = 0;
             continue;
           } else {
-            int64_t idx_3 = (i_ebx->field_0x8 + (1 << i_ebx->field_0x1c) * 4)->field_0x10;
-            uint64_t v_rdx_9 = ~((i_ebx->field_0x8 + (1 << i_ebx->field_0x1c) * 4) + idx_3 * 8)->field_0x18[((uint32_t)(i_edx + 1) >> 6) * 8] & -1 << (i_edx + 1 & 0x3f);
-            int32_t v_r8_10 = (uint32_t)(i_edx + 1) >> 6;
-            if ((~((i_ebx->field_0x8 + (1 << i_ebx->field_0x1c) * 4) + idx_3 * 8)->field_0x18[((uint32_t)(i_edx + 1) >> 6) * 8] & -1 << (i_edx + 1 & 0x3f)) == 0) {
-              int32_t i_ecx = ((uint32_t)(i_edx + 1) >> 6) << 6;
+            ptr_4 = i_ebx->field_0x8 + (1 << (uint8_t)i_ebx->field_0x1c) * 4;
+            idx_5 = (i_ebx->field_0x8 + ((1 << (uint8_t)i_ebx->field_0x1c) * 4))->field_0x10;
+            v_rdx_5 = ~(ptr_4 + (idx_5 * 8))->field_0x18[((uint32_t)(i_edx_2 + 1) >> 6) * 8] & -1 << (uint8_t)((i_edx_2 + 1) & 0x3f);
+            v_r8_6 = (uint32_t)(i_edx_2 + 1) >> 6;
+            if ((~(ptr_4 + (idx_5 * 8))->field_0x18[((uint32_t)(i_edx_2 + 1) >> 6) * 8] & -1 << (uint8_t)((i_edx_2 + 1) & 0x3f)) == 0) {
+              i_ecx = ((uint32_t)(i_edx_2 + 1) >> 6) << 6;
+              i_r8d = (uint32_t)(i_edx_2 + 1) >> 6;
               goto L_0x124d090;
             } else {
               goto L_0x124d0a8;
             }
           }
         }
-        if (i_edx == 0) {
+        if (i_edx_2 == 0) {
           return;
         }
-        if (i_ebx->field_0x10->field_0x80[i_edx * 152] != 0 && i_ebx->field_0x10->field_0x90[i_edx * 152] == 0) {
-          double ftmp_1 = local_0x58 - i_ebx->field_0x10->field_0x78[i_edx * 152];
-          if (ftmp_1 > (double)expr_2 * 0.001) {
+        if (i_ebx->field_0x10->field_0x80[i_edx_2 * 152] != 0 && i_ebx->field_0x10->field_0x90[i_edx_2 * 152] == 0) {
+          ftmp_1 = local_0x58 - i_ebx->field_0x10->field_0x78[i_edx_2 * 152];
+          if (ftmp_1 > (double)PromptRobuxTransferSubscriptionSignalWindowMilliseconds * 0.001) {
             if ((uint8_t)RobuxTransfers >= 6 && (uint8_t)((uint64_t)RobuxTransfers >> 8) >= 5) {
-              FLog::Log("[DFLog::RobuxTransfers] Removing stale pending Robux transfer for user {} (elapsed: {}ms > {}ms)", i_ebx->field_0x10->field_0x0[i_edx * 152], ftmp_1 * 1000.0, expr_2);
+              local_0x40 = "[DFLog::RobuxTransfers] Removing stale pending Robux transfer for user {} (elapsed: {}ms > {}ms)";
+              local_0x90 = local_0x40 - 0x2c0abc;
+              i_eax = -1;
+              goto L_0x124ced3;
             }
-            call_0x124cad0(i_ebx->field_0x10->field_0x0[i_edx * 152], "stale_removed", (int64_t)(ftmp_1 * 1000.0));
-            if ((i_ebx->field_0x10->field_0x60[i_edx * 152] & 0xfffffff8) != 0) {
+            call_0x124cad0(i_ebx->field_0x10->field_0x0[i_edx_2 * 152], "stale_removed", (int64_t)(ftmp_1 * 1000.0));
+            if ((i_ebx->field_0x10->field_0x60[i_edx_2 * 152] & 0xfffffffffffffff8ULL) != 0) {
               goto L_0x124cf82;
             }
-            call_0x1195c90(&this->field_0xb70, &local_0xa0, &local_0x40);
-            i_edx = local_0xa8;
-            i_ebx = local_0xa0;
-            continue;
+            goto L_0x124cff6;
           } else {
             goto L_0x124d02b;
           }
@@ -249,7 +353,7 @@ Operação  : 0x124ce91: mov/math reg, [flag] ; fn=0x124cd10..0x124d119 [via DFL
     0x124ce2d | 48 8b df                 | mov rbx, rdi
     0x124ce30 | 48 89 5c 24 30           | mov qword ptr [rsp + 0x30], rbx
     L_0x124ce35:
-    0x124ce35 | 4c 8d 3d 80 73 28 06     | lea r15, [rip + 0x6287380] ; "aPos"
+    0x124ce35 | 4c 8d 3d 80 73 28 06     | lea r15, [rip + 0x6287380] ; "[DFLog::RobuxTransfers] Removing stale pending Robux transfer for user {} (elapsed: {}ms > {}ms)"
     0x124ce3c | f2 0f 10 3d 6c 37 35 06  | movsd xmm7, qword ptr [rip + 0x635376c] ; 1000.0
     L_0x124ce44:
     0x124ce44 | 48 85 db                 | test rbx, rbx
@@ -431,22 +535,50 @@ Operação  : 0x124ce91: mov/math reg, [flag] ; fn=0x124cd10..0x124d119 [via DFL
     0x124d118 | c3                       | ret
   
   === [Sub-Rotina Chamada: 0x124cad0..0x124cd02 via call @0x124cf6e (Direct Engine Sub-Call)] ===
-    void SubObj_0x124cad0::func_0x124cad0(SubObj_0x124cad0* this, int64_t param_2, void* param_3) {
+    void SubObj_0x124cad0::func_0x124cad0(SubObj_0x124cad0* this, void* param_2, int64_t param_3) {
+      uint64_t local_0x70;
       call_0x6fb060(&local_0x70, &sym_0x815d718, 1);
+      uint64_t local_0x350;
       call_0x2dc1120(&local_0x350);
-      auto local_0x50 = 0;
+      uint64_t local_0x50;
+      local_0x50 = 0;
+      auto local_0x60 = 0;
+      auto local_0x68 = 15;
       call_0x2dc0a10(&local_0x350, &local_0x50);
       std::string::_Tidy_deallocate(local_0x50);
       call_0x2dc1b60(&local_0x350);
-      call_0x2dbd0c0(&local_0x350, std::string_view("sender_user_id", 14), this, 1);
-      auto ret_0x4954e70_7 = call_0x4954e70(global_0x84bc6dc);
-      (*(void***)((uint8_t*)&local_0xe0 + local_0xe0->field_0x4))->vfunc_0x10((uint8_t*)&local_0xe0 + local_0xe0->field_0x4, std::string_view("outcome", 7), &local_0x50, 1);
-      call_0x4954e70(ret_0x4954e70_7);
-      call_0x2dbd0c0(&local_0x350, std::string_view("time_delta_ms", 13), param_3, 1);
+      uint64_t local_0x30;
+      local_0x30 = "sender_user_id";
+      local_0x50 = local_0x30;
+      auto local_0x58 = 14;
+      call_0x2dbd0c0(&local_0x350, &local_0x50, this);
+      local_0x30 = "outcome";
+      auto ret_0x4954e70_8 = call_0x4954e70(global_0x84bc6dc);
+      int64_t v_rdi_2 = 0;
+      if (param_2 != 0) {
+        uint64_t i_edi = -1;
+        do { // L_0x124cc20
+          i_edi++;
+        } while (param_2[i_edi] != 0); // loop -> L_0x124cc20
+        v_rdi_2 = i_edi;
+      }
+      local_0x50 = param_2;
+      local_0x58 = v_rdi_2;
+      auto local_0x38 = 7;
+      auto local_0x40 = ret_0x4954e70_8;
+      void* local_0xe0;
+      (*(((uint8_t*)&local_0xe0 + local_0xe0->field_0x4)->field_0x0)->field_0x10)(((uint8_t*)&local_0xe0 + local_0xe0->field_0x4), &local_0x30, &local_0x50, 1);
+      call_0x4954e70(ret_0x4954e70_8);
+      local_0x50 = "time_delta_ms";
+      local_0x58 = 13;
+      call_0x2dbd0c0(&local_0x350, &local_0x50, param_3);
+      uint64_t local_0x398;
       call_0x2db2c00(&local_0x398);
+      uint64_t local_0x370;
       call_0x6f5b70(&local_0x370);
       call_0x6f5b70(&local_0x350);
       call_0x6e41c0(&local_0x350);
+      uint64_t local_0x98;
       call_0x6f8fb0(&local_0x98);
     }
   
@@ -584,41 +716,57 @@ Operação  : 0x124ce91: mov/math reg, [flag] ; fn=0x124cd10..0x124d119 [via DFL
       /* +0x0 */ int32_t field_0x0;
       /* +0x4 */ int32_t field_0x4;
       /* +0x8 */ void*   field_0x8;
-      /* +0x10 */ void*   field_0x10;
+      /* +0x10 */ uint64_t field_0x10;
       /* +0x18 */ int32_t field_0x18;
       /* +0x1c */ int32_t field_0x1c;
     };
     
-    void SubObj_0x1195c90::func_0x1195c90(SubObj_0x1195c90* this, int64_t param_2, void* param_3) {
-      call_0x1198880(this, &local_0x60, param_3->field_0x8 * 152 + param_3->field_0x0->field_0x10, 0);
-      if (local_0x64 == 0) {
-        call_0x1198d80((this->field_0x8->field_0x0[local_0x60 * 4] & this->field_0x18) * 152 + this->field_0x10);
-        this->field_0x0--;
-        auto* f_8 = this->field_0x8;
-        auto expr_1 = f_8 + (1 << this->field_0x1c) * 4;
-        if (f_8->field_0x0[(1 << this->field_0x1c) * 4] > (f_8->field_0x0[local_0x60 * 4] & this->field_0x18)) {
-          expr_1->field_0x0 = f_8->field_0x0[local_0x60 * 4] & this->field_0x18;
-        }
-        int32_t tmp_1 = expr_1->field_0x10 + ((uint32_t)(f_8->field_0x0[local_0x60 * 4] & this->field_0x18) >> 6);
-        int64_t tmp_2 = expr_1->field_0x18[tmp_1 * 8] | 1ULL << (f_8->field_0x0[local_0x60 * 4] & this->field_0x18 & 0x3f);
-        (expr_1 + tmp_1 * 8)->field_0x18 = tmp_2;
-        int32_t tmp_3 = expr_1->field_0xc + ((uint32_t)((uint32_t)(f_8->field_0x0[local_0x60 * 4] & this->field_0x18) >> 6) >> 6);
-        int64_t tmp_4 = expr_1->field_0x18[tmp_3 * 8] | 1ULL << ((uint32_t)(f_8->field_0x0[local_0x60 * 4] & this->field_0x18) >> 6 & 0x3f);
-        (expr_1 + tmp_3 * 8)->field_0x18 = tmp_4;
-        int64_t idx_2 = (uint64_t)((uint32_t)((uint32_t)(f_8->field_0x0[local_0x60 * 4] & this->field_0x18) >> 6) >> 6) >> 6;
-        int64_t idx_3 = (uint64_t)((uint32_t)((uint32_t)(f_8->field_0x0[local_0x60 * 4] & this->field_0x18) >> 6) >> 6) >> 6;
-        int64_t tmp_5 = expr_1->field_0x18[idx_3 * 8] | 1ULL << ((uint32_t)((uint32_t)(f_8->field_0x0[local_0x60 * 4] & this->field_0x18) >> 6) >> 6 & 0x3f);
-        (expr_1 + idx_2 * 8)->field_0x18 = tmp_5;
-        auto prev_0x0[(local_0x60 * 4)]_6 = f_8->field_0x0[local_0x60 * 4];
-        f_8->field_0x0[(local_0x60 * 4)] = 2147483647;
-        expr_1->field_0x8++;
-        int64_t idx_4 = expr_1->field_0x8;
-        if (this->field_0x0 + idx_4 * 4 >= 1 << this->field_0x1c) {
-          call_0x1198f80(this);
+    void SubObj_0x1195c90::func_0x1195c90(SubObj_0x1195c90* this, void* param_2, void* param_3) {
+      uint64_t local_0x20;
+      local_0x20 = param_3->field_0x0;
+      if (this->field_0x0 != 0 && (local_0x20 != 0 || param_3->field_0x8 != 0)) {
+        if (local_0x20 == this && param_3->field_0x8 < this->field_0x4) {
+          auto* f_8 = this->field_0x8;
+          int64_t idx_1 = f_8->field_0x10[(1 << (uint8_t)this->field_0x1c) * 4] + ((uint64_t)param_3->field_0x8 >> 6);
+          if ((f_8->field_0x18[((1 << (uint8_t)this->field_0x1c) + idx_1 * 2) * 4] & 1ULL << (uint8_t)(param_3->field_0x8 & 0x3f)) == 0) {
+            uint64_t local_0x60;
+            call_0x1198880(this, &local_0x60, param_3->field_0x8 * 152 + param_3->field_0x0->field_0x10, 0);
+            uint64_t local_0x64;
+            if (local_0x64 == 0) {
+              call_0x1198d80((this->field_0x8->field_0x0[local_0x60 * 4] & this->field_0x18) * 152 + this->field_0x10);
+              this->field_0x0--;
+              auto* f_8_2 = this->field_0x8;
+              auto expr_1 = f_8_2 + ((1 << (uint8_t)this->field_0x1c) * 4);
+              if (f_8_2->field_0x0[(1 << (uint8_t)this->field_0x1c) * 4] > (f_8_2->field_0x0[local_0x60 * 4] & this->field_0x18)) {
+                expr_1->field_0x0 = f_8_2->field_0x0[local_0x60 * 4] & this->field_0x18;
+              }
+              int32_t tmp_1 = expr_1->field_0x10 + ((uint32_t)(f_8_2->field_0x0[local_0x60 * 4] & this->field_0x18) >> 6);
+              void* ptr_2 = f_8_2 + (1 << (uint8_t)this->field_0x1c) * 4;
+              (ptr_2 + (tmp_1 * 8))->field_0x18 = ptr_2->field_0x18[tmp_1 * 8] | 1ULL << (f_8_2->field_0x0[local_0x60 * 4] & this->field_0x18 & 0x3f);
+              int64_t idx_3 = ptr_2->field_0xc + ((uint32_t)((uint32_t)(f_8_2->field_0x0[local_0x60 * 4] & this->field_0x18) >> 6) >> 6);
+              int64_t idx_4 = ptr_2->field_0xc + ((uint32_t)((uint32_t)(f_8_2->field_0x0[local_0x60 * 4] & this->field_0x18) >> 6) >> 6);
+              (ptr_2 + (idx_3 * 8))->field_0x18 = ptr_2->field_0x18[idx_4 * 8] | 1ULL << ((uint32_t)(f_8_2->field_0x0[local_0x60 * 4] & this->field_0x18) >> 6 & 0x3f);
+              int64_t idx_5 = (uint64_t)((uint32_t)((uint32_t)(f_8_2->field_0x0[local_0x60 * 4] & this->field_0x18) >> 6) >> 6) >> 6;
+              int64_t idx_6 = (uint64_t)((uint32_t)((uint32_t)(f_8_2->field_0x0[local_0x60 * 4] & this->field_0x18) >> 6) >> 6) >> 6;
+              int64_t tmp_2 = ptr_2->field_0x18[idx_6 * 8] | 1ULL << ((uint32_t)((uint32_t)(f_8_2->field_0x0[local_0x60 * 4] & this->field_0x18) >> 6) >> 6 & 0x3f);
+              (ptr_2 + (idx_5 * 8))->field_0x18 = tmp_2;
+              f_8_2->field_0x0[(local_0x60 * 4)] = 2147483647;
+              ptr_2->field_0x8++;
+              if (this->field_0x0 + ptr_2->field_0x8 * 4 >= 1 << (uint8_t)this->field_0x1c) {
+                call_0x1198f80(this);
+              }
+            }
+            call_0x800000(param_3);
+            param_2->field_0x0 = param_3->field_0x0;
+            param_2->field_0x4 = param_3->field_0x4;
+            param_2->field_0x8 = param_3->field_0x8;
+            param_2->field_0xc = param_3->field_0xc;
+            return;
+          }
         }
       }
-      call_0x800000(param_3);
-      param_2->field_0x0 = param_3->field_0x0;
+      call_0x4971090(0, "Bad iterator given to `erase`", param_3->field_0x0, param_3->field_0x8);
+      return; // noreturn
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x1195c90..0x1195e63)] ===

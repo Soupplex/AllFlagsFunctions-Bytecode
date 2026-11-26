@@ -19,46 +19,72 @@ Operação  : 0x2bd930f: cmp [flag], reg ; fn=0x2bd92c0..0x2bd9582
     };
     
     // Flag defaults: DevOriginatedWebSocketLimit = 100, WebSocketTraceLight = 0
-    void RBX::DevOriginated::func_0x2bd92c0(RBX::DevOriginated* this, int64_t param_2) {
+    void RBX::DevOriginated::func_0x2bd92c0(RBX::DevOriginated* this, void* param_2) {
+      uint64_t local_0x130;
       call_0x2e13a20(&local_0x130, &this->field_0x98, 0);
+      uint64_t local_0x20;
+      uint64_t local_0x40;
       if (param_2->field_0x49 != 0) {
         if (this->field_0xa4 >= DevOriginatedWebSocketLimit) {
           if ((uint8_t)WebSocketTraceLight >= 6 && (uint8_t)((uint64_t)WebSocketTraceLight >> 8) >= 3) {
-            FLog::Log("[DFLog::WebSocketTraceLight] could not add ws {} as dev-originated limit is already reached", param_2->field_0x18);
+            local_0x40 = param_2->field_0x18;
+            local_0x20 = 0;
+            FLog::Log("[DFLog::WebSocketTraceLight] could not add ws {} as dev-originated limit is already reached", local_0x40);
           }
-          if ((local_0x130 & 0x1) != 0) {
-            if ((local_0x130 & 0xfffffffe)->field_0x0 == 3) {
-              if (atomic_cas(&(local_0x130 & 0xfffffffe)->field_0x0, (local_0x130 & 0xfffffffe)->field_0x0, 1) != 0) {
-                call_0xdac0(local_0x130 & 0xfffffffe);
+          if (((uint8_t)local_0x130 & 0x1) != 0) {
+            if ((local_0x130 & 0xfffffffffffffffeULL)->field_0x0 == 3) {
+              if (!atomic_cas(&(local_0x130 & 0xfffffffffffffffeULL)->field_0x0, (local_0x130 & 0xfffffffffffffffeULL)->field_0x0, 1)) {
+                call_0xdac0(local_0x130 & 0xfffffffffffffffeULL);
               }
             } else {
-              call_0xdac0(local_0x130 & 0xfffffffe);
+              call_0xdac0(local_0x130 & 0xfffffffffffffffeULL);
             }
           }
-        } else {
-          this->field_0xa4++;
-          L_0x2bd94f0:
-          do { // L_0x2bd94f0
-            atomic_try_incref(&param_2->field_0x10->field_0x8);
-            if (atomic_cas(&param_2->field_0x10->field_0x8, param_2->field_0x10->field_0x8, param_2->field_0x10->field_0x8 + 1) == 0) break;
-          } while (true); // loop -> L_0x2bd94f0
-          auto local_0x50 = param_2->field_0x8;
+          return;
+        }
+        this->field_0xa4++;
+      }
+      if ((uint8_t)WebSocketTraceLight >= 6 && (uint8_t)((uint64_t)WebSocketTraceLight >> 8) >= 3) {
+        local_0x40 = "[DFLog::WebSocketTraceLight] add {} to allWebSockets. isDevOriginated: {}";
+        local_0x20 = 0;
+        FLog::Log("[DFLog::WebSocketTraceLight] add {} to allWebSockets. isDevOriginated: {}", param_2->field_0x18, param_2->field_0x49);
+      }
+      uint64_t local_0x50;
+      local_0x50 = 0.0;
+      if (param_2->field_0x10 != 0) {
+        int32_t i_eax_3 = param_2->field_0x10->field_0x8;
+        if (param_2->field_0x10->field_0x8 != 0) {
+          while (!atomic_cas(&param_2->field_0x10->field_0x8, i_eax_3, i_eax_3 + 1)) {
+            if (i_eax_3 == 0) {
+              call_0x7431a0();
+              return; // noreturn
+            }
+          }
+          local_0x50 = param_2->field_0x8;
+          auto local_0x54 = 0.0;
+          auto local_0x58 = param_2->field_0x10;
+          auto local_0x5c = 0.0;
+          uint64_t local_0x120;
           call_0x1a536f0(this, &local_0x120, &local_0x50);
+          if (local_0x58 != 0) {
+            call_0x6daf40(local_0x58);
+          }
           if (this->field_0xa2 == 0) {
             this->field_0xa2 = 1;
           }
-          if ((local_0x130 & 0x1) != 0) {
-            if ((local_0x130 & 0xfffffffe)->field_0x0 != 3 || atomic_cas(&(local_0x130 & 0xfffffffe)->field_0x0, (local_0x130 & 0xfffffffe)->field_0x0, 1) != 0) {
-              call_0xdac0(local_0x130 & 0xfffffffe);
+          if (((uint8_t)local_0x130 & 0x1) != 0) {
+            if ((local_0x130 & 0xfffffffffffffffeULL)->field_0x0 != 3 || !atomic_cas(&(local_0x130 & 0xfffffffffffffffeULL)->field_0x0, (local_0x130 & 0xfffffffffffffffeULL)->field_0x0, 1)) {
+              call_0xdac0(local_0x130 & 0xfffffffffffffffeULL);
               call_0x2bd8e80(this);
               return;
             }
           }
           call_0x2bd8e80(this);
+          return;
         }
-        return;
       }
-      goto L_0x2bd94f0;
+      call_0x7431a0();
+      return; // noreturn
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -258,40 +284,41 @@ Operação  : 0x2bd930f: cmp [flag], reg ; fn=0x2bd92c0..0x2bd9582
     
     // Flag defaults: DebugHttpRequestSecondaryImpl = false
     void SubObj_0x2bd8e80::func_0x2bd8e80(SubObj_0x2bd8e80* this) {
-      call_0x2e12fd0(&this->field_0x90->field_0x20);
-      void* v_rbx_1 = this->field_0x90;
-      void* v_rbx_2;
+      int64_t v_rax_1 = call_0x2e12fd0(&this->field_0x90->field_0x20);
+      void* v_rbx_2 = this->field_0x90;
+      void* v_rbx_3;
       if (global_0x84a44d6 != 0 && DebugHttpRequestSecondaryImpl) {
         void* prev_0x90_1 = this->field_0x90;
         auto ret_0x2bebc20_2 = call_0x2bebc20();
         if ((uint8_t)ret_0x2bebc20_2 != 0) {
           this->field_0x90->field_0xa70 = 1;
-          v_rbx_2 = prev_0x90_1;
+          v_rbx_3 = prev_0x90_1;
           L_0x2bd8efd:
-          call_0xd150(&v_rbx_2->field_0xa68, param_2);
+          call_0xd150(&v_rbx_3->field_0xa68);
         } else {
-          v_rbx_1 = prev_0x90_1;
-          if (v_rbx_1->field_0x28 != 0) {
-            if (v_rbx_1->field_0x28->field_0x38 != 0 && v_rbx_1->field_0x28->field_0x38->field_0x0 == 764702) {
-              v_rbx_1->field_0x28->field_0x38->field_0x2c8->vfunc(v_rbx_1->field_0x28->field_0x38->field_0x2c8);
-              v_rbx_2 = v_rbx_1;
+          v_rax_1 = ret_0x2bebc20_2;
+          v_rbx_2 = prev_0x90_1;
+          if (v_rbx_2->field_0x28 != 0) {
+            if (v_rbx_2->field_0x28->field_0x38 != 0 && v_rbx_2->field_0x28->field_0x38->field_0x0 == 764702) {
+              (*v_rax_1)(v_rbx_2->field_0x28->field_0x38->field_0x2c8);
+              v_rbx_3 = v_rbx_2;
             } else {
-              v_rbx_2 = v_rbx_1;
+              v_rbx_3 = v_rbx_2;
             }
-            call_0xd150(&v_rbx_2->field_0xa68, param_2);
+            call_0xd150(&v_rbx_3->field_0xa68);
           }
         }
-      } else if (v_rbx_1->field_0x28 != 0) {
-        if (v_rbx_1->field_0x28->field_0x38 != 0 && v_rbx_1->field_0x28->field_0x38->field_0x0 == 764702) {
-          v_rbx_1->field_0x28->field_0x38->field_0x2c8->vfunc(v_rbx_1->field_0x28->field_0x38->field_0x2c8);
-          v_rbx_2 = v_rbx_1;
+      } else if (v_rbx_2->field_0x28 != 0) {
+        if (v_rbx_2->field_0x28->field_0x38 != 0 && v_rbx_2->field_0x28->field_0x38->field_0x0 == 764702) {
+          (*v_rax_1)(v_rbx_2->field_0x28->field_0x38->field_0x2c8);
+          v_rbx_3 = v_rbx_2;
         } else {
-          v_rbx_2 = v_rbx_1;
+          v_rbx_3 = v_rbx_2;
         }
         goto L_0x2bd8efd;
       }
       auto* f_90 = this->field_0x90;
-      if (f_90->field_0x20 != 3 || atomic_cas(&f_90->field_0x20, f_90->field_0x20, 1) != 0) {
+      if (f_90->field_0x20 != 3 || !atomic_cas(&f_90->field_0x20, f_90->field_0x20, 1)) {
         call_0xdac0(&this->field_0x90->field_0x20);
       }
     }
@@ -358,11 +385,11 @@ Operação  : 0x2bd930f: cmp [flag], reg ; fn=0x2bd92c0..0x2bd9582
 [Co-Flags na mesma função]
   * DFLogWebSocketTraceLight = 0 (default)
   * DFFlagDebugHttpRequestSecondaryImpl = false (default)
-  * FFlagCurlUsePools2 = false (default) [vizinha em .data]
-  * DFIntHttpCurlConnectionCacheSize = -1 (default) [vizinha em .data]
+  * FFlagCurlUsePools2 = true (default) [vizinha em .data]
+  * DFIntHttpCurlConnectionCacheSize = 256 (default) [vizinha em .data]
   * DFIntHttp3ConnMaxAgeSec = 20 (default) [vizinha em .data]
   * DFIntWsClientIdleSleepMs = 1 (default) [vizinha em .data]
-  * DFIntHttpMaxRetryAfterSec = 60 (default) [vizinha em .data]
-  * DFFlagHttpRetryOnExplicitHeader = false (default) [vizinha em .data]
+  * DFIntHttpMaxRetryAfterSec = 5 (default) [vizinha em .data]
+  * DFFlagHttpRetryOnExplicitHeader = true (default) [vizinha em .data]
   * DFIntHttpRetryAndLocalThrottleJitterMaxPercent = 10 (default) [vizinha em .data]
   * FFlagHttpUseSharedRetryHeader = true (default) [vizinha em .data]

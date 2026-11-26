@@ -7,7 +7,7 @@ Operação  : 0x13eb061: mov/math reg, [flag] ; fn=0x13eafa0..0x13eb41d
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::WorldStep)] ===
     Classe  : RBX::WorldStep (Inferido)
-    Padrão  : DFIntWorldStepsOffsetAdjustRate = 100 (default) [int, mode=2]
+    Padrão  : DFIntWorldStepsOffsetAdjustRate = 4000 (default) [int, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : (double)WorldStepsOffsetAdjustRate <= 4000.0
     Fórmula : (double)WorldStepsOffsetAdjustRate < 1.0
@@ -23,58 +23,103 @@ Operação  : 0x13eb061: mov/math reg, [flag] ; fn=0x13eafa0..0x13eb41d
       /* +0x868 */ float   field_0x868;
     };
     
-    // Flag defaults: WorldStepMax = 30, WorldStepsOffsetAdjustRate = 100, WorldStepsBehind = 0, WorldStepsBehindG = 0
+    // Flag defaults: WorldStepMax = 32, WorldStepsOffsetAdjustRate = 4000, WorldStepsBehind = 0, WorldStepsBehindG = 0
     double RBX::WorldStep::func_0x13eafa0(RBX::WorldStep* this) {
       int32_t v_rdi_7 = this->field_0xe8;
       if (this->field_0x3c8 != 0) {
-        double ftmp_2 = (double)this->field_0x868 * (this->field_0x3b8 - this->field_0x3c0) - (double)(this->field_0xe8 - this->field_0x3c8);
+        double ftmp_1 = (double)this->field_0x868 * (this->field_0x3b8 - this->field_0x3c0);
+        double ftmp_2 = ftmp_1 - (double)(this->field_0xe8 - this->field_0x3c8);
         this->field_0x3d0 = ftmp_2 + this->field_0x3d0;
-        double fxmm1_1;
-        auto expr_2 = max((double)WorldStepMax, 1.0);
-        if (ftmp_2 + this->field_0x3d0 <= expr_2) {
-          if (expr_2 > ftmp_2 + this->field_0x3d0) {
-            fxmm1_1 = expr_2;
+        double fxmm1_1 = max((double)WorldStepMax, 1.0);
+        if (ftmp_2 + this->field_0x3d0 <= max((double)WorldStepMax, 1.0)) {
+          if (-max((double)WorldStepMax, 1.0) > ftmp_2 + this->field_0x3d0) {
+            fxmm1_1 = -max((double)WorldStepMax, 1.0);
           } else {
             fxmm1_1 = ftmp_2 + this->field_0x3d0;
           }
-        } else {
-          fxmm1_1 = expr_2;
         }
         this->field_0x3d0 = fxmm1_1;
-        double fxmm2_2;
+        double fxmm2_2 = 4000.0;
         if ((double)WorldStepsOffsetAdjustRate <= 4000.0) {
           if ((double)WorldStepsOffsetAdjustRate < 1.0) {
             fxmm2_2 = 1.0;
           } else {
             fxmm2_2 = (double)WorldStepsOffsetAdjustRate;
           }
-        } else {
-          fxmm2_2 = 4000.0;
         }
         double fxmm1_4;
         if (fxmm1_1 > fxmm2_2 / 1000.0) {
           fxmm1_4 = fxmm1_1 - fxmm2_2 / 1000.0;
-        } else if (fxmm2_2 / 1000.0 > fxmm1_1) {
+        } else if (-(fxmm2_2 / 1000.0) > fxmm1_1) {
           fxmm1_4 = fxmm1_1 + fxmm2_2 / 1000.0;
         } else {
           fxmm1_4 = 0.0;
         }
         this->field_0x3d0 = fxmm1_4;
         int32_t v_rdi_6 = this->field_0xe8;
+        uint64_t local_0x20;
+        uint64_t local_0xe0;
+        uint64_t local_0x30;
+        uint64_t local_0xd0;
+        uint64_t local_0xd8;
+        uint64_t local_0xe8;
+        uint64_t local_0x28;
         if ((uint8_t)WorldStepsBehind != 0) {
           int32_t v_rdi_5 = this->field_0xe8;
-          auto expr_1 = (uint64_t)WorldStepsBehind >> 8;
-          if ((uint8_t)WorldStepsBehind >= 6 && (uint8_t)expr_1 >= 3) {
-            auto prev_0xe8_1 = this->field_0xe8;
-            FLog::Log("[FLog::WorldStepsBehind] DELTA     WorldSteps       : %d");
-            v_rdi_5 = prev_0xe8_1;
+          auto expr_1 = (uint8_t*)&WorldStepsBehind + 0x8;
+          auto expr_2 = (uint8_t*)&WorldStepsBehind + 0x4;
+          auto expr_3 = (uint8_t*)&WorldStepsBehind + 0xc;
+          auto expr_4 = (uint64_t)WorldStepsBehind >> 8;
+          if ((uint8_t)WorldStepsBehind >= 6 && (uint8_t)expr_4 >= 3) {
+            local_0xd8 = 0;
+            local_0xd0 = "[FLog::WorldStepsBehind] DELTA     WorldSteps       : %d";
+            void* mem_1_1 = local_0xd0;
+            local_0xd0 = 0;
+            local_0x30 = local_0xd0;
+            local_0x28 = local_0xd8;
+            local_0xe0 = 0;
+            local_0x20 = local_0xe0;
+            local_0xe8 = (float)(double)(this->field_0xe8 - this->field_0x3c8);
+            auto prev_0xe8_2 = this->field_0xe8;
+            auto local_0x40 = WorldStepsBehind;
+            auto local_0x44 = *(uint32_t*)expr_2;
+            auto local_0x48 = *(uint32_t*)expr_1;
+            auto local_0x4c = *(uint32_t*)expr_3;
+            call_0x4972020(&local_0x40, mem_1_1 - 0x397c268, 0xffff10adULL, local_0xe8, local_0xe0, local_0xd8, local_0xd0);
+            v_rdi_5 = prev_0xe8_2;
           }
           if ((uint8_t)WorldStepsBehind != 0 && (uint8_t)WorldStepsBehind >= 6) {
-            if ((uint8_t)expr_1 >= 3) {
-              FLog::Log("[FLog::WorldStepsBehind] Expected  WorldSteps       : %d");
+            if ((uint8_t)expr_4 >= 3) {
+              local_0xd8 = 0;
+              local_0xd0 = "[FLog::WorldStepsBehind] Expected  WorldSteps       : %d";
+              void* mem_3_3 = local_0xd0;
+              local_0xd0 = 0;
+              local_0x30 = local_0xd0;
+              local_0x28 = local_0xd8;
+              local_0xe0 = 0;
+              local_0x20 = local_0xe0;
+              local_0xe8 = (float)ftmp_1;
+              auto local_0x50 = WorldStepsBehind;
+              auto local_0x54 = *(uint32_t*)expr_2;
+              auto local_0x58 = *(uint32_t*)expr_1;
+              auto local_0x5c = *(uint32_t*)expr_3;
+              call_0x4972020(&local_0x50, mem_3_3 - 0x39803f5, 0xffff10adULL, local_0xe8, local_0xe0, local_0xd8, local_0xd0);
             }
-            if ((uint8_t)WorldStepsBehind >= 6 && (uint8_t)expr_1 >= 3) {
-              FLog::Log("[FLog::WorldStepsBehind] dt: %f");
+            if ((uint8_t)WorldStepsBehind >= 6 && (uint8_t)expr_4 >= 3) {
+              local_0xd8 = 0;
+              local_0xd0 = "[FLog::WorldStepsBehind] dt: %f";
+              void* mem_4_4 = local_0xd0;
+              local_0xd0 = 0;
+              local_0x30 = local_0xd0;
+              local_0x28 = local_0xd8;
+              local_0xe0 = 0;
+              local_0x20 = local_0xe0;
+              local_0xe8 = (float)(this->field_0x3b8 - this->field_0x3c0);
+              auto local_0x60 = WorldStepsBehind;
+              auto local_0x64 = *(uint32_t*)expr_2;
+              auto local_0x68 = *(uint32_t*)expr_1;
+              auto local_0x6c = *(uint32_t*)expr_3;
+              call_0x4972020(&local_0x60, mem_4_4 - 0x3984582, 0xffff10adULL, local_0xe8, local_0xe0, local_0xd8, local_0xd0);
               v_rdi_6 = v_rdi_5;
             } else {
               v_rdi_6 = v_rdi_5;
@@ -84,12 +129,25 @@ Operação  : 0x13eb061: mov/math reg, [flag] ; fn=0x13eafa0..0x13eb41d
           }
         }
         if ((uint8_t)WorldStepsBehindG >= 6 && (uint8_t)((uint64_t)WorldStepsBehindG >> 8) >= 3) {
-          FLog::Log("[FLog::WorldStepsBehindG] Number of WorldSteps behind, wsps, deltaTime: %f  %f  %f");
+          local_0xd0 = "[FLog::WorldStepsBehindG] Number of WorldSteps behind, wsps, deltaTime: %f  %f  %f";
+          void* mem_5_5 = local_0xd0;
+          local_0xd0 = 0;
+          local_0x30 = local_0xd0;
+          local_0xd8 = (float)ftmp_1;
+          local_0x28 = local_0xd8;
+          local_0xe0 = (float)(double)(this->field_0xe8 - this->field_0x3c8);
+          local_0xe8 = (float)this->field_0x3d0;
+          local_0x20 = local_0xe0;
+          auto local_0x70 = WorldStepsBehindG;
+          auto local_0x74 = *(uint32_t*)((uint8_t*)&WorldStepsBehindG + 0x4);
+          auto local_0x78 = *(uint32_t*)((uint8_t*)&WorldStepsBehindG + 0x8);
+          auto local_0x7c = *(uint32_t*)((uint8_t*)&WorldStepsBehindG + 0xc);
+          call_0x4972020(&local_0x70, mem_5_5 - 0x39a105d, 0xffff10adULL, local_0xe8, local_0xe0, local_0xd8, local_0xd0);
         }
         v_rdi_7 = v_rdi_6;
       }
       if (v_rdi_7 != this->field_0xe8) {
-        call_0x1bf4f90(1, "getWorldStepId changed %d %d", v_rdi_7);
+        call_0x1bf4f90(1, " DELTA     WorldSteps       : %d", v_rdi_7, this->field_0xe8);
       }
       this->field_0x3c8 = this->field_0xe8;
       this->field_0x3c0 = this->field_0x3b8;
@@ -178,7 +236,7 @@ Operação  : 0x13eb061: mov/math reg, [flag] ; fn=0x13eafa0..0x13eb41d
     0x13eb0d2 | 48 c1 e8 08              | shr rax, 0x8
     0x13eb0d6 | 3c 03                    | cmp al, 0x3
     0x13eb0d8 | 0f 82 9c 00 00 00        | jb 0x13eb17a
-    0x13eb0de | 48 8d 05 fb c0 7b 09     | lea rax, [rip + 0x97bc0fb]
+    0x13eb0de | 48 8d 05 fb c0 7b 09     | lea rax, [rip + 0x97bc0fb] ; "[FLog::WorldStepsBehind] DELTA     WorldSteps       : %d"
     0x13eb0e5 | c7 84 24 d8 00 00 00 00.. | mov dword ptr [rsp + 0xd8], 0x0
     0x13eb0f0 | 48 89 84 24 d0 00 00 00  | mov qword ptr [rsp + 0xd0], rax
     0x13eb0f8 | 48 8d 4c 24 40           | lea rcx, [rsp + 0x40]
@@ -209,7 +267,7 @@ Operação  : 0x13eb061: mov/math reg, [flag] ; fn=0x13eafa0..0x13eb41d
     0x13eb18e | 48 c1 e8 08              | shr rax, 0x8
     0x13eb192 | 3c 03                    | cmp al, 0x3
     0x13eb194 | 0f 82 9b 00 00 00        | jb 0x13eb235
-    0x13eb19a | 48 8d 05 0c 02 7c 09     | lea rax, [rip + 0x97c020c]
+    0x13eb19a | 48 8d 05 0c 02 7c 09     | lea rax, [rip + 0x97c020c] ; "[FLog::WorldStepsBehind] Expected  WorldSteps       : %d"
     0x13eb1a1 | c7 84 24 d8 00 00 00 00.. | mov dword ptr [rsp + 0xd8], 0x0
     0x13eb1ac | 48 89 84 24 d0 00 00 00  | mov qword ptr [rsp + 0xd0], rax
     0x13eb1b4 | 48 8d 4c 24 50           | lea rcx, [rsp + 0x50]
@@ -237,7 +295,7 @@ Operação  : 0x13eb061: mov/math reg, [flag] ; fn=0x13eafa0..0x13eb41d
     0x13eb23e | 48 c1 e9 08              | shr rcx, 0x8
     0x13eb242 | 80 f9 03                 | cmp cl, 0x3
     0x13eb245 | 0f 82 94 00 00 00        | jb 0x13eb2df
-    0x13eb24b | 48 8d 05 28 43 7c 09     | lea rax, [rip + 0x97c4328]
+    0x13eb24b | 48 8d 05 28 43 7c 09     | lea rax, [rip + 0x97c4328] ; "[FLog::WorldStepsBehind] dt: %f"
     0x13eb252 | c7 84 24 d8 00 00 00 00.. | mov dword ptr [rsp + 0xd8], 0x0
     0x13eb25d | 48 89 84 24 d0 00 00 00  | mov qword ptr [rsp + 0xd0], rax
     0x13eb265 | 48 8d 4c 24 60           | lea rcx, [rsp + 0x60]
@@ -299,7 +357,7 @@ Operação  : 0x13eb061: mov/math reg, [flag] ; fn=0x13eafa0..0x13eb41d
     0x13eb3c3 | 41 3b f9                 | cmp edi, r9d
     0x13eb3c6 | 74 14                    | je 0x13eb3dc
     0x13eb3c8 | 44 8b c7                 | mov r8d, edi
-    0x13eb3cb | 48 8d 15 06 fb e3 05     | lea rdx, [rip + 0x5e3fb06] ; "getWorldStepId changed %d %d"
+    0x13eb3cb | 48 8d 15 06 fb e3 05     | lea rdx, [rip + 0x5e3fb06] ; " DELTA     WorldSteps       : %d"
     0x13eb3d2 | b9 01 00 00 00           | mov ecx, 0x1
     0x13eb3d7 | e8 b4 9b 80 00           | call 0x1bf4f90
     L_0x13eb3dc:
@@ -325,12 +383,12 @@ Operação  : 0x13eb061: mov/math reg, [flag] ; fn=0x13eafa0..0x13eb41d
   * "getWorldStepId changed %d %d"  [@rdata 0x722aed8, ref @0x13eb3cb, literal, 28B]
 
 [Co-Flags na mesma função]
-  * DFIntWorldStepMax = 30 (default)
+  * DFIntWorldStepMax = 32 (default)
   * FLogWorldStepsBehind = 0 (default)
   * FLogWorldStepsBehindG = 0 (default)
   * DFIntBulletContactBreakOrthogonalThresholdPercent = 200 (default) [vizinha em .data]
   * DFIntBulletContactBreakOrthogonalThresholdActivatePercent = 200 (default) [vizinha em .data]
-  * DFIntMaxMissedWorldStepsRemembered = 16 (default) [vizinha em .data]
+  * DFIntMaxMissedWorldStepsRemembered = 5000 (default) [vizinha em .data]
   * FFlagPhysicsNewSpanningTree = false (default) [vizinha em .data]
-  * DFFlagSimAdaptiveEnable60HzParts = true (default) [vizinha em .data]
-  * DFIntSimArbiterPositionCorrectionFactorThresholdThou = 300 (default) [vizinha em .data]
+  * DFFlagSimAdaptiveEnable60HzParts = false (default) [vizinha em .data]
+  * DFIntSimArbiterPositionCorrectionFactorThresholdThou = -1 (default) [vizinha em .data]

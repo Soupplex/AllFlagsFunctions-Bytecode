@@ -7,40 +7,41 @@ Operação  : 0x592c4cd: mov/math reg, [flag] ; fn=0x592c3f0..0x592c5a6
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::PeerMonotonic)] ===
     Classe  : RBX::PeerMonotonic (Inferido)
-    Padrão  : DFLogPeerMonotonicClock = 6 (default) [log, mode=2]
+    Padrão  : DFLogPeerMonotonicClock = 0 (default) [log, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : (uint8_t)PeerMonotonicClock >= 6 && (uint8_t)((uint64_t)PeerMonotonicClock >> 8) >= 3
+    Fórmula : "[DFLog::PeerMonotonicClock] PeerMonotonicClock::now called before initialized, returning 0"
     Altera  : this->field_0x20, this->field_0x18, this->field_0x0, this->field_0x10
   
   === [Decompilacao C++ da Funcao 0x592c3f0..0x592c5a6] ===
     struct RBX::PeerMonotonic {
-      /* +0x0 */ void*   field_0x0;
+      /* +0x0 */ uint64_t field_0x0;
       /* +0x10 */ uint8_t field_0x10;
-      /* +0x18 */ void*   field_0x18;
-      /* +0x20 */ void*   field_0x20;
+      /* +0x18 */ uint64_t field_0x18;
+      /* +0x20 */ uint64_t field_0x20;
     };
     
-    // Flag defaults: PeerMonotonicClock = 6, CleanupMonotonicAlgorithm = false
+    // Flag defaults: PeerMonotonicClock = 0, CleanupMonotonicAlgorithm = false
     void RBX::PeerMonotonic::func_0x592c3f0(RBX::PeerMonotonic* this, int64_t param_2) {
-      auto ret_0x592c370_1 = call_0x592c370(this);
-      if (param_2 != 0) {
+      auto ret_0x592c370_1 = call_0x592c370();
+      if ((uint8_t)param_2 != 0) {
         if (this->field_0x10 == 0) {
-          auto prev_0x10_2 = this->field_0x10;
+          auto prev_0x10_4 = this->field_0x10;
           this->field_0x10 = 1;
           this->field_0x18 = ret_0x592c370_1;
-          uint64_t v_rdi_2 = ret_0x592c370_1;
-          if (CleanupMonotonicAlgorithm == prev_0x10_2) {
+          int64_t v_rdi_2 = ret_0x592c370_1;
+          if (CleanupMonotonicAlgorithm == prev_0x10_4) {
             auto ret_0x5de65b0_5 = call_0x5de65b0();
-            v_rdi_2 = (uint64_t)(((uint64_t)(ret_0x5de65b0_5 * 100 - rdx) >> 1) + rdx) >> 9;
+            v_rdi_2 = (uint64_t)(((uint64_t)(ret_0x5de65b0_5 * 100 - mulhi(0x624dd2f1a9fbe77, ret_0x5de65b0_5 * 100)) >> 1) + mulhi(0x624dd2f1a9fbe77, ret_0x5de65b0_5 * 100)) >> 9;
           }
           this->field_0x20 = v_rdi_2;
         } else {
-          uint64_t v_rcx_1;
+          int64_t v_rcx_1;
           if (CleanupMonotonicAlgorithm) {
             v_rcx_1 = ret_0x592c370_1;
           } else {
             auto ret_0x5de65b0_3 = call_0x5de65b0();
-            v_rcx_1 = (uint64_t)(((uint64_t)(ret_0x5de65b0_3 * 100 - rdx) >> 1) + rdx) >> 9;
+            v_rcx_1 = (uint64_t)(((uint64_t)(ret_0x5de65b0_3 * 100 - mulhi(0x624dd2f1a9fbe77, ret_0x5de65b0_3 * 100)) >> 1) + mulhi(0x624dd2f1a9fbe77, ret_0x5de65b0_3 * 100)) >> 9;
           }
           this->field_0x20 = call_0x592c600(this, v_rcx_1, ret_0x592c370_1 - this->field_0x18);
           this->field_0x18 = ret_0x592c370_1;
@@ -48,6 +49,11 @@ Operação  : 0x592c4cd: mov/math reg, [flag] ; fn=0x592c3f0..0x592c5a6
         }
       } else if (this->field_0x10 == 0) {
         if ((uint8_t)PeerMonotonicClock >= 6 && (uint8_t)((uint64_t)PeerMonotonicClock >> 8) >= 3) {
+          uint64_t local_0x50;
+          local_0x50 = "[DFLog::PeerMonotonicClock] PeerMonotonicClock::now called before initialized, returning 0";
+          uint64_t local_0x40;
+          local_0x40 = local_0x50 - 0xf9e99;
+          local_0x50 = PeerMonotonicClock;
           FLog::Log("[DFLog::PeerMonotonicClock] PeerMonotonicClock::now called before initialized, returning 0");
         }
       } else {
@@ -172,10 +178,11 @@ Operação  : 0x592c4cd: mov/math reg, [flag] ; fn=0x592c3f0..0x592c5a6
     // Flag defaults: CleanupMonotonicAlgorithm = false
     auto SubObj_0x592c370::func_0x592c370(SubObj_0x592c370* this) {
       if (CleanupMonotonicAlgorithm) {
-        auto ret_0x5de65b0_2 = call_0x5de65b0(this);
-        return ((uint64_t)(ret_0x5de65b0_2 * 100 / 1000 >> 7) >> 63) + (ret_0x5de65b0_2 * 100 / 1000 >> 7);
+        auto ret_0x5de65b0_2 = call_0x5de65b0();
+        int64_t tmp_1 = ((uint64_t)((int64_t)mulhi(0x20c49ba5e353f7cf, ret_0x5de65b0_2 * 100) >> 7) >> 63) + ((int64_t)mulhi(0x20c49ba5e353f7cf, ret_0x5de65b0_2 * 100) >> 7);
+        return tmp_1;
       }
-      auto ret_0x4959ee0_1 = call_0x4959ee0(this);
+      auto ret_0x4959ee0_1 = call_0x4959ee0();
       return (uint64_t)(ret_0x4959ee0_1 * 1000000.0);
     }
   
@@ -213,12 +220,12 @@ Operação  : 0x592c4cd: mov/math reg, [flag] ; fn=0x592c3f0..0x592c5a6
   
   === [Sub-Rotina Chamada: 0x592c600..0x592c775 via call @0x592c4ac (Direct Engine Sub-Call)] ===
     struct SubObj_0x592c600 {
-      /* +0x0 */ void*   field_0x0;
-      /* +0x20 */ void*   field_0x20;
+      /* +0x0 */ uint64_t field_0x0;
+      /* +0x20 */ uint64_t field_0x20;
     };
     
-    // Flag defaults: MonotonicClockDifferentialDriftCompensationHundredthsPercentage = 600
-    auto SubObj_0x592c600::func_0x592c600(SubObj_0x592c600* this, int64_t param_2, void* param_3) {
+    // Flag defaults: MonotonicClockDifferentialDriftCompensationHundredthsPercentage = 10000
+    auto SubObj_0x592c600::func_0x592c600(SubObj_0x592c600* this, int64_t param_2, int64_t param_3) {
       if (param_3 <= 0) {
         return this->field_0x20;
       }
@@ -231,19 +238,14 @@ Operação  : 0x592c4cd: mov/math reg, [flag] ; fn=0x592c3f0..0x592c5a6
       }
       double ftmp_3 = (double)param_3 * (1.0 - ftmp_1);
       double ftmp_4 = (double)param_3 * (ftmp_1 + 1.0);
-      double fxmm1_3;
-      double fxmm2_4;
+      double fxmm1_3 = ftmp_4 + fxmm5_2;
+      double fxmm2_4 = ftmp_3 + fxmm5_2;
       if (ftmp_2 / (double)param_3 > ftmp_1 + 1.0) {
-        fxmm1_3 = min(ftmp_4 + fxmm5_2, (double)this->field_0x0 + fxmm4_1);
-        fxmm2_4 = ftmp_3 + fxmm5_2;
+        fxmm1_3 = min(fxmm1_3, (double)this->field_0x0 + fxmm4_1);
       } else if (1.0 - ftmp_1 > ftmp_2 / (double)param_3) {
-        fxmm1_3 = ftmp_4 + fxmm5_2;
-        fxmm2_4 = max(ftmp_3 + fxmm5_2, (double)this->field_0x0 + fxmm4_1);
-      } else {
-        fxmm1_3 = ftmp_4 + fxmm5_2;
-        fxmm2_4 = ftmp_3 + fxmm5_2;
+        fxmm2_4 = max(fxmm2_4, (double)this->field_0x0 + fxmm4_1);
       }
-      double fxmm1_5;
+      double fxmm1_5 = fxmm1_3;
       if ((double)this->field_0x0 + fxmm4_1 <= fxmm1_3) {
         if (fxmm2_4 > (double)this->field_0x0 + fxmm4_1) {
           fxmm1_5 = fxmm2_4;
@@ -251,8 +253,6 @@ Operação  : 0x592c4cd: mov/math reg, [flag] ; fn=0x592c3f0..0x592c5a6
           double ftmp_5 = (double)this->field_0x0 + fxmm4_1;
           fxmm1_5 = ftmp_5;
         }
-      } else {
-        fxmm1_5 = fxmm1_3;
       }
       return (uint64_t)fxmm1_5;
     }
@@ -370,7 +370,7 @@ Operação  : 0x592c4cd: mov/math reg, [flag] ; fn=0x592c3f0..0x592c5a6
     0x592c770 | 48 83 c4 38              | add rsp, 0x38
     0x592c774 | c3                       | ret
   
-  === [Estrutura RTTI & VTable da Classe (PeerMonotonicClockManager::SubsystemHandleImplForT)] ===
+  === [Estrutura RTTI & VTable da Classe (Subsystem::PeerMonotonicClockManager::SubsystemHandleImplForT)] ===
     VTable  : 0x70a4c90 (offset +0x0, 5 slots virtuais)
     Herança : RBX::subsysDetail::SubsystemHandleImpl
     +0x0 -> fn_0x3335fc0
@@ -379,161 +379,203 @@ Operação  : 0x592c4cd: mov/math reg, [flag] ; fn=0x592c3f0..0x592c5a6
     +0x30 -> fn_0x3338160
     +0x50 -> fn_0x33381b0
   
-  === [Decompilacao de Metodo da Classe PeerMonotonicClockManager::SubsystemHandleImplForT: 0x3335fc0..0x3336106 (vfunc_0x0)] ===
-    struct PeerMonotonicClockManager::SubsystemHandleImplForT {
-      /* +0x8 */ void*   field_0x8;
-      /* +0x10 */ void*   field_0x10;
-      /* +0x18 */ void*   field_0x18;
+  === [Decompilacao de Metodo da Classe Subsystem::PeerMonotonicClockManager::SubsystemHandleImplForT: 0x3335fc0..0x3336106 (vfunc_0x0)] ===
+    struct Subsystem::PeerMonotonicClockManager::SubsystemHandleImplForT {
+      /* +0x8 */ uint64_t field_0x8;
+      /* +0x10 */ uint64_t field_0x10;
+      /* +0x18 */ uint64_t field_0x18;
       /* +0x20 */ int32_t field_0x20;
     };
     
-    auto PeerMonotonicClockManager::SubsystemHandleImplForT::func_0x3335fc0(PeerMonotonicClockManager::SubsystemHandleImplForT* this) {
-      if ((atomic_fetch_add(&this->field_0x20, 1) & 0xc0000000) != -2147483648) {
-        int32_t i_edi = 0;
-        do { // L_0x3336010
-          void* prev_0x8_1 = this->field_0x8;
-          auto ret_0xc8a0_1 = call_0xc8a0();
-          if (prev_0x8_1 == ret_0xc8a0_1) break;
-          if (prev_0x8_1 == 0) {
-            auto ret_0xc8a0_2 = call_0xc8a0();
-            if (atomic_cas(&this->field_0x8, 0, ret_0xc8a0_2) == 0) break;
-            if (i_edi >= 16) {
-              auto ret_0xc880_5 = call_0xc880(&local_0x68, 0, 0);
-              if ((uint8_t)ret_0xc880_5 != 0) {
-                call_0xcb40(1);
-                i_edi++;
-                continue;
+    auto Subsystem::PeerMonotonicClockManager::SubsystemHandleImplForT::func_0x3335fc0(Subsystem::PeerMonotonicClockManager::SubsystemHandleImplForT* this) {
+      int32_t atomic_1 = atomic_fetch_add(&this->field_0x20, 1);
+      if ((atomic_1 & 0x3fffffff) != 0x3fffffff) {
+        if ((atomic_1 & 0xc0000000) != -2147483648) {
+          void* local_0x30;
+          local_0x30 = &this->field_0x8;
+          uint64_t i_ecx = this;
+          int32_t i_edi = 0;
+          uint8_t local_0x38 = 1;
+          do { // L_0x3336010
+            void* prev_0x8_1 = this->field_0x8;
+            auto ret_0xc8a0_3 = call_0xc8a0(i_ecx, atomic_1 & 0xc0000000);
+            if (prev_0x8_1 == ret_0xc8a0_3) break;
+            void* v_rcx_1 = i_ecx;
+            void* v_rcx_2;
+            int64_t ret_0xc880_7;
+            uint64_t local_0x68;
+            if (prev_0x8_1 == 0) {
+              auto ret_0xc8a0_4 = call_0xc8a0();
+              if (atomic_cas(&this->field_0x8, 0, ret_0xc8a0_4)) break;
+              v_rcx_2 = v_rcx_1;
+              if (i_edi >= 16) {
+                ret_0xc880_7 = call_0xc880(&local_0x68, 0, 0);
+                if ((uint8_t)ret_0xc880_7 != 0) {
+                  call_0xcb40(1);
+                  i_edi++;
+                  i_ecx = 1;
+                  continue;
+                } else {
+                  v_rcx_2 = &local_0x68;
+                  L_0x3336058:
+                  i_edi++;
+                  i_ecx = v_rcx_2;
+                }
               } else {
-                L_0x3336058:
                 i_edi++;
+                i_ecx = v_rcx_2;
               }
             } else {
-              i_edi++;
+              v_rcx_2 = v_rcx_1;
+              if (i_edi >= 16) {
+                ret_0xc880_7 = call_0xc880(&local_0x68, 0, 0);
+                if ((uint8_t)ret_0xc880_7 != 0) {
+                  call_0xcb40(1);
+                  i_edi++;
+                  i_ecx = 1;
+                  continue;
+                } else {
+                  v_rcx_2 = &local_0x68;
+                  goto L_0x3336058;
+                }
+              } else {
+                goto L_0x3336058;
+              }
             }
-          } else if (i_edi >= 16) {
-            auto ret_0xc880_5 = call_0xc880(&local_0x68, 0, 0);
-            if ((uint8_t)ret_0xc880_5 != 0) {
-              call_0xcb40(1);
-              i_edi++;
-              continue;
-            } else {
-              goto L_0x3336058;
+          } while (true); // loop -> L_0x3336010
+          this->field_0x10++;
+          if (this->field_0x18 == 0) {
+            call_0x4959930(global_0x84a4e50, this);
+            auto ret_0x4956380_6 = call_0x4956380(64, 8);
+            ret_0x4956380_6->field_0x0 = "PeerMonotonicClockManager";
+            if (ret_0x4956380_6 != -16) {
+              (ret_0x4956380_6 + 0x10)->field_0x0 = 1;
             }
-          } else {
-            goto L_0x3336058;
+            ret_0x4956380_6->field_0x18 = 0;
+            ret_0x4956380_6->field_0x20 = 0;
+            ret_0x4956380_6->field_0x28 = 0;
+            this->field_0x18 = ret_0x4956380_6;
+            this->field_0x20 = this->field_0x20 | 0x80000000;
           }
-        } while (true); // loop -> L_0x3336010
-        this->field_0x10++;
-        if (this->field_0x18 == 0) {
-          call_0x4959930(global_0x84a4e50, this);
-          auto ret_0x4956380_4 = call_0x4956380(64, 8);
-          ret_0x4956380_4->field_0x0 = "PeerMonotonicClockManager";
-          if (&ret_0x4956380_4->field_0x10 != 0) {
-            ret_0x4956380_4->field_0x10 = 1;
+          local_0x30->field_0x8--;
+          if (local_0x30->field_0x8 == 1) {
+            local_0x30->field_0x0 = 0;
           }
-          this->field_0x18 = ret_0x4956380_4;
-          this->field_0x20 = this->field_0x20 | 0x80000000;
         }
-        auto* f_8 = this->field_0x8;
-        &f_8->field_0x8--;
-        if (&f_8->field_0x8 == 1) {
-          &f_8->field_0x0 = 0;
-        }
+        return this;
       }
-      return this;
+      call_0x4971090(0, "Reference count overflow");
+      return; // noreturn
     }
   
-  === [Decompilacao de Metodo da Classe PeerMonotonicClockManager::SubsystemHandleImplForT: 0x3336110..0x3336208 (vfunc_0x10)] ===
-    struct PeerMonotonicClockManager::SubsystemHandleImplForT {
-      /* +0x8 */ void*   field_0x8;
-      /* +0x10 */ void*   field_0x10;
-      /* +0x18 */ void*   field_0x18;
+  === [Decompilacao de Metodo da Classe Subsystem::PeerMonotonicClockManager::SubsystemHandleImplForT: 0x3336110..0x3336208 (vfunc_0x10)] ===
+    struct Subsystem::PeerMonotonicClockManager::SubsystemHandleImplForT {
+      /* +0x8 */ uint64_t field_0x8;
+      /* +0x10 */ uint64_t field_0x10;
+      /* +0x18 */ uint64_t field_0x18;
       /* +0x20 */ int32_t field_0x20;
     };
     
-    void PeerMonotonicClockManager::SubsystemHandleImplForT::func_0x3336110(PeerMonotonicClockManager::SubsystemHandleImplForT* this) {
-      if ((atomic_fetch_sub(&this->field_0x20, 1) & 0x3fffffff) <= 1) {
-        int32_t i_esi = 0;
-        do { // L_0x3336142
-          void* prev_0x8_1 = this->field_0x8;
-          auto ret_0xc8a0_1 = call_0xc8a0();
-          if (prev_0x8_1 == ret_0xc8a0_1) break;
-          if (prev_0x8_1 == 0) {
-            auto ret_0xc8a0_2 = call_0xc8a0();
-            if (atomic_cas(&this->field_0x8, 0, ret_0xc8a0_2) == 0) break;
-            if (i_esi >= 16) {
-              auto ret_0xc880_5 = call_0xc880(&local_0x38, 0, 0);
-              if ((uint8_t)ret_0xc880_5 != 0) {
-                call_0xcb40(1);
-                i_esi++;
-                continue;
+    void Subsystem::PeerMonotonicClockManager::SubsystemHandleImplForT::func_0x3336110(Subsystem::PeerMonotonicClockManager::SubsystemHandleImplForT* this) {
+      int32_t atomic_1 = atomic_fetch_sub(&this->field_0x20, 1);
+      if ((atomic_1 & 0x3fffffff) != 0) {
+        if ((atomic_1 & 0x3fffffff) <= 1) {
+          uint64_t i_ecx = this;
+          int32_t i_esi = 0;
+          do { // L_0x3336142
+            void* prev_0x8_1 = this->field_0x8;
+            auto ret_0xc8a0_3 = call_0xc8a0();
+            if (prev_0x8_1 == ret_0xc8a0_3) break;
+            void* v_rcx_2 = i_ecx;
+            uint64_t local_0x38;
+            void* v_rcx_3;
+            int64_t ret_0xc880_7;
+            if (prev_0x8_1 == 0) {
+              auto ret_0xc8a0_4 = call_0xc8a0();
+              if (atomic_cas(&this->field_0x8, 0, ret_0xc8a0_4)) break;
+              v_rcx_3 = v_rcx_2;
+              if (i_esi >= 16) {
+                ret_0xc880_7 = call_0xc880(&local_0x38, 0, 0);
+                if ((uint8_t)ret_0xc880_7 != 0) {
+                  call_0xcb40(1);
+                  i_esi++;
+                  i_ecx = 1;
+                  continue;
+                } else {
+                  v_rcx_3 = &local_0x38;
+                  L_0x333618c:
+                  i_esi++;
+                  i_ecx = v_rcx_3;
+                }
               } else {
-                L_0x333618c:
                 i_esi++;
+                i_ecx = v_rcx_3;
               }
             } else {
-              i_esi++;
+              v_rcx_3 = v_rcx_2;
+              if (i_esi >= 16) {
+                ret_0xc880_7 = call_0xc880(&local_0x38, 0, 0);
+                if ((uint8_t)ret_0xc880_7 != 0) {
+                  call_0xcb40(1);
+                  i_esi++;
+                  i_ecx = 1;
+                  continue;
+                } else {
+                  v_rcx_3 = &local_0x38;
+                  goto L_0x333618c;
+                }
+              } else {
+                goto L_0x333618c;
+              }
             }
-          } else if (i_esi >= 16) {
-            auto ret_0xc880_5 = call_0xc880(&local_0x38, 0, 0);
-            if ((uint8_t)ret_0xc880_5 != 0) {
-              call_0xcb40(1);
-              i_esi++;
-              continue;
-            } else {
-              goto L_0x333618c;
+          } while (true); // loop -> L_0x3336142
+          this->field_0x10++;
+          if (atomic_cas(&this->field_0x20, 0x80000000ULL, 0xc0000000ULL)) {
+            if (this->field_0x18 != 0) {
+              void* v_rdi_1 = this->field_0x18;
+              if (((uint8_t)this->field_0x18->field_0x10 & 0x1) == 0) {
+                void* prev_0x18_2 = this->field_0x18;
+                call_0xcca0(&this->field_0x18->field_0x10);
+                v_rdi_1 = prev_0x18_2;
+              }
+              call_0x4955ac0(v_rdi_1);
             }
-          } else {
-            goto L_0x333618c;
+            this->field_0x18 = 0;
+            this->field_0x20 = this->field_0x20 & 0x3fffffff;
           }
-        } while (true); // loop -> L_0x3336142
-        this->field_0x10++;
-        if (atomic_cas(&this->field_0x20, -2147483648, -1073741824) == 0) {
-          if (this->field_0x18 != 0) {
-            void* v_rdi_1 = this->field_0x18;
-            if (((uint8_t)this->field_0x18->field_0x10 & 0x1) == 0) {
-              void* prev_0x18_2 = this->field_0x18;
-              call_0xcca0(&this->field_0x18->field_0x10);
-              v_rdi_1 = prev_0x18_2;
-            }
-            call_0x4955ac0(v_rdi_1);
+          this->field_0x10--;
+          if (this->field_0x10 == 1) {
+            this->field_0x8 = 0;
+            return;
           }
-          this->field_0x18 = 0;
-          this->field_0x20 = this->field_0x20 & 0x3fffffff;
-        }
-        this->field_0x10--;
-        if (this->field_0x10 == 1) {
-          this->field_0x8 = 0;
           return;
         }
+        return;
       }
+      call_0x4971090(0, "Reference count corrupt or negative");
+      return; // noreturn
     }
   
-  === [Decompilacao de Metodo da Classe PeerMonotonicClockManager::SubsystemHandleImplForT: 0x3338160..0x3338191 (vfunc_0x30)] ===
-    struct PeerMonotonicClockManager::SubsystemHandleImplForT {
-      /* +0x0 */ void*   field_0x0;
-      /* +0x8 */ void*   field_0x8;
-      /* +0xc */ void*   field_0xc;
-      /* +0x10 */ void*   field_0x10;
+  === [Decompilacao de Metodo da Classe Subsystem::PeerMonotonicClockManager::SubsystemHandleImplForT: 0x3338160..0x3338191 (vfunc_0x30)] ===
+    struct Subsystem::PeerMonotonicClockManager::SubsystemHandleImplForT {
+      /* +0x0 */ uint64_t field_0x0;
+      /* +0x8 */ int32_t field_0x8;
+      /* +0xc */ int32_t field_0xc;
+      /* +0x10 */ uint64_t field_0x10;
     };
     
-    void PeerMonotonicClockManager::SubsystemHandleImplForT::func_0x3338160(PeerMonotonicClockManager::SubsystemHandleImplForT* this) {
-      switch (this->field_0x0) {
-      }
+    void Subsystem::PeerMonotonicClockManager::SubsystemHandleImplForT::func_0x3338160(Subsystem::PeerMonotonicClockManager::SubsystemHandleImplForT* this) {
     }
 
 [Strings .rdata na função]
   * "[DFLog::PeerMonotonicClock] PeerMonotonicClock::now called before initialized, returning 0"  [@rdata 0x754b870, ref @0x592c500, FLog format]
-  * "PeerMonotonicClockManager"  [@rdata 0x7397730, ref @0x3336087, string_view len=25]
-  * "Reference count overflow"  [@rdata 0x718b538, ref @0x33360f8, literal, 24B]
-  * "Reference count corrupt or negative"  [@rdata 0x718b558, ref @0x33361fa, literal, 35B]
 
 [Co-Flags na mesma função]
   * FFlagCleanupMonotonicAlgorithm = false (default)
-  * DFIntMonotonicClockDifferentialDriftCompensationHundredthsPercentage = 600 (default)
+  * DFIntMonotonicClockDifferentialDriftCompensationHundredthsPercentage = 10000 (default)
   * FFlagHttpWrapperOAuthOptOut = true (default) [vizinha em .data]
   * FFlagHttpWrapperParseMapEnabled = true (default) [vizinha em .data]
   * DFFlagDebugTestPeerMonotonicClock = false (default) [vizinha em .data]
   * FFlagRenderPipelineVersioningFlag9 = false (default) [vizinha em .data]
   * FFlagEnableDispatchSkinning = false (default) [vizinha em .data]
-  * FIntEnableRenderPipelineHundredthsPercent = 0 (default) [vizinha em .data]
+  * FIntEnableRenderPipelineHundredthsPercent = 10000 (default) [vizinha em .data]

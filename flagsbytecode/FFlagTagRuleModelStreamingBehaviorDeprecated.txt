@@ -23,7 +23,7 @@ Operação  : 0x3321a2a: cmp byte [flag], imm8 ; fn=0x3321a20..0x3321ad0
       /* +0x518 */ int32_t field_0x518;
     };
     
-    // Flag defaults: TeamCreateViewerStreaming = true, TagRuleModelStreamingBehaviorDeprecated = false, TagRuleCoreEnabled4 = false, StudioOpenWithStreaming = false
+    // Flag defaults: TeamCreateViewerStreaming = true, TagRuleModelStreamingBehaviorDeprecated = false, TagRuleCoreEnabled4 = false, StudioOpenWithStreaming = true
     bool RBX::TeamCreate::func_0x3321a20(RBX::TeamCreate* this) {
       if (TagRuleModelStreamingBehaviorDeprecated && TagRuleCoreEnabled4) {
         auto ret_0x3321ad0_1 = call_0x3321ad0(this);
@@ -44,7 +44,7 @@ Operação  : 0x3321a2a: cmp byte [flag], imm8 ; fn=0x3321a20..0x3321ad0
             }
           }
           if (StudioOpenWithStreaming && ret_0x4062570_2->field_0x980 == 1) {
-            auto ret_0x40625d0_3 = call_0x40625d0(&ret_0x4062570_2->field_0x1f0);
+            auto ret_0x40625d0_3 = call_0x40625d0(ret_0x4062570_2 + 0x1f0);
             if (ret_0x40625d0_3 != 0 && ret_0x40625d0_3->field_0x985 != 0) {
               return true;
             }
@@ -114,7 +114,7 @@ Operação  : 0x3321a2a: cmp byte [flag], imm8 ; fn=0x3321a20..0x3321ad0
   
   === [Sub-Rotina Chamada: 0x3321ad0..0x3321bee via call @0x3321a3f (Direct Engine Sub-Call)] ===
     struct SubObj_0x3321ad0 {
-      /* +0x13f8 */ void*   field_0x13f8;
+      /* +0x13f8 */ uint64_t field_0x13f8;
       /* +0x1400 */ void*   field_0x1400;
     };
     
@@ -122,29 +122,36 @@ Operação  : 0x3321a2a: cmp byte [flag], imm8 ; fn=0x3321a20..0x3321ad0
     auto SubObj_0x3321ad0::func_0x3321ad0(SubObj_0x3321ad0* this) {
       void* v_rdx_1 = 0;
       void* v_r9_2 = 0;
-      auto* f_1400 = this->field_0x1400;
-      if (f_1400 != 0 && f_1400->field_0x8 != 0) {
-        do { // L_0x3321af0
-          atomic_try_incref(&f_1400->field_0x8);
-          auto* f_1400_2 = this->field_0x1400;
-          if (atomic_cas(&f_1400_2->field_0x8, f_1400_2->field_0x8, f_1400_2->field_0x8 + 1) == 0) break;
-        } while (this->field_0x1400->field_0x8 != 0); // loop -> L_0x3321af0
+      if (this->field_0x1400 != 0) {
+        int32_t i_eax = this->field_0x1400->field_0x8;
+        if (this->field_0x1400->field_0x8 != 0) {
+          do { // L_0x3321af0
+            if (atomic_cas(&this->field_0x1400->field_0x8, i_eax, i_eax + 1)) {
+              v_rdx_1 = this->field_0x13f8;
+              v_r9_2 = this->field_0x1400;
+              break;
+            }
+          } while (i_eax != 0); // loop -> L_0x3321af0
+        }
       }
-      uint8_t v_bl_3;
+      bool cond_3;
+      uint8_t v_bl_4;
       if (TeamCreateViewerStreaming) {
         if (DebugTagRuleArmed9 && TagRuleCoreEnabled4 && TagRulePhysicsScopeEnabled && TagRuleReplicationPipelineEnabled2 && TagRuleDisablePPPSignal && CollectionEngineSignalsEnabled && DebugEncodeTransitiveDependencies && v_rdx_1 != 0 && v_rdx_1->field_0x980 != 1) {
-          if ((DebugTagRuleArmed9) != 0) {
-            v_bl_3 = 1;
+          cond_3 = v_rdx_1->field_0x980 == 4;
+          if (cond_3 != 1) {
+            v_bl_4 = 1;
           } else {
             L_0x3321bd2:
-            v_bl_3 = 0;
+            v_bl_4 = 0;
           }
         } else {
-          v_bl_3 = 0;
+          v_bl_4 = 0;
         }
       } else if (DebugTagRuleArmed9 && TagRuleCoreEnabled4 && TagRulePhysicsScopeEnabled && TagRuleReplicationPipelineEnabled2 && TagRuleDisablePPPSignal && CollectionEngineSignalsEnabled && DebugEncodeTransitiveDependencies && v_rdx_1 != 0) {
-        if ((DebugTagRuleArmed9) != 0) {
-          v_bl_3 = 1;
+        cond_3 = v_rdx_1->field_0x980 == 1;
+        if (cond_3 != 1) {
+          v_bl_4 = 1;
         } else {
           goto L_0x3321bd2;
         }
@@ -154,7 +161,7 @@ Operação  : 0x3321a2a: cmp byte [flag], imm8 ; fn=0x3321a20..0x3321ad0
       if (v_r9_2 != 0) {
         call_0x6daf40(v_r9_2);
       }
-      return v_bl_3;
+      return v_bl_4;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x3321ad0..0x3321bee)] ===
@@ -242,9 +249,9 @@ Operação  : 0x3321a2a: cmp byte [flag], imm8 ; fn=0x3321a20..0x3321ad0
     // Flag defaults: TagRuleModelStreamingBehaviorDeprecated = false, TagRuleCoreEnabled4 = false
     bool RBX::Workspace::func_0x332d040(RBX::Workspace* this, int64_t param_2) {
       if (TagRuleModelStreamingBehaviorDeprecated && TagRuleCoreEnabled4) {
-        auto ret_0x3321ad0_1 = call_0x3321ad0(this - 0x468);
+        auto ret_0x3321ad0_1 = call_0x3321ad0(&this->field_m0x468);
         if ((uint8_t)ret_0x3321ad0_1 != 0 && param_2 != 2) {
-          call_0x1bf4f90(2, "ModelStreamingBehavior is deprecated under the Intents API; always treated as Improved.");
+          call_0x1bf4f90(2, "ModelStreamingBehavior is deprecated under the Intents API; always treated as Improved.", 0, 0);
           call_0xa3a9c0(this, 2);
         }
       }
@@ -282,22 +289,23 @@ Operação  : 0x3321a2a: cmp byte [flag], imm8 ; fn=0x3321a20..0x3321ad0
   
   === [Decompilacao C++ do XREF Runtime #3: 0x3331d90..0x33322ab (insn @0x3331e72: mov/math reg, [flag])] ===
     struct RBX::Workspace {
-      /* +0x3f8 */ void*   field_0x3f8;
+      /* +0x3f8 */ uint64_t field_0x3f8;
       /* +0x4dc */ int32_t field_0x4dc;
-      /* +0x520 */ int32_t field_0x520;
       /* +0x524 */ int32_t field_0x524;
       /* +0x593 */ uint8_t field_0x593;
       /* +0x594 */ uint8_t field_0x594;
-      /* +0x13e0 */ uint8_t field_0x13e0;
     };
     
-    // Flag defaults: AvatarUnificationModeAlwaysDisabled = false, DMCTMigrateWorkspace = true, TagRuleModelStreamingBehaviorDeprecated = false, TagRuleCoreEnabled4 = false, EnableSlimAvatarsThreePhaseRolloutProperty = true, StreamingAdaptiveRadius3 = false, NextGenerationPhysicsSolverThreePhaseRolloutProperty = false, FluidForcesSwitchToThreePhaseRollout = true
-    bool RBX::Workspace::func_0x3331d90(RBX::Workspace* this, int64_t param_2) {
+    // Flag defaults: AvatarUnificationModeAlwaysDisabled = false, DMCTMigrateWorkspace = true, TagRuleModelStreamingBehaviorDeprecated = false, TagRuleCoreEnabled4 = false, EnableSlimAvatarsThreePhaseRolloutProperty = true, StreamingAdaptiveRadius3 = false, NextGenerationPhysicsSolverThreePhaseRolloutProperty = true, FluidForcesSwitchToThreePhaseRollout = true
+    auto RBX::Workspace::func_0x3331d90(RBX::Workspace* this, int64_t param_2) {
       if (param_2 != &sym_0x851fc20 && param_2 != &sym_0x8590f50 && param_2 != &sym_0x85a0990) {
-        void* sel_r8_1;
+        bool cond_1;
         if (DMCTMigrateWorkspace) {
           if (this->field_0x594 == 0) {
-            if ((DMCTMigrateWorkspace ? this->field_0x594 : sel_r8_1->field_0x13e0) != 0) {
+            cond_1 = this->field_0x4dc == 0;
+            int64_t v_rax_5;
+            void* ret_0x1767310_1;
+            if (cond_1 != 1) {
               if (param_2 != &sym_0x8520030 && param_2 != &sym_0x85201d0 && param_2 != &sym_0x8521ae0 && param_2 != &sym_0x8521e20 && param_2 != &sym_0x8521460 && param_2 != &sym_0x8521fc0) {
                 if (param_2 != &sym_0x8520100) {
                   L_0x3331ec6:
@@ -315,18 +323,34 @@ Operação  : 0x3321a2a: cmp byte [flag], imm8 ; fn=0x3321a20..0x3321ad0
                     }
                     if (param_2 == &sym_0x8521050) {
                     if (!AvatarUnificationModeAlwaysDisabled) {
-                    auto ret_0x1767310_1 = call_0x1767310(this);
+                    ret_0x1767310_1 = call_0x1767310(this);
+                    v_rax_5 = 1;
+                    double local_0x30;
+                    int64_t ret_0x19e3c40_3;
                     if (AvatarSettingsApiCleanup2) {
                     if (ret_0x1767310_1 != 0) {
-                    auto ret_0x19e3b10_2 = call_0x19e3b10(ret_0x1767310_1, &local_0x20);
-                    return ret_0x19e3b10_2 == 1;
+                    if (AvatarSettingsOverridesSchemaWithoutUniverse) {
+                    call_0x4062570(ret_0x1767310_1);
+                    }
+                    if (ret_0x1767310_1->field_0xc8 >= 3) {
+                    auto local_0x20 = 0.0;
+                    auto ret_0x19e3b10_4 = call_0x19e3b10(ret_0x1767310_1, &local_0x20);
+                    return ret_0x19e3b10_4 == 1;
+                    }
+                    L_0x3331ff1:
+                    local_0x30 = 0.0;
+                    ret_0x19e3c40_3 = call_0x19e3c40(ret_0x1767310_1, &local_0x30);
+                    v_rax_5 = ret_0x19e3c40_3;
                     }
                     L_0x3332001:
-                    return true;
+                    return v_rax_5 == 1;
                     }
-                    if (ret_0x1767310_1 == 0) {
-                    return true;
+                    if (ret_0x1767310_1 != 0) {
+                    local_0x30 = 0.0;
+                    ret_0x19e3c40_3 = call_0x19e3c40(ret_0x1767310_1, &local_0x30);
+                    v_rax_5 = ret_0x19e3c40_3;
                     }
+                    return v_rax_5 == 1;
                     }
                     } else if (param_2 == &sym_0x85212c0) {
                     return !IkControlConstraintSupportProperty;
@@ -334,20 +358,16 @@ Operação  : 0x3321a2a: cmp byte [flag], imm8 ; fn=0x3321a20..0x3321ad0
                     return !PlayerCharacterDestroyBehaviorProperty;
                     } else if (param_2 == &sym_0x8522300) {
                     return !SandboxedInstanceModeProperty;
-                    } else {
-                    if (param_2 == &sym_0x85223d0) {
+                    } else if (param_2 == &sym_0x85223d0) {
                     return !ShowImprovedPhysicsReplicationInStudio;
-                    } else {
-                    if (param_2 != &sym_0x8523410) {
+                    } else if (param_2 != &sym_0x8523410) {
                     if (param_2 == &sym_0x85209d0) {
                     return !TouchEventsUseCollisionGroupsThreePhaseRollout;
                     }
                     }
                     }
-                    }
-                    }
                     } else {
-                    return false;
+                    return 0;
                     }
                   }
                 }
@@ -375,18 +395,15 @@ Operação  : 0x3321a2a: cmp byte [flag], imm8 ; fn=0x3321a20..0x3321ad0
                     } else {
                     if (param_2 == &sym_0x8521050) {
                     if (!AvatarUnificationModeAlwaysDisabled) {
-                    auto ret_0x1767310_1 = call_0x1767310(this);
+                    ret_0x1767310_1 = call_0x1767310(this);
+                    v_rax_5 = 1;
                     if (AvatarSettingsApiCleanup2) {
+                    goto L_0x3332001;
+                    } else {
                     if (ret_0x1767310_1 != 0) {
-                    auto ret_0x19e3b10_2 = call_0x19e3b10(ret_0x1767310_1, &local_0x20);
-                    return ret_0x19e3b10_2 == 1;
-                    } else {
-                    goto L_0x3332001;
+                    goto L_0x3331ff1;
                     }
-                    } else {
-                    if (ret_0x1767310_1 == 0) {
                     goto L_0x3332001;
-                    }
                     }
                     }
                     } else {
@@ -407,7 +424,7 @@ Operação  : 0x3321a2a: cmp byte [flag], imm8 ; fn=0x3321a20..0x3321ad0
                     }
                     }
                     } else {
-                    return false;
+                    return 0;
                     }
                     }
                     }
@@ -436,9 +453,10 @@ Operação  : 0x3321a2a: cmp byte [flag], imm8 ; fn=0x3321a20..0x3321ad0
             }
           }
         } else {
-          sel_r8_1 = this == 0 ? 0 : this;
+          void* sel_r8_1 = this == 0 ? 0 : this;
           if (sel_r8_1->field_0x13e0 == 0) {
-            if ((DMCTMigrateWorkspace ? this->field_0x594 : sel_r8_1->field_0x13e0) != 0) {
+            cond_1 = sel_r8_1->field_0x4dc == 0;
+            if (cond_1 != 1) {
               if (param_2 != &sym_0x8520030 && param_2 != &sym_0x85201d0 && param_2 != &sym_0x8521ae0 && param_2 != &sym_0x8521e20 && param_2 != &sym_0x8521460 && param_2 != &sym_0x8521fc0) {
                 if (param_2 != &sym_0x8520100) {
                   goto L_0x3331ec6;
@@ -452,7 +470,7 @@ Operação  : 0x3321a2a: cmp byte [flag], imm8 ; fn=0x3321a20..0x3321ad0
           }
         }
       }
-      return true;
+      return 1;
     }
   
   === [Instrucoes x86-64 do XREF Runtime #3 (0x3331d90..0x33322ab)] ===
@@ -821,8 +839,8 @@ Operação  : 0x3321a2a: cmp byte [flag], imm8 ; fn=0x3321a20..0x3321ad0
     0x33322aa | c3                       | ret
   
   === [Estrutura RTTI & VTable da Classe (RBX::TeamCreateData)] ===
-    VTable  : 0x6f41bb8 (offset +0x0, 36 slots virtuais)
-    Herança : RBX::ICreator
+    VTable  : 0x706fa38 (offset +0x0, 36 slots virtuais)
+    Herança : RBX::ServiceInstance, RBX::Instance, RBX::Object, RBX::DescribedBase, RBX::EventSource, RBX::enable_shared_from_this (+0x8), RBX::GuidItem (+0x28), RBX::ObjectProp (+0x38), RBX::Noncopyable (+0x38), RBX::Diagnostics::Countable (+0x58), RBX::InstanceProp (+0x58), RBX::Service (+0x98), RBX::TeamCreateDataProp (+0xa8)
     +0x0 -> fn_0x2f64520
     +0x8 -> fn_0x1c1f1a0
     +0x10 -> fn_0x1c396e0
@@ -841,7 +859,7 @@ Operação  : 0x3321a2a: cmp byte [flag], imm8 ; fn=0x3321a20..0x3321ad0
     +0xf8 -> fn_0x1c3d9d0
   
   === [Decompilacao de Metodo da Classe RBX::TeamCreateData: 0x2f64520..0x2f64550 (vfunc_0x0)] ===
-    auto RBX::ServiceInstance::TeamCreateData::func_0x2f64520(RBX::ServiceInstance::TeamCreateData* this, int64_t param_2) {
+    auto RBX::TeamCreateData::func_0x2f64520(RBX::TeamCreateData* this, int64_t param_2) {
       call_0x2f64580(this);
       if (((uint8_t)param_2 & 0x1) != 0) {
         call_0x4955ac0(this);
@@ -852,36 +870,60 @@ Operação  : 0x3321a2a: cmp byte [flag], imm8 ; fn=0x3321a20..0x3321ad0
   === [Decompilacao de Metodo da Classe RBX::TeamCreateData: 0x1c44010..0x1c44138 (vfunc_0x18)] ===
     struct RBX::Instance {
       /* +0x48 */ void*   field_0x48;
-      /* +0x60 */ void*   field_0x60;
+      /* +0x60 */ uint64_t field_0x60;
     };
     
     // Flag defaults: CheckEngineContextOnInstanceAccess2 = false
-    void RBX::Instance::func_0x1c44010(RBX::Instance* this, int64_t param_2, void* param_3, void* param_4) {
+    void RBX::Instance::func_0x1c44010(RBX::Instance* this, int64_t param_2, int64_t param_3, int64_t param_4) {
       if (this->field_0x60 != 0) {
-        (*global_0x80f4c48)(this);
-      }
-      auto ret_0x4956040_2 = call_0x4956040(24);
-      auto ret_0xffc540_3 = call_0xffc540(ret_0x4956040_2, param_3);
-      call_0xd29440(&local_0x40, ret_0xffc540_3);
-      auto* f_48 = this->field_0x48;
-      if (f_48 != 0 && f_48->field_0x8 != 0) {
-        auto ret_0xc700_5 = call_0xc700(global_0x84cf408, 1);
-        if (ret_0xc700_5->field_0x0 == 0) {
-          auto local_0x20 = 3;
-          call_0x7d7f00(this->field_0x48, &local_0x20, &local_0x28);
-        } else {
-          call_0x49710d0("Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel ", &sym_0x6647145);
+        void* v_rax_1 = global_0x80f4c48;
+        if (!CheckEngineContextOnInstanceAccess2) {
+          v_rax_1 = global_0x80f4c50;
         }
+        (*v_rax_1)(this);
       }
-      if (local_0x48 != 0) {
-        call_0x6daf40(local_0x48);
+      uint64_t local_0x30;
+      local_0x30 = &sym_0x70375b0;
+      auto ret_0x4956040_2 = call_0x4956040(24);
+      uint64_t local_0x60;
+      if (ret_0x4956040_2 != 0) {
+        uint64_t local_0x28;
+        local_0x28 = ret_0x4956040_2;
+        auto ret_0xffc540_3 = call_0xffc540(ret_0x4956040_2, param_3);
+        uint64_t local_0x40;
+        call_0xd29440(&local_0x40, ret_0xffc540_3);
+        local_0x28 = &local_0x30;
+        uint64_t local_0x20;
+        local_0x20 = 3;
+        auto* f_48 = this->field_0x48;
+        if (f_48 != 0 && f_48->field_0x8 != 0) {
+          auto ret_0xc700_5 = call_0xc700(global_0x84cf408, 1);
+          if (ret_0xc700_5->field_0x0 == 0) {
+            auto local_0x38 = param_2;
+            call_0x7d7f00(this->field_0x48, &local_0x20, &local_0x28);
+          } else {
+            call_0x49710d0("Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel execution.", &sym_0x6647145);
+            call_0x6ca7d0(&local_0x60);
+            call_0x5e066f0(&local_0x60, &sym_0x80cbbc0);
+            return; // noreturn
+          }
+        }
+        uint64_t local_0x48;
+        if (local_0x48 != 0) {
+          call_0x6daf40(local_0x48);
+          return;
+        }
+        return;
       }
+      call_0x6ca7d0(&local_0x60);
+      call_0x5e066f0(&local_0x60, &sym_0x80cbbc0);
+      return; // noreturn
     }
   
   === [Decompilacao de Metodo da Classe RBX::TeamCreateData: 0x2f64550..0x2f64575 (vfunc_0x38)] ===
-    void RBX::ServiceInstance::TeamCreateData::func_0x2f64550(RBX::ServiceInstance::TeamCreateData* this) {
+    void RBX::TeamCreateData::func_0x2f64550(RBX::TeamCreateData* this) {
       if (global_0x8cc9e50 == 0) {
-        auto ret_0xad4e80_1 = call_0xad4e80(this);
+        auto ret_0xad4e80_1 = call_0xad4e80();
         global_0x8cc9e50 = ret_0xad4e80_1->field_0x8;
       }
     }
@@ -901,19 +943,18 @@ Operação  : 0x3321a2a: cmp byte [flag], imm8 ; fn=0x3321a20..0x3321ad0
 
 [Strings .rdata na função]
   * "ModelStreamingBehavior is deprecated under the Intents API; always treated as Improved."  [@rdata 0x7397fb0, ref @0x332d076, literal, 87B]
-  * "Attempted unsafe deferred signal invocation - this signal invocation isn't safe during parallel "  [@rdata 0x7280e40, ref @0x1c44110, literal, 96B]
 
 [Co-Flags na mesma função]
   * FFlagTagRuleCoreEnabled4 = false (default)
   * SFFlagPlayerUserStoresEffectiveId = false (default)
-  * SFFlagStudioOpenWithStreaming = false (default)
+  * SFFlagStudioOpenWithStreaming = true (default)
   * FFlagTeamCreateViewerStreaming = true (default)
   * FFlagDMCTMigrateWorkspace = true (default)
   * FFlagStreamingAdaptiveRadius3 = false (default)
   * FFlagEnableSlimAvatarsThreePhaseRolloutProperty = true (default)
   * DFFlagEnableAnimatorRetargetingMode = true (default)
   * DFFlagHideDestroySetting = true (default)
-  * FFlagNextGenerationPhysicsSolverThreePhaseRolloutProperty = false (default)
+  * FFlagNextGenerationPhysicsSolverThreePhaseRolloutProperty = true (default)
   * DFFlagFluidForcesSwitchToThreePhaseRollout = true (default)
   * DFFlagFluidForcesThreePhaseRolloutProperty = true (default)
   * FFlagAvatarUnificationModeAlwaysDisabled = false (default)
@@ -925,6 +966,6 @@ Operação  : 0x3321a2a: cmp byte [flag], imm8 ; fn=0x3321a20..0x3321ad0
   * DFFlagShowImprovedPhysicsReplicationInStudio = true (default)
   * DFFlagTouchEventsUseCollisionGroupsThreePhaseRollout = true (default)
   * DFFlagTouchEventsUseCollisionGroupsPhase3 = false (default)
-  * FFlagNextGenReplicationThreePhaseRolloutProperty2 = false (default)
+  * FFlagNextGenReplicationThreePhaseRolloutProperty2 = true (default)
   * FFlagPlayerScriptsUseInputActionSystemThreePhaseRolloutProperty = true (default)
   * DFFlagExpandedTerrainThreePhaseRolloutProperty = true (default)

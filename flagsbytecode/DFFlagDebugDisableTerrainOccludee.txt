@@ -9,7 +9,7 @@ Operação  : 0x389af51: cmp byte [flag], imm8 ; fn=0x389af10..0x389afff
     Classe  : RBX::Graphics::SmoothClusterEntity (RTTI Resolvido)
     Padrão  : DFFlagDebugDisableTerrainOccludee = false (default) [bool, mode=2]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
-    Fórmula : DebugDisableTerrainOccludee
+    Fórmula : !DebugDisableSmoothClusterOcclusionCulling && !DebugDisableTerrainOccludee && this->field_0x100 != -1 && param_3->field_0x8 != 0
   
   === [Mapeamento de Campos da Struct (RTTI & Cross-Function Linker)] ===
     this->field_0x100 (offset +0x100) <- DFFlagDebugDisableTerrainOccludee = false (@0x389af52)
@@ -25,11 +25,18 @@ Operação  : 0x389af51: cmp byte [flag], imm8 ; fn=0x389af10..0x389afff
     };
     
     // Flag defaults: DebugDisableTerrainOccludee = false, DebugDisableSmoothClusterOcclusionCulling = false, TerrainVirtualTexture = false
-    void RBX::Graphics::SmoothClusterEntity::func_0x389af10(RBX::Graphics::SmoothClusterEntity* this, int64_t param_2, void* param_3, void* param_4) {
+    void RBX::Graphics::SmoothClusterEntity::func_0x389af10(RBX::Graphics::SmoothClusterEntity* this, void* param_2, void* param_3, void* param_4) {
+      if (!DebugDisableSmoothClusterOcclusionCulling && !DebugDisableTerrainOccludee && this->field_0x100 != -1 && param_3->field_0x8 != 0) {
+        int64_t idx_1 = (uint64_t)(param_3->field_0x8->field_0x1c + this->field_0x100 & param_3->field_0x8->field_0x20) >> 6;
+        int64_t tmp_1 = (uint64_t)param_3->field_0x8->field_0x8->field_0x0[idx_1 * 8] >> (uint8_t)(((param_3->field_0x8->field_0x1c + this->field_0x100) & param_3->field_0x8->field_0x20) & 0x3f);
+        if (((uint8_t)tmp_1 & 0x1) == 0) goto L_0x389b3a4; // [out of decoded window]
+      }
       if (TerrainVirtualTexture) {
         param_2->vfunc_0x8(param_2, global_0x84c4f84);
       }
       param_2->vfunc_0x90(param_2, 1, &this->field_0x94, 16);
+      if (param_4->field_0x8->field_0x4 != 20) goto L_0x389b040; // [out of decoded window]
+      return; // noreturn
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
@@ -124,25 +131,85 @@ Operação  : 0x389af51: cmp byte [flag], imm8 ; fn=0x389af10..0x389afff
   
   === [Decompilacao de Metodo da Classe RBX::Graphics::SmoothClusterEntity: 0x3829230..0x38293f6 (vfunc_0x28)] ===
     struct RBX::Graphics::RenderEntity {
-      /* +0x0 */ void*   field_0x0;
-      /* +0x8 */ void*   field_0x8;
-      /* +0x10 */ void*   field_0x10;
+      /* +0x0 */ uint64_t field_0x0;
+      /* +0x8 */ uint64_t field_0x8;
+      /* +0x10 */ int32_t field_0x10;
       /* +0x18 */ int32_t field_0x18;
       /* +0x70 */ void*   field_0x70;
     };
     
     // Flag defaults: RenderQueueSortByNearest = false, DebugRenderingSetDeterministic = false
-    void RBX::Graphics::RenderEntity::func_0x3829230(RBX::Graphics::RenderEntity* this, int64_t param_2, void* param_3, void* param_4) {
-      if ((local_0xb8 & 1ULL << this->field_0x10) < 0) {
-        auto* f_70 = this->field_0x70;
-        if (f_70->field_0x0 != f_70->field_0x8) {
-          void* i_ebx = f_70->field_0x0;
+    void RBX::Graphics::RenderEntity::func_0x3829230(RBX::Graphics::RenderEntity* this, void* param_2, int64_t param_3, int64_t param_4) {
+      uint64_t local_0xb8;
+      if ((local_0xb8 & 1ULL << this->field_0x10) != 0) {
+        if (this->field_0x70->field_0x0 != this->field_0x70->field_0x8) {
+          uint8_t* i_ebx = this->field_0x70->field_0x0;
           do { // L_0x3829286
+            uint64_t local_0xb0;
             if (i_ebx->field_0x4 == local_0xb0 && i_ebx->field_0x0 >= param_4) {
-              if ((i_ebx->field_0x8 & local_0xc0) == i_ebx->field_0x8) break;
+              uint64_t local_0xc0;
+              if ((i_ebx->field_0x8 & local_0xc0) == i_ebx->field_0x8) {
+                uint8_t v_sil_1;
+                if (RenderQueueSortByNearest && DebugRenderingSetDeterministic) {
+                  v_sil_1 = 1;
+                } else {
+                  v_sil_1 = 0;
+                }
+                float fxmm6_2;
+                float fxmm7_3 = 0.0;
+                if (this->field_0x10 != 9 && v_sil_1 == 0) {
+                  fxmm6_2 = 0.0;
+                } else {
+                  auto prev_0x10_1 = this->field_0x10;
+                  auto vret_1 = this->vfunc_0x30(this, param_3, local_0xc0, this->field_0x70->field_0x8);
+                  int64_t vret_2;
+                  if (prev_0x10_1 != 9) {
+                    if (v_sil_1 != 0 && this->field_0x8 != 0) {
+                    vret_2 = this->vfunc_0x38(this);
+                    fxmm6_2 = vret_1;
+                    fxmm7_3 = vret_2;
+                    } else {
+                    fxmm6_2 = vret_1;
+                    }
+                  } else {
+                    vret_2 = this->vfunc_0x38(this);
+                    fxmm6_2 = vret_1;
+                    fxmm7_3 = vret_2;
+                  }
+                }
+                uint64_t local_0x20;
+                local_0x20 = this;
+                void* v_rax_4 = &this->field_0x48;
+                if ((local_0xb0 >= 5 && local_0xb0 <= 6) == 0) {
+                  v_rax_4 = &this->field_0x20;
+                }
+                uint64_t local_0x30;
+                local_0x30 = v_rax_4;
+                uint64_t local_0x40;
+                local_0x40 = 0;
+                uint64_t local_0x44;
+                local_0x44 = 67437312;
+                auto expr_2 = param_2 + (((this->field_0x10 + 5) * 3) * 8);
+                if (param_2->field_0x8[(this->field_0x10 + 5) * 3 * 8] != expr_2->field_0x10) {
+                  auto expr_1 = param_2->field_0x8[((this->field_0x10 + 5) * 3) * 8];
+                  expr_1->field_0x0 = local_0x20;
+                  expr_1->field_0x8 = i_ebx;
+                  expr_1->field_0x10 = local_0x30;
+                  expr_1->field_0x18 = fxmm6_2;
+                  expr_1->field_0x20 = local_0x40;
+                  expr_2->field_0x8 = expr_2->field_0x8 + 0x28;
+                } else {
+                  auto local_0x28 = i_ebx;
+                  auto local_0x38 = fxmm6_2;
+                  auto local_0x3c = fxmm7_3;
+                  call_0x1abd9c0(param_2 + (this->field_0x10 + 5) * 3 * 8, param_2->field_0x8[(this->field_0x10 + 5) * 3 * 8], &local_0x20);
+                }
+                param_2->field_0x228 = param_2->field_0x228 | this->field_0x18;
+                return;
+              }
             }
             i_ebx += 0x88;
-          } while (i_ebx != f_70->field_0x8); // loop -> L_0x3829286
+          } while (i_ebx != this->field_0x70->field_0x8); // loop -> L_0x3829286
           return;
         }
       }
@@ -225,11 +292,9 @@ Operação  : 0x389af51: cmp byte [flag], imm8 ; fn=0x389af10..0x389afff
 [Co-Flags na mesma função]
   * FFlagDebugDisableSmoothClusterOcclusionCulling = false (default)
   * FFlagTerrainVirtualTexture = false (default)
-  * FFlagRenderQueueSortByNearest = false (default)
-  * FFlagDebugRenderingSetDeterministic = false (default)
   * FIntRenderFrustumQueriesOnMainThreadMaxLogicalCores = 2 (default) [vizinha em .data]
-  * FIntVisBugAutoTuneMin = 4 (default) [vizinha em .data]
-  * FIntVisBugAutoTuneMax = 16 (default) [vizinha em .data]
+  * FIntVisBugAutoTuneMin = 64 (default) [vizinha em .data]
+  * FIntVisBugAutoTuneMax = 64 (default) [vizinha em .data]
   * DFFlagUseVisBugChecks = true (default) [vizinha em .data]
   * DFFlagOCUseDeferredFeedback4 = false (default) [vizinha em .data]
   * DFFlagDebugOCBoundsCheck = false (default) [vizinha em .data]

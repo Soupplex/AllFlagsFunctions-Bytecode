@@ -10,6 +10,7 @@ Operação  : 0x4defd84: mov/math reg, [flag] ; fn=0x4defd50..0x4defe37
     Padrão  : FLogRbxFiberSpanProcessor = 6 (default) [log, mode=1]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
     Fórmula : (uint8_t)ret_0x4df03c0_1 == 0 && (uint8_t)RbxFiberSpanProcessor >= 6 && (uint8_t)((uint64_t)RbxFiberSpanProcessor >> 8) >= 3
+    Fórmula : "[FLog::RbxFiberSpanProcessor] span queue is full - dropping span"
   
   === [Decompilacao C++ da Funcao 0x4defd50..0x4defe37] ===
     struct RBX::OpenTelemetryTracing::RbxFiberSpanProcessor {
@@ -19,8 +20,13 @@ Operação  : 0x4defd84: mov/math reg, [flag] ; fn=0x4defd50..0x4defe37
     // Flag defaults: RbxFiberSpanProcessor = 6
     void RBX::OpenTelemetryTracing::RbxFiberSpanProcessor::func_0x4defd50(RBX::OpenTelemetryTracing::RbxFiberSpanProcessor* this) {
       if (this->field_0x48 == 0) {
-        auto ret_0x4df03c0_1 = call_0x4df03c0(&this->field_0x28, param_2);
+        auto ret_0x4df03c0_1 = call_0x4df03c0(&this->field_0x28, 0);
         if ((uint8_t)ret_0x4df03c0_1 == 0 && (uint8_t)RbxFiberSpanProcessor >= 6 && (uint8_t)((uint64_t)RbxFiberSpanProcessor >> 8) >= 3) {
+          uint64_t local_0x50;
+          local_0x50 = "[FLog::RbxFiberSpanProcessor] span queue is full - dropping span";
+          uint64_t local_0x40;
+          local_0x40 = local_0x50 - 0x122e1b;
+          local_0x50 = RbxFiberSpanProcessor;
           FLog::Log("[FLog::RbxFiberSpanProcessor] span queue is full - dropping span");
           return;
         }
@@ -83,24 +89,43 @@ Operação  : 0x4defd84: mov/math reg, [flag] ; fn=0x4defd50..0x4defe37
   === [Sub-Rotina Chamada: 0x4df03c0..0x4df04c9 via call @0x4defd77 (Direct Engine Sub-Call)] ===
     struct SubObj_0x4df03c0 {
       /* +0x0 */ void*   field_0x0;
-      /* +0x8 */ void*   field_0x8;
-      /* +0x10 */ void*   field_0x10;
-      /* +0x18 */ void*   field_0x18;
+      /* +0x8 */ uint64_t field_0x8;
+      /* +0x10 */ uint64_t field_0x10;
+      /* +0x18 */ uint64_t field_0x18;
     };
     
-    auto SubObj_0x4df03c0::func_0x4df03c0(SubObj_0x4df03c0* this, int64_t param_2) {
+    auto SubObj_0x4df03c0::func_0x4df03c0(SubObj_0x4df03c0* this, void* param_2) {
       uint8_t v_bl_1;
-      auto* f_8 = this->field_0x8;
-      if (this->field_0x10 - this->field_0x18 < &f_8->field_m0x1) {
+      if (this->field_0x10 - this->field_0x18 < this->field_0x8 - 1) {
         uint64_t i_r8d = this->field_0x10;
-        void* i_r9d = f_8;
+        uint8_t* i_r9d = this->field_0x8;
         do { // L_0x4df0400
-          if (atomic_cas(&this->field_0x0->field_0x0[i_r8d % i_r9d * 8], 0, param_2->field_0x0) == 0) {
-            if (atomic_cas(&this->field_0x10, i_r8d, i_r8d + 1) == 0) break;
-            void* prev_0x0_1 = param_2->field_0x0;
-            param_2->field_0x0 = atomic_exchange(&this->field_0x0->field_0x0[i_r8d % i_r9d * 8], param_2->field_0x0);
-            if (prev_0x0_1 != 0) {
-              param_2->field_0x0->vfunc_0x0(prev_0x0_1, 1);
+          void* prev_0x0_5;
+          if (atomic_cas(&this->field_0x0->field_0x0[(uint64_t)i_r8d % (uint64_t)i_r9d * 8], 0, param_2->field_0x0)) {
+            param_2->field_0x0 = 0;
+            if (atomic_cas(&this->field_0x10, i_r8d, i_r8d + 1)) {
+              void* prev_0x0_2 = param_2->field_0x0;
+              param_2->field_0x0 = 0;
+              if (prev_0x0_2 != 0) {
+                param_2->field_0x0->vfunc_0x0(prev_0x0_2, 1);
+                L_0x4df047a:
+                prev_0x0_5 = param_2->field_0x0;
+                param_2->field_0x0 = 0;
+                if (prev_0x0_5 != 0) {
+                  param_2->field_0x0->vfunc_0x0(prev_0x0_5, 1);
+                }
+                return v_bl_1;
+              }
+              v_bl_1 = 1;
+              break;
+            }
+            void* prev_0x0_3 = param_2->field_0x0;
+            param_2->field_0x0 = 0;
+            int64_t atomic_2 = atomic_exchange(&this->field_0x0->field_0x0[(uint64_t)i_r8d % (uint64_t)i_r9d * 8], prev_0x0_3);
+            void* prev_0x0_4 = param_2->field_0x0;
+            param_2->field_0x0 = atomic_2;
+            if (prev_0x0_4 != 0) {
+              param_2->field_0x0->vfunc_0x0(prev_0x0_4, 1);
             }
             i_r8d = this->field_0x10;
             i_r9d = this->field_0x8;
@@ -113,20 +138,19 @@ Operação  : 0x4defd84: mov/math reg, [flag] ; fn=0x4defd50..0x4defe37
             v_bl_1 = 0;
             break;
           }
-          if (param_2->field_0x0 == 0) {
+          prev_0x0_5 = param_2->field_0x0;
+          param_2->field_0x0 = 0;
+          if (prev_0x0_5 == 0) {
             return v_bl_1;
           }
-          param_2->field_0x0->vfunc_0x0(param_2->field_0x0, 1);
+          param_2->field_0x0->vfunc_0x0(prev_0x0_5, 1);
           return v_bl_1;
-        } while (this->field_0x10 - this->field_0x18 < &this->field_0x8->field_m0x1); // loop -> L_0x4df0400
+        } while (i_r8d - this->field_0x18 < i_r9d - 1); // loop -> L_0x4df0400
         goto L_0x4df0478;
       } else {
         goto L_0x4df0478;
       }
-      if (param_2->field_0x0 != 0) {
-        param_2->field_0x0->vfunc_0x0(param_2->field_0x0, 1);
-      }
-      return v_bl_1;
+      goto L_0x4df047a;
     }
   
   === [Instrucoes x86-64 da Sub-Rotina Chamada (0x4df03c0..0x4df04c9)] ===
@@ -230,33 +254,33 @@ Operação  : 0x4defd84: mov/math reg, [flag] ; fn=0x4defd50..0x4defe37
     struct RBX::OpenTelemetryTracing::RbxFiberSpanProcessor {
       /* +0x0 */ void*   field_0x0;
       /* +0x8 */ void*   field_0x8;
-      /* +0x28 */ void*   field_0x28;
+      /* +0x28 */ uint64_t field_0x28;
       /* +0x48 */ uint8_t field_0x48;
-      /* +0x68 */ void*   field_0x68;
+      /* +0x68 */ uint64_t field_0x68;
     };
     
     auto RBX::OpenTelemetryTracing::RbxFiberSpanProcessor::func_0x4ded510(RBX::OpenTelemetryTracing::RbxFiberSpanProcessor* this, int64_t param_2) {
       this->field_0x0 = &sym_0x71594a8;
       if (this->field_0x48 != 0) {
+        uint8_t atomic_1 = atomic_exchange(&this->field_0x48, 1);
         call_0x126df10(&this->field_0x60);
+        auto ret_0xeed0_3 = call_0xeed0(&this->field_0x70);
+        if ((uint8_t)ret_0xeed0_3 != 0) {
+          auto ret_0xca10_4 = call_0xca10();
+          call_0xeee0(&this->field_0x70, ret_0xca10_4);
+        }
+        if (atomic_1 == 0 && this->field_0x8 != 0) {
+          auto* f_8 = this->field_0x8;
+          f_8->vfunc_0x20(f_8, 0x7fffffffffffffff);
+        }
+        call_0xed90(&this->field_0x70);
       }
-      auto ret_0xeed0_2 = call_0xeed0(&this->field_0x70);
-      if ((uint8_t)ret_0xeed0_2 != 0) {
-        auto ret_0xca10_3 = call_0xca10();
-        call_0xeee0(&this->field_0x70, ret_0xca10_3);
-      }
-      if ((uint8_t)(atomic_exchange(&this->field_0x48, 1)) == 0 && this->field_0x8 != 0) {
-        auto* f_8 = this->field_0x8;
-        f_8->vfunc_0x20(f_8, 0x7fffffffffffffff);
-      }
-      call_0xed90(&this->field_0x70);
       if (this->field_0x68 != 0) {
         call_0x6daf40(this->field_0x68);
       }
-      auto* f_28 = this->field_0x28;
-      if (f_28 != 0) {
-        call_0x5de4970(f_28, 8, f_28->field_m0x8, &sym_0x4df0580);
-        call_0x4955ac0(&this->field_0x28->field_m0x8);
+      if (this->field_0x28 != 0) {
+        call_0x5de4970(this->field_0x28, 8, (this->field_0x28 - 8)->field_0x0, &sym_0x4df0580);
+        call_0x4955ac0(this->field_0x28 - 8);
       }
       auto* f_8_2 = this->field_0x8;
       if (f_8_2 != 0) {
@@ -281,56 +305,60 @@ Operação  : 0x4defd84: mov/math reg, [flag] ; fn=0x4defd50..0x4defe37
   === [Decompilacao de Metodo da Classe RBX::OpenTelemetryTracing::RbxFiberSpanProcessor: 0x4df01a0..0x4df032f (vfunc_0x20)] ===
     struct RBX::OpenTelemetryTracing::RbxFiberSpanProcessor {
       /* +0x48 */ uint8_t field_0x48;
-      /* +0x50 */ int32_t field_0x50;
-      /* +0x58 */ void*   field_0x58;
+      /* +0x50 */ uint64_t field_0x50;
+      /* +0x58 */ uint64_t field_0x58;
     };
     
     bool RBX::OpenTelemetryTracing::RbxFiberSpanProcessor::func_0x4df01a0(RBX::OpenTelemetryTracing::RbxFiberSpanProcessor* this, int64_t param_2) {
       if (this->field_0x48 == 0) {
-        void* sel_rbx_1 = min(param_2, 30000000);
-        auto ret_0x5de64b0_1 = call_0x5de64b0(this);
-        auto ret_0x5de6490_2 = call_0x5de6490();
+        int64_t atomic_1 = atomic_fetch_add(&this->field_0x50, 1);
+        auto ret_0x5de64b0_2 = call_0x5de64b0();
+        auto ret_0x5de6490_3 = call_0x5de6490();
         int64_t v_rax_1;
-        if (ret_0x5de64b0_1 == 10000000) {
-          v_rax_1 = ret_0x5de6490_2 * 100;
+        if (ret_0x5de64b0_2 == 10000000) {
+          v_rax_1 = ret_0x5de6490_3 * 100;
         } else {
-          v_rax_1 = ret_0x5de6490_2 % ret_0x5de64b0_1 * 1000000000 / ret_0x5de64b0_1 + ret_0x5de6490_2 / ret_0x5de64b0_1 * 1000000000;
+          v_rax_1 = ret_0x5de6490_3 % ret_0x5de64b0_2 * 1000000000 / ret_0x5de64b0_2 + ret_0x5de6490_3 / ret_0x5de64b0_2 * 1000000000;
         }
         do { // L_0x4df0240
-          if (this->field_0x58 >= atomic_fetch_add(&this->field_0x50, 1) + 1) {
-            return this->field_0x58 >= atomic_fetch_add(&this->field_0x50, 1) + 1;
+          if (this->field_0x58 >= atomic_1 + 1) {
+            return this->field_0x58 >= atomic_1 + 1;
           }
           if (this->field_0x48 != 0) {
-            return this->field_0x58 >= atomic_fetch_add(&this->field_0x50, 1) + 1;
+            return this->field_0x58 >= atomic_1 + 1;
           }
-          auto ret_0x5de64b0_3 = call_0x5de64b0();
-          auto ret_0x5de6490_4 = call_0x5de6490();
+          auto ret_0x5de64b0_4 = call_0x5de64b0();
+          auto ret_0x5de6490_5 = call_0x5de6490();
           int64_t v_rax_2;
-          if (ret_0x5de64b0_3 == 10000000) {
-            v_rax_2 = ret_0x5de6490_4 * 100;
+          if (ret_0x5de64b0_4 == 10000000) {
+            v_rax_2 = ret_0x5de6490_5 * 100;
           } else {
-            v_rax_2 = ret_0x5de6490_4 % ret_0x5de64b0_3 * 1000000000 / ret_0x5de64b0_3 + ret_0x5de6490_4 / ret_0x5de64b0_3 * 1000000000;
+            v_rax_2 = ret_0x5de6490_5 % ret_0x5de64b0_4 * 1000000000 / ret_0x5de64b0_4 + ret_0x5de6490_5 / ret_0x5de64b0_4 * 1000000000;
           }
-          if (v_rax_2 >= sel_rbx_1 * 1000 + v_rax_1) break;
-          auto ret_0x5de64b0_5 = call_0x5de64b0();
-          auto ret_0x5de6490_6 = call_0x5de6490();
+          if (v_rax_2 >= min(param_2, 30000000) * 1000 + v_rax_1) {
+            return false;
+          }
+          auto ret_0x5de64b0_6 = call_0x5de64b0();
+          auto ret_0x5de6490_7 = call_0x5de6490();
           int64_t v_rax_4;
-          if (ret_0x5de64b0_5 == 10000000) {
-            v_rax_4 = ret_0x5de6490_6 * 100;
+          if (ret_0x5de64b0_6 == 10000000) {
+            v_rax_4 = ret_0x5de6490_7 * 100;
           } else {
-            v_rax_4 = ret_0x5de6490_6 % ret_0x5de64b0_5 * 1000000000 / ret_0x5de64b0_5 + ret_0x5de6490_6 / ret_0x5de64b0_5 * 1000000000;
+            v_rax_4 = ret_0x5de6490_7 % ret_0x5de64b0_6 * 1000000000 / ret_0x5de64b0_6 + ret_0x5de6490_7 / ret_0x5de64b0_6 * 1000000000;
           }
-          int64_t local_0x40;
+          uint64_t local_0x40;
           if (v_rax_4 < 0x7ffffffffff0bdbf) {
+            void* mem_2_2 = local_0x40;
             local_0x40 = v_rax_4 + 0xf4240;
-            call_0x7024e0(&local_0x40);
+            call_0x7024e0(&mem_2_2);
             continue;
           } else {
+            void* mem_1_1 = local_0x40;
             local_0x40 = 0x7fffffffffffffff;
-            call_0x7024e0(&local_0x40);
+            call_0x7024e0(&mem_1_1);
           }
         } while (true); // loop -> L_0x4df0240
-        return this->field_0x58 >= atomic_fetch_add(&this->field_0x50, 1) + 1;
+        return this->field_0x58 >= atomic_1 + 1;
       }
       return false;
     }
@@ -342,7 +370,7 @@ Operação  : 0x4defd84: mov/math reg, [flag] ; fn=0x4defd50..0x4defe37
   * FIntOpenTelemetryScheduleDelayMillis = 2500 (default) [vizinha em .data]
   * FIntOpenTelemetryMaxQueueSize = 2048 (default) [vizinha em .data]
   * FFlagOpenTelemetryLuauApiTracingEnabled = false (default) [vizinha em .data]
-  * FLogHttpOpenTelemetryTracing = 6 (default) [vizinha em .data]
+  * FLogHttpOpenTelemetryTracing = 0 (default) [vizinha em .data]
   * FIntOpenTelemetryExportTimeoutMs = 10000 (default) [vizinha em .data]
   * FIntOpenTelemetryMaxConcurrentExports = 5 (default) [vizinha em .data]
   * FLogRbxOtlpHttpExporter = 6 (default) [vizinha em .data]

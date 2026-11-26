@@ -7,7 +7,7 @@ Operação  : 0x296f14c: movzx reg, byte [flag] ; fn=0x296f0d0..0x296f15b
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::BaseWorker)] ===
     Classe  : RBX::BaseWorker (Inferido)
-    Padrão  : FFlagBaseWorkerThreadsAreRuntime = false (default) [bool, mode=1]
+    Padrão  : FFlagBaseWorkerThreadsAreRuntime = true (default) [bool, mode=1]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
     Altera  : this->field_0x0, this->field_0x10, this->field_0x18, this->field_0x20, this->field_0x28, this->field_0x8
   
@@ -17,9 +17,9 @@ Operação  : 0x296f14c: movzx reg, byte [flag] ; fn=0x296f0d0..0x296f15b
     [XREF #2 @0x296f1b1] Fórmula : BaseWorkerThreadsAreRuntime
     [XREF #3 @0x296f3bb] Classe  : RBX::BaseWorker (Inferido)
     [XREF #3 @0x296f3bb] Fórmula : BaseWorkerThreadsAreRuntime
-    [XREF #4 @0x296fbcd] Classe  : RBX::worker_thread::Udata (RTTI Resolvido)
+    [XREF #4 @0x296fbcd] Classe  : RBX::BaseWorker (Inferido)
     [XREF #4 @0x296fbcd] Fórmula : ((BaseWorkerThreadsAreRuntime ? -1 : 0) & 0x4) != 0
-    [XREF #4 @0x296fbcd] Fórmula : ((BaseWorkerThreadsAreRuntime ? -1 : 0) & 0x4) == 4 && &ret_0x4956040_1->field_0x10 != 0
+    [XREF #4 @0x296fbcd] Fórmula : ((BaseWorkerThreadsAreRuntime ? -1 : 0) & 0x4) == 4 && ret_0x4956040_1 != -16
     [XREF #4 @0x296fbcd] Altera  : this->field_0x0, this->field_0x8
   
   === [Decompilacao C++ da Funcao 0x296f0d0..0x296f15b] ===
@@ -27,18 +27,18 @@ Operação  : 0x296f14c: movzx reg, byte [flag] ; fn=0x296f0d0..0x296f15b
       /* +0x0 */ double  field_0x0;
       /* +0x8 */ uint8_t field_0x8;
       /* +0x10 */ double  field_0x10;
-      /* +0x18 */ void*   field_0x18;
-      /* +0x20 */ void*   field_0x20;
-      /* +0x28 */ void*   field_0x28;
+      /* +0x18 */ uint64_t field_0x18;
+      /* +0x20 */ uint64_t field_0x20;
+      /* +0x28 */ uint64_t field_0x28;
       /* +0x30 */ uint8_t field_0x30;
-      /* +0x38 */ void*   field_0x38;
+      /* +0x38 */ uint64_t field_0x38;
     };
     
-    // Flag defaults: BaseWorkerThreadsAreRuntime = false
-    auto RBX::BaseWorker::func_0x296f0d0(RBX::BaseWorker* this, float param_2, void* param_3) {
+    // Flag defaults: BaseWorkerThreadsAreRuntime = true
+    auto RBX::BaseWorker::func_0x296f0d0(RBX::BaseWorker* this, float param_2, int64_t param_3) {
       if (global_0x813ca18 <= 1) {
         this->field_0x0 = 0;
-        this->field_0x0 = call_0x4959ee0(this);
+        this->field_0x0 = call_0x4959ee0();
       } else {
         call_0x495a220(this);
       }
@@ -86,10 +86,10 @@ Operação  : 0x296f14c: movzx reg, byte [flag] ; fn=0x296f0d0..0x296f15b
     0x296f13e | 5f                       | pop rdi
     0x296f13f | c3                       | ret
     0x296f140 | 80 3d 8f 53 b3 05 00     | cmp byte ptr [rip + 0x5b3538f], 0x0
-    0x296f147 | 74 03                    | je 0x296f14c ; [Nanomite Reconstructed: je +0x3 via cfg_exit_block_resolver]
+    0x296f147 | 74 02                    | je 0x296f14b ; [Nanomite Reconstructed: je +0x2 via cfg_epilogue_exit_resolver]
     0x296f149 | 33 c0                    | xor eax, eax
+    L_0x296f14b:
     0x296f14b | c3                       | ret
-    L_0x296f14c:
     0x296f14c | 0f b6 05 9d 58 79 05     | movzx eax, byte ptr [rip + 0x579589d] ; FFlagBaseWorkerThreadsAreRuntime
     0x296f153 | f6 d8                    | neg al
     0x296f155 | 1b c0                    | sbb eax, eax
@@ -102,33 +102,62 @@ Operação  : 0x296f14c: movzx reg, byte [flag] ; fn=0x296f0d0..0x296f15b
       /* +0x10 */ int32_t field_0x10;
     };
     
-    // Flag defaults: BaseWorkerThreadsAreRuntime = false
+    // Flag defaults: BaseWorkerThreadsAreRuntime = true
     void RBX::BaseWorker::func_0x296f160(RBX::BaseWorker* this) {
-      if ((uint8_t)(atomic_exchange(&global_0x8cdb818, 1)) == 0) {
+      uint8_t atomic_1 = atomic_exchange(&global_0x8cdb818, 1);
+      if (atomic_1 == 0) {
         call_0x5de4c80(&sym_0x296f390);
       }
+      uint64_t local_0x78;
       if (BaseWorkerThreadsAreRuntime) {
-        auto local_0x30 = 0;
-        auto vret_6 = global_0x8da5fb8->vfunc_0x30(global_0x8da5fb8, &local_0x30, &local_0x48, &local_0x38);
-        if (vret_6 == 0) {
+        void* local_0x30;
+        local_0x30 = 0;
+        auto local_0x48 = 0;
+        auto local_0x38 = 32;
+        auto local_0x40 = 8;
+        auto vret_7 = global_0x8da5fb8->vfunc_0x30(global_0x8da5fb8, &local_0x30, &local_0x48, &local_0x38, &sym_0x2e132f0);
+        if (vret_7 == 0) {
           call_0x1122130(local_0x30, this);
-          while (atomic_cas(&global_0x8da5fc0, global_0x8da5fc0, local_0x30) != 0) {
-          }
+          local_0x30->field_0x18 = 0;
+          uint64_t i_eax = global_0x8da5fc0;
+          do { // L_0x296f240
+            local_0x30->field_0x18 = i_eax;
+            if (atomic_cas(&global_0x8da5fc0, i_eax, local_0x30)) {
+              uint64_t local_0x20;
+              local_0x20 = &sym_0x2e132f0;
+              break;
+            }
+          } while (true); // loop -> L_0x296f240
         } else {
-          auto vret_7 = global_0x8da5fb8->vfunc_0x20(global_0x8da5fb8, vret_6);
-          auto ret_0x5e12400_8 = call_0x5e12400(2);
-          call_0x6dacf0(ret_0x5e12400_8, "RSL PANIC: %s\n", vret_7);
+          auto vret_8 = global_0x8da5fb8->vfunc_0x20(global_0x8da5fb8, vret_7);
+          auto ret_0x5e12400_9 = call_0x5e12400(2);
+          call_0x6dacf0(ret_0x5e12400_9, "RSL PANIC: %s\\n", vret_8, 0);
           call_0x4971000();
-          call_0x4971000();
+          return; // noreturn
         }
       } else {
         call_0x2e12fd0(&sym_0x81b7d50);
-        auto ret_0x4956040_3 = call_0x4956040(32);
-        call_0x1122130(&ret_0x4956040_3->field_0x8, this);
-        ret_0x4956040_3->field_0x0 = global_0x8da5fb0;
-        global_0x8da5fb0 = ret_0x4956040_3;
-        if (global_0x81b7d50 != 3 || atomic_cas(&global_0x81b7d50, global_0x81b7d50, 1) != 0) {
-          call_0xdac0(&sym_0x81b7d50);
+        auto ret_0x4956040_4 = call_0x4956040(32);
+        if (ret_0x4956040_4 != 0) {
+          call_0x1122130(ret_0x4956040_4 + 8, this);
+          ret_0x4956040_4->field_0x0 = global_0x8da5fb0;
+          global_0x8da5fb0 = ret_0x4956040_4;
+          if (global_0x81b7d50 != 3 || !atomic_cas(&global_0x81b7d50, global_0x81b7d50, 1)) {
+            call_0xdac0(&sym_0x81b7d50);
+          }
+        } else {
+          uint64_t local_0x58;
+          local_0x58 = &sym_0x81b7d50;
+          uint64_t local_0x60;
+          local_0x60 = 1;
+          uint64_t local_0x68;
+          local_0x68 = &sym_0x8da5fb0;
+          uint64_t local_0x70;
+          local_0x70 = 0;
+          auto local_0x90 = this;
+          call_0x6ca7d0(&local_0x78);
+          call_0x5e066f0(&local_0x78, &sym_0x80cbbc0);
+          return; // noreturn
         }
       }
       if (this->field_0x0 != 0) {
@@ -141,7 +170,11 @@ Operação  : 0x296f14c: movzx reg, byte [flag] ; fn=0x296f0d0..0x296f15b
           return;
         }
       } else if (this->field_0x10 != 0) {
-        call_0x4971000();
+        call_0x4971000(this->field_0x0);
+        auto local_0x90 = this;
+        call_0x6ca7d0(&local_0x78);
+        call_0x5e066f0(&local_0x78, &sym_0x80cbbc0);
+        return; // noreturn
       }
     }
   
@@ -286,108 +319,292 @@ Operação  : 0x296f14c: movzx reg, byte [flag] ; fn=0x296f0d0..0x296f15b
     0x296f37c | e8 6f 73 49 03           | call 0x5e066f0
   
   === [Decompilacao C++ do XREF Runtime #3: 0x296f390..0x296f857 (insn @0x296f3bb: cmp byte [flag], imm8)] ===
-    // Flag defaults: BaseWorkerThreadsAreRuntime = false
-    void RBX::BaseWorker::func_0x296f390(RBX::BaseWorker* this) {
+    // Flag defaults: BaseWorkerThreadsAreRuntime = true
+    void func_0x296f390() {
       if (BaseWorkerThreadsAreRuntime) {
+        uint64_t local_0x58;
+        local_0x58 = 4;
+        void* local_0x60;
         call_0xf000(&local_0x60);
+        L_0x296f3f0:
         do { // L_0x296f3f0
           void* i_edi = global_0x8da5fc0;
-          while (i_edi != 0) {
-            if (atomic_cas(&global_0x8da5fc0, i_edi, i_edi->field_0x18) == 0) break;
+          uint64_t local_0x68;
+          do { // L_0x296f3f7
+            if (i_edi == 0) break;
+            if (atomic_cas(&global_0x8da5fc0, i_edi, i_edi->field_0x18)) {
+              if (i_edi != &local_0x58) {
+                if (local_0x58 != 0) {
+                  if (local_0x58 != 2) {
+                    if (local_0x58 == 4) {
+                    call_0xed90(&local_0x60);
+                    }
+                  } else {
+                    void* mem_4_4 = local_0x60;
+                    local_0x60 = 0;
+                    if (mem_4_4 != 0) {
+                    int32_t atomic_24 = atomic_fetch_add(&local_0x60->field_0x8, -1);
+                    if (atomic_24 == 1) {
+                    local_0x60->vfunc_0x0(mem_4_4, 0);
+                    auto vret_26 = (*global_0x6438c10)();
+                    (*global_0x6438d00)(vret_26, 0, mem_4_4);
+                    }
+                    if (local_0x60 != 0) {
+                    int32_t atomic_28 = atomic_fetch_add(&local_0x60->field_0x8, -1);
+                    if (atomic_28 == 1) {
+                    local_0x60->vfunc_0x0(local_0x60, 0);
+                    auto vret_30 = (*global_0x6438c10)();
+                    (*global_0x6438d00)(vret_30, 0, local_0x60);
+                    }
+                    }
+                    }
+                  }
+                  call_0x1122130(&local_0x58, i_edi);
+                } else if (local_0x68 == 0) {
+                  call_0x1122130(&local_0x58, i_edi);
+                } else {
+                  call_0x4971000();
+                  return; // noreturn
+                }
+              }
+              uint64_t local_0x30;
+              local_0x30 = i_edi;
+              if (i_edi->field_0x0 != 0) {
+                if (i_edi->field_0x0 != 2) {
+                  if (i_edi->field_0x0 == 4) {
+                    call_0xed90(i_edi + 8);
+                  }
+                } else {
+                  call_0x105e550(i_edi + 8);
+                }
+                L_0x296f516:
+                uint64_t local_0x38;
+                local_0x38 = 0;
+                uint64_t local_0x40;
+                local_0x40 = 0;
+                uint64_t local_0x48;
+                local_0x48 = 32;
+                uint64_t local_0x50;
+                local_0x50 = 8;
+                uint64_t local_0x20;
+                local_0x20 = &sym_0x2e132f0;
+                auto vret_37 = global_0x8da5fb8->vfunc_0x30(global_0x8da5fb8, &local_0x30, &local_0x48, &local_0x38, &sym_0x2e132f0);
+                if (vret_37 == 0) {
+                  uint8_t v_cl_7;
+                  if (local_0x58 != 0) {
+                    int64_t ret_0xca10_49;
+                    if (local_0x58 != 2) {
+                    if (local_0x58 == 4) {
+                    auto ret_0xeed0_46 = call_0xeed0(&local_0x60);
+                    v_cl_7 = (uint8_t)ret_0xeed0_46;
+                    L_0x296f5cf:
+                    if (v_cl_7 != 0) {
+                    switch (local_0x58) {
+                    case 0:
+                    call_0x707e90(&local_0x60);
+                    break;
+                    case 2:
+                    call_0x105e6b0(&local_0x60);
+                    break;
+                    case 4:
+                    ret_0xca10_49 = call_0xca10();
+                    call_0xeee0(&local_0x60, ret_0xca10_49);
+                    break;
+                    }
+                    }
+                    }
+                    } else {
+                    if (local_0x60 != 0) {
+                    local_0x60->field_0x8++;
+                    int32_t atomic_42 = atomic_fetch_add(&local_0x60->field_0x8, -1);
+                    if (atomic_42 == 1) {
+                    local_0x60->vfunc_0x0(local_0x60, 0);
+                    auto vret_44 = (*global_0x6438c10)();
+                    (*global_0x6438d00)(vret_44, 0, local_0x60);
+                    }
+                    v_cl_7 = 1;
+                    } else {
+                    v_cl_7 = 0;
+                    }
+                    if (v_cl_7 != 0) {
+                    switch (local_0x58) {
+                    case 0:
+                    call_0x707e90(&local_0x60);
+                    break;
+                    case 2:
+                    call_0x105e6b0(&local_0x60);
+                    break;
+                    case 4:
+                    ret_0xca10_49 = call_0xca10();
+                    call_0xeee0(&local_0x60, ret_0xca10_49);
+                    break;
+                    }
+                    }
+                    }
+                  } else {
+                    v_cl_7 = local_0x68 != 0;
+                    goto L_0x296f5cf;
+                  }
+                  goto L_0x296f3f0;
+                } else {
+                  L_0x296f823:
+                  auto vret_38 = global_0x8da5fb8->vfunc_0x20(global_0x8da5fb8, vret_37);
+                  auto ret_0x5e12400_39 = call_0x5e12400(2);
+                  call_0x6dacf0(ret_0x5e12400_39, "RSL PANIC: %s\\n", vret_38, 0);
+                  call_0x4971000();
+                  return; // noreturn
+                }
+              } else if (i_edi->field_0x10 == 0) {
+                goto L_0x296f516;
+              } else {
+                call_0x4971000(i_edi->field_0x0);
+                return; // noreturn
+              }
+              break;
+            }
+          } while (true); // loop -> L_0x296f3f7
+          if (local_0x58 == 0) {
+            if (local_0x68 == 0) {
+              L_0x296f7e8:
+              return;
+            }
+            call_0x4971000();
+            return; // noreturn
+            break;
           }
+          if (local_0x58 == 2) {
+            void* mem_3_3 = local_0x60;
+            local_0x60 = 0;
+            if (mem_3_3 != 0) {
+              int32_t atomic_14 = atomic_fetch_add(&local_0x60->field_0x8, -1);
+              if (atomic_14 == 1) {
+                local_0x60->vfunc_0x0(mem_3_3, 0);
+                auto vret_16 = (*global_0x6438c10)();
+                (*global_0x6438d00)(vret_16, 0, mem_3_3);
+              }
+              if (local_0x60 != 0) {
+                int32_t atomic_18 = atomic_fetch_add(&local_0x60->field_0x8, -1);
+                if (atomic_18 == 1) {
+                  local_0x60->vfunc_0x0(local_0x60, 0);
+                  auto vret_20 = (*global_0x6438c10)();
+                  (*global_0x6438d00)(vret_20, 0, local_0x60);
+                }
+              }
+            }
+            return;
+          }
+          if (local_0x58 != 4) {
+            return;
+          }
+          call_0xed90(&local_0x60);
+          return;
         } while (true); // loop -> L_0x296f3f0
-        if (1) {
-          if (1) {
-            if (1) {
-              call_0xed90(&local_0x60);
-            }
-          } else if (local_0x60 != 0) {
-            if (atomic_fetch_add(&local_0x60->field_0x8, -1) == 1) {
-              local_0x60->vfunc_0x0(local_0x60, 0);
-              auto vret_14 = this->vfunc();
-              vret_14->vfunc(vret_14, 0, local_0x60);
-            }
-            if (0) {
-              0->vfunc_0x0(0, 0);
-              auto vret_17 = this->vfunc();
-              vret_17->vfunc(vret_17, 0, 0);
-            }
-          }
-        }
+        goto L_0x296f823;
       } else {
         call_0x2e12fd0(&sym_0x81b7d50);
+        uint64_t i_ecx = &sym_0x81b7d50;
         void* i_ebx = global_0x8da5fb0;
         if (global_0x8da5fb0 != 0) {
           do { // L_0x296f6e7
-            void* v_rax_1;
-            switch (i_ebx->field_0x8) {
-              case 0:
-                v_rax_1 = i_ebx->field_0x18 != 0;
-                goto L_0x296f715;
-              case 2:
+            int64_t v_rax_1;
+            void* v_rcx_2 = i_ecx;
+            void* v_rcx_3 = i_ecx;
+            if (i_ebx->field_0x8 != 0) {
+              int64_t ret_0xca10_6;
+              if (i_ebx->field_0x8 != 2) {
+                if (i_ebx->field_0x8 == 4) {
+                  v_rax_1 = call_0xeed0(i_ebx + 0x10);
+                  v_rcx_2 = i_ebx + 0x10;
+                  L_0x296f715:
+                  if ((uint8_t)v_rax_1 != 0) {
+                    switch (i_ebx->field_0x8) {
+                    case 0:
+                    call_0x707e90(i_ebx + 0x10);
+                    v_rcx_3 = i_ebx + 0x10;
+                    break;
+                    case 2:
+                    call_0x105e6b0(i_ebx + 0x10);
+                    v_rcx_3 = i_ebx + 0x10;
+                    break;
+                    case 4:
+                    ret_0xca10_6 = call_0xca10();
+                    call_0xeee0(i_ebx + 0x10, ret_0xca10_6);
+                    v_rcx_3 = i_ebx + 0x10;
+                    break;
+                    default:
+                    v_rcx_3 = v_rcx_2;
+                    }
+                  } else {
+                    v_rcx_3 = v_rcx_2;
+                  }
+                }
+              } else {
                 v_rax_1 = call_0x1d69e60(i_ebx + 0x10);
+                v_rcx_2 = i_ebx + 0x10;
                 if ((uint8_t)v_rax_1 != 0) {
                   switch (i_ebx->field_0x8) {
                     case 0:
                     call_0x707e90(i_ebx + 0x10);
+                    v_rcx_3 = i_ebx + 0x10;
                     break;
                     case 2:
                     call_0x105e6b0(i_ebx + 0x10);
+                    v_rcx_3 = i_ebx + 0x10;
                     break;
                     case 4:
-                    auto ret_0xca10_6 = call_0xca10();
+                    ret_0xca10_6 = call_0xca10();
                     call_0xeee0(i_ebx + 0x10, ret_0xca10_6);
+                    v_rcx_3 = i_ebx + 0x10;
                     break;
+                    default:
+                    v_rcx_3 = v_rcx_2;
                   }
+                } else {
+                  v_rcx_3 = v_rcx_2;
                 }
-                break;
-              case 4:
-                v_rax_1 = call_0xeed0(i_ebx + 0x10);
-                L_0x296f715:
-                if ((uint8_t)v_rax_1 != 0) {
-                  switch (i_ebx->field_0x8) {
-                    case 0:
-                    call_0x707e90(i_ebx + 0x10);
-                    break;
-                    case 2:
-                    call_0x105e6b0(i_ebx + 0x10);
-                    break;
-                    case 4:
-                    auto ret_0xca10_6 = call_0xca10();
-                    call_0xeee0(i_ebx + 0x10, ret_0xca10_6);
-                    break;
-                  }
-                }
-                break;
+              }
+            } else {
+              v_rax_1 = i_ebx->field_0x18 != 0;
+              goto L_0x296f715;
             }
+            i_ecx = v_rcx_3;
             i_ebx = i_ebx->field_0x0;
-          } while (i_ebx->field_0x0 != 0); // loop -> L_0x296f6e7
+          } while (i_ebx != 0); // loop -> L_0x296f6e7
         }
         global_0x8da5fb0 = 0;
         if (global_0x8da5fb0 != 0) {
-          void* v_rdi_3;
+          void* i_ebx_2 = global_0x8da5fb0;
           do { // L_0x296f780
-            v_rdi_3 = i_ebx->field_0x0;
-            switch (i_ebx->field_0x8) {
-              case 2:
-                void* prev_0x0_1 = i_ebx->field_0x0;
-                call_0x105e550(i_ebx + 0x10);
-                v_rdi_3 = prev_0x0_1;
-                break;
-              case 4:
-                void* prev_0x0_2 = i_ebx->field_0x0;
-                call_0xed90(i_ebx + 0x10);
-                v_rdi_3 = prev_0x0_2;
-                break;
+            void* v_rdi_5 = i_ebx_2->field_0x0;
+            if (i_ebx_2->field_0x8 != 0) {
+              if (i_ebx_2->field_0x8 != 2) {
+                if (i_ebx_2->field_0x8 == 4) {
+                  void* prev_0x0_2 = i_ebx_2->field_0x0;
+                  call_0xed90(i_ebx_2 + 0x10);
+                  v_rdi_5 = prev_0x0_2;
+                }
+              } else {
+                void* prev_0x0_1 = i_ebx_2->field_0x0;
+                call_0x105e550(i_ebx_2 + 0x10);
+                v_rdi_5 = prev_0x0_1;
+              }
+              call_0x4955ac0(i_ebx_2);
+              i_ebx_2 = v_rdi_5;
+            } else {
+              if ((i_ebx_2 + 0x10)->field_0x8 != 0) {
+                call_0x4971000();
+                return; // noreturn
+              }
+              call_0x4955ac0(i_ebx_2);
+              i_ebx_2 = v_rdi_5;
             }
-            call_0x4955ac0(i_ebx);
-            i_ebx = v_rdi_3;
-          } while (v_rdi_3 != 0); // loop -> L_0x296f780
+          } while (i_ebx_2 != 0); // loop -> L_0x296f780
         }
-        if (global_0x81b7d50 != 3 || atomic_cas(&global_0x81b7d50, global_0x81b7d50, 1) != 0) {
+        if (global_0x81b7d50 != 3 || !atomic_cas(&global_0x81b7d50, global_0x81b7d50, 1)) {
           call_0xdac0(&sym_0x81b7d50);
         }
       }
+      goto L_0x296f7e8;
     }
   
   === [Instrucoes x86-64 do XREF Runtime #3 (0x296f390..0x296f857)] ===
@@ -765,183 +982,241 @@ Operação  : 0x296f14c: movzx reg, byte [flag] ; fn=0x296f0d0..0x296f15b
     0x296f852 | e8 a9 17 00 02           | call 0x4971000
   
   === [Decompilacao C++ do XREF Runtime #4: 0x296fa30..0x296fdf6 (insn @0x296fbcd: movzx reg, byte [flag])] ===
-    struct RBX::worker_thread::Udata {
+    struct RBX::BaseWorker {
       /* +0x0 */ void*   field_0x0;
-      /* +0x8 */ void*   field_0x8;
+      /* +0x8 */ uint64_t field_0x8;
     };
     
-    // Flag defaults: BaseWorkerThreadsAreRuntime = false
-    auto RBX::worker_thread::Udata::func_0x296fa30(RBX::worker_thread::Udata* this, int64_t param_2, void* param_3) {
+    // Flag defaults: BaseWorkerThreadsAreRuntime = true
+    auto RBX::BaseWorker::func_0x296fa30(RBX::BaseWorker* this, int64_t param_2, int64_t param_3) {
       auto ret_0x4956040_1 = call_0x4956040(56);
-      ret_0x4956040_1->field_0x0 = 0.0;
-      ret_0x4956040_1->field_0x10 = 0.0;
-      ret_0x4956040_1->field_0x20 = 0.0;
-      if (global_0x84a44d6 == 0) {
+      uint64_t local_0x50;
+      if (ret_0x4956040_1 != 0) {
+        ret_0x4956040_1->field_0x0 = 0.0;
         ret_0x4956040_1->field_0x10 = 0.0;
-      } else {
-        ret_0x4956040_1->field_0x0 = (BaseWorkerThreadsAreRuntime ? -1 : 0) & 0x4;
-        ret_0x4956040_1->field_0x8 = (BaseWorkerThreadsAreRuntime ? -1 : 0) & 0x4;
-        if (((BaseWorkerThreadsAreRuntime ? -1 : 0) & 0x4) != 0) {
-          if (((BaseWorkerThreadsAreRuntime ? -1 : 0) & 0x4) == 4 && &ret_0x4956040_1->field_0x10 != 0) {
-            call_0xf000(&ret_0x4956040_1->field_0x10);
-          }
+        ret_0x4956040_1->field_0x20 = 0.0;
+        ret_0x4956040_1->field_0x30 = 0;
+        if (global_0x84a44d6 == 0) {
+          (ret_0x4956040_1 + 0x10)->field_0x0 = 0.0;
         } else {
-          ret_0x4956040_1->field_0x10 = 0.0;
-        }
-      }
-      if (&ret_0x4956040_1->field_0x20 != 0) {
-        ret_0x4956040_1->field_0x20 = 1;
-      }
-      if (&ret_0x4956040_1->field_0x28 != 0) {
-        call_0xcd30(&ret_0x4956040_1->field_0x28, "WorkerWake", 0);
-      }
-      this->field_0x0 = 0;
-      this->field_0x8 = 0;
-      auto ret_0x4956040_4 = call_0x4956040(24);
-      if (ret_0x4956040_4 != 0) {
-        ret_0x4956040_4->field_0x8 = 1;
-        ret_0x4956040_4->field_0xc = 1;
-        ret_0x4956040_4->field_0x0 = &sym_0x7054a18;
-        ret_0x4956040_4->field_0x10 = ret_0x4956040_1;
-        this->field_0x0 = ret_0x4956040_1;
-        this->field_0x8 = ret_0x4956040_4;
-        ret_0x4956040_4->field_0x8++;
-        call_0x6db860(&local_0x98, param_2);
-        call_0x707ef0(&local_0x68, 48, param_3, &local_0x88);
-        auto ret_0x296f860_9 = call_0x296f860(&local_0xb8, &local_0x68, param_3);
-        call_0x29708f0(&local_0x58, this->field_0x0->field_0x0, ret_0x296f860_9, param_3);
-        if (&local_0x50 != &this->field_0x0->field_0x8) {
-          if (this->field_0x0->field_0x8 != 0) {
-            if (this->field_0x0->field_0x8 != 2) {
-              if (this->field_0x0->field_0x8 == 4) {
-                call_0xed90(&this->field_0x0->field_0x10);
-              }
-            } else {
-              call_0x105e550(&this->field_0x0->field_0x10);
-            }
-            auto local_0x50 = this->field_0x0->field_0x0;
-            call_0x1122130(&this->field_0x0->field_0x8, &local_0x50);
-            L_0x296fc27:
-            if (local_0x50 != 0) {
-              if (local_0x50 != 2) {
-                if (local_0x50 == 4) {
-                  call_0xed90(&local_0x58);
-                }
-              } else {
-                call_0x105e550(&local_0x58);
-              }
-              L_0x296fc42:
-              if ((local_0xd0 & 0xfffffffc & 0xfffffff8) != 0) {
-                if (((uint8_t)local_0xd0 >> 1 & 0x1) != 0) {
-                  if ((~((local_0xd0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0xd0 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-                    ((~((local_0xd0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0xd0 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0xb8);
-                  }
-                } else {
-                  if ((~((local_0xd0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0xd0 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-                    ((~((local_0xd0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0xd0 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(local_0xb8);
-                  }
-                  call_0x4955ac0(local_0xb8);
-                }
-              }
-              if ((local_0x80 & 0xfffffffc & 0xfffffff8) != 0) {
-                if (((uint8_t)local_0x80 >> 1 & 0x1) != 0) {
-                  if ((~((local_0x80 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x80 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-                    ((~((local_0x80 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x80 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0x68);
-                  }
-                } else {
-                  if ((~((local_0x80 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x80 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-                    ((~((local_0x80 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x80 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(local_0x68);
-                  }
-                  call_0x4955ac0(local_0x68);
-                }
-              }
-              if ((local_0xb0 & 0xfffffffc & 0xfffffff8) != 0) {
-                if (((uint8_t)local_0xb0 >> 1 & 0x1) != 0) {
-                  if ((~((local_0xb0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0xb0 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-                    ((~((local_0xb0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0xb0 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0x98);
-                  }
-                } else {
-                  if ((~((local_0xb0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0xb0 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-                    ((~((local_0xb0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0xb0 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(local_0x98);
-                  }
-                  call_0x4955ac0(local_0x98);
-                }
-              }
-              if (local_0x90 != 0) {
-                call_0x6daf40(local_0x90);
-              }
-              return this;
-            }
-            if (local_0x60 == 0) {
-              if ((local_0xd0 & 0xfffffffc & 0xfffffff8) != 0) {
-                if (((uint8_t)local_0xd0 >> 1 & 0x1) != 0) {
-                  if ((~((local_0xd0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0xd0 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-                    ((~((local_0xd0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0xd0 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0xb8);
-                  }
-                } else {
-                  if ((~((local_0xd0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0xd0 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-                    ((~((local_0xd0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0xd0 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(local_0xb8);
-                  }
-                  call_0x4955ac0(local_0xb8);
-                }
-              }
-              if ((local_0x80 & 0xfffffffc & 0xfffffff8) != 0) {
-                if (((uint8_t)local_0x80 >> 1 & 0x1) != 0) {
-                  if ((~((local_0x80 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x80 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-                    ((~((local_0x80 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x80 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0x68);
-                  }
-                } else {
-                  if ((~((local_0x80 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x80 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-                    ((~((local_0x80 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0x80 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(local_0x68);
-                  }
-                  call_0x4955ac0(local_0x68);
-                }
-              }
-              if ((local_0xb0 & 0xfffffffc & 0xfffffff8) != 0) {
-                if (((uint8_t)local_0xb0 >> 1 & 0x1) != 0) {
-                  if ((~((local_0xb0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0xb0 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-                    ((~((local_0xb0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0xb0 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(&local_0x98);
-                  }
-                } else {
-                  if ((~((local_0xb0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0xb0 & 0xfffffffc) & 0xfffffff8)->field_0x18 != 0) {
-                    ((~((local_0xb0 & 0xfffffffc) >> 2) & 0x1) != 0 ? 0 : ((local_0xb0 & 0xfffffffc) & 0xfffffff8))->vfunc_0x18(local_0x98);
-                  }
-                  call_0x4955ac0(local_0x98);
-                }
-              }
-              if (local_0x90 != 0) {
-                call_0x6daf40(local_0x90);
-              }
-              return this;
+          ret_0x4956040_1->field_0x0 = (BaseWorkerThreadsAreRuntime ? -1 : 0) & 0x4;
+          ret_0x4956040_1->field_0x8 = (BaseWorkerThreadsAreRuntime ? -1 : 0) & 0x4;
+          if (((BaseWorkerThreadsAreRuntime ? -1 : 0) & 0x4) != 0) {
+            if (((BaseWorkerThreadsAreRuntime ? -1 : 0) & 0x4) == 4 && ret_0x4956040_1 != -16) {
+              call_0xf000(ret_0x4956040_1 + 0x10);
             }
           } else {
-            if (this->field_0x0->field_0x18 == 0) {
-              auto local_0x50 = this->field_0x0->field_0x0;
-              call_0x1122130(&this->field_0x0->field_0x8, &local_0x50);
-              if (local_0x50 != 0) {
-                if (local_0x50 != 2) {
-                  if (local_0x50 == 4) {
-                    call_0xed90(&local_0x58);
-                  }
-                } else {
-                  call_0x105e550(&local_0x58);
+            (ret_0x4956040_1 + 0x10)->field_0x0 = 0.0;
+          }
+        }
+        if (ret_0x4956040_1 != -32) {
+          (ret_0x4956040_1 + 0x20)->field_0x0 = 1;
+        }
+        if (ret_0x4956040_1 != -40) {
+          call_0xcd30(ret_0x4956040_1 + 0x28);
+        }
+        ret_0x4956040_1->field_0x30 = 0;
+        ret_0x4956040_1->field_0x34 = 0;
+        this->field_0x0 = 0;
+        this->field_0x8 = 0;
+        auto ret_0x4956040_4 = call_0x4956040(24);
+        if (ret_0x4956040_4 != 0) {
+          ret_0x4956040_4->field_0x8 = 1;
+          ret_0x4956040_4->field_0xc = 1;
+          ret_0x4956040_4->field_0x0 = &sym_0x7054a18;
+          ret_0x4956040_4->field_0x10 = ret_0x4956040_1;
+          this->field_0x0 = ret_0x4956040_1;
+          this->field_0x8 = ret_0x4956040_4;
+          uint64_t local_0x90;
+          local_0x90 = 0.0;
+          ret_0x4956040_4->field_0x8++;
+          local_0x90 = this->field_0x8;
+          uint64_t local_0xb0;
+          local_0xb0 = 0;
+          uint64_t local_0x98;
+          call_0x6db860(&local_0x98, param_2);
+          uint64_t local_0x80;
+          local_0x80 = 0;
+          auto local_0x88 = this->field_0x0;
+          auto local_0x8c = 0.0;
+          auto local_0x94 = 0.0;
+          uint64_t local_0x68;
+          call_0x707ef0(&local_0x68, 48, param_3, &local_0x88, &sym_0x7054a58, &sym_0x1152d60);
+          uint64_t local_0xb8;
+          auto ret_0x296f860_9 = call_0x296f860(&local_0xb8, &local_0x68, param_3);
+          local_0x50 = this->field_0x0->field_0x0;
+          uint64_t local_0x58;
+          call_0x29708f0(&local_0x58, this->field_0x0->field_0x0, ret_0x296f860_9, param_3);
+          if (&local_0x50 != &this->field_0x0->field_0x8) {
+            if (this->field_0x0->field_0x8 != 0) {
+              if (this->field_0x0->field_0x8 != 2) {
+                if (this->field_0x0->field_0x8 == 4) {
+                  call_0xed90(&this->field_0x0->field_0x10);
                 }
-                goto L_0x296fc42;
               } else {
-                if (local_0x60 == 0) {
-                  goto L_0x296fc42;
-                }
+                call_0x105e550(&this->field_0x0->field_0x10);
               }
+              call_0x1122130(&this->field_0x0->field_0x8, &local_0x50);
+            } else if (this->field_0x0->field_0x18 == 0) {
+              call_0x1122130(&this->field_0x0->field_0x8, &local_0x50);
+            } else {
+              call_0x4971000();
+              call_0x6ca7d0(&local_0x50);
+              call_0x5e066f0(&local_0x50, &sym_0x80cbbc0);
+              return; // noreturn
             }
           }
+          int64_t mem_3_3;
+          uint64_t v_rax_5;
+          int64_t mem_2_2;
+          uint64_t v_rax_4;
+          int64_t mem_1_1;
+          uint64_t v_rax_3;
+          uint64_t local_0xd0;
+          if (local_0x50 != 0) {
+            if (local_0x50 != 2) {
+              if (local_0x50 == 4) {
+                call_0xed90(&local_0x58);
+              }
+            } else {
+              call_0x105e550(&local_0x58);
+            }
+            if ((local_0xd0 & 0xfffffffffffffffcULL & 0xfffffffffffffff8ULL) != 0) {
+              if (((uint8_t)(~((int8_t)(uint8_t)(local_0xd0 & 0xfffffffffffffffcULL) >> 2)) & 0x1) != 0) {
+                v_rax_3 = 0;
+              } else {
+                v_rax_3 = ((local_0xd0 & 0xfffffffffffffffcULL) & 0xfffffffffffffff8ULL)->field_0x18;
+              }
+              mem_1_1 = local_0xd0;
+              local_0xd0 = 0;
+              if (((int8_t)(uint8_t)mem_1_1 >> 1 & 0x1) != 0) {
+                if (v_rax_3 != 0) {
+                  (*v_rax_3)(&local_0xb8, (uint8_t)(~((int8_t)(uint8_t)(mem_1_1 & 0xfffffffffffffffcULL) >> 2)));
+                }
+              } else {
+                if (v_rax_3 != 0) {
+                  (*v_rax_3)(local_0xb8, (uint8_t)(~((int8_t)(uint8_t)(mem_1_1 & 0xfffffffffffffffcULL) >> 2)));
+                }
+                call_0x4955ac0(local_0xb8);
+              }
+            }
+            if ((local_0x80 & 0xfffffffffffffffcULL & 0xfffffffffffffff8ULL) != 0) {
+              if (((uint8_t)(~((int8_t)(uint8_t)(local_0x80 & 0xfffffffffffffffcULL) >> 2)) & 0x1) != 0) {
+                v_rax_4 = 0;
+              } else {
+                v_rax_4 = ((local_0x80 & 0xfffffffffffffffcULL) & 0xfffffffffffffff8ULL)->field_0x18;
+              }
+              mem_2_2 = local_0x80;
+              local_0x80 = 0;
+              if (((int8_t)(uint8_t)mem_2_2 >> 1 & 0x1) != 0) {
+                if (v_rax_4 != 0) {
+                  (*v_rax_4)(&local_0x68, (uint8_t)(~((int8_t)(uint8_t)(mem_2_2 & 0xfffffffffffffffcULL) >> 2)));
+                }
+              } else {
+                if (v_rax_4 != 0) {
+                  (*v_rax_4)(local_0x68, (uint8_t)(~((int8_t)(uint8_t)(mem_2_2 & 0xfffffffffffffffcULL) >> 2)));
+                }
+                call_0x4955ac0(local_0x68);
+              }
+            }
+            if ((local_0xb0 & 0xfffffffffffffffcULL & 0xfffffffffffffff8ULL) != 0) {
+              if (((uint8_t)(~((int8_t)(uint8_t)(local_0xb0 & 0xfffffffffffffffcULL) >> 2)) & 0x1) != 0) {
+                v_rax_5 = 0;
+              } else {
+                v_rax_5 = ((local_0xb0 & 0xfffffffffffffffcULL) & 0xfffffffffffffff8ULL)->field_0x18;
+              }
+              mem_3_3 = local_0xb0;
+              local_0xb0 = 0;
+              if (((int8_t)(uint8_t)mem_3_3 >> 1 & 0x1) != 0) {
+                if (v_rax_5 != 0) {
+                  (*v_rax_5)(&local_0x98, ((int8_t)(uint8_t)mem_3_3 >> 1));
+                }
+              } else {
+                if (v_rax_5 != 0) {
+                  (*v_rax_5)(local_0x98, ((int8_t)(uint8_t)mem_3_3 >> 1));
+                }
+                call_0x4955ac0(local_0x98);
+              }
+            }
+            if (local_0x90 != 0) {
+              call_0x6daf40(local_0x90);
+            }
+            return this;
+          }
+          uint64_t local_0x60;
+          if (local_0x60 == 0) {
+            if ((local_0xd0 & 0xfffffffffffffffcULL & 0xfffffffffffffff8ULL) != 0) {
+              if (((uint8_t)(~((int8_t)(uint8_t)(local_0xd0 & 0xfffffffffffffffcULL) >> 2)) & 0x1) != 0) {
+                v_rax_3 = 0;
+              } else {
+                v_rax_3 = ((local_0xd0 & 0xfffffffffffffffcULL) & 0xfffffffffffffff8ULL)->field_0x18;
+              }
+              mem_1_1 = local_0xd0;
+              local_0xd0 = 0;
+              if (((int8_t)(uint8_t)mem_1_1 >> 1 & 0x1) != 0) {
+                if (v_rax_3 != 0) {
+                  (*v_rax_3)(&local_0xb8, (uint8_t)(~((int8_t)(uint8_t)(mem_1_1 & 0xfffffffffffffffcULL) >> 2)));
+                }
+              } else {
+                if (v_rax_3 != 0) {
+                  (*v_rax_3)(local_0xb8, (uint8_t)(~((int8_t)(uint8_t)(mem_1_1 & 0xfffffffffffffffcULL) >> 2)));
+                }
+                call_0x4955ac0(local_0xb8);
+              }
+            }
+            if ((local_0x80 & 0xfffffffffffffffcULL & 0xfffffffffffffff8ULL) != 0) {
+              if (((uint8_t)(~((int8_t)(uint8_t)(local_0x80 & 0xfffffffffffffffcULL) >> 2)) & 0x1) != 0) {
+                v_rax_4 = 0;
+              } else {
+                v_rax_4 = ((local_0x80 & 0xfffffffffffffffcULL) & 0xfffffffffffffff8ULL)->field_0x18;
+              }
+              mem_2_2 = local_0x80;
+              local_0x80 = 0;
+              if (((int8_t)(uint8_t)mem_2_2 >> 1 & 0x1) != 0) {
+                if (v_rax_4 != 0) {
+                  (*v_rax_4)(&local_0x68, (uint8_t)(~((int8_t)(uint8_t)(mem_2_2 & 0xfffffffffffffffcULL) >> 2)));
+                }
+              } else {
+                if (v_rax_4 != 0) {
+                  (*v_rax_4)(local_0x68, (uint8_t)(~((int8_t)(uint8_t)(mem_2_2 & 0xfffffffffffffffcULL) >> 2)));
+                }
+                call_0x4955ac0(local_0x68);
+              }
+            }
+            if ((local_0xb0 & 0xfffffffffffffffcULL & 0xfffffffffffffff8ULL) != 0) {
+              if (((uint8_t)(~((int8_t)(uint8_t)(local_0xb0 & 0xfffffffffffffffcULL) >> 2)) & 0x1) != 0) {
+                v_rax_5 = 0;
+              } else {
+                v_rax_5 = ((local_0xb0 & 0xfffffffffffffffcULL) & 0xfffffffffffffff8ULL)->field_0x18;
+              }
+              mem_3_3 = local_0xb0;
+              local_0xb0 = 0;
+              if (((int8_t)(uint8_t)mem_3_3 >> 1 & 0x1) != 0) {
+                if (v_rax_5 != 0) {
+                  (*v_rax_5)(&local_0x98, ((int8_t)(uint8_t)mem_3_3 >> 1));
+                }
+              } else {
+                if (v_rax_5 != 0) {
+                  (*v_rax_5)(local_0x98, ((int8_t)(uint8_t)mem_3_3 >> 1));
+                }
+                call_0x4955ac0(local_0x98);
+              }
+            }
+            if (local_0x90 != 0) {
+              call_0x6daf40(local_0x90);
+            }
+            return this;
+          }
+          call_0x4971000();
         } else {
-          goto L_0x296fc27;
+          call_0x6ca7d0(&local_0x50);
+          call_0x5e066f0(&local_0x50, &sym_0x80cbbc0);
+          return; // noreturn
         }
-      } else {
-        call_0x6ca7d0(&local_0x50);
-        call_0x5e066f0(&local_0x50, &sym_0x80cbbc0);
       }
-      call_0x4971000();
+      call_0x6ca7d0(&local_0x50);
+      call_0x5e066f0(&local_0x50, &sym_0x80cbbc0);
+      return; // noreturn
     }
   
   === [Instrucoes x86-64 do XREF Runtime #4 (0x296fa30..0x296fdf6)] ===
@@ -1252,45 +1527,49 @@ Operação  : 0x296f14c: movzx reg, byte [flag] ; fn=0x296f0d0..0x296f15b
   === [Decompilacao da Rotina Chamadora (Caller): 0x296e750..0x296ecee em RBX::BaseWorker] ===
     struct RBX::TaskScheduler::Job {
       /* +0x0 */ void*   field_0x0;
-      /* +0x8 */ void*   field_0x8;
-      /* +0x10 */ void*   field_0x10;
+      /* +0x8 */ uint64_t field_0x8;
+      /* +0x10 */ uint64_t field_0x10;
       /* +0x18 */ uint8_t field_0x18;
-      /* +0x28 */ void*   field_0x28;
-      /* +0x30 */ void*   field_0x30;
+      /* +0x28 */ uint64_t field_0x28;
+      /* +0x30 */ uint64_t field_0x30;
       /* +0x38 */ void*   field_0x38;
-      /* +0x40 */ void*   field_0x40;
+      /* +0x40 */ uint64_t field_0x40;
       /* +0x48 */ int32_t field_0x48;
-      /* +0x50 */ void*   field_0x50;
-      /* +0x58 */ void*   field_0x58;
+      /* +0x50 */ uint64_t field_0x50;
+      /* +0x58 */ uint64_t field_0x58;
       /* +0x60 */ uint8_t field_0x60;
-      /* +0x68 */ void*   field_0x68;
-      /* +0x70 */ void*   field_0x70;
-      /* +0x78 */ void*   field_0x78;
-      /* +0x80 */ void*   field_0x80;
-      /* +0x88 */ void*   field_0x88;
-      /* +0x90 */ void*   field_0x90;
-      /* +0x98 */ void*   field_0x98;
+      /* +0x68 */ uint64_t field_0x68;
+      /* +0x70 */ uint64_t field_0x70;
+      /* +0x78 */ uint64_t field_0x78;
+      /* +0x80 */ uint64_t field_0x80;
+      /* +0x88 */ uint64_t field_0x88;
+      /* +0x90 */ uint64_t field_0x90;
+      /* +0x98 */ uint64_t field_0x98;
       /* +0xa0 */ uint8_t field_0xa0;
       /* +0xe8 */ int32_t field_0xe8;
       /* +0xec */ uint8_t field_0xec;
       /* +0xf8 */ void*   field_0xf8;
-      /* +0x100 */ void*   field_0x100;
-      /* +0x108 */ void*   field_0x108;
-      /* +0x150 */ void*   field_0x150;
-      /* +0x158 */ void*   field_0x158;
+      /* +0x100 */ uint64_t field_0x100;
+      /* +0x108 */ uint64_t field_0x108;
+      /* +0x150 */ uint64_t field_0x150;
+      /* +0x158 */ uint64_t field_0x158;
       /* +0x168 */ uint16_t field_0x168;
       /* +0x16a */ uint8_t field_0x16a;
     };
     
     // Flag defaults: TaskSchedulerInit = 0
-    auto RBX::TaskScheduler::Job::func_0x296e750(RBX::TaskScheduler::Job* this, int64_t param_2, void* param_3, void* param_4) {
+    auto RBX::TaskScheduler::Job::func_0x296e750(RBX::TaskScheduler::Job* this, void* param_2, void* param_3, int64_t param_4) {
       this->field_0x8 = 0;
       this->field_0x10 = 0;
       this->field_0x0 = &sym_0x70549d0;
       this->field_0x28 = 0;
       this->field_0x30 = 15;
       this->field_0x18 = 0;
-      call_0x6f7000(&this->field_0x18, param_2, 0);
+      uint64_t i_r8d = -1;
+      do { // L_0x296e7c0
+        i_r8d++;
+      } while (param_2[i_r8d] != 0); // loop -> L_0x296e7c0
+      call_0x6f7000(&this->field_0x18, param_2, i_r8d);
       this->field_0x38 = 0;
       this->field_0x40 = 0;
       if (param_3->field_0x8 != 0) {
@@ -1314,8 +1593,10 @@ Operação  : 0x296f14c: movzx reg, byte [flag] ; fn=0x296f0d0..0x296f15b
       this->field_0xe8 = 0;
       this->field_0xec = 0;
       if (this != 0) {
-        call_0xcd30(&this->field_0xf0, "TS::Job::CV", 0);
+        call_0xcd30(&this->field_0xf0);
       }
+      uint64_t local_0x40;
+      local_0x40 = &this->field_0xf8;
       this->field_0xf8 = &this->field_0x110;
       this->field_0x100 = 0;
       this->field_0x108 = 64;
@@ -1324,28 +1605,49 @@ Operação  : 0x296f14c: movzx reg, byte [flag] ; fn=0x296f0d0..0x296f15b
         this->field_0x158 = 1;
       }
       if (this != 0) {
-        call_0xcd30(&this->field_0x160, "TS::JobCondition", 0);
+        call_0xcd30(&this->field_0x160);
       }
       this->field_0x168 = 0;
       this->field_0x16a = 0;
+      uint64_t local_0x20;
       if ((uint8_t)TaskSchedulerInit != 0 && (uint8_t)TaskSchedulerInit >= 6) {
         if ((uint8_t)((uint64_t)TaskSchedulerInit >> 8) >= 3) {
-          FLog::Log("[FLog::TaskSchedulerInit] Job Created - this(%p) arbiter(%p)");
-          "[FLog::TaskSchedulerInit] Job Created - this(%p) arbiter(%p)";
+          local_0x40 = "[FLog::TaskSchedulerInit] Job Created - this(%p) arbiter(%p)";
+          local_0x20 = 0;
+          auto local_0xa0 = TaskSchedulerInit;
+          auto local_0xa4 = *(uint32_t*)((uint8_t*)&TaskSchedulerInit + 0x4);
+          auto local_0xa8 = *(uint32_t*)((uint8_t*)&TaskSchedulerInit + 0x8);
+          auto local_0xac = *(uint32_t*)((uint8_t*)&TaskSchedulerInit + 0xc);
+          call_0x4972020(&local_0xa0, local_0x40 - 0xc08e3, this, param_3->field_0x0, 0, 0, 0);
         }
         if ((uint8_t)TaskSchedulerInit >= 6 && (uint8_t)((uint64_t)TaskSchedulerInit >> 8) >= 3) {
-          FLog::Log("[FLog::TaskSchedulerInit] JobName(%s)");
-          "[FLog::TaskSchedulerInit] JobName(%s)";
+          local_0x40 = "[FLog::TaskSchedulerInit] JobName(%s)";
+          auto local_0xb0 = TaskSchedulerInit;
+          auto local_0xb4 = *(uint32_t*)((uint8_t*)&TaskSchedulerInit + 0x4);
+          auto local_0xb8 = *(uint32_t*)((uint8_t*)&TaskSchedulerInit + 0x8);
+          auto local_0xbc = *(uint32_t*)((uint8_t*)&TaskSchedulerInit + 0xc);
+          call_0x49722e0(&local_0xb0, local_0x40 - 0xc4a70, param_2);
         }
       }
+      void* prev_0x40_1;
+      int64_t ret_0x4956040_14;
       if (this->field_0x38 == 0) {
-        if (global_0x8da5d90 > rbp->field_0x58->field_0x0->field_0x0[40]) {
+        uint64_t local_0xd0;
+        if (global_0x8da5d90 > __readgsqword(0x58)->field_0x0->field_0x0[40]) {
           call_0x12e0(&sym_0x8da5d90);
           if (global_0x8da5d90 == -1) {
-            auto ret_0x4956040_12 = call_0x4956040(552);
-            auto ret_0x2931010_13 = call_0x2931010(ret_0x4956040_12);
-            global_0x8da5d98 = ret_0x2931010_13;
-            call_0x14f0(&sym_0x8da5d90);
+            ret_0x4956040_14 = call_0x4956040(552);
+            if (ret_0x4956040_14 != 0) {
+              L_0x296eca0:
+              local_0x40 = ret_0x4956040_14;
+              global_0x8da5d98 = call_0x2931010(ret_0x4956040_14);
+              call_0x14f0(&sym_0x8da5d90);
+            } else {
+              L_0x296ecd5:
+              call_0x6ca7d0(&local_0xd0);
+              call_0x5e066f0(&local_0xd0, &sym_0x80cbbc0);
+              return; // noreturn
+            }
           }
         }
         if (global_0x8da5d98->field_0x218 != 0) {
@@ -1353,150 +1655,243 @@ Operação  : 0x296f14c: movzx reg, byte [flag] ; fn=0x296f0d0..0x296f15b
             global_0x8da5d98->field_0x220->field_0x8++;
           }
           this->field_0x38 = global_0x8da5d98->field_0x218;
-          void* prev_0x40_1 = this->field_0x40;
+          prev_0x40_1 = this->field_0x40;
           this->field_0x40 = global_0x8da5d98->field_0x220;
           if (prev_0x40_1 != 0) {
             call_0x6daf40(prev_0x40_1);
           }
         } else {
           call_0x4971090(0, "Default job arbiter must always be valid");
+          call_0x6ca7d0(&local_0xd0);
+          call_0x5e066f0(&local_0xd0, &sym_0x80cbbc0);
+          return; // noreturn
         }
       }
-      this->field_0x38->vfunc_0x40();
+      void* vret_9;
+      vret_9 = this->field_0x38->vfunc_0x40();
+      void* v_rdx_1;
+      v_rdx_1 = vret_9;
+      if (vret_9->field_0x18 >= 16) {
+        v_rdx_1 = vret_9->field_0x0;
+      }
+      void* v_rax_2;
       if (param_4 <= 20) {
         switch (param_4) {
           case 0:
+            v_rax_2 = "FrameStart";
             break;
           case 1:
+            v_rax_2 = "EarlyRendering";
             break;
           case 2:
+            v_rax_2 = "Network_ReceiveIncoming";
             break;
           case 3:
+            v_rax_2 = "Network_PostReplicatorCreation";
             break;
           case 4:
+            v_rax_2 = "Network_ProcessIncoming";
             break;
           case 5:
+            v_rax_2 = "Network_ProcessPhysicsReceive";
             break;
           case 6:
+            v_rax_2 = "Network_ProcessJoin";
             break;
           case 7:
+            v_rax_2 = "Default";
             break;
           case 8:
+            v_rax_2 = "Simulation";
             break;
           case 9:
+            v_rax_2 = "Heartbeat";
             break;
           case 10:
+            v_rax_2 = "Network_ObjectManager";
             break;
           case 11:
+            v_rax_2 = "Network_StreamingSolver";
             break;
           case 12:
+            v_rax_2 = "Network_MegaOutgoing";
             break;
           case 13:
+            v_rax_2 = "Network_ProcessOutgoing";
             break;
           case 14:
+            v_rax_2 = "Network_SendOutgoing";
             break;
           case 15:
+            v_rax_2 = "Render";
             break;
           case 16:
+            v_rax_2 = "PostRender";
             break;
           case 17:
+            v_rax_2 = "Network_DisconnectCleanUp";
             break;
           case 18:
+            v_rax_2 = "FrameEnd";
             break;
           case 19:
+            v_rax_2 = "NotOrderDependent";
             break;
           case 20:
+            v_rax_2 = "Invalid";
             break;
         }
+      } else {
+        v_rax_2 = "Unknown";
       }
+      void* v_r14_3;
+      v_r14_3 = &this->field_0x18;
+      if (this->field_0x30 >= 16) {
+        v_r14_3 = this->field_0x18;
+      }
+      auto local_0x60 = 3276;
+      int64_t local_0x108;
+      auto local_0x68 = &local_0x108;
+      auto local_0x70 = 3276;
+      auto local_0x78 = &local_0x108;
+      auto local_0x80 = "{}({};{})";
+      auto local_0x88 = 9;
+      auto local_0x90 = this;
+      auto local_0x98 = param_3;
+      local_0x108 = v_r14_3;
+      uint64_t local_0xc8;
+      auto local_0x110 = local_0xc8;
+      auto local_0x118 = v_rax_2;
+      uint64_t local_0x58;
+      auto local_0x120 = local_0x58;
+      auto local_0x128 = v_rdx_1;
+      auto local_0x130 = local_0x68;
+      void* local_0xe8;
       call_0x1d48fe0(&local_0xe8, std::string_view("{}({};{})", 9), &local_0x60);
       this->field_0x100 = 0;
+      uint64_t local_0xf8;
       call_0x106bb50(&this->field_0xf8, local_0xe8.c_str(), local_0xf8 + local_0xe8.c_str());
+      uint64_t local_0x100;
       if (local_0x100 >= 16) {
-        void* v_rcx_7 = local_0xe8;
+        void* v_rcx_5 = local_0xe8;
         if (local_0x100 + 1 >= 0x1000) {
           if (local_0xe8 - local_0xe8->field_m0x8 >= 8 && local_0xe8 - local_0xe8->field_m0x8 <= 39) {
-            v_rcx_7 = local_0xe8->field_m0x8;
-            call_0x4955ac0(v_rcx_7);
+            v_rcx_5 = local_0xe8->field_m0x8;
+            call_0x4955ac0(v_rcx_5);
           } else {
             call_0x5e14580();
             call_0x12e0(&sym_0x8da5d90);
             if (global_0x8da5d90 == -1) {
-              auto ret_0x4956040_12 = call_0x4956040(552);
-              auto ret_0x2931010_13 = call_0x2931010(ret_0x4956040_12);
-              global_0x8da5d98 = ret_0x2931010_13;
-              call_0x14f0(&sym_0x8da5d90);
+              ret_0x4956040_14 = call_0x4956040(552);
+              if (ret_0x4956040_14 != 0) {
+                goto L_0x296eca0;
+              } else {
+                goto L_0x296ecd5;
+              }
             }
             if (global_0x8da5d98->field_0x218 != 0) {
               if (global_0x8da5d98->field_0x220 != 0) {
                 global_0x8da5d98->field_0x220->field_0x8++;
               }
               this->field_0x38 = global_0x8da5d98->field_0x218;
-              void* prev_0x40_1 = this->field_0x40;
+              prev_0x40_1 = this->field_0x40;
               this->field_0x40 = global_0x8da5d98->field_0x220;
               if (prev_0x40_1 != 0) {
                 call_0x6daf40(prev_0x40_1);
               }
-              this->field_0x38->vfunc_0x40();
+              vret_9 = this->field_0x38->vfunc_0x40();
+              v_rdx_1 = vret_9;
+              if (vret_9->field_0x18 >= 16) {
+                v_rdx_1 = vret_9->field_0x0;
+              }
               if (param_4 <= 20) {
                 switch (param_4) {
                   case 0:
+                    v_rax_2 = "FrameStart";
                     break;
                   case 1:
+                    v_rax_2 = "EarlyRendering";
                     break;
                   case 2:
+                    v_rax_2 = "Network_ReceiveIncoming";
                     break;
                   case 3:
+                    v_rax_2 = "Network_PostReplicatorCreation";
                     break;
                   case 4:
+                    v_rax_2 = "Network_ProcessIncoming";
                     break;
                   case 5:
+                    v_rax_2 = "Network_ProcessPhysicsReceive";
                     break;
                   case 6:
+                    v_rax_2 = "Network_ProcessJoin";
                     break;
                   case 7:
+                    v_rax_2 = "Default";
                     break;
                   case 8:
+                    v_rax_2 = "Simulation";
                     break;
                   case 9:
+                    v_rax_2 = "Heartbeat";
                     break;
                   case 10:
+                    v_rax_2 = "Network_ObjectManager";
                     break;
                   case 11:
+                    v_rax_2 = "Network_StreamingSolver";
                     break;
                   case 12:
+                    v_rax_2 = "Network_MegaOutgoing";
                     break;
                   case 13:
+                    v_rax_2 = "Network_ProcessOutgoing";
                     break;
                   case 14:
+                    v_rax_2 = "Network_SendOutgoing";
                     break;
                   case 15:
+                    v_rax_2 = "Render";
                     break;
                   case 16:
+                    v_rax_2 = "PostRender";
                     break;
                   case 17:
+                    v_rax_2 = "Network_DisconnectCleanUp";
                     break;
                   case 18:
+                    v_rax_2 = "FrameEnd";
                     break;
                   case 19:
+                    v_rax_2 = "NotOrderDependent";
                     break;
                   case 20:
+                    v_rax_2 = "Invalid";
                     break;
                 }
+              } else {
+                v_rax_2 = "Unknown";
+              }
+              v_r14_3 = &this->field_0x18;
+              if (this->field_0x30 >= 16) {
+                v_r14_3 = this->field_0x18;
               }
             } else {
               call_0x4971090(0, "Default job arbiter must always be valid");
+              goto L_0x296ecd5;
             }
           }
         } else {
-          call_0x4955ac0(v_rcx_7);
+          call_0x4955ac0(v_rcx_5);
         }
       }
       if (this->field_0x100 + 1 > this->field_0x108) {
         call_0x4973f50(&this->field_0xf8, &this->field_0x110, this->field_0x100 + 1, 1);
       }
       this->field_0xf8->field_0x0[this->field_0x100] = 0;
-      this->field_0x150 = call_0x29a3390("se the FInt::TaskSchedulerMaxNumOfArbiters value", this->field_0xf8, -1, 0);
+      local_0x20 = 255;
+      this->field_0x150 = call_0x29a3390("se the FInt::TaskSchedulerMaxNumOfArbiters value", this->field_0xf8, -1, 0, 255);
       if (param_3->field_0x8 != 0) {
         call_0x6daf40(param_3->field_0x8);
       }
@@ -1528,6 +1923,6 @@ Operação  : 0x296f14c: movzx reg, byte [flag] ; fn=0x296f0d0..0x296f15b
   * DFFlagSupportEncryptedAssets = false (default) [vizinha em .data]
   * FIntTaskSchedulerJobMaxStackSizeBytes = 262144 (default) [vizinha em .data]
   * DFFlagEnablePerfDataCountersCollection = false (default) [vizinha em .data]
-  * DFFlagPerfDataExcludeDoubleCountedTimers = false (default) [vizinha em .data]
-  * DFFlagEnableMicroProfilerDumpScreenshot = false (default) [vizinha em .data]
+  * DFFlagPerfDataExcludeDoubleCountedTimers = true (default) [vizinha em .data]
+  * DFFlagEnableMicroProfilerDumpScreenshot = true (default) [vizinha em .data]
   * FFlagStudioAddStandaloneNameToContextInfo = true (default) [vizinha em .data]

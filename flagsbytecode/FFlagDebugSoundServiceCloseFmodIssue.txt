@@ -9,7 +9,7 @@ Operação  : 0x4520c20: cmp byte [flag], imm8 ; fn=0x4520c10..0x4520c72
     Classe  : RBX::Soundscape::SoundServiceClient (RTTI Resolvido)
     Padrão  : FFlagDebugSoundServiceCloseFmodIssue = false (default) [bool, mode=1]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
-    Fórmula : !DebugSoundServiceCloseFmodIssue
+    Fórmula : DebugSoundServiceCloseFmodIssue && this->field_0x8 != 0
     Altera  : this->field_0x0
   
   === [Contexto do Chamador (Parent Caller Stack Trace & RCX/RDX)] ===
@@ -18,17 +18,25 @@ Operação  : 0x4520c20: cmp byte [flag], imm8 ; fn=0x4520c10..0x4520c72
   === [Decompilacao C++ da Funcao 0x4520c10..0x4520c72] ===
     struct RBX::Soundscape::SoundServiceClient {
       /* +0x0 */ void*   field_0x0;
-      /* +0x8 */ void*   field_0x8;
+      /* +0x8 */ uint64_t field_0x8;
       /* +0x10 */ void*   field_0x10;
     };
     
     // Flag defaults: DebugSoundServiceCloseFmodIssue = false
     void RBX::Soundscape::SoundServiceClient::func_0x4520c10(RBX::Soundscape::SoundServiceClient* this) {
       this->field_0x0 = &sym_0x7136488;
+      if (DebugSoundServiceCloseFmodIssue && this->field_0x8 != 0) {
+        call_0x49710d0("SoundServiceClient destroyed while connected to Service. CLI-56565", &sym_0x6647145);
+        return; // noreturn
+      }
       call_0x4968fd0(&this->field_0x10);
       auto* f_10 = this->field_0x10;
-      if (f_10 != 0 && atomic_fetch_sub(&f_10->field_0x4, 1) == 1) {
-        call_0x496a4e0(this->field_0x10);
+      if (f_10 != 0) {
+        int32_t atomic_3 = atomic_fetch_sub(&f_10->field_0x4, 1);
+        if (atomic_3 == 1) {
+          call_0x496a4e0(this->field_0x10);
+          return;
+        }
       }
     }
   
@@ -80,8 +88,8 @@ Operação  : 0x4520c20: cmp byte [flag], imm8 ; fn=0x4520c10..0x4520c72
   
   === [Decompilacao de Metodo da Classe RBX::Soundscape::SoundServiceClient: 0x4520c80..0x4520cca (vfunc_0x8)] ===
     struct RBX::Soundscape::SoundServiceClient {
-      /* +0x0 */ void*   field_0x0;
-      /* +0x8 */ void*   field_0x8;
+      /* +0x0 */ uint64_t field_0x0;
+      /* +0x8 */ uint64_t field_0x8;
     };
     
     void RBX::Soundscape::SoundServiceClient::func_0x4520c80(RBX::Soundscape::SoundServiceClient* this, int64_t param_2) {
@@ -99,8 +107,8 @@ Operação  : 0x4520c20: cmp byte [flag], imm8 ; fn=0x4520c10..0x4520c72
   
   === [Decompilacao de Metodo da Classe RBX::Soundscape::SoundServiceClient: 0x4520cd0..0x4520dc7 (vfunc_0x10)] ===
     struct RBX::Soundscape::SoundServiceClient {
-      /* +0x0 */ void*   field_0x0;
-      /* +0x8 */ void*   field_0x8;
+      /* +0x0 */ uint64_t field_0x0;
+      /* +0x8 */ uint64_t field_0x8;
     };
     
     void RBX::Soundscape::SoundServiceClient::func_0x4520cd0(RBX::Soundscape::SoundServiceClient* this) {
@@ -112,34 +120,39 @@ Operação  : 0x4520c20: cmp byte [flag], imm8 ; fn=0x4520c10..0x4520c72
         if (this->field_0x8->field_0x218 != 0) {
           int64_t idx_1 = (uint32_t)((uint32_t)this >> 5 ^ this) >> 4 & this->field_0x8->field_0x218 - 1;
           void* v_r8_1 = this->field_0x8->field_0x208 + idx_1 * 8;
-          if (this != (this->field_0x8->field_0x208 + idx_1 * 8)->field_0x0) {
-            void* i_eax = (this->field_0x8->field_0x208 + idx_1 * 8)->field_0x0;
+          int32_t v_r9_2 = 1;
+          if (this != (this->field_0x8->field_0x208 + (idx_1 * 8))->field_0x0) {
+            uint64_t i_eax = (this->field_0x8->field_0x208 + (idx_1 * 8))->field_0x0;
             int32_t i_r9d = 1;
             int32_t i_ecx = (uint32_t)((uint32_t)this >> 5 ^ this) >> 4 & this->field_0x8->field_0x218 - 1;
             int64_t idx_2;
             do { // L_0x4520d50
-              if (i_eax == -0x1000) break;
+              if (i_eax == -0x1000) {
+                break;
+              }
               int32_t prev_i_r9d_2 = i_r9d;
               i_r9d++;
               idx_2 = i_ecx + prev_i_r9d_2 & this->field_0x8->field_0x218 - 1;
-              i_eax = (this->field_0x8->field_0x208 + idx_2 * 8)->field_0x0;
+              i_eax = (this->field_0x8->field_0x208 + (idx_2 * 8))->field_0x0;
               i_ecx = i_ecx + prev_i_r9d_2 & this->field_0x8->field_0x218 - 1;
-            } while (this != (this->field_0x8->field_0x208 + idx_2 * 8)->field_0x0); // loop -> L_0x4520d50
+            } while (this != i_eax); // loop -> L_0x4520d50
+            v_r8_1 = this->field_0x8->field_0x208 + idx_2 * 8;
+            v_r9_2 = i_r9d;
             v_r8_1->field_0x0 = -8192;
             this->field_0x8->field_0x210--;
             this->field_0x8->field_0x214++;
             if (this->field_0x8->field_0x449 != 0) {
-              this->vfunc_0x30(this);
+              this->vfunc_0x30(this, this->field_0x8, v_r8_1, v_r9_2, &this->field_0x8->field_0x220, this->field_0x8->field_0x220);
             }
-            this->vfunc_0x20(this);
+            this->vfunc_0x20(this, &this->field_0x8->field_0x220, this->field_0x8->field_0x220);
           } else {
             v_r8_1->field_0x0 = -8192;
             this->field_0x8->field_0x210--;
             this->field_0x8->field_0x214++;
             if (this->field_0x8->field_0x449 != 0) {
-              this->vfunc_0x30(this);
+              this->vfunc_0x30(this, this->field_0x8, v_r8_1, v_r9_2, &this->field_0x8->field_0x220, this->field_0x8->field_0x220);
             }
-            this->vfunc_0x20(this);
+            this->vfunc_0x20(this, &this->field_0x8->field_0x220, this->field_0x8->field_0x220);
           }
         }
         this->field_0x8->field_0x220 = prev_0x220_1;
@@ -158,4 +171,4 @@ Operação  : 0x4520c20: cmp byte [flag], imm8 ; fn=0x4520c10..0x4520c72
   * DFFlagOpusSendPipelineNoForwardErrorCorrection = false (default) [vizinha em .data]
   * DFFlagOpusSendPipelineNoDiscontinuousTransmission = false (default) [vizinha em .data]
   * DFIntOpusSendPipelineComplexity = 9 (default) [vizinha em .data]
-  * DFIntAudioDriftUpperThresholdMs = 100 (default) [vizinha em .data]
+  * DFIntAudioDriftUpperThresholdMs = 60 (default) [vizinha em .data]
