@@ -1,251 +1,156 @@
 FFlag     : DFLogTrackerAnimationStreamSourceTrace
 RVA .data : 0x80f0818
-XREFs     : 4 total (4 em runtime)
+XREFs     : 2 total (2 em runtime)
 Insn RVA  : 0x1910ead
-Operação  : 0x1910ead: mov/math reg, [flag] ; fn=0x1910e70..0x1911a31
+Operação  : 0x1910ead: mov/math reg, [flag] ; fn=0x1910e70..0x1910fff
 
 [Disassembly .text]
   === [Resumo do Efeito da FFlag no Engine (RBX::TrackerAnimationStreamSource)] ===
     Classe  : RBX::TrackerAnimationStreamSource (RTTI Resolvido)
     Padrão  : DFLogTrackerAnimationStreamSourceTrace = 0 (default) [log, mode=2]
-    Papel   : Parâmetro de configuração lido diretamente pela rotina
+    Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
+    Fórmula : (uint8_t)TrackerAnimationStreamSourceTrace >= 6 && (uint8_t)((uint64_t)TrackerAnimationStreamSourceTrace >> 8) >= 4
+    Fórmula : "[DFLog::TrackerAnimationStreamSourceTrace] open"
   
-  === [Decompilacao C++ da Funcao 0x1910e70..0x1911a31] ===
+  === [Decompilacao C++ da Funcao 0x1910e70..0x1910fff] ===
     struct RBX::TrackerAnimationStreamSource {
-      /* +0x90 */ uint8_t field_0x90;
       /* +0xf8 */ uint64_t field_0xf8;
       /* +0x100 */ void*   field_0x100;
     };
     
-    // Flag defaults: AvatarChatSubsessionAnalyticsV3Trace = 0, AvatarChatSubsessionAnalyticsV4 = false
-    void RBX::TrackerAnimationStreamSource::func_0x1911920(RBX::TrackerAnimationStreamSource* this, int64_t param_2) {
-      if (AvatarChatSubsessionAnalyticsV4 && this->field_0x90 != 0) {
-        void* local_0x20;
-        local_0x20 = 0.0;
-        uint64_t local_0x28;
-        local_0x28 = 0.0;
-        if (this->field_0x100 != 0) {
-          int32_t i_eax = this->field_0x100->field_0x8;
-          if (this->field_0x100->field_0x8 != 0) {
-            do { // L_0x1911962
-              if (atomic_cas(&this->field_0x100->field_0x8, i_eax, i_eax + 1)) {
-                local_0x20 = this->field_0xf8;
-                local_0x28 = this->field_0x100;
-                break;
-              }
-            } while (i_eax != 0); // loop -> L_0x1911962
-          }
-        }
-        if (local_0x20 != 0) {
-          if ((uint8_t)AvatarChatSubsessionAnalyticsV3Trace >= 6 && (uint8_t)((uint64_t)AvatarChatSubsessionAnalyticsV3Trace >> 8) >= 3) {
-            FLog::Log("[DFLog::AvatarChatSubsessionAnalyticsV3Trace] updateTrackerMode: mode: %d", param_2);
-          }
-          uint8_t v_cl_3 = 0;
-          uint8_t v_cl_4;
-          if ((param_2 - 1 & 0xfffffffd) == 0) {
-            if (param_2 != 3) {
-              v_cl_3 = 1;
-              if (param_2 == 2) {
-                L_0x19119f3:
-                v_cl_4 = ((param_2 - 1 & 0xfffffffd) == 0 ? 1 : v_cl_3) | 0x2;
-              } else {
-                v_cl_4 = v_cl_3;
-              }
-            } else {
-              v_cl_4 = ((param_2 - 1 & 0xfffffffd) == 0 ? 1 : v_cl_3) | 0x2;
-            }
-          } else if (param_2 == 2) {
-            goto L_0x19119f3;
-          } else {
-            v_cl_4 = v_cl_3;
-          }
-          atomic_exchange(&local_0x20->field_0xf0, v_cl_4);
-          call_0x18812f0(local_0x20, (param_2 - 1 & 0xfffffffd) == 0);
-        }
-        if (local_0x28 != 0) {
-          tailcall_0x6daf40(local_0x28);
-          return;
-        }
+    // Flag defaults: TrackerAnimationStreamSourceTrace = 0, RealTimeAnimationEnableRefactor = true, Error = 6
+    auto RBX::TrackerAnimationStreamSource::func_0x1910e70(RBX::TrackerAnimationStreamSource* this) {
+      uint64_t local_0x20;
+      uint64_t local_0x48;
+      if ((uint8_t)TrackerAnimationStreamSourceTrace >= 6 && (uint8_t)((uint64_t)TrackerAnimationStreamSourceTrace >> 8) >= 4) {
+        local_0x48 = "[DFLog::TrackerAnimationStreamSourceTrace] open";
+        local_0x20 = 1;
+        FLog::Log("[DFLog::TrackerAnimationStreamSourceTrace] open");
       }
+      if (RealTimeAnimationEnableRefactor) goto L_0x1911162; // [out of decoded window]
+      uint64_t local_0x50;
+      local_0x50 = 0.0;
+      if (this->field_0x100 != 0 && this->field_0x100->field_0x8 != 0) {
+        int32_t i_eax_2 = this->field_0x100->field_0x8;
+        do { // L_0x1910f60
+          if (atomic_cas(&this->field_0x100->field_0x8, i_eax_2, i_eax_2 + 1)) {
+            local_0x50 = this->field_0xf8;
+            break;
+          }
+        } while (i_eax_2 != 0); // loop -> L_0x1910f60
+      }
+      if (local_0x50 == 0) {
+        if ((uint8_t)Error < 6) goto L_0x1911153; // [out of decoded window]
+        if ((uint8_t)((uint64_t)Error >> 8) < 3) goto L_0x1911153; // [out of decoded window]
+        local_0x48 = "[FLog::Error] [TrackerAnimationStreamSource::open] Failed to open - failed to resolve face animator service.";
+        local_0x20 = 0;
+        FLog::Log("[FLog::Error] [TrackerAnimationStreamSource::open] Failed to open - failed to resolve face animator service.");
+        return tailcall_0x1911153();
+      }
+      if (RealTimeAnimationEnableRefactor) goto L_0x1911017; // [out of decoded window]
+      return; // noreturn
     }
   
   === [Instrucoes x86-64 Decodificadas (Alinhadas por RVA & Bytes)] ===
-    0x1911920 | 40 53                    | push rbx
-    0x1911922 | 48 83 ec 40              | sub rsp, 0x40
-    0x1911926 | 8b da                    | mov ebx, edx
-    0x1911928 | 48 8b d1                 | mov rdx, rcx
-    0x191192b | 80 3d 16 e6 7d 06 00     | cmp byte ptr [rip + 0x67de616], 0x0 ; FFlagAvatarChatSubsessionAnalyticsV4
-    0x1911932 | 0f 84 f3 00 00 00        | je 0x1911a2b ; [Nanomite Reconstructed: je +0xf3 via cfg_near_jcc_sibling_resolver]
-    0x1911938 | 80 b9 90 00 00 00 00     | cmp byte ptr [rcx + 0x90], 0x0
-    0x191193f | 0f 84 e6 00 00 00        | je 0x1911a2b
-    0x1911945 | 0f 57 c0                 | xorps xmm0, xmm0
-    0x1911948 | f3 0f 7f 44 24 20        | movdqu xmmword ptr [rsp + 0x20], xmm0
-    0x191194e | 4c 8b 81 00 01 00 00     | mov r8, qword ptr [rcx + 0x100]
-    0x1911955 | 4d 85 c0                 | test r8, r8
-    0x1911958 | 74 31                    | je 0x191198b
-    0x191195a | 41 8b 40 08              | mov eax, dword ptr [r8 + 0x8]
-    0x191195e | 85 c0                    | test eax, eax
-    0x1911960 | 74 29                    | je 0x191198b
-    L_0x1911962:
-    0x1911962 | 8d 48 01                 | lea ecx, [rax + 0x1]
-    0x1911965 | f0 41 0f b1 48 08        | lock cmpxchg dword ptr [r8 + 0x8], ecx
-    0x191196b | 74 06                    | je 0x1911973
-    0x191196d | 85 c0                    | test eax, eax
-    0x191196f | 75 f1                    | jne 0x1911962
-    0x1911971 | eb 18                    | jmp 0x191198b
-    L_0x1911973:
-    0x1911973 | 48 8b 82 f8 00 00 00     | mov rax, qword ptr [rdx + 0xf8]
-    0x191197a | 48 89 44 24 20           | mov qword ptr [rsp + 0x20], rax
-    0x191197f | 48 8b 82 00 01 00 00     | mov rax, qword ptr [rdx + 0x100]
-    0x1911986 | 48 89 44 24 28           | mov qword ptr [rsp + 0x28], rax
-    L_0x191198b:
-    0x191198b | 48 83 7c 24 20 00        | cmp qword ptr [rsp + 0x20], 0x0
-    0x1911991 | 0f 84 80 00 00 00        | je 0x1911a17
-    0x1911997 | 48 8b 05 f2 e5 7d 06     | mov rax, qword ptr [rip + 0x67de5f2] ; DFLogAvatarChatSubsessionAnalyticsV3Trace
-    0x191199e | 3c 06                    | cmp al, 0x6
-    0x19119a0 | 72 39                    | jb 0x19119db
-    0x19119a2 | 48 c1 e8 08              | shr rax, 0x8
-    0x19119a6 | 3c 03                    | cmp al, 0x3
-    0x19119a8 | 72 31                    | jb 0x19119db
-    0x19119aa | 48 8d 05 8f b5 ee 05     | lea rax, [rip + 0x5eeb58f] ; "[DFLog::AvatarChatSubsessionAnalyticsV3Trace] updateTrackerMode: mode: %d"
-    0x19119b1 | 48 89 44 24 60           | mov qword ptr [rsp + 0x60], rax
-    0x19119b6 | 48 8b 54 24 60           | mov rdx, qword ptr [rsp + 0x60]
-    0x19119bb | 48 81 ea e0 21 5a 00     | sub rdx, 0x5a21e0
-    0x19119c2 | 0f 10 05 c7 e5 7d 06     | movups xmm0, xmmword ptr [rip + 0x67de5c7] ; DFLogAvatarChatSubsessionAnalyticsV3Trace
-    0x19119c9 | 0f 29 44 24 30           | movaps xmmword ptr [rsp + 0x30], xmm0
-    0x19119ce | 44 8b c3                 | mov r8d, ebx
-    0x19119d1 | 48 8d 4c 24 30           | lea rcx, [rsp + 0x30]
-    0x19119d6 | e8 b5 00 06 03           | call 0x4971a90
-    L_0x19119db:
-    0x19119db | 32 c9                    | xor cl, cl
-    0x19119dd | 8d 43 ff                 | lea eax, [rbx - 0x1]
-    0x19119e0 | a9 fd ff ff ff           | test eax, 0xfffffffd
-    0x19119e5 | 75 07                    | jne 0x19119ee
-    0x19119e7 | b1 01                    | mov cl, 0x1
-    0x19119e9 | 83 fb 03                 | cmp ebx, 0x3
-    0x19119ec | 74 05                    | je 0x19119f3
-    L_0x19119ee:
-    0x19119ee | 83 fb 02                 | cmp ebx, 0x2
-    0x19119f1 | 75 03                    | jne 0x19119f6
-    L_0x19119f3:
-    0x19119f3 | 80 c9 02                 | or cl, 0x2
-    L_0x19119f6:
-    0x19119f6 | 48 8b 44 24 20           | mov rax, qword ptr [rsp + 0x20]
-    0x19119fb | 86 88 f0 00 00 00        | xchg byte ptr [rax + 0xf0], cl
-    0x1911a01 | 8d 43 ff                 | lea eax, [rbx - 0x1]
-    0x1911a04 | a9 fd ff ff ff           | test eax, 0xfffffffd
-    0x1911a09 | 0f 94 c2                 | sete dl
-    0x1911a0c | 48 8b 4c 24 20           | mov rcx, qword ptr [rsp + 0x20]
-    0x1911a11 | e8 da f8 f6 ff           | call 0x18812f0
-    0x1911a16 | 90                       | nop
-    L_0x1911a17:
-    0x1911a17 | 48 8b 4c 24 28           | mov rcx, qword ptr [rsp + 0x28]
-    0x1911a1c | 48 85 c9                 | test rcx, rcx
-    0x1911a1f | 74 0a                    | je 0x1911a2b
-    0x1911a21 | 48 83 c4 40              | add rsp, 0x40
-    0x1911a25 | 5b                       | pop rbx
-    0x1911a26 | e9 15 95 dc fe           | jmp 0x6daf40
-    L_0x1911a2b:
-    0x1911a2b | 48 83 c4 40              | add rsp, 0x40
-    0x1911a2f | 5b                       | pop rbx
-    0x1911a30 | c3                       | ret
-  
-  === [Sub-Rotina Chamada: 0x1910150..0x19101ce via call @0x19111bc (Direct Engine Sub-Call)] ===
-    struct SubObj_0x1910150 {
-      /* +0x8 */ uint64_t field_0x8;
-      /* +0xa8 */ uint64_t field_0xa8;
-    };
-    
-    void SubObj_0x1910150::func_0x1910150(SubObj_0x1910150* this, int64_t param_2, int64_t param_3) {
-      call_0x2e12fd0(&this->field_0xa8);
-      this->field_0x8 = param_2;
-      call_0x19104c0(&this->field_0x10, param_3);
-      if (this->field_0xa8 != 3 || !atomic_cas(&this->field_0xa8, this->field_0xa8, 1)) {
-        call_0xdac0(&this->field_0xa8);
-      }
-    }
-  
-  === [Instrucoes x86-64 da Sub-Rotina Chamada (0x1910150..0x19101ce)] ===
-    0x1910150 | 48 89 5c 24 10           | mov qword ptr [rsp + 0x10], rbx
-    0x1910155 | 48 89 74 24 18           | mov qword ptr [rsp + 0x18], rsi
-    0x191015a | 48 89 7c 24 20           | mov qword ptr [rsp + 0x20], rdi
-    0x191015f | 41 56                    | push r14
-    0x1910161 | 48 83 ec 30              | sub rsp, 0x30
-    0x1910165 | 49 8b f0                 | mov rsi, r8
-    0x1910168 | 48 8b da                 | mov rbx, rdx
-    0x191016b | 48 8b f9                 | mov rdi, rcx
-    0x191016e | 4c 8d b1 a8 00 00 00     | lea r14, [rcx + 0xa8]
-    0x1910175 | 4c 89 74 24 20           | mov qword ptr [rsp + 0x20], r14
-    0x191017a | c6 44 24 28 01           | mov byte ptr [rsp + 0x28], 0x1
-    0x191017f | 49 8b ce                 | mov rcx, r14
-    0x1910182 | e8 49 2e 50 01           | call 0x2e12fd0
-    0x1910187 | 90                       | nop
-    0x1910188 | 48 89 5f 08              | mov qword ptr [rdi + 0x8], rbx
-    0x191018c | 48 8d 4f 10              | lea rcx, [rdi + 0x10]
-    0x1910190 | 48 8b d6                 | mov rdx, rsi
-    0x1910193 | e8 28 03 00 00           | call 0x19104c0
-    0x1910198 | 90                       | nop
-    0x1910199 | 49 8b 06                 | mov rax, qword ptr [r14]
-    0x191019c | 90                       | nop
-    0x191019d | 48 83 f8 03              | cmp rax, 0x3
-    0x19101a1 | 75 0c                    | jne 0x19101af
-    0x19101a3 | b9 01 00 00 00           | mov ecx, 0x1
-    0x19101a8 | f0 49 0f b1 0e           | lock cmpxchg qword ptr [r14], rcx
-    0x19101ad | 74 09                    | je 0x19101b8
-    L_0x19101af:
-    0x19101af | 49 8b ce                 | mov rcx, r14
-    0x19101b2 | e8 09 d9 6f fe           | call 0xdac0
-    0x19101b7 | 90                       | nop
-    L_0x19101b8:
-    0x19101b8 | 48 8b 5c 24 48           | mov rbx, qword ptr [rsp + 0x48]
-    0x19101bd | 48 8b 74 24 50           | mov rsi, qword ptr [rsp + 0x50]
-    0x19101c2 | 48 8b 7c 24 58           | mov rdi, qword ptr [rsp + 0x58]
-    0x19101c7 | 48 83 c4 30              | add rsp, 0x30
-    0x19101cb | 41 5e                    | pop r14
-    0x19101cd | c3                       | ret
-  
-  === [Sub-Rotina Chamada: 0x1911fc0..0x1911fff via call @0x19111dc (Direct Engine Sub-Call)] ===
-    struct SubObj_0x1911fc0 {
-      /* +0x0 */ uint64_t field_0x0;
-      /* +0x8 */ void*   field_0x8;
-    };
-    
-    void SubObj_0x1911fc0::func_0x1911fc0(SubObj_0x1911fc0* this, void* param_2) {
-      this->field_0x0 = 0;
-      this->field_0x8 = 0;
-      if (param_2->field_0x8 == 0) goto L_0x1912017; // [out of decoded window]
-      this->field_0x8 = param_2->field_0x8;
-      param_2->field_0x8->field_0xc++;
-      int32_t i_eax = this->field_0x8->field_0x8;
-      if (this->field_0x8->field_0x8 == 0) goto L_0x1912017; // [out of decoded window]
-      do { // L_0x1911ff1
-        if (atomic_cas(&this->field_0x8->field_0x8, i_eax, (i_eax + 1))) goto L_0x1912008; // [out of decoded window]
-      } while (i_eax != 0); // loop -> L_0x1911ff1
-    }
-  
-  === [Instrucoes x86-64 da Sub-Rotina Chamada (0x1911fc0..0x1911fff)] ===
-    0x1911fc0 | 40 53                    | push rbx
-    0x1911fc2 | 48 83 ec 20              | sub rsp, 0x20
-    0x1911fc6 | 33 c0                    | xor eax, eax
-    0x1911fc8 | 4c 8b c2                 | mov r8, rdx
-    0x1911fcb | 48 89 01                 | mov qword ptr [rcx], rax
-    0x1911fce | 48 8b d9                 | mov rbx, rcx
-    0x1911fd1 | 48 89 41 08              | mov qword ptr [rcx + 0x8], rax
-    0x1911fd5 | 48 8b 42 08              | mov rax, qword ptr [rdx + 0x8]
-    0x1911fd9 | 48 85 c0                 | test rax, rax
-    0x1911fdc | 74 39                    | je 0x1912017
-    0x1911fde | 48 89 41 08              | mov qword ptr [rcx + 0x8], rax
-    0x1911fe2 | f0 ff 40 0c              | lock inc dword ptr [rax + 0xc]
-    0x1911fe6 | 48 8b 51 08              | mov rdx, qword ptr [rcx + 0x8]
-    0x1911fea | 8b 42 08                 | mov eax, dword ptr [rdx + 0x8]
-    0x1911fed | 85 c0                    | test eax, eax
-    0x1911fef | 74 26                    | je 0x1912017
-    L_0x1911ff1:
-    0x1911ff1 | 8d 48 01                 | lea ecx, [rax + 0x1]
-    0x1911ff4 | f0 0f b1 4a 08           | lock cmpxchg dword ptr [rdx + 0x8], ecx
-    0x1911ff9 | 74 0d                    | je 0x1912008
-    0x1911ffb | 85 c0                    | test eax, eax
-    0x1911ffd | 75 f2                    | jne 0x1911ff1
+    0x1910e70 | 48 89 5c 24 10           | mov qword ptr [rsp + 0x10], rbx
+    0x1910e75 | 48 89 74 24 18           | mov qword ptr [rsp + 0x18], rsi
+    0x1910e7a | 48 89 7c 24 20           | mov qword ptr [rsp + 0x20], rdi
+    0x1910e7f | 55                       | push rbp
+    0x1910e80 | 41 56                    | push r14
+    0x1910e82 | 41 57                    | push r15
+    0x1910e84 | 48 8d 6c 24 f0           | lea rbp, [rsp - 0x10]
+    0x1910e89 | 48 81 ec 10 01 00 00     | sub rsp, 0x110
+    0x1910e90 | 48 8b 05 49 78 7c 06     | mov rax, qword ptr [rip + 0x67c7849]
+    0x1910e97 | 48 33 c4                 | xor rax, rsp
+    0x1910e9a | 48 89 45 00              | mov qword ptr [rbp], rax
+    0x1910e9e | 48 8b f9                 | mov rdi, rcx
+    0x1910ea1 | 45 33 ff                 | xor r15d, r15d
+    0x1910ea4 | 44 89 7c 24 40           | mov dword ptr [rsp + 0x40], r15d
+    0x1910ea9 | 49 8d 77 ff              | lea rsi, [r15 - 0x1]
+    0x1910ead | 48 8b 05 64 f9 7d 06     | mov rax, qword ptr [rip + 0x67df964] ; DFLogTrackerAnimationStreamSourceTrace
+    0x1910eb4 | 3c 06                    | cmp al, 0x6
+    0x1910eb6 | 72 76                    | jb 0x1910f2e
+    0x1910eb8 | 48 c1 e8 08              | shr rax, 0x8
+    0x1910ebc | 3c 04                    | cmp al, 0x4
+    0x1910ebe | 72 6e                    | jb 0x1910f2e
+    0x1910ec0 | 48 8d 05 65 5b a8 05     | lea rax, [rip + 0x5a85b65] ; "[DFLog::TrackerAnimationStreamSourceTrace] open"
+    0x1910ec7 | 48 89 44 24 48           | mov qword ptr [rsp + 0x48], rax
+    0x1910ecc | 48 8b 4c 24 48           | mov rcx, qword ptr [rsp + 0x48]
+    0x1910ed1 | 48 81 c1 24 8a ec ff     | add rcx, 0xffec8a24
+    0x1910ed8 | 48 89 4d 90              | mov qword ptr [rbp - 0x70], rcx
+    0x1910edc | 48 8b c6                 | mov rax, rsi
+    0x1910edf | 90                       | nop
+    L_0x1910ee0:
+    0x1910ee0 | 48 ff c0                 | inc rax
+    0x1910ee3 | 44 38 3c 01              | cmp byte ptr [rcx + rax], r15b
+    0x1910ee7 | 75 f7                    | jne 0x1910ee0
+    0x1910ee9 | 48 89 45 98              | mov qword ptr [rbp - 0x68], rax
+    0x1910eed | 4c 89 7d 80              | mov qword ptr [rbp - 0x80], r15
+    0x1910ef1 | 48 8d 45 f0              | lea rax, [rbp - 0x10]
+    0x1910ef5 | 48 89 45 88              | mov qword ptr [rbp - 0x78], rax
+    0x1910ef9 | 0f 28 45 80              | movaps xmm0, xmmword ptr [rbp - 0x80]
+    0x1910efd | 66 0f 7f 45 a0           | movdqa xmmword ptr [rbp - 0x60], xmm0
+    0x1910f02 | 0f 28 4d 90              | movaps xmm1, xmmword ptr [rbp - 0x70]
+    0x1910f06 | 66 0f 7f 4d b0           | movdqa xmmword ptr [rbp - 0x50], xmm1
+    0x1910f0b | 0f 10 05 06 f9 7d 06     | movups xmm0, xmmword ptr [rip + 0x67df906] ; DFLogTrackerAnimationStreamSourceTrace
+    0x1910f12 | 0f 29 45 c0              | movaps xmmword ptr [rbp - 0x40], xmm0
+    0x1910f16 | c6 44 24 20 01           | mov byte ptr [rsp + 0x20], 0x1
+    0x1910f1b | 4c 8d 4d a0              | lea r9, [rbp - 0x60]
+    0x1910f1f | 4c 8d 45 b0              | lea r8, [rbp - 0x50]
+    0x1910f23 | b2 04                    | mov dl, 0x4
+    0x1910f25 | 48 8d 4d c0              | lea rcx, [rbp - 0x40]
+    0x1910f29 | e8 a2 0d 06 03           | call 0x4971cd0
+    L_0x1910f2e:
+    0x1910f2e | 44 38 3d b3 f8 7d 06     | cmp byte ptr [rip + 0x67df8b3], r15b ; FFlagRealTimeAnimationEnableRefactor
+    0x1910f35 | 0f 85 27 02 00 00        | jne 0x1911162
+    0x1910f3b | 0f 57 c0                 | xorps xmm0, xmm0
+    0x1910f3e | f3 0f 7f 44 24 50        | movdqu xmmword ptr [rsp + 0x50], xmm0
+    0x1910f44 | 48 8b 97 00 01 00 00     | mov rdx, qword ptr [rdi + 0x100]
+    0x1910f4b | 48 85 d2                 | test rdx, rdx
+    0x1910f4e | 74 38                    | je 0x1910f88
+    0x1910f50 | 8b 42 08                 | mov eax, dword ptr [rdx + 0x8]
+    0x1910f53 | 85 c0                    | test eax, eax
+    0x1910f55 | 74 31                    | je 0x1910f88
+    0x1910f57 | 66 0f 1f 84 00 00 00 00.. | nop
+    L_0x1910f60:
+    0x1910f60 | 8d 48 01                 | lea ecx, [rax + 0x1]
+    0x1910f63 | f0 0f b1 4a 08           | lock cmpxchg dword ptr [rdx + 0x8], ecx
+    0x1910f68 | 74 06                    | je 0x1910f70
+    0x1910f6a | 85 c0                    | test eax, eax
+    0x1910f6c | 75 f2                    | jne 0x1910f60
+    0x1910f6e | eb 18                    | jmp 0x1910f88
+    L_0x1910f70:
+    0x1910f70 | 48 8b 87 f8 00 00 00     | mov rax, qword ptr [rdi + 0xf8]
+    0x1910f77 | 48 89 44 24 50           | mov qword ptr [rsp + 0x50], rax
+    0x1910f7c | 48 8b 87 00 01 00 00     | mov rax, qword ptr [rdi + 0x100]
+    0x1910f83 | 48 89 44 24 58           | mov qword ptr [rsp + 0x58], rax
+    L_0x1910f88:
+    0x1910f88 | 48 83 7c 24 50 00        | cmp qword ptr [rsp + 0x50], 0x0
+    0x1910f8e | 75 61                    | jne 0x1910ff1
+    0x1910f90 | 48 8b 05 e1 bb 82 06     | mov rax, qword ptr [rip + 0x682bbe1] ; FLogError
+    0x1910f97 | 3c 06                    | cmp al, 0x6
+    0x1910f99 | 0f 82 b4 01 00 00        | jb 0x1911153
+    0x1910f9f | 48 c1 e8 08              | shr rax, 0x8
+    0x1910fa3 | 3c 03                    | cmp al, 0x3
+    0x1910fa5 | 0f 82 a8 01 00 00        | jb 0x1911153
+    0x1910fab | 48 8d 05 12 67 aa 05     | lea rax, [rip + 0x5aa6712] ; "[FLog::Error] [TrackerAnimationStreamSource::open] Failed to open - failed to resolve face animator service."
+    0x1910fb2 | 48 89 44 24 48           | mov qword ptr [rsp + 0x48], rax
+    0x1910fb7 | 48 8b 54 24 48           | mov rdx, qword ptr [rsp + 0x48]
+    0x1910fbc | 48 81 ea 44 82 15 00     | sub rdx, 0x158244
+    0x1910fc3 | 0f 10 05 ae bb 82 06     | movups xmm0, xmmword ptr [rip + 0x682bbae] ; FLogError
+    0x1910fca | 0f 29 45 d0              | movaps xmmword ptr [rbp - 0x30], xmm0
+    0x1910fce | 4c 89 7c 24 30           | mov qword ptr [rsp + 0x30], r15
+    0x1910fd3 | 4c 89 7c 24 28           | mov qword ptr [rsp + 0x28], r15
+    0x1910fd8 | 4c 89 7c 24 20           | mov qword ptr [rsp + 0x20], r15
+    0x1910fdd | 45 33 c9                 | xor r9d, r9d
+    0x1910fe0 | 45 33 c0                 | xor r8d, r8d
+    0x1910fe3 | 48 8d 4d d0              | lea rcx, [rbp - 0x30]
+    0x1910fe7 | e8 34 10 06 03           | call 0x4972020
+    0x1910fec | e9 62 01 00 00           | jmp 0x1911153
+    L_0x1910ff1:
+    0x1910ff1 | 80 3d f0 f7 7d 06 00     | cmp byte ptr [rip + 0x67df7f0], 0x0 ; FFlagRealTimeAnimationEnableRefactor
+    0x1910ff8 | 75 1d                    | jne 0x1911017
+    0x1910ffa | 48 8b 44 24 50           | mov rax, qword ptr [rsp + 0x50]
   
   === [Estrutura RTTI & VTable da Classe (RBX::TrackerAnimationStreamSource)] ===
     VTable  : 0x702e9c0 (offset +0x0, 10 slots virtuais)
@@ -316,20 +221,14 @@ Operação  : 0x1910ead: mov/math reg, [flag] ; fn=0x1910e70..0x1911a31
 [Strings .rdata na função]
   * "[DFLog::TrackerAnimationStreamSourceTrace] open"  [@rdata 0x725f450, ref @0x1910ed1, FLog format]
   * "[FLog::Error] [TrackerAnimationStreamSource::open] Failed to open - failed to resolve face anima"  [@rdata 0x725f480, ref @0x1910fbc, FLog format]
-  * "[DFLog::TrackerAnimationStreamSourceTrace] close"  [@rdata 0x725f3e8, ref @0x191155e, FLog format]
-  * "[DFLog::AvatarChatSubsessionAnalyticsV3Trace] updateTrackerMode: mode: %d"  [@rdata 0x725ad60, ref @0x19119bb, FLog format]
 
 [Co-Flags na mesma função]
   * FFlagRealTimeAnimationEnableRefactor = true (default)
   * FLogError = 6 (default)
-  * FFlagDebugHashTableMetrics = false (default)
-  * FFlagNextGenReplicatorEnabledWrite4 = true (default)
-  * FFlagEnableAvatarFacechatReplOverRCCTelemetry = false (default)
-  * FFlagAvatarChatSubsessionAnalyticsV4 = false (default)
-  * DFLogAvatarChatSubsessionAnalyticsV3Trace = 0 (default)
   * FLogAnimatingEverythingLog = 0 (default) [vizinha em .data]
   * FFlagAnimatingEverything_dev = false (default) [vizinha em .data]
   * FIntRealTimeAnimationQueueProcessorStackSize = 262144 (default) [vizinha em .data]
+  * FFlagEnableAvatarFacechatReplOverRCCTelemetry = false (default) [vizinha em .data]
   * DFLogRemoteAnimationStreamSourceTrace = 0 (default) [vizinha em .data]
   * DFIntTrackerFacsMaskWeightHundredthsPercent = 7500 (default) [vizinha em .data]
   * DFIntAvatarFaceChatSDKFailedSetLodThrottleHundrethsPercent = 0 (default) [vizinha em .data]

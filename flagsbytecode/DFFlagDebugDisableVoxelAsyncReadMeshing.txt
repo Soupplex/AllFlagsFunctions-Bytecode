@@ -117,7 +117,7 @@ Operação  : 0x380e032: cmp byte [flag], imm8 ; fn=0x380e032..0x380e415
                   v_rax_7 = -1;
                 } else {
                   void* prev_0x0_2 = ret_0x29a1bc0_15->field_0x0;
-                  auto vret_16 = (*global_0x816d648->field_0x26d5a0)(ret_0x29a1bc0_15->field_0x0->field_0x30);
+                  auto vret_16 = (*global_0x816d648->field_0x26d5a0)(prev_0x0_2->field_0x30);
                   v_rax_7 = vret_16;
                   v_rbx_8 = prev_0x0_2;
                 }

@@ -8,7 +8,7 @@ Operação  : 0x3b70c91: mov/math reg, [flag] ; fn=0x3b70b00..0x3b70cde [via DFI
   === [Aviso: Sem XREF runtime direto — contexto inferido via flag vizinha DFIntHttpRbxApiJobFrequencyInSeconds] ===
   === [Resumo do Efeito da FFlag no Engine (RBX::HttpRbxApiJob)] ===
     Classe  : RBX::HttpRbxApiJob (RTTI Resolvido)
-    Padrão  : DFIntHttpRbxApiJobFrequencyInSeconds = 1 (default) [int, mode=2]
+    Padrão  : DFIntHttpRbxApiMaxRetryQueueSize = 100 (default) [int, mode=2] (0 XREFs diretos; rotina via DFIntHttpRbxApiJobFrequencyInSeconds)
     Papel   : Divisor / Taxa de frequência (Hz) usado em cálculos de intervalo e orçamento
     Fórmula : (double)(1.0f / (float)HttpRbxApiJobFrequencyInSeconds)
     Altera  : this->httpRbxApiJobFrequencyInSeconds_0x1c0, this->httpRbxApiJobFrequencyInSeconds_0x1c8, this->field_0x0, this->field_0x1b0, this->field_0x1b8
@@ -99,9 +99,9 @@ Operação  : 0x3b70c91: mov/math reg, [flag] ; fn=0x3b70b00..0x3b70cde [via DFI
       if ((int8_t)(v_rbx_1 | v_r8_4) < 0) {
         if (local_0x48 != 0) {
           call_0x6daf40(local_0x48);
-          v_rbx_5 = (v_rbx_1 | v_r8_4) & ~(1ULL << 7);
+          v_rbx_5 = (v_rbx_1 | v_r8_4) & ~128;
         } else {
-          v_rbx_5 = (v_rbx_1 | v_r8_4) & ~(1ULL << 7);
+          v_rbx_5 = (v_rbx_1 | v_r8_4) & ~128;
         }
       }
       if (((uint8_t)v_rbx_5 & 0x40) != 0 && local_0x58 != 0) {
@@ -484,33 +484,28 @@ Operação  : 0x3b70c91: mov/math reg, [flag] ; fn=0x3b70b00..0x3b70cde [via DFI
         uint64_t local_0xa8;
         uint64_t local_0x98;
         uint64_t local_0x28;
-        auto expr_2 = (float)HttpRbxApiJobFrequencyInSeconds / 60.0f;
-        auto expr_3 = (uint64_t)HttpRbxApiBudget >> 8;
+        auto expr_1 = (float)HttpRbxApiJobFrequencyInSeconds / 60.0f;
         if (ret_0x40625d0_2 != 0) {
           if (ret_0x40625d0_2->field_0x985 == 0) {
             if (this->field_0x1b0->field_0x1ca != 0) {
               L_0x3b70dd6:
               auto ret_0x3b7d2d0_3 = call_0x3b7d2d0(prev_0x1b0_2);
               float ftmp_2 = (float)(ret_0x3b7d2d0_3 * HttpRbxApiRequestsPerMinutePerPlayerInServerLimit + HttpRbxApiRequestsPerMinuteServerLimit);
-              float ftmp_3 = ftmp_2 * expr_2;
+              float ftmp_3 = ftmp_2 * expr_1;
               auto* f_1b0 = this->field_0x1b0;
-              f_1b0->field_0xa8 = min(ftmp_2, ftmp_3 + f_1b0->field_0xa8);
-              f_1b0->field_0xac = min(ftmp_2, ftmp_3 + f_1b0->field_0xac);
-              if ((uint8_t)HttpRbxApiBudget >= 6 && (uint8_t)expr_3 >= 3) {
+              float prev_0xa8_3 = f_1b0->field_0xa8;
+              f_1b0->field_0xa8 = min(ftmp_2, ftmp_3 + prev_0xa8_3);
+              float prev_0xac_4 = f_1b0->field_0xac;
+              f_1b0->field_0xac = min(ftmp_2, ftmp_3 + prev_0xac_4);
+              if ((uint8_t)HttpRbxApiBudget >= 6 && (uint8_t)((uint64_t)HttpRbxApiBudget >> 8) >= 3) {
                 local_0xa8 = ftmp_3;
-                local_0x90 = "[FLog::HttpRbxApiBudget] Adding budget %f, default budget is at: %f, elevated budget is at: %f";
                 local_0x98 = f_1b0->field_0xac;
-                void* mem_3_3 = local_0x90;
                 local_0x90 = 0;
                 local_0x30 = local_0x90;
                 local_0x28 = local_0x98;
                 local_0xa0 = f_1b0->field_0xa8;
                 local_0x20 = local_0xa0;
-                auto local_0x40 = HttpRbxApiBudget;
-                auto local_0x44 = *(uint32_t*)((uint8_t*)&HttpRbxApiBudget + 0x4);
-                auto local_0x48 = *(uint32_t*)((uint8_t*)&HttpRbxApiBudget + 0x8);
-                auto local_0x4c = *(uint32_t*)((uint8_t*)&HttpRbxApiBudget + 0xc);
-                call_0x4972020(&local_0x40, mem_3_3 - 0x1477f73, 0xffff10adULL, local_0xa8, local_0xa0, local_0x98, local_0x90);
+                FLog::Log("[FLog::HttpRbxApiBudget] Adding budget %f, default budget is at: %f, elevated budget is at: %f", 0xffff10adULL, local_0xa8);
               }
             }
           } else {
@@ -519,82 +514,69 @@ Operação  : 0x3b70c91: mov/math reg, [flag] ; fn=0x3b70b00..0x3b70cde [via DFI
         } else if (this->field_0x1b0->field_0x1ca != 0) {
           goto L_0x3b70dd6;
         }
-        auto ret_0x40625d0_5 = call_0x40625d0(prev_0x1b0_2);
-        if (ret_0x40625d0_5 != 0) {
-          float ftmp_5;
-          float ftmp_4;
-          auto expr_1 = HttpRbxApiMaxBudgetMultiplier * HttpRbxApiClientPerMinuteRequestLimit;
-          if (ret_0x40625d0_5->field_0xa44 == 0) {
+        auto ret_0x40625d0_4 = call_0x40625d0(prev_0x1b0_2);
+        if (ret_0x40625d0_4 != 0) {
+          if (ret_0x40625d0_4->field_0xa44 == 0) {
             auto* f_1b0_2 = this->field_0x1b0;
             if (f_1b0_2->field_0x1ca != 0) {
               L_0x3b70f04:
-              ftmp_4 = (float)HttpRbxApiClientPerMinuteRequestLimit * expr_2;
-              ftmp_5 = (float)expr_1;
-              f_1b0_2->field_0xb0 = min(ftmp_5, ftmp_4 + f_1b0_2->field_0xb0);
-              if ((uint8_t)HttpRbxApiBudget >= 6 && (uint8_t)expr_3 >= 3) {
-                L_0x3b70f57:
+              float ftmp_4 = (float)HttpRbxApiClientPerMinuteRequestLimit * expr_1;
+              float ftmp_5 = (float)(HttpRbxApiMaxBudgetMultiplier * HttpRbxApiClientPerMinuteRequestLimit);
+              float prev_0xb0_5 = f_1b0_2->field_0xb0;
+              f_1b0_2->field_0xb0 = min(ftmp_5, ftmp_4 + prev_0xb0_5);
+              if ((uint8_t)HttpRbxApiBudget >= 6 && (uint8_t)((uint64_t)HttpRbxApiBudget >> 8) >= 3) {
                 local_0xa8 = ftmp_4;
-                local_0x90 = "[FLog::HttpRbxApiBudget] Adding budget %f, client budget is at: %f";
-                void* mem_4_4 = local_0x90;
                 local_0x90 = 0;
                 local_0x30 = local_0x90;
                 local_0xa0 = f_1b0_2->field_0xb0;
                 local_0x98 = 0;
                 local_0x28 = local_0x98;
                 local_0x20 = local_0xa0;
-                auto local_0x50 = HttpRbxApiBudget;
-                auto local_0x54 = *(uint32_t*)((uint8_t*)&HttpRbxApiBudget + 0x4);
-                auto local_0x58 = *(uint32_t*)((uint8_t*)&HttpRbxApiBudget + 0x8);
-                auto local_0x5c = *(uint32_t*)((uint8_t*)&HttpRbxApiBudget + 0xc);
-                call_0x4972020(&local_0x50, mem_4_4 - 0x1498bdb, 0xffff10adULL, local_0xa8, local_0xa0, local_0x98, local_0x90);
+                FLog::Log("[FLog::HttpRbxApiBudget] Adding budget %f, client budget is at: %f", 0xffff10adULL, local_0xa8);
               }
             }
           } else {
-            ftmp_4 = (float)HttpRbxApiClientPerMinuteRequestLimit * expr_2;
-            ftmp_5 = (float)expr_1;
-            this->field_0x1b0->field_0xb0 = min(ftmp_5, ftmp_4 + this->field_0x1b0->field_0xb0);
-            if ((uint8_t)HttpRbxApiBudget >= 6 && (uint8_t)expr_3 >= 3) {
-              goto L_0x3b70f57;
-            }
+            goto L_0x3b70f04;
           }
         } else if (this->field_0x1b0->field_0x1ca != 0) {
           goto L_0x3b70f04;
         }
         if (!HttpRbxApiRemoveAsyncRetryQueue) {
-          float ftmp_6 = (float)HttpRbxApiMaxRetryBudgetPerMinute * expr_2;
-          this->field_0x1b0->field_0xb4 = min((float)HttpRbxApiMaxRetryBudgetPerMinute, ftmp_6 + this->field_0x1b0->field_0xb4);
+          float ftmp_6 = (float)HttpRbxApiMaxRetryBudgetPerMinute * expr_1;
+          float prev_0xb4_6 = this->field_0x1b0->field_0xb4;
+          this->field_0x1b0->field_0xb4 = min((float)HttpRbxApiMaxRetryBudgetPerMinute, ftmp_6 + prev_0xb4_6);
         }
-        void* prev_0x1b0_5 = this->field_0x1b0;
-        auto ret_0x40625d0_7 = call_0x40625d0(prev_0x1b0_5);
-        if (ret_0x40625d0_7 != 0) {
-          if (ret_0x40625d0_7->field_0x985 == 0) {
+        void* prev_0x1b0_7 = this->field_0x1b0;
+        auto ret_0x40625d0_5 = call_0x40625d0(prev_0x1b0_7);
+        if (ret_0x40625d0_5 != 0) {
+          if (ret_0x40625d0_5->field_0x985 == 0) {
             auto* f_1b0_3 = this->field_0x1b0;
             if (f_1b0_3->field_0x1ca != 0) {
               L_0x3b71047:
-              call_0x3b7e3d0(prev_0x1b0_5, &f_1b0_3->field_0xb8, &f_1b0_3->field_0xa8);
+              call_0x3b7e3d0(prev_0x1b0_7, &f_1b0_3->field_0xb8, &f_1b0_3->field_0xa8);
               auto* f_1b0_4 = this->field_0x1b0;
-              call_0x3b7e3d0(prev_0x1b0_5, &f_1b0_4->field_0xe8, &f_1b0_4->field_0xac);
+              call_0x3b7e3d0(prev_0x1b0_7, &f_1b0_4->field_0xe8, &f_1b0_4->field_0xac);
             }
           } else {
             auto* f_1b0_5 = this->field_0x1b0;
-            call_0x3b7e3d0(prev_0x1b0_5, &f_1b0_5->field_0xb8, &f_1b0_5->field_0xa8);
+            call_0x3b7e3d0(prev_0x1b0_7, &f_1b0_5->field_0xb8, &f_1b0_5->field_0xa8);
             auto* f_1b0_6 = this->field_0x1b0;
-            call_0x3b7e3d0(prev_0x1b0_5, &f_1b0_6->field_0xe8, &f_1b0_6->field_0xac);
+            call_0x3b7e3d0(prev_0x1b0_7, &f_1b0_6->field_0xe8, &f_1b0_6->field_0xac);
           }
         } else if (this->field_0x1b0->field_0x1ca != 0) {
           goto L_0x3b71047;
         }
-        auto ret_0x40625d0_10 = call_0x40625d0(prev_0x1b0_5);
-        if (ret_0x40625d0_10 != 0) {
-          if (ret_0x40625d0_10->field_0xa44 == 0) {
+        auto ret_0x40625d0_8 = call_0x40625d0(prev_0x1b0_7);
+        if (ret_0x40625d0_8 != 0) {
+          if (ret_0x40625d0_8->field_0xa44 == 0) {
             auto* f_1b0_7 = this->field_0x1b0;
             if (f_1b0_7->field_0x1ca != 0) {
               L_0x3b71092:
-              call_0x3b7e3d0(prev_0x1b0_5, &f_1b0_7->field_0x118, &f_1b0_7->field_0xb0);
+              call_0x3b7e3d0(prev_0x1b0_7, &f_1b0_7->field_0x118, &f_1b0_7->field_0xb0);
             }
           } else {
             auto* f_1b0_8 = this->field_0x1b0;
-            call_0x3b7e3d0(prev_0x1b0_5, &f_1b0_8->field_0x118, &f_1b0_8->field_0xb0);
+            call_0x3b7e3d0(prev_0x1b0_7, &f_1b0_8->field_0x118, &f_1b0_8->field_0xb0);
           }
         } else if (this->field_0x1b0->field_0x1ca != 0) {
           goto L_0x3b71092;

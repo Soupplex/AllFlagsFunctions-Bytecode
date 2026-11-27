@@ -10,7 +10,7 @@ Operação  : 0x1dcefa0: cmp byte [flag], imm8 ; fn=0x1dcefa0..0x1dcefc2
     Padrão  : FFlagVideoCapturePlaystation = false (default) [bool, mode=1]
     Papel   : Chave condicional (if/else gate) que ativa ou desativa este bloco de execução
     Fórmula : !VideoCapturePlaystation && f_40->field_0x8 == 0 && f_40->field_0xc >= 128
-    [XREF #2 @0x1dcf551] Classe  : RBX::VideoEnable (Inferido)
+    [XREF #2 @0x1dcf551] Classe  : RBX::EngineSubsystem (Inferido)
     [XREF #2 @0x1dcf551] Fórmula : !VideoCapturePlaystation && VideoVpxEncodeLowLatency2 == VideoCapturePlaystation
     [XREF #2 @0x1dcf551] Fórmula : VideoCapturePlaystation && (uint8_t)RVideoTrace >= 6 && (uint8_t)((uint64_t)RVideoTrace >> 8) >= 4
     [XREF #2 @0x1dcf551] Altera  : this->field_0x348
@@ -43,12 +43,12 @@ Operação  : 0x1dcefa0: cmp byte [flag], imm8 ; fn=0x1dcefa0..0x1dcefc2
     0x1dcefc1 | c3                       | ret
   
   === [Decompilacao C++ do XREF Runtime #2: 0x1dcf4c0..0x1dcfffd (insn @0x1dcf551: movzx reg, byte [flag])] ===
-    struct RBX::VideoEnable {
+    struct RBX::EngineSubsystem {
       /* +0x348 */ int32_t field_0x348;
     };
     
     // Flag defaults: VideoEnableVp8SpeedSettings2 = true, VideoCapturePlaystation = false, RVideoTrace = 0, VideoVpxEncodeLowLatency2 = false, VideoEncoderBitrate = 50000000, VideoGopSize = 180, VideoFixVpxGopSize = false, Vp8EncodeThreads = 12
-    auto RBX::VideoEnable::func_0x1dcf4c0(RBX::VideoEnable* this, void* param_2) {
+    auto RBX::EngineSubsystem::func_0x1dcf4c0(RBX::EngineSubsystem* this, void* param_2) {
       void* local_0x40;
       local_0x40 = this;
       void* v_r14_1;
@@ -180,7 +180,7 @@ Operação  : 0x1dcefa0: cmp byte [flag], imm8 ; fn=0x1dcefa0..0x1dcefc2
           v_rcx_5 = VideoEncoderBitrate;
         }
         local_0x48c = 0;
-        v_rdx_6 = ((int64_t)mulhi(0x20c49ba5e353f7cf, v_rcx_5) >> 7) + ((uint64_t)((int64_t)mulhi(0x20c49ba5e353f7cf, v_rcx_5) >> 7) >> 63);
+        v_rdx_6 = v_rcx_5 / 1000 + ((uint64_t)(v_rcx_5 / 1000) >> 63);
       }
       uint64_t local_0x4d0;
       local_0x4d0 = v_rdx_6;
@@ -1066,16 +1066,18 @@ Operação  : 0x1dcefa0: cmp byte [flag], imm8 ; fn=0x1dcefa0..0x1dcefc2
       if (VideoCapturePlaystation && (uint8_t)CaptureEngine >= 6 && (uint8_t)((uint64_t)CaptureEngine >> 8) >= 5) {
         uint64_t local_0x30;
         auto mem_1_1 = local_0x30;
-        local_0x30 = local_0x30 | 1ULL << 8;
+        local_0x30 = local_0x30 | 256;
         uint64_t frame_0x210;
         if (frame_0x210 != 0) {
           auto ret_0x1d67dd0_1 = call_0x1d67dd0();
           auto ret_0x1d68340_2 = call_0x1d68340(ret_0x1d67dd0_1);
           FLog::Log("[DFLog::CaptureEngine] Copying captured video from {} to {}", ret_0x1d68340_2);
         }
-        local_0x30 = mem_1_1 | 1ULL << 8 | 1ULL << 9;
+        local_0x30 = mem_1_1 | 256 | 512;
         void* v_rcx_3 = 0;
         void* v_rdx_4 = 15;
+        int64_t frame_0xd8;
+        int64_t frame_0xd0;
         int64_t frame_0xc0;
         if ((r15 + 0xb8)->field_0x10 != 0) {
           void* v_rdi_1;
@@ -1087,8 +1089,8 @@ Operação  : 0x1dcefa0: cmp byte [flag], imm8 ; fn=0x1dcefa0..0x1dcefc2
           auto ret_0x1d67dd0_3 = call_0x1d67dd0();
           auto ret_0x1d68340_4 = call_0x1d68340(ret_0x1d67dd0_3);
           frame_0xc0 = 0;
-          auto frame_0xd0 = 0;
-          auto frame_0xd8 = 15;
+          frame_0xd0 = 0;
+          frame_0xd8 = 15;
           call_0x1d60070((r15 + 0xb8)->field_0x18 >= 8 ? (r15 + 0xb8)->field_0x0 : r15 + 0xb8, v_rdi_1, &frame_0xc0, ret_0x1d68340_4);
           v_rcx_3 = frame_0xd0;
           v_rdx_4 = frame_0xd8;
@@ -1115,8 +1117,11 @@ Operação  : 0x1dcefa0: cmp byte [flag], imm8 ; fn=0x1dcefa0..0x1dcefc2
         uint64_t frame_0x1b0;
         auto frame_0x278 = frame_0x1b0;
         call_0x4971cd0(&local_0x70, 5, &local_0x60, &frame_m0x80, 1);
-        local_0x30 = (mem_1_1 | 1ULL << 8 | 1ULL << 9) & ~(1ULL << 9);
+        local_0x30 = (mem_1_1 | 256 | 512) & ~512;
         std::string::_Tidy_deallocate(frame_0xc0);
+        frame_0xd0 = 0;
+        frame_0xd8 = 15;
+        frame_0xc0 = 0;
         std::string::_Tidy_deallocate(0);
       }
       uint64_t frame_0x200;
@@ -1370,42 +1375,38 @@ Operação  : 0x1dcefa0: cmp byte [flag], imm8 ; fn=0x1dcefa0..0x1dcefc2
       uint64_t local_0x48;
       if ((uint8_t)RVideoTrace >= 6 && (uint8_t)((uint64_t)RVideoTrace >> 8) >= 3) {
         local_0x48 = "[DFLog::RVideoTrace] VpxSoftwareCodec::openInternal";
-        auto local_0x60 = RVideoTrace;
-        auto local_0x64 = *(uint32_t*)((uint8_t*)&RVideoTrace + 0x4);
-        auto local_0x68 = *(uint32_t*)((uint8_t*)&RVideoTrace + 0x8);
-        auto local_0x6c = *(uint32_t*)((uint8_t*)&RVideoTrace + 0xc);
-        call_0x4972020(&local_0x60, local_0x48 - 0x327181, 0, 0, 0, 0, 0);
+        FLog::Log("[DFLog::RVideoTrace] VpxSoftwareCodec::openInternal");
         v_rbx_1 = local_0x40;
       }
       if (param_2->field_0x0->field_0x8 != 0) {
         call_0x4954e70(v_rbx_1);
       } else if (param_2->field_0x0->field_0xc >= 128) {
         local_0x48 = 0.0;
-        int32_t v_rbx_8 = v_rbx_1;
+        int32_t v_rbx_10 = v_rbx_1;
         if (param_2->field_0x8 != 0) {
           param_2->field_0x8->field_0x8++;
-          v_rbx_8 = local_0x40;
+          v_rbx_10 = local_0x40;
         }
         local_0x48 = param_2->field_0x0;
         auto local_0x4c = 0.0;
         auto local_0x50 = param_2->field_0x8;
         auto local_0x54 = 0.0;
         auto local_0x58 = param_2;
-        auto ret_0x1dcf4c0_10 = call_0x1dcf4c0(this, &local_0x48);
-        call_0x4954e70(v_rbx_8);
+        auto ret_0x1dcf4c0_9 = call_0x1dcf4c0(this, &local_0x48);
+        call_0x4954e70(v_rbx_10);
         if (param_2->field_0x8 != 0) {
           call_0x6daf40(param_2->field_0x8);
         }
-        return ret_0x1dcf4c0_10;
+        return ret_0x1dcf4c0_9;
       } else {
         void* v_r14_2;
         int32_t selected_ebp_1;
-        int32_t v_r15_5;
-        int32_t v_r15_6;
-        int32_t v_rbp_7;
+        int32_t v_r15_8;
+        int32_t v_rbp_9;
         void* v_r13_4;
         int32_t v_rbp_3;
         uint64_t local_0x70;
+        int32_t v_r15_7;
         if (param_2->field_0x0->field_0xc == 1) {
           v_r14_2 = &sym_0x66baf40;
         } else if (param_2->field_0x0->field_0xc == 2) {
@@ -1431,8 +1432,8 @@ Operação  : 0x1dcefa0: cmp byte [flag], imm8 ; fn=0x1dcefa0..0x1dcefc2
               (this + 0xb0)->field_0x20 = 0;
               (this + 0xb0)->field_0x28 = &local_0x70;
               void* prev_0x0_1 = param_2->field_0x0;
-              auto vret_4 = (*v_r14_2->field_0x10)((this + 0xb0), 0);
-              if (vret_4 != 0) {
+              auto vret_3 = (*v_r14_2->field_0x10)((this + 0xb0), 0);
+              if (vret_3 != 0) {
                 (this + 0xb0)->field_0x18 = (this + 0xb0)->field_0x30 != 0 ? ((this + 0xb0)->field_0x30)->field_0x0 : 0;
                 if ((this + 0xb0)->field_0x8 != 0 && (this + 0xb0)->field_0x30 != 0) {
                   (*((this + 0xb0)->field_0x8)->field_0x18)();
@@ -1441,22 +1442,22 @@ Operação  : 0x1dcefa0: cmp byte [flag], imm8 ; fn=0x1dcefa0..0x1dcefc2
                   (this + 0xb0)->field_0x30 = 0;
                 }
               }
-              (this + 0xb0)->field_0x10 = vret_4;
-              v_rbp_3 = vret_4;
+              (this + 0xb0)->field_0x10 = vret_3;
+              v_rbp_3 = vret_3;
               v_r13_4 = prev_0x0_1;
             }
           } else {
             v_rbp_3 = 8;
           }
-          v_rbp_7 = (v_rbp_3 != 0 ? -1 : 0) & 0x80000005ULL;
+          v_rbp_9 = (v_rbp_3 != 0 ? -1 : 0) & 0x80000005ULL;
           if (v_r13_4->field_0x78 != 0) {
             this->field_0x318 = 1;
             if (this != -232) {
-              v_r15_5 = 3;
+              v_r15_7 = 3;
               if (v_r14_2->field_0x8 == 5) {
                 if ((v_r14_2->field_0xc & 0x1) == 0) {
                   (this + 0xe8)->field_0x10 = 4;
-                  v_r15_6 = 4;
+                  v_r15_8 = 4;
                 } else {
                   L_0x1dcf3b7:
                   (this + 0xe8)->field_0x0 = 0.0;
@@ -1468,8 +1469,8 @@ Operação  : 0x1dcefa0: cmp byte [flag], imm8 ; fn=0x1dcefa0..0x1dcefc2
                   (this + 0xe8)->field_0x30 = 0;
                   (this + 0xe8)->field_0x20 = 0;
                   (this + 0xe8)->field_0x28 = &local_0x70;
-                  auto vret_6 = (*v_r14_2->field_0x10)((this + 0xe8), 0);
-                  if (vret_6 != 0) {
+                  auto vret_5 = (*v_r14_2->field_0x10)((this + 0xe8), 0);
+                  if (vret_5 != 0) {
                     (this + 0xe8)->field_0x18 = (this + 0xe8)->field_0x30 != 0 ? ((this + 0xe8)->field_0x30)->field_0x0 : 0;
                     if ((this + 0xe8)->field_0x8 != 0 && (this + 0xe8)->field_0x30 != 0) {
                     (*((this + 0xe8)->field_0x8)->field_0x18)();
@@ -1478,29 +1479,29 @@ Operação  : 0x1dcefa0: cmp byte [flag], imm8 ; fn=0x1dcefa0..0x1dcefc2
                     (this + 0xe8)->field_0x30 = 0;
                     }
                   }
-                  v_r15_5 = vret_6;
+                  v_r15_7 = vret_5;
                   L_0x1dcf43c:
-                  (this + 0xe8)->field_0x10 = v_r15_5;
-                  v_r15_6 = v_r15_5;
+                  (this + 0xe8)->field_0x10 = v_r15_7;
+                  v_r15_8 = v_r15_7;
                 }
               } else {
-                (this + 0xe8)->field_0x10 = v_r15_5;
-                v_r15_6 = v_r15_5;
+                (this + 0xe8)->field_0x10 = v_r15_7;
+                v_r15_8 = v_r15_7;
               }
             } else {
-              v_r15_6 = 8;
+              v_r15_8 = 8;
             }
-            selected_ebp_1 = v_r15_6 != 0 ? 0x80000005ULL : (v_rbp_3 != 0 ? -1 : 0) & 0x80000005ULL;
-            v_rbp_7 = selected_ebp_1;
+            selected_ebp_1 = v_r15_8 != 0 ? 0x80000005ULL : (v_rbp_3 != 0 ? -1 : 0) & 0x80000005ULL;
+            v_rbp_9 = selected_ebp_1;
           }
-          if (v_rbp_7 == 0) {
+          if (v_rbp_9 == 0) {
             this->field_0x319 = 1;
           }
           call_0x4954e70(v_rbx_1);
           if (param_2->field_0x8 != 0) {
             call_0x6daf40(param_2->field_0x8);
           }
-          return v_rbp_7;
+          return v_rbp_9;
         } else {
           call_0x4954e70(v_rbx_1);
           if (param_2->field_0x8 != 0) {
@@ -1523,15 +1524,15 @@ Operação  : 0x1dcefa0: cmp byte [flag], imm8 ; fn=0x1dcefa0..0x1dcefc2
         } else {
           v_rbp_3 = 8;
         }
-        v_rbp_7 = (v_rbp_3 != 0 ? -1 : 0) & 0x80000005ULL;
+        v_rbp_9 = (v_rbp_3 != 0 ? -1 : 0) & 0x80000005ULL;
         if (v_r13_4->field_0x78 != 0) {
           this->field_0x318 = 1;
           if (this != -232) {
-            v_r15_5 = 3;
+            v_r15_7 = 3;
             if (v_r14_2->field_0x8 == 5) {
               if ((v_r14_2->field_0xc & 0x1) == 0) {
                 (this + 0xe8)->field_0x10 = 4;
-                v_r15_6 = 4;
+                v_r15_8 = 4;
               } else {
                 goto L_0x1dcf3b7;
               }
@@ -1539,19 +1540,19 @@ Operação  : 0x1dcefa0: cmp byte [flag], imm8 ; fn=0x1dcefa0..0x1dcefc2
               goto L_0x1dcf43c;
             }
           } else {
-            v_r15_6 = 8;
+            v_r15_8 = 8;
           }
-          selected_ebp_1 = v_r15_6 != 0 ? 0x80000005ULL : (v_rbp_3 != 0 ? -1 : 0) & 0x80000005ULL;
-          v_rbp_7 = selected_ebp_1;
+          selected_ebp_1 = v_r15_8 != 0 ? 0x80000005ULL : (v_rbp_3 != 0 ? -1 : 0) & 0x80000005ULL;
+          v_rbp_9 = selected_ebp_1;
         }
-        if (v_rbp_7 == 0) {
+        if (v_rbp_9 == 0) {
           this->field_0x319 = 1;
         }
         call_0x4954e70(v_rbx_1);
         if (param_2->field_0x8 != 0) {
           call_0x6daf40(param_2->field_0x8);
         }
-        return v_rbp_7;
+        return v_rbp_9;
       }
       if (param_2->field_0x8 != 0) {
         call_0x6daf40(param_2->field_0x8);

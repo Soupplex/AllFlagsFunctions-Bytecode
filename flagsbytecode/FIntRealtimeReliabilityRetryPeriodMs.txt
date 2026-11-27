@@ -9,10 +9,10 @@ Operação  : 0x48c6c96: mov/math reg, [flag] ; fn=0x48c6ae0..0x48c6dd3
     Classe  : RBX::RealtimeReliability (Inferido)
     Padrão  : FIntRealtimeReliabilityRetryPeriodMs = 9000000 (default) [int, mode=1]
     Papel   : Divisor / Taxa de frequência (Hz) usado em cálculos de intervalo e orçamento
-    Fórmula : (uint32_t)ret_0x4975550_13 % (uint32_t)RealtimeReliabilityRetryPeriodMs
+    Fórmula : (uint32_t)ret_0x4975550_12 % (uint32_t)RealtimeReliabilityRetryPeriodMs
     Altera  : this->field_0x318->field_0x5c, this->field_0x358, this->field_0x360, this->field_0x318->field_0x58
     [XREF #2 @0x48e00c0] Classe  : RBX::RealtimeReliability (Inferido)
-    [XREF #2 @0x48e00c0] Fórmula : (((int64_t)mulhi(0x346dc5d63886594b, ret_0x5de65b0_1) >> 11) + ((uint64_t)((int64_t)mulhi(0x346dc5d63886594b, ret_0x5de65b0_1) >> 11) >> 63)) % RealtimeReliabilityRetryPeriodMs
+    [XREF #2 @0x48e00c0] Fórmula : this->field_0x5c - (ret_0x5de65b0_1 / 10000 + ((uint64_t)(ret_0x5de65b0_1 / 10000) >> 63)) % RealtimeReliabilityRetryPeriodMs + ret_0x5de65b0_1 / 10000 + ((uint64_t)(ret_0x5de65b0_1 / 10000) >> 63)
     [XREF #2 @0x48e00c0] Fórmula : i_ebx + RealtimeReliabilityRetryPeriodMs
     [XREF #2 @0x48e00c0] Altera  : this->field_0x8->field_0xc, this->field_0x28, this->field_0x30
   
@@ -56,20 +56,16 @@ Operação  : 0x48c6c96: mov/math reg, [flag] ; fn=0x48c6ae0..0x48c6dd3
         if ((uint8_t)RealtimeCoreNotification >= 6 && (uint8_t)((uint64_t)RealtimeCoreNotification >> 8) >= 3) {
           local_0x40 = "[DFLog::RealtimeCoreNotification] Realtime starting connection";
           local_0x20 = 0;
-          auto local_0x80 = RealtimeCoreNotification;
-          auto local_0x84 = *(uint32_t*)((uint8_t*)&RealtimeCoreNotification + 0x4);
-          auto local_0x88 = *(uint32_t*)((uint8_t*)&RealtimeCoreNotification + 0x8);
-          auto local_0x8c = *(uint32_t*)((uint8_t*)&RealtimeCoreNotification + 0xc);
-          call_0x4972020(&local_0x80, local_0x40 - 0xcc13f9, 0, 0, 0, 0, 0);
+          FLog::Log("[DFLog::RealtimeCoreNotification] Realtime starting connection");
         }
         this->field_0x2e0->vfunc_0x8();
         if (RealtimeFixMeasurementIsConnected) {
           call_0x48c06d0(this);
         }
         void* prev_0x318_2 = this->field_0x318;
-        auto ret_0x48df440_10 = call_0x48df440(this);
+        auto ret_0x48df440_9 = call_0x48df440(this);
         auto* f_318 = this->field_0x318;
-        if ((uint8_t)ret_0x48df440_10 != 0 && f_318->field_0x58 == 0) {
+        if ((uint8_t)ret_0x48df440_9 != 0 && f_318->field_0x58 == 0) {
           call_0x2e12fd0(&f_318->field_0x10);
           auto* f_318_2 = this->field_0x318;
           if (f_318_2->field_0x58 != 0) {
@@ -82,9 +78,9 @@ Operação  : 0x48c6c96: mov/math reg, [flag] ; fn=0x48c6ae0..0x48c6dd3
             if (f_318_3->field_0x10 != 3 || !atomic_cas(&f_318_3->field_0x10, f_318_3->field_0x10, 1)) {
               call_0xdac0(&this->field_0x318->field_0x10);
             }
-            auto ret_0x4975550_13 = call_0x4975550();
+            auto ret_0x4975550_12 = call_0x4975550();
             auto* f_318_4 = this->field_0x318;
-            f_318_4->field_0x5c = (uint32_t)ret_0x4975550_13 % (uint32_t)RealtimeReliabilityRetryPeriodMs;
+            f_318_4->field_0x5c = (uint32_t)ret_0x4975550_12 % (uint32_t)RealtimeReliabilityRetryPeriodMs;
             if ((uint8_t)RealtimeReliabilityMeasurement >= 6 && (uint8_t)((uint64_t)RealtimeReliabilityMeasurement >> 8) >= 3) {
               local_0x40 = f_318_4->field_0x5c;
               local_0x20 = 1;
@@ -715,8 +711,9 @@ Operação  : 0x48c6c96: mov/math reg, [flag] ; fn=0x48c6ae0..0x48c6dd3
       } else {
         fstk_10 = 0.0;
       }
+      float mem_4_4 = local_0x30;
       local_0x30 = 0.0;
-      auto local_0x80 = local_0x30;
+      auto local_0x80 = mem_4_4;
       auto local_0x88 = fstk_10;
       auto local_0x98 = &sym_0x7145650 | 0x6ULL;
       this->field_0x2e0->vfunc_0x28(this->field_0x2e0, &local_0x80, this->field_0x24, 0.0, 0.0, 0.0, 0.0);
@@ -1579,17 +1576,15 @@ Operação  : 0x48c6c96: mov/math reg, [flag] ; fn=0x48c6ae0..0x48c6dd3
     void RBX::RealtimeReliability::func_0x48e0060(RBX::RealtimeReliability* this) {
       if (this->field_0x58 != 0) {
         auto ret_0x5de65b0_1 = call_0x5de65b0();
-        int32_t tmp_3 = (((int64_t)mulhi(0x346dc5d63886594b, ret_0x5de65b0_1) >> 11) + ((uint64_t)((int64_t)mulhi(0x346dc5d63886594b, ret_0x5de65b0_1) >> 11) >> 63)) % RealtimeReliabilityRetryPeriodMs;
-        int32_t tmp_4 = this->field_0x5c - tmp_3 + ((int64_t)mulhi(0x346dc5d63886594b, ret_0x5de65b0_1) >> 11) + ((uint64_t)((int64_t)mulhi(0x346dc5d63886594b, ret_0x5de65b0_1) >> 11) >> 63);
-        int32_t i_ebx = tmp_4;
-        int32_t v_rbx_1 = tmp_4;
-        if (tmp_4 <= ((int64_t)mulhi(0x346dc5d63886594b, ret_0x5de65b0_1) >> 11) + ((uint64_t)((int64_t)mulhi(0x346dc5d63886594b, ret_0x5de65b0_1) >> 11) >> 63)) {
+        int32_t tmp_1 = this->field_0x5c - (ret_0x5de65b0_1 / 10000 + ((uint64_t)(ret_0x5de65b0_1 / 10000) >> 63)) % RealtimeReliabilityRetryPeriodMs + ret_0x5de65b0_1 / 10000 + ((uint64_t)(ret_0x5de65b0_1 / 10000) >> 63);
+        int32_t i_ebx = tmp_1;
+        int32_t v_rbx_1 = tmp_1;
+        if (tmp_1 <= ret_0x5de65b0_1 / 10000 + ((uint64_t)(ret_0x5de65b0_1 / 10000) >> 63)) {
           do { // L_0x48e00d5
             i_ebx = i_ebx + RealtimeReliabilityRetryPeriodMs;
-          } while (i_ebx <= ((int64_t)mulhi(0x346dc5d63886594b, ret_0x5de65b0_1) >> 11) + ((uint64_t)((int64_t)mulhi(0x346dc5d63886594b, ret_0x5de65b0_1) >> 11) >> 63)); // loop -> L_0x48e00d5
+          } while (i_ebx <= ret_0x5de65b0_1 / 10000 + ((uint64_t)(ret_0x5de65b0_1 / 10000) >> 63)); // loop -> L_0x48e00d5
           v_rbx_1 = i_ebx;
         }
-        int32_t tmp_5 = v_rbx_1 - (((int64_t)mulhi(0x346dc5d63886594b, ret_0x5de65b0_1) >> 11) + ((uint64_t)((int64_t)mulhi(0x346dc5d63886594b, ret_0x5de65b0_1) >> 11) >> 63));
         if (this->field_0x8 != 0 && this->field_0x8->field_0x8 != 0) {
           int32_t i_eax = this->field_0x8->field_0x8;
           while (!atomic_cas(&this->field_0x8->field_0x8, i_eax, i_eax + 1)) {
@@ -1625,19 +1620,20 @@ Operação  : 0x48c6c96: mov/math reg, [flag] ; fn=0x48c6ae0..0x48c6dd3
           local_0x40 = 0.0;
           uint64_t local_0x78;
           local_0x78 = &sym_0x7145b48 | 0x6ULL;
+          double ftmp_1 = (double)(v_rbx_1 - (ret_0x5de65b0_1 / 10000 + ((uint64_t)(ret_0x5de65b0_1 / 10000) >> 63)));
           auto local_0x68 = v_rdx_3;
           uint64_t local_0x50;
           auto* f_70 = this->field_0x70;
-          auto vret_3 = f_70->vfunc_0x8(f_70, &local_0x50, &local_0x60, (double)tmp_5 / 1000.0);
-          void* prev_0x0_6 = vret_3->field_0x0;
+          auto vret_3 = f_70->vfunc_0x8(f_70, &local_0x50, &local_0x60, ftmp_1 / 1000.0);
+          void* prev_0x0_2 = vret_3->field_0x0;
           vret_3->field_0x0 = 0;
-          void* prev_0x8_7 = vret_3->field_0x8;
+          void* prev_0x8_3 = vret_3->field_0x8;
           vret_3->field_0x8 = 0;
-          this->field_0x28 = prev_0x0_6;
-          void* prev_0x30_8 = this->field_0x30;
-          this->field_0x30 = prev_0x8_7;
-          if (prev_0x30_8 != 0) {
-            call_0x6daf40(prev_0x30_8);
+          this->field_0x28 = prev_0x0_2;
+          void* prev_0x30_4 = this->field_0x30;
+          this->field_0x30 = prev_0x8_3;
+          if (prev_0x30_4 != 0) {
+            call_0x6daf40(prev_0x30_4);
           }
           uint64_t local_0x58;
           if (local_0x58 != 0) {
@@ -1650,10 +1646,10 @@ Operação  : 0x48c6c96: mov/math reg, [flag] ; fn=0x48c6ae0..0x48c6dd3
             } else {
               v_rax_4 = ((local_0x78 & 0xfffffffffffffffcULL) & 0xfffffffffffffff8ULL)->field_0x18;
             }
-            auto mem_9_9 = local_0x78;
+            auto mem_5_5 = local_0x78;
             local_0x78 = 0;
-            auto expr_1 = ~((int8_t)(uint8_t)(mem_9_9 & 0xfffffffffffffffcULL) >> 2);
-            if (((int8_t)(uint8_t)mem_9_9 >> 1 & 0x1) != 0) {
+            auto expr_1 = ~((int8_t)(uint8_t)(mem_5_5 & 0xfffffffffffffffcULL) >> 2);
+            if (((int8_t)(uint8_t)mem_5_5 >> 1 & 0x1) != 0) {
               if (v_rax_4 != 0) {
                 (*v_rax_4)(&local_0x60, (uint8_t)expr_1);
               }

@@ -9,8 +9,8 @@ Operação  : 0x13eb02b: mov/math reg, [flag] ; fn=0x13eafa0..0x13eb41d
     Classe  : RBX::WorldStep (Inferido)
     Padrão  : DFIntWorldStepMax = 32 (default) [int, mode=2]
     Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    Fórmula : (double)this->field_0x868 * (this->field_0x3b8 - this->field_0x3c0) - (double)(this->field_0xe8 - this->field_0x3c8) + this->field_0x3d0 <= max((double)WorldStepMax, 1.0)
-    Fórmula : -max((double)WorldStepMax, 1.0) > (double)this->field_0x868 * (this->field_0x3b8 - this->field_0x3c0) - (double)(this->field_0xe8 - this->field_0x3c8) + this->field_0x3d0
+    Fórmula : (double)this->field_0x868 * (this->field_0x3b8 - this->field_0x3c0) - (double)(this->field_0xe8 - this->field_0x3c8) + prev_0x3d0_1 <= max((double)WorldStepMax, 1.0)
+    Fórmula : -max((double)WorldStepMax, 1.0) > (double)this->field_0x868 * (this->field_0x3b8 - this->field_0x3c0) - (double)(this->field_0xe8 - this->field_0x3c8) + prev_0x3d0_1
     Altera  : this->field_0x3d0, this->field_0x3c8, this->field_0x3c0
   
   === [Decompilacao C++ da Funcao 0x13eafa0..0x13eb41d] ===
@@ -25,17 +25,19 @@ Operação  : 0x13eb02b: mov/math reg, [flag] ; fn=0x13eafa0..0x13eb41d
     
     // Flag defaults: WorldStepMax = 32, WorldStepsOffsetAdjustRate = 4000, WorldStepsBehind = 0, WorldStepsBehindG = 0
     double RBX::WorldStep::func_0x13eafa0(RBX::WorldStep* this) {
-      int32_t v_rdi_7 = this->field_0xe8;
+      int32_t v_rdi_9 = this->field_0xe8;
       if (this->field_0x3c8 != 0) {
         double ftmp_1 = (double)this->field_0x868 * (this->field_0x3b8 - this->field_0x3c0);
         double ftmp_2 = ftmp_1 - (double)(this->field_0xe8 - this->field_0x3c8);
-        this->field_0x3d0 = ftmp_2 + this->field_0x3d0;
-        double fxmm1_1 = max((double)WorldStepMax, 1.0);
-        if (ftmp_2 + this->field_0x3d0 <= max((double)WorldStepMax, 1.0)) {
-          if (-max((double)WorldStepMax, 1.0) > ftmp_2 + this->field_0x3d0) {
-            fxmm1_1 = -max((double)WorldStepMax, 1.0);
+        double prev_0x3d0_1 = this->field_0x3d0;
+        this->field_0x3d0 = ftmp_2 + prev_0x3d0_1;
+        auto expr_2 = max((double)WorldStepMax, 1.0);
+        double fxmm1_1 = expr_2;
+        if (ftmp_2 + prev_0x3d0_1 <= expr_2) {
+          if (-expr_2 > ftmp_2 + prev_0x3d0_1) {
+            fxmm1_1 = -expr_2;
           } else {
-            fxmm1_1 = ftmp_2 + this->field_0x3d0;
+            fxmm1_1 = ftmp_2 + prev_0x3d0_1;
           }
         }
         this->field_0x3d0 = fxmm1_1;
@@ -56,24 +58,21 @@ Operação  : 0x13eb02b: mov/math reg, [flag] ; fn=0x13eafa0..0x13eb41d
           fxmm1_4 = 0.0;
         }
         this->field_0x3d0 = fxmm1_4;
-        int32_t v_rdi_6 = this->field_0xe8;
-        uint64_t local_0x20;
+        int32_t v_rdi_7 = this->field_0xe8;
+        double fxmm8_8 = (double)(this->field_0xe8 - this->field_0x3c8);
         uint64_t local_0xe0;
-        uint64_t local_0x30;
         uint64_t local_0xd0;
         uint64_t local_0xd8;
+        uint64_t local_0x20;
         uint64_t local_0xe8;
+        uint64_t local_0x30;
         uint64_t local_0x28;
         if ((uint8_t)WorldStepsBehind != 0) {
           int32_t v_rdi_5 = this->field_0xe8;
-          auto expr_1 = (uint8_t*)&WorldStepsBehind + 0x8;
-          auto expr_2 = (uint8_t*)&WorldStepsBehind + 0x4;
-          auto expr_3 = (uint8_t*)&WorldStepsBehind + 0xc;
-          auto expr_4 = (uint64_t)WorldStepsBehind >> 8;
-          if ((uint8_t)WorldStepsBehind >= 6 && (uint8_t)expr_4 >= 3) {
+          double fxmm8_6 = (double)(this->field_0xe8 - this->field_0x3c8);
+          auto expr_1 = (uint64_t)WorldStepsBehind >> 8;
+          if ((uint8_t)WorldStepsBehind >= 6 && (uint8_t)expr_1 >= 3) {
             local_0xd8 = 0;
-            local_0xd0 = "[FLog::WorldStepsBehind] DELTA     WorldSteps       : %d";
-            void* mem_1_1 = local_0xd0;
             local_0xd0 = 0;
             local_0x30 = local_0xd0;
             local_0x28 = local_0xd8;
@@ -81,73 +80,55 @@ Operação  : 0x13eb02b: mov/math reg, [flag] ; fn=0x13eafa0..0x13eb41d
             local_0x20 = local_0xe0;
             local_0xe8 = (float)(double)(this->field_0xe8 - this->field_0x3c8);
             auto prev_0xe8_2 = this->field_0xe8;
-            auto local_0x40 = WorldStepsBehind;
-            auto local_0x44 = *(uint32_t*)expr_2;
-            auto local_0x48 = *(uint32_t*)expr_1;
-            auto local_0x4c = *(uint32_t*)expr_3;
-            call_0x4972020(&local_0x40, mem_1_1 - 0x397c268, 0xffff10adULL, local_0xe8, local_0xe0, local_0xd8, local_0xd0);
+            FLog::Log("[FLog::WorldStepsBehind] DELTA     WorldSteps       : %d", 0xffff10adULL);
             v_rdi_5 = prev_0xe8_2;
+            fxmm8_6 = (double)(prev_0xe8_2 - this->field_0x3c8);
           }
           if ((uint8_t)WorldStepsBehind != 0 && (uint8_t)WorldStepsBehind >= 6) {
-            if ((uint8_t)expr_4 >= 3) {
+            if ((uint8_t)expr_1 >= 3) {
               local_0xd8 = 0;
-              local_0xd0 = "[FLog::WorldStepsBehind] Expected  WorldSteps       : %d";
-              void* mem_3_3 = local_0xd0;
               local_0xd0 = 0;
               local_0x30 = local_0xd0;
               local_0x28 = local_0xd8;
               local_0xe0 = 0;
               local_0x20 = local_0xe0;
               local_0xe8 = (float)ftmp_1;
-              auto local_0x50 = WorldStepsBehind;
-              auto local_0x54 = *(uint32_t*)expr_2;
-              auto local_0x58 = *(uint32_t*)expr_1;
-              auto local_0x5c = *(uint32_t*)expr_3;
-              call_0x4972020(&local_0x50, mem_3_3 - 0x39803f5, 0xffff10adULL, local_0xe8, local_0xe0, local_0xd8, local_0xd0);
+              FLog::Log("[FLog::WorldStepsBehind] Expected  WorldSteps       : %d", 0xffff10adULL);
             }
-            if ((uint8_t)WorldStepsBehind >= 6 && (uint8_t)expr_4 >= 3) {
+            if ((uint8_t)WorldStepsBehind >= 6 && (uint8_t)expr_1 >= 3) {
               local_0xd8 = 0;
-              local_0xd0 = "[FLog::WorldStepsBehind] dt: %f";
-              void* mem_4_4 = local_0xd0;
               local_0xd0 = 0;
               local_0x30 = local_0xd0;
               local_0x28 = local_0xd8;
               local_0xe0 = 0;
               local_0x20 = local_0xe0;
               local_0xe8 = (float)(this->field_0x3b8 - this->field_0x3c0);
-              auto local_0x60 = WorldStepsBehind;
-              auto local_0x64 = *(uint32_t*)expr_2;
-              auto local_0x68 = *(uint32_t*)expr_1;
-              auto local_0x6c = *(uint32_t*)expr_3;
-              call_0x4972020(&local_0x60, mem_4_4 - 0x3984582, 0xffff10adULL, local_0xe8, local_0xe0, local_0xd8, local_0xd0);
-              v_rdi_6 = v_rdi_5;
+              FLog::Log("[FLog::WorldStepsBehind] dt: %f", 0xffff10adULL);
+              v_rdi_7 = v_rdi_5;
+              fxmm8_8 = fxmm8_6;
             } else {
-              v_rdi_6 = v_rdi_5;
+              v_rdi_7 = v_rdi_5;
+              fxmm8_8 = fxmm8_6;
             }
           } else {
-            v_rdi_6 = v_rdi_5;
+            v_rdi_7 = v_rdi_5;
+            fxmm8_8 = fxmm8_6;
           }
         }
         if ((uint8_t)WorldStepsBehindG >= 6 && (uint8_t)((uint64_t)WorldStepsBehindG >> 8) >= 3) {
-          local_0xd0 = "[FLog::WorldStepsBehindG] Number of WorldSteps behind, wsps, deltaTime: %f  %f  %f";
-          void* mem_5_5 = local_0xd0;
           local_0xd0 = 0;
           local_0x30 = local_0xd0;
           local_0xd8 = (float)ftmp_1;
           local_0x28 = local_0xd8;
-          local_0xe0 = (float)(double)(this->field_0xe8 - this->field_0x3c8);
+          local_0xe0 = (float)fxmm8_8;
           local_0xe8 = (float)this->field_0x3d0;
           local_0x20 = local_0xe0;
-          auto local_0x70 = WorldStepsBehindG;
-          auto local_0x74 = *(uint32_t*)((uint8_t*)&WorldStepsBehindG + 0x4);
-          auto local_0x78 = *(uint32_t*)((uint8_t*)&WorldStepsBehindG + 0x8);
-          auto local_0x7c = *(uint32_t*)((uint8_t*)&WorldStepsBehindG + 0xc);
-          call_0x4972020(&local_0x70, mem_5_5 - 0x39a105d, 0xffff10adULL, local_0xe8, local_0xe0, local_0xd8, local_0xd0);
+          FLog::Log("[FLog::WorldStepsBehindG] Number of WorldSteps behind, wsps, deltaTime: %f  %f  %f", 0xffff10adULL, local_0xe8);
         }
-        v_rdi_7 = v_rdi_6;
+        v_rdi_9 = v_rdi_7;
       }
-      if (v_rdi_7 != this->field_0xe8) {
-        call_0x1bf4f90(1, " DELTA     WorldSteps       : %d", v_rdi_7, this->field_0xe8);
+      if (v_rdi_9 != this->field_0xe8) {
+        call_0x1bf4f90(1, " DELTA     WorldSteps       : %d", v_rdi_9, this->field_0xe8);
       }
       this->field_0x3c8 = this->field_0xe8;
       this->field_0x3c0 = this->field_0x3b8;

@@ -16,8 +16,7 @@ Operação  : 0x3d1a6ec: mov/math reg, [flag] ; fn=0x3d19360..0x3d1a864
     this->maxClientSimulationRadius_0x3a8 (offset +0x3a8) <- DFIntMaxClientSimulationRadius = 80000000 (@0x3d1a7b6)
     this->minClientSimulationRadius_0x3b4 (offset +0x3b4) <- DFIntMinClientSimulationRadius = 80000000 (@0x3d1a7a3)
     [XREF #2 @0x3d1d021] Classe  : RBX::EngineSubsystem (Inferido)
-    [XREF #2 @0x3d1d021] Fórmula : this->field_0x3b4 > std::clamp(param_2, 1.0f, min(this->field_0x3a8, DebugUseCustomSimRadius ? (float)MaxClientSimulationRadius : 1000.0f))
-    [XREF #2 @0x3d1d021] Altera  : this->field_0x3b4
+    [XREF #2 @0x3d1d021] Fórmula : this->field_0x3b4 > min(min(this->field_0x3a8, (float)MaxClientSimulationRadius), xmm0)
   
   === [Decompilacao C++ da Funcao 0x3d19360..0x3d1a864] ===
     struct RBX::Player {
@@ -339,6 +338,7 @@ Operação  : 0x3d1a6ec: mov/math reg, [flag] ; fn=0x3d19360..0x3d1a864
       call_0x3d18ca0(&this->field_0x98);
       global_0x8db9104++;
       this->field_0x0 = &sym_0x70e3ca0;
+      void* prev_0x98_1 = this->field_0x98;
       this->field_0x98 = &sym_0x70e3f08;
       this->field_0x3e0 = 0;
       this->field_0x3e8 = 0;
@@ -707,10 +707,11 @@ Operação  : 0x3d1a6ec: mov/math reg, [flag] ; fn=0x3d19360..0x3d1a864
             this->field_0x1228 = 0;
             this->field_0x1230 = 0;
             this->field_0x1238 = 0;
+            void* prev_0x1240_9 = this->field_0x1240;
             this->field_0x1250 = 0;
             this->field_0x1258 = 15;
             this->field_0x1240 = 0;
-            call_0x6f7000(&this->field_0x1240, &sym_0x6647145, 0);
+            call_0x6f7000(&prev_0x1240_9, &sym_0x6647145, 0);
             this->field_0x1260 = 0;
             this->field_0x1268 = 0;
             this->field_0x1270 = 0;
@@ -793,7 +794,7 @@ Operação  : 0x3d1a6ec: mov/math reg, [flag] ; fn=0x3d19360..0x3d1a864
             uint64_t local_0x38;
             if (DMCTMigratePlayerCameraZoom) {
               local_0x40 = (float)CameraMaxZoomDistance;
-              void* sel_r14_1 = this == 0 ? 0 : this;
+              void* sel_r14_1 = &prev_0x98_1 == 0 ? 0 : this;
               (*global_0x80f4c78)(sel_r14_1);
               auto ret_0x77e9b0_55 = call_0x77e9b0();
               if ((uint8_t)ret_0x77e9b0_55 != 0) {
@@ -841,9 +842,9 @@ Operação  : 0x3d1a6ec: mov/math reg, [flag] ; fn=0x3d19360..0x3d1a864
             std::string::_Tidy_deallocate(local_0x388);
             if (DebugUseCustomSimRadius) {
               if (DMCTMigratePlayerSimple) {
-                call_0x9e3720(&this->field_0x98, (float)MinClientSimulationRadius);
+                call_0x9e3720(&prev_0x98_1, (float)MinClientSimulationRadius);
                 local_0x38 = (float)MaxClientSimulationRadius;
-                void* sel_rcx_2 = this == 0 ? 0 : this;
+                void* sel_rcx_2 = &prev_0x98_1 == 0 ? 0 : this;
                 (*global_0x80f4c78)(sel_rcx_2);
                 auto ret_0x77e9b0_75 = call_0x77e9b0();
                 if ((uint8_t)ret_0x77e9b0_75 != 0) {
@@ -2210,6 +2211,7 @@ Operação  : 0x3d1a6ec: mov/math reg, [flag] ; fn=0x3d19360..0x3d1a864
     
     auto SubObj_0x3d18aa0::func_0x3d18aa0(SubObj_0x3d18aa0* this) {
       this->field_0x0 = 0;
+      void* prev_0x8_1 = this->field_0x8;
       this->field_0x8 = 0;
       this->field_0x10 = 0;
       this->field_0x18 = 0;
@@ -2236,7 +2238,7 @@ Operação  : 0x3d1a6ec: mov/math reg, [flag] ; fn=0x3d19360..0x3d1a864
         ret_0x4956040_4->field_0x30 = -1;
         ret_0x4956040_4->field_0x38 = -1;
         ret_0x4956040_4->field_0x40 = -1;
-        if (&this->field_0x8 != &local_0x20) {
+        if (&prev_0x8_1 != &local_0x20) {
           if (this->field_0x8 != 0) {
             void* v_rcx_1 = this->field_0x8;
             if (((int64_t)(this->field_0x18 - this->field_0x8) >> 3) * 8 >= 0x1000) {
@@ -2366,43 +2368,29 @@ Operação  : 0x3d1a6ec: mov/math reg, [flag] ; fn=0x3d19360..0x3d1a864
     0x3d18bef | 48 8d 4c 24 20           | lea rcx, [rsp + 0x20]
     0x3d18bf4 | e8 f7 da 0e 02           | call 0x5e066f0
   
-  === [Decompilacao C++ do XREF Runtime #2: 0x3d1b890..0x3d1d094 (insn @0x3d1d021: mov/math reg, [flag])] ===
+  === [Decompilacao C++ do XREF Runtime #2: 0x3d1d021..0x3d1d094 (insn @0x3d1d021: mov/math reg, [flag])] ===
     struct RBX::EngineSubsystem {
       /* +0x3a8 */ float   field_0x3a8;
       /* +0x3b4 */ float   field_0x3b4;
     };
     
-    // Flag defaults: DebugUseCustomSimRadius = true, MaxClientSimulationRadius = 80000000, DMCTMigratePlayerSimple = true
-    void RBX::EngineSubsystem::func_0x3d1cff0(RBX::EngineSubsystem* this, float param_2) {
-      if (isnan(param_2) != 1) {
-        if (this->field_0x3b4 > std::clamp(param_2, 1.0f, min(this->field_0x3a8, DebugUseCustomSimRadius ? (float)MaxClientSimulationRadius : 1000.0f))) {
-          call_0x7385b0(&this->field_0xb48);
-        }
-        if (DMCTMigratePlayerSimple) {
-          tailcall_0x9e3720(&this->field_0x98, std::clamp(param_2, 1.0f, min(this->field_0x3a8, DebugUseCustomSimRadius ? (float)MaxClientSimulationRadius : 1000.0f)));
-          return;
-        }
-        this->field_0x3b4 = std::clamp(param_2, 1.0f, min(this->field_0x3a8, DebugUseCustomSimRadius ? (float)MaxClientSimulationRadius : 1000.0f));
+    // Flag defaults: MaxClientSimulationRadius = 80000000, DMCTMigratePlayerSimple = true
+    void RBX::EngineSubsystem::func_0x3d1d021(RBX::EngineSubsystem* this) {
+      auto expr_1 = (float)MaxClientSimulationRadius;
+      if (this->field_0x3b4 > min(min(this->field_0x3a8, expr_1), xmm0)) {
+        call_0x7385b0(&this->field_0xb48);
       }
+      if (DMCTMigratePlayerSimple) {
+        tailcall_0x9e3720(rbx + 0x98, min(min(this->field_0x3a8, expr_1), xmm0));
+        return;
+      }
+      rbx->field_0x3b4 = min(min(this->field_0x3a8, expr_1), xmm0);
     }
   
-  === [Instrucoes x86-64 do XREF Runtime #2 (0x3d1b890..0x3d1d094)] ===
-    0x3d1cff0 | 40 53                    | push rbx
-    0x3d1cff2 | 48 83 ec 30              | sub rsp, 0x30
-    0x3d1cff6 | 0f 2e c9                 | ucomiss xmm1, xmm1
-    0x3d1cff9 | 48 8b d9                 | mov rbx, rcx
-    0x3d1cffc | 0f 9a c0                 | setp al
-    0x3d1cfff | 3c 01                    | cmp al, 0x1
-    0x3d1d001 | 0f 84 87 00 00 00        | je 0x3d1d08e
-    0x3d1d007 | 80 3d ea 71 40 04 00     | cmp byte ptr [rip + 0x44071ea], 0x0 ; FFlagDebugUseCustomSimRadius
-    0x3d1d00e | f3 0f 10 05 9e 26 88 03  | movss xmm0, dword ptr [rip + 0x388269e] ; 1.0
-    0x3d1d016 | f3 0f 5f c1              | maxss xmm0, xmm1
-    0x3d1d01a | 0f 29 74 24 20           | movaps xmmword ptr [rsp + 0x20], xmm6
-    0x3d1d01f | 74 0d                    | je 0x3d1d02e
+  === [Instrucoes x86-64 do XREF Runtime #2 (0x3d1d021..0x3d1d094)] ===
     0x3d1d021 | 66 0f 6e 0d 9f 71 40 04  | movd xmm1, dword ptr [rip + 0x440719f] ; DFIntMaxClientSimulationRadius
     0x3d1d029 | 0f 5b c9                 | cvtdq2ps xmm1, xmm1
     0x3d1d02c | eb 08                    | jmp 0x3d1d036
-    L_0x3d1d02e:
     0x3d1d02e | f3 0f 10 0d 72 3c 88 03  | movss xmm1, dword ptr [rip + 0x3883c72] ; 1000.0
     L_0x3d1d036:
     0x3d1d036 | f3 0f 10 b1 a8 03 00 00  | movss xmm6, dword ptr [rcx + 0x3a8]
@@ -2425,7 +2413,6 @@ Operação  : 0x3d1a6ec: mov/math reg, [flag] ; fn=0x3d19360..0x3d1a864
     L_0x3d1d081:
     0x3d1d081 | f3 0f 11 b3 b4 03 00 00  | movss dword ptr [rbx + 0x3b4], xmm6
     0x3d1d089 | 0f 28 74 24 20           | movaps xmm6, xmmword ptr [rsp + 0x20]
-    L_0x3d1d08e:
     0x3d1d08e | 48 83 c4 30              | add rsp, 0x30
     0x3d1d092 | 5b                       | pop rbx
     0x3d1d093 | c3                       | ret
@@ -2526,8 +2513,6 @@ Operação  : 0x3d1a6ec: mov/math reg, [flag] ; fn=0x3d19360..0x3d1a864
 
 [Strings .rdata na função]
   * "Instance"  [@rdata 0x7191800, ref @0x3d1939a, key/identifier]
-  * "DataPersistence is deprecated and loadData will not load any data, please use DataStoreService i"  [@rdata 0x740c550, ref @0x3d1c797, literal, 96B]
-  * "Cannot load data from Player that is not in DataModel"  [@rdata 0x740c510, ref @0x3d1c7ce, literal, 53B]
   * "Unknown"  [@rdata 0x719abe8, ref @0x3d18d01, key/identifier]
 
 [Co-Flags na mesma função]

@@ -11,7 +11,7 @@ Operação  : 0x212e73b: mov/math reg, [flag] ; fn=0x212e620..0x212e787
     Papel   : Parâmetro de configuração lido diretamente pela rotina
     Altera  : this->field_0x10
     [Child @0x212e1a0] Papel   : Limite / Seletor (clamp / min / max / enum threshold) que restringe ou seleciona o modo na rotina
-    [Child @0x212e1a0] Fórmula : tmp_3 >= RbxTransportReportTimeBetweenTTClientThresholdMs
+    [Child @0x212e1a0] Fórmula : (uint64_t)tmp_3 >> 9 >= RbxTransportReportTimeBetweenTTClientThresholdMs
   
   === [Decompilacao C++ da Funcao 0x212e620..0x212e787] ===
     struct RBX::RbxTransport {
@@ -24,13 +24,13 @@ Operação  : 0x212e73b: mov/math reg, [flag] ; fn=0x212e620..0x212e787
     void RBX::RbxTransport::func_0x212e620(RBX::RbxTransport* this, int64_t param_2, void* param_3) {
       if (param_3->field_0xb8 == 0) {
         if (param_3->field_0x0 != 0) {
-          void* prev_0x10_3 = this->field_0x10;
+          void* prev_0x10_2 = this->field_0x10;
           this->field_0x10++;
           uint64_t local_0x60;
           call_0x495a220(&local_0x60);
           double ftmp_1 = (local_0x60 - this->field_0x28) * 1000.0;
           if (param_3->field_0xb8 != 0) goto L_0x212e788; // [out of decoded window]
-          tailcall_0x2178110(param_3->field_0x0, (uint64_t)ftmp_1, prev_0x10_3 < RbxTransportMaxRuppDeserializationFailureReportsToPoints, 1);
+          tailcall_0x2178110(param_3->field_0x0, (uint64_t)ftmp_1, prev_0x10_2 < RbxTransportMaxRuppDeserializationFailureReportsToPoints, 1);
           return;
         }
         return;
@@ -40,8 +40,7 @@ Operação  : 0x212e73b: mov/math reg, [flag] ; fn=0x212e620..0x212e787
         void* prev_0x18_1 = this->field_0x0->field_0x18;
         auto ret_0x5de65b0_2 = call_0x5de65b0();
         if (param_3->field_0xb8 != 0) {
-          int64_t tmp_2 = ((uint64_t)((int64_t)mulhi(0x20c49ba5e353f7cf, ret_0x5de65b0_2 * 100) >> 7) >> 63) + ((int64_t)mulhi(0x20c49ba5e353f7cf, ret_0x5de65b0_2 * 100) >> 7);
-          auto vret_6 = (*prev_0x18_1)(this, param_3, param_2, tmp_2);
+          auto vret_6 = (*prev_0x18_1)(this, param_3, param_2, ((uint64_t)(ret_0x5de65b0_2 * 100 / 1000) >> 63) + (ret_0x5de65b0_2 * 100 / 1000));
           call_0x212e1a0(vret_6, &this->field_0x8, vret_1, RbxTransportReportTimeBetweenTTClientThresholdMs);
           return;
         }
@@ -147,21 +146,21 @@ Operação  : 0x212e73b: mov/math reg, [flag] ; fn=0x212e620..0x212e787
   
   === [Sub-Rotina Chamada: 0x212e1a0..0x212e29d via call @0x212e74b (Direct Engine Sub-Call)] ===
     // Flag defaults: RbxTransportReportTimeBetweenTTClientThresholdMs = 2147483647
-    void SubObj_0x212e1a0::func_0x212e1a0(SubObj_0x212e1a0* this, void* param_2, void* param_3, int32_t RbxTransportReportTimeBetweenTTClientThresholdMs) {
-      if (this == 0) {
-        param_2->field_0x18 = (uint8_t)this;
+    void func_0x212e1a0(int64_t param_1, void* param_2, void* param_3, int32_t RbxTransportReportTimeBetweenTTClientThresholdMs) {
+      if (param_1 == 0) {
+        param_2->field_0x18 = (uint8_t)param_1;
       }
       if (param_2->field_0x18 == 0) {
         void* prev_0x38_1 = param_3->field_0x38;
         auto ret_0x5de65b0_1 = call_0x5de65b0();
-        int64_t tmp_2 = ((int64_t)mulhi(0x20c49ba5e353f7cf, ret_0x5de65b0_1 * 100) >> 7) + ((uint64_t)((int64_t)mulhi(0x20c49ba5e353f7cf, ret_0x5de65b0_1 * 100) >> 7) >> 63);
-        int64_t tmp_3 = (uint64_t)(((uint64_t)(tmp_2 - prev_0x38_1 - mulhi(0x624dd2f1a9fbe77, tmp_2 - prev_0x38_1)) >> 1) + mulhi(0x624dd2f1a9fbe77, tmp_2 - prev_0x38_1)) >> 9;
-        if (tmp_3 >= RbxTransportReportTimeBetweenTTClientThresholdMs) {
+        int64_t tmp_2 = ret_0x5de65b0_1 * 100 / 1000 + ((uint64_t)(ret_0x5de65b0_1 * 100 / 1000) >> 63) - prev_0x38_1 - mulhi(0x624dd2f1a9fbe77, ret_0x5de65b0_1 * 100 / 1000 + ((uint64_t)(ret_0x5de65b0_1 * 100 / 1000) >> 63) - prev_0x38_1);
+        int64_t tmp_3 = ((uint64_t)tmp_2 >> 1) + mulhi(0x624dd2f1a9fbe77, ret_0x5de65b0_1 * 100 / 1000 + ((uint64_t)(ret_0x5de65b0_1 * 100 / 1000) >> 63) - prev_0x38_1);
+        if ((uint64_t)tmp_3 >> 9 >= RbxTransportReportTimeBetweenTTClientThresholdMs) {
           param_2->field_0x18 = 1;
           uint64_t local_0x58;
           call_0x495a220(&local_0x58);
           double ftmp_1 = (local_0x58 - param_2->field_0x20) * 1000.0;
-          call_0x2179060(this, tmp_3, param_3->field_0x28, (uint64_t)ftmp_1, 1);
+          call_0x2179060(param_1, (uint64_t)tmp_3 >> 9, param_3->field_0x28, (uint64_t)ftmp_1, 1);
         }
       }
     }
@@ -306,7 +305,7 @@ Operação  : 0x212e73b: mov/math reg, [flag] ; fn=0x212e620..0x212e787
         if ((uint8_t)RbxTransportRnaExp >= 6 && (uint8_t)((uint64_t)RbxTransportRnaExp >> 8) >= 2) {
           local_0x60 = "[DFLog::RbxTransportRnaExp] Refusing to create a connection for reserved application {}";
           uint64_t local_0x40;
-          local_0x40 = local_0x60 - 0x2b87a2;
+          local_0x40 = "[DFLog::RbxTransportRnaExp] Refusing to create a connection for reserved application {}";
           local_0x60 = (uint8_t)param_3;
           FLog::Log("[DFLog::RbxTransportRnaExp] Refusing to create a connection for reserved application {}", local_0x60);
         }
@@ -351,7 +350,7 @@ Operação  : 0x212e73b: mov/math reg, [flag] ; fn=0x212e620..0x212e787
           if ((uint8_t)RbxTransportRnaExp >= 6 && (uint8_t)((uint64_t)RbxTransportRnaExp >> 8) >= 4) {
             local_0x38 = "[DFLog::RbxTransportRnaExp] Creating transport session to {}:{}";
             uint64_t local_0x90;
-            local_0x90 = local_0x38 - 0x5a21e0;
+            local_0x90 = "[DFLog::RbxTransportRnaExp] Creating transport session to {}:{}";
             void* v_rcx_1 = param_3 + 8;
             if (param_3->field_0x20 >= 16) {
               v_rcx_1 = param_3->field_0x8;
@@ -388,8 +387,12 @@ Operação  : 0x212e73b: mov/math reg, [flag] ; fn=0x212e620..0x212e787
                 void* mem_3_3 = local_0x50;
                 local_0x50 = 0;
                 ret_0x4956040_4->field_0x18 = local_0x40;
+                uint64_t local_0x44;
+                ret_0x4956040_4->field_0x1c = local_0x44;
                 uint64_t local_0x60;
                 ret_0x4956040_4->field_0x20 = local_0x60;
+                uint64_t local_0x4c;
+                ret_0x4956040_4->field_0x24 = local_0x4c;
                 ret_0x4956040_4->field_0x28 = mem_3_3;
                 if (local_0x50 != 0 && local_0x60 != 0) {
                   (*local_0x60)(local_0x40, local_0x50);
